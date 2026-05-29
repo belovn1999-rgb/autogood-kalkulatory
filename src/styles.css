@@ -1,0 +1,543 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #eef3f8;
+  color: #102033;
+  font-family: Arial, sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.startup {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.languageCard,
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(15, 35, 52, 0.08);
+}
+
+.languageCard {
+  width: min(460px, 100%);
+  padding: 34px;
+  text-align: center;
+}
+
+.languageCard h1 {
+  margin: 22px 0;
+  color: #334155;
+  font-size: 24px;
+}
+
+.startupActions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.startupActions button,
+.printBtn {
+  border: 0;
+  border-radius: 8px;
+  background: #005b82;
+  color: #fff;
+  padding: 12px 18px;
+  font-weight: 700;
+}
+
+.appShell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 42px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.logoMark {
+  display: block;
+  width: 245px;
+  max-width: 42vw;
+  height: auto;
+  object-fit: contain;
+}
+
+.logoMarkStartup {
+  width: min(340px, 86%);
+  max-width: none;
+  margin: 0 auto;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rateField {
+  width: 190px;
+  margin: 0;
+}
+
+.rateField > span {
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.segmented button {
+  min-width: 48px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #475569;
+  padding: 8px 12px;
+  font-weight: 700;
+}
+
+.segmented button.active {
+  background: #005b82;
+  color: #fff;
+}
+
+.segmented.full {
+  width: 100%;
+}
+
+.segmented.full button {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+  font-size: 13px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tabs button {
+  min-height: 58px;
+  border: 1px solid #d7e1ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  padding: 10px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tabs button span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #005b82;
+}
+
+.tabs button.active {
+  border-color: #005b82;
+  background: #005b82;
+  color: #fff;
+}
+
+.tabs button.active span {
+  background: #fff;
+}
+
+.subtitle {
+  margin: 16px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.card {
+  padding: 20px;
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  color: #005b82;
+  font-size: 20px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field > span,
+.toggleBlock > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.inputWrap input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 12px;
+  outline: none;
+}
+
+.inputWrap b {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  background: #eef3f8;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.rateControl {
+  display: grid;
+  grid-template-columns: minmax(74px, 1fr) 28px 46px;
+  align-items: stretch;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.rateButtons {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  border-left: 1px solid #dbe4ee;
+}
+
+.rateButtons button {
+  border: 0;
+  background: #eef3f8;
+  color: #005b82;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+  padding: 0;
+}
+
+.rateButtons button + button {
+  border-top: 1px solid #dbe4ee;
+}
+
+.rateControl input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 9px 8px;
+  text-align: center;
+  outline: none;
+}
+
+.rateControl b {
+  display: grid;
+  place-items: center;
+  background: #eef3f8;
+  color: #64748b;
+  font-size: 12px;
+}
+
+select {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+  color: #102033;
+}
+
+.toggleBlock {
+  margin-bottom: 16px;
+}
+
+.divider {
+  height: 1px;
+  margin: 18px 0;
+  background: #dbe4ee;
+}
+
+.resultsTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.resultsTitle h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.moneyIcon {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  color: #005b82;
+}
+
+.resultsTitle strong {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.rows {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 520px 190px;
+  justify-content: start;
+  gap: 18px;
+  align-items: center;
+  width: 758px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 7px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.resultRow small {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.rowLabel {
+  font-weight: 700;
+}
+
+.rowValue {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  white-space: nowrap;
+  min-width: 190px;
+}
+
+.rowValue strong {
+  display: inline-block;
+  min-width: 86px;
+  text-align: left;
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.tag-brutto {
+  color: #005b82;
+}
+
+.tag-netto {
+  color: #64748b;
+}
+
+.tag-plusVAT,
+.tag-plusVAT23 {
+  color: #c2410c;
+}
+
+.vatRow {
+  border-color: #e2e8f0;
+  background: #fff;
+  color: #102033;
+}
+
+.vatRow small {
+  color: #64748b;
+}
+
+.totalBox {
+  display: grid;
+  grid-template-columns: 520px 190px;
+  justify-content: start;
+  gap: 18px;
+  align-items: center;
+  width: 758px;
+  max-width: 100%;
+  margin-top: 16px;
+  border-radius: 12px;
+  background: #005b82;
+  color: #fff;
+  padding: 18px 14px;
+  text-align: left;
+}
+
+.totalBox span {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+.totalBox strong {
+  display: inline-block;
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1;
+}
+
+.totalBox em {
+  display: inline-block;
+  margin-left: 8px;
+  font-style: normal;
+  opacity: 0.9;
+  white-space: nowrap;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.totalValue {
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+  transform: translateX(-36px);
+}
+
+.rateNote {
+  width: 758px;
+  max-width: 100%;
+  margin: 10px 0 0;
+  padding: 0 14px;
+  color: #64748b;
+  font-size: 13px;
+  font-style: italic;
+  text-align: right;
+}
+
+.footnotes {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px dashed #94a3b8;
+  color: #64748b;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.footnotes p {
+  margin: 5px 0;
+}
+
+.errorBox {
+  margin: 40px auto;
+  max-width: 520px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 26px;
+  box-shadow: 0 16px 40px rgba(15, 35, 52, 0.08);
+}
+
+@media (max-width: 860px) {
+  .grid,
+  .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .resultsTitle,
+  .resultRow {
+    align-items: stretch;
+  }
+
+  .topbar,
+  .resultRow {
+    grid-template-columns: 1fr;
+  }
+
+  .totalBox {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    display: grid;
+  }
+
+  .headerActions,
+  .rowValue {
+    justify-content: flex-start;
+  }
+
+  .rateField {
+    width: min(220px, 100%);
+  }
+
+  .rowValue {
+    white-space: normal;
+    min-width: 0;
+  }
+
+  .rowValue strong {
+    min-width: 0;
+  }
+}
