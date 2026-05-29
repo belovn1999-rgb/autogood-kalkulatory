@@ -491,7 +491,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
 </head>
 <body>
   <header>
-    <img class="printLogo" src="/assets/autogood-logo.png" alt="AUTOGOOD" />
+    <img class="printLogo" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
     <h2>${tab.name[lang]}</h2>
   </header>
   <table>${rowsHtml}</table>
@@ -537,7 +537,7 @@ function App() {
     return (
       <main className="startup">
         <section className="languageCard">
-          <img className="logoMark logoMarkStartup" src="/assets/autogood-logo.png" alt="AUTOGOOD" />
+          <img className="logoMark logoMarkStartup" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
           <h1>{copy.pl.pickLang} / {copy.ru.pickLang}</h1>
           <div className="startupActions">
             <button onClick={() => setLang("pl")}>PL</button>
@@ -551,7 +551,7 @@ function App() {
   return (
     <main className="appShell">
       <header className="topbar">
-        <img className="logoMark" src="/assets/autogood-logo.png" alt="AUTOGOOD" />
+        <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
         <div className="headerActions">
           <RateInput label={c.exchange} value={rate} onChange={setRate} />
           <div className="segmented" aria-label="Language">
