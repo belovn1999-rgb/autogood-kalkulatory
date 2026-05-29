@@ -16,6 +16,22 @@ Nastepnie otworz:
 http://localhost:4173
 ```
 
+## Publiczny link
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/
+```
+
+Zmiany opublikowane w galezi `main` sa automatycznie widoczne pod publicznym linkiem przez GitHub Pages.
+
+## Publikacja zmian
+
+Po zmianach uruchom:
+
+```bash
+./scripts/publish.sh "Opis zmiany"
+```
+
 ## Zawartosc
 
 - kalkulatory dla zakupu bezposredniego, aukcji i dealerow;
