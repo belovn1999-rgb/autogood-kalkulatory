@@ -28,6 +28,12 @@ Deal Desk URL:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/deal.html
 ```
 
+Messages URL:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/messages.html
+```
+
 GitHub repository:
 
 ```text

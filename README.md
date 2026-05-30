@@ -20,6 +20,12 @@ Karta transakcji:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/deal.html
 ```
 
+Szablony wiadomosci:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/messages.html
+```
+
 ## Uruchomienie
 
 W folderze projektu uruchom:
@@ -59,3 +65,4 @@ Po zmianach uruchom:
 - drukowanie lub zapis do PDF z przegladarki.
 - mapa procesu sprzedazy auta pod zamowienie.
 - karta transakcji z klientem, autem, statusem, zadaniami i finansami.
+- szablony wiadomosci do klienta z podstawieniem danych z Deal Desk.

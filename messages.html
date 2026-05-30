@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD Client Messages</title>
+    <link rel="stylesheet" href="./src/tools.css" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>Messages</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./deal.html">Deal Desk</a>
+          <a href="./process.html">Process OS</a>
+          <a href="./calculators.html">Kalkulatory</a>
+        </nav>
+      </header>
+
+      <section class="dealHero">
+        <div>
+          <p class="eyebrow">AUTOGOOD communication hub</p>
+          <h1>Сообщения клиенту</h1>
+          <p>Готовые тексты для WhatsApp/email по этапам сделки. Данные подтягиваются из последней сохранённой карточки Deal Desk.</p>
+        </div>
+        <div class="dealActions">
+          <button id="refreshMessages" type="button">Обновить из сделки</button>
+          <button id="copyCurrentMessage" type="button">Копировать</button>
+        </div>
+      </section>
+
+      <section class="messageLayout">
+        <aside class="messageSide">
+          <section class="dealSummary">
+            <h2>Данные сделки</h2>
+            <dl>
+              <div>
+                <dt>Клиент</dt>
+                <dd id="messageClient">Не указано</dd>
+              </div>
+              <div>
+                <dt>Авто</dt>
+                <dd id="messageCar">Не указано</dd>
+              </div>
+              <div>
+                <dt>Статус</dt>
+                <dd id="messageStatus">Новый запрос</dd>
+              </div>
+              <div>
+                <dt>Следующий шаг</dt>
+                <dd id="messageNextStep">Не указан</dd>
+              </div>
+            </dl>
+            <a class="stageAction" href="./deal.html">Открыть карточку сделки</a>
+          </section>
+
+          <section class="messageControls">
+            <h2>Настройки</h2>
+            <label>
+              Язык
+              <select id="messageLanguage">
+                <option value="ru">Русский</option>
+                <option value="pl">Polski</option>
+              </select>
+            </label>
+            <label>
+              Этап
+              <select id="messageStage"></select>
+            </label>
+          </section>
+        </aside>
+
+        <section class="messageMain">
+          <div class="messagePreviewHeader">
+            <div>
+              <p class="eyebrow">Текст сообщения</p>
+              <h2 id="messageTitle">Первичный ответ</h2>
+            </div>
+            <span id="copyState">Готово</span>
+          </div>
+          <textarea id="messageText" rows="16"></textarea>
+          <div class="messageHint">
+            Проверь цифры и условия перед отправкой. Текст не отправляется автоматически.
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./src/messages.js?v=1"></script>
+  </body>
+</html>

@@ -554,6 +554,109 @@ a {
   font-weight: 800;
 }
 
+.messageLayout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.messageSide {
+  display: grid;
+  gap: 12px;
+}
+
+.messageControls,
+.messageMain {
+  border: 1px solid #d5e0ea;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
+}
+
+.messageControls {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.messageControls h2,
+.messagePreviewHeader h2 {
+  margin: 0;
+  color: #005b82;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.messageControls label {
+  display: grid;
+  gap: 7px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.messageControls select {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #102033;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 15px;
+}
+
+.messageMain {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.messagePreviewHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.messagePreviewHeader .eyebrow {
+  margin-bottom: 5px;
+}
+
+#copyState {
+  border-radius: 8px;
+  background: #edf7f5;
+  color: #007c89;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+#messageText {
+  width: 100%;
+  min-height: 420px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #102033;
+  padding: 16px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.48;
+  resize: vertical;
+}
+
+.messageHint {
+  border-radius: 8px;
+  background: #f6f9fc;
+  color: #526173;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 @media (max-width: 720px) {
   .toolsShell {
     width: min(100% - 24px, 1040px);
@@ -633,6 +736,7 @@ a {
   .nextGrid,
   .dealLayout,
   .dealForm,
+  .messageLayout,
   .dealFieldsTwo {
     grid-template-columns: 1fr;
   }
@@ -652,12 +756,22 @@ a {
   .dealSidebar {
     position: static;
   }
+
+  .messagePreviewHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #messageText {
+    min-height: 360px;
+  }
 }
 
 @media (min-width: 721px) and (max-width: 980px) {
   .pipeline,
   .nextGrid,
-  .dealLayout {
+  .dealLayout,
+  .messageLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
