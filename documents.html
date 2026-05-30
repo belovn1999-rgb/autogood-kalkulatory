@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD Documents</title>
+    <link rel="stylesheet" href="./src/tools.css" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>Documents</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./deal.html">Deal Desk</a>
+          <a href="./messages.html">Messages</a>
+          <a href="./process.html">Process OS</a>
+        </nav>
+      </header>
+
+      <section class="dealHero">
+        <div>
+          <p class="eyebrow">AUTOGOOD document builder</p>
+          <h1>Пакет сделки</h1>
+          <p>Генератор рабочих документов из Deal Desk: бриф клиента, коммерческое предложение, вопросы продавцу, чеклист оплаты и выдачи.</p>
+        </div>
+        <div class="dealActions">
+          <button id="refreshDocument" type="button">Обновить из сделки</button>
+          <button id="copyDocument" type="button">Копировать</button>
+          <button id="downloadDocument" type="button">Скачать TXT</button>
+          <button id="printDocument" type="button">Печать / PDF</button>
+        </div>
+      </section>
+
+      <section class="messageLayout">
+        <aside class="messageSide">
+          <section class="dealSummary">
+            <h2>Данные сделки</h2>
+            <dl>
+              <div>
+                <dt>Клиент</dt>
+                <dd id="documentClient">Не указано</dd>
+              </div>
+              <div>
+                <dt>Авто</dt>
+                <dd id="documentCar">Не указано</dd>
+              </div>
+              <div>
+                <dt>Источник</dt>
+                <dd id="documentSource">Не указан</dd>
+              </div>
+              <div>
+                <dt>Статус</dt>
+                <dd id="documentStatus">Новый запрос</dd>
+              </div>
+            </dl>
+            <a class="stageAction" href="./deal.html">Открыть карточку сделки</a>
+          </section>
+
+          <section class="messageControls">
+            <h2>Документ</h2>
+            <label>
+              Тип документа
+              <select id="documentType"></select>
+            </label>
+            <label>
+              Язык
+              <select id="documentLanguage">
+                <option value="ru">Русский</option>
+                <option value="pl">Polski</option>
+              </select>
+            </label>
+          </section>
+        </aside>
+
+        <section class="documentMain">
+          <div class="messagePreviewHeader">
+            <div>
+              <p class="eyebrow">Документ</p>
+              <h2 id="documentTitle">Бриф клиента</h2>
+            </div>
+            <span id="documentState">Готово</span>
+          </div>
+          <pre id="documentOutput"></pre>
+          <div class="messageHint">
+            Это рабочий черновик. Перед отправкой клиенту или продавцу проверь суммы, VIN, условия оплаты и юридические формулировки.
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./src/documents.js?v=1"></script>
+  </body>
+</html>

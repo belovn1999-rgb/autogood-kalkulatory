@@ -34,6 +34,12 @@ Messages URL:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/messages.html
 ```
 
+Documents URL:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/documents.html
+```
+
 GitHub repository:
 
 ```text

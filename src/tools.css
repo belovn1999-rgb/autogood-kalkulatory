@@ -567,7 +567,8 @@ a {
 }
 
 .messageControls,
-.messageMain {
+.messageMain,
+.documentMain {
   border: 1px solid #d5e0ea;
   border-radius: 8px;
   background: #fff;
@@ -613,6 +614,12 @@ a {
   padding: 18px;
 }
 
+.documentMain {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
 .messagePreviewHeader {
   display: flex;
   align-items: end;
@@ -646,6 +653,21 @@ a {
   font-size: 16px;
   line-height: 1.48;
   resize: vertical;
+}
+
+#documentOutput {
+  min-height: 520px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #102033;
+  padding: 18px;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .messageHint {
@@ -765,6 +787,10 @@ a {
   #messageText {
     min-height: 360px;
   }
+
+  #documentOutput {
+    min-height: 420px;
+  }
 }
 
 @media (min-width: 721px) and (max-width: 980px) {
@@ -811,8 +837,15 @@ a {
 
   .dealPanel,
   .dealSummary,
-  .dealChecklist {
+  .dealChecklist,
+  .documentMain {
     box-shadow: none;
     break-inside: avoid;
+  }
+
+  #documentOutput {
+    min-height: 0;
+    border: 0;
+    padding: 0;
   }
 }
