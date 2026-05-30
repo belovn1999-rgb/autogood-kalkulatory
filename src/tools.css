@@ -180,6 +180,56 @@ a {
   text-transform: uppercase;
 }
 
+.archiveTools {
+  margin-top: 34px;
+  border-top: 1px solid #d5e0ea;
+  padding-top: 18px;
+}
+
+.archiveTools h2 {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.archiveGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.archiveGrid a {
+  display: grid;
+  gap: 5px;
+  min-height: 82px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.68);
+  padding: 11px;
+}
+
+.archiveGrid span {
+  color: #005b82;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.archiveGrid strong {
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.archiveGrid em {
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
 .isSoon {
   opacity: 0.72;
 }
@@ -756,6 +806,7 @@ a {
 
   .pipeline,
   .nextGrid,
+  .archiveGrid,
   .dealLayout,
   .dealForm,
   .messageLayout,
@@ -796,6 +847,7 @@ a {
 @media (min-width: 721px) and (max-width: 980px) {
   .pipeline,
   .nextGrid,
+  .archiveGrid,
   .dealLayout,
   .messageLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
