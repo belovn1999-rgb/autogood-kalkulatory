@@ -2,7 +2,6 @@ const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
 const pdfStorageKey = "autogoodPdfContract.v2";
-const dealStorageKey = "autogoodDealDesk.v1";
 
 const labels = {
   client: ["Клиент", "Client", "Klient"],
@@ -292,32 +291,6 @@ function resetForm() {
   setStatus("");
 }
 
-function applyDealDeskData() {
-  const saved = localStorage.getItem(dealStorageKey);
-  if (!saved) {
-    setStatus("Brak zapisanej karty Deal Desk.");
-    return;
-  }
-
-  try {
-    const deal = JSON.parse(saved);
-    $("clientName").value = deal.clientName || $("clientName").value;
-    $("clientPhone").value = deal.clientPhone || $("clientPhone").value;
-    $("clientEmail").value = deal.clientEmail || $("clientEmail").value;
-    $("vehicleMakeModel").value = deal.carModel || $("vehicleMakeModel").value;
-    $("mileageTo").value = deal.mileage ? `${deal.mileage} km` : $("mileageTo").value;
-    $("firstRegistration").value = deal.year || $("firstRegistration").value;
-    $("budgetTotal").value = deal.clientBudget ? `${deal.clientBudget} PLN` : $("budgetTotal").value;
-    const notes = [deal.notes, deal.nextStep].filter(Boolean).join("\n");
-    $("expectedEquipment").value = notes || $("expectedEquipment").value;
-    saveData();
-    setStatus("Dane z Deal Desk dodane.");
-  } catch {
-    localStorage.removeItem(dealStorageKey);
-    setStatus("Nie udalo sie odczytac Deal Desk.");
-  }
-}
-
 function applySavedData(data) {
   $("contractDate").value = data.contract?.date || todayISO();
   $("sequence").value = data.contract?.sequence || 1;
@@ -369,7 +342,6 @@ $("resetBtn").addEventListener("click", resetForm);
 $("saveBtn").addEventListener("click", saveData);
 $("exportBtn").addEventListener("click", exportData);
 $("printBtn").addEventListener("click", () => window.print());
-$("dealBtn").addEventListener("click", applyDealDeskData);
 
 document.querySelectorAll('input[name="clientType"]').forEach((node) => {
   node.addEventListener("change", syncClientTypeRules);
