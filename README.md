@@ -14,6 +14,12 @@ Mapa procesu managera:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/process.html
 ```
 
+Karta transakcji:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/deal.html
+```
+
 ## Uruchomienie
 
 W folderze projektu uruchom:
@@ -52,3 +58,4 @@ Po zmianach uruchom:
 - wersja PL/RU;
 - drukowanie lub zapis do PDF z przegladarki.
 - mapa procesu sprzedazy auta pod zamowienie.
+- karta transakcji z klientem, autem, statusem, zadaniami i finansami.

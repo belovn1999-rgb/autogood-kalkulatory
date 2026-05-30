@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD Deal Desk</title>
+    <link rel="stylesheet" href="./src/tools.css" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>Deal Desk</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./process.html">Process OS</a>
+          <a href="./calculators.html">Kalkulatory</a>
+        </nav>
+      </header>
+
+      <section class="dealHero">
+        <div>
+          <p class="eyebrow">AUTOGOOD manager workspace</p>
+          <h1>Карточка сделки</h1>
+          <p>Один рабочий экран для менеджера: клиент, автомобиль, источник покупки, статус, расчёт, задачи и следующий шаг.</p>
+        </div>
+        <div class="dealActions">
+          <button id="saveDeal" type="button">Сохранить</button>
+          <button id="exportDeal" type="button">Экспорт JSON</button>
+          <button id="printDeal" type="button">Печать / PDF</button>
+        </div>
+      </section>
+
+      <section class="dealLayout">
+        <form class="dealForm" id="dealForm">
+          <section class="dealPanel">
+            <h2>Клиент</h2>
+            <label>
+              Имя клиента
+              <input name="clientName" placeholder="Например: Иван Петров" />
+            </label>
+            <label>
+              Телефон / WhatsApp
+              <input name="clientPhone" placeholder="+48..." />
+            </label>
+            <label>
+              Email
+              <input name="clientEmail" type="email" placeholder="client@email.com" />
+            </label>
+            <label>
+              Канал входа
+              <select name="leadSource">
+                <option>Instagram</option>
+                <option>Рекомендация</option>
+                <option>Сайт</option>
+                <option>OLX / Otomoto</option>
+                <option>Повторный клиент</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="dealPanel">
+            <h2>Автомобиль</h2>
+            <label>
+              Марка / модель
+              <input name="carModel" placeholder="BMW X5 30d" />
+            </label>
+            <label>
+              VIN
+              <input name="vin" placeholder="WBA..." />
+            </label>
+            <div class="dealFieldsTwo">
+              <label>
+                Год
+                <input name="year" inputmode="numeric" placeholder="2021" />
+              </label>
+              <label>
+                Пробег, км
+                <input name="mileage" inputmode="numeric" placeholder="85000" />
+              </label>
+            </div>
+            <label>
+              Ссылка на объявление
+              <input name="listingUrl" type="url" placeholder="https://..." />
+            </label>
+          </section>
+
+          <section class="dealPanel">
+            <h2>Сделка</h2>
+            <label>
+              Статус
+              <select name="status">
+                <option>Новый запрос</option>
+                <option>Подбор вариантов</option>
+                <option>Расчёт отправлен</option>
+                <option>Клиент согласовал</option>
+                <option>Проверка авто</option>
+                <option>Покупка / документы</option>
+                <option>Логистика</option>
+                <option>Выдача</option>
+                <option>Закрыто</option>
+              </select>
+            </label>
+            <label>
+              Источник авто
+              <select name="carSource">
+                <option>Дилер Европа</option>
+                <option>Аукцион VAT 23%</option>
+                <option>Аукцион VAT Marża</option>
+                <option>Dealer VAT 23%</option>
+                <option>Dealer VAT Marża</option>
+              </select>
+            </label>
+            <div class="dealFieldsTwo">
+              <label>
+                Бюджет клиента, PLN
+                <input name="clientBudget" inputmode="decimal" placeholder="150000" />
+              </label>
+              <label>
+                Плановая цена, PLN
+                <input name="targetPrice" inputmode="decimal" placeholder="142000" />
+              </label>
+            </div>
+            <label>
+              Следующий шаг
+              <input name="nextStep" placeholder="Отправить 3 варианта до 15:00" />
+            </label>
+          </section>
+
+          <section class="dealPanel">
+            <h2>Финансы</h2>
+            <div class="dealFieldsTwo">
+              <label>
+                Цена авто, EUR
+                <input name="carPriceEur" inputmode="decimal" placeholder="25000" />
+              </label>
+              <label>
+                Курс EUR/PLN
+                <input name="eurRate" inputmode="decimal" placeholder="4.26" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Доставка, PLN
+                <input name="transportPln" inputmode="decimal" placeholder="3500" />
+              </label>
+              <label>
+                Расходы, PLN
+                <input name="costsPln" inputmode="decimal" placeholder="1200" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Комиссия, PLN
+                <input name="commissionPln" inputmode="decimal" placeholder="2250" />
+              </label>
+              <label>
+                Продажа клиенту, PLN
+                <input name="salePricePln" inputmode="decimal" placeholder="0" />
+              </label>
+            </div>
+          </section>
+
+          <section class="dealPanel dealPanelWide">
+            <h2>Заметки</h2>
+            <textarea name="notes" rows="6" placeholder="Что важно помнить по клиенту, авто, рискам и договорённостям"></textarea>
+          </section>
+        </form>
+
+        <aside class="dealSidebar">
+          <section class="dealSummary">
+            <h2>Сводка</h2>
+            <dl>
+              <div>
+                <dt>Статус</dt>
+                <dd id="summaryStatus">Новый запрос</dd>
+              </div>
+              <div>
+                <dt>Авто</dt>
+                <dd id="summaryCar">Не указано</dd>
+              </div>
+              <div>
+                <dt>Клиент</dt>
+                <dd id="summaryClient">Не указано</dd>
+              </div>
+              <div>
+                <dt>Ориентир затрат</dt>
+                <dd id="summaryCost">0 PLN</dd>
+              </div>
+              <div>
+                <dt>Плановая маржа</dt>
+                <dd id="summaryMargin">0 PLN</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="dealChecklist">
+            <h2>Чеклист менеджера</h2>
+            <label><input type="checkbox" name="task" value="brief" /> Бриф клиента заполнен</label>
+            <label><input type="checkbox" name="task" value="calc" /> Расчёт подготовлен</label>
+            <label><input type="checkbox" name="task" value="vin" /> VIN / история проверены</label>
+            <label><input type="checkbox" name="task" value="seller" /> Вопросы продавцу отправлены</label>
+            <label><input type="checkbox" name="task" value="docs" /> Документы подготовлены</label>
+            <label><input type="checkbox" name="task" value="logistics" /> Логистика согласована</label>
+          </section>
+
+          <section class="dealQuickLinks">
+            <h2>Быстрые переходы</h2>
+            <a href="./calculators.html">Открыть калькуляторы</a>
+            <a href="./process.html">Открыть Process OS</a>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./src/deal.js?v=1"></script>
+  </body>
+</html>

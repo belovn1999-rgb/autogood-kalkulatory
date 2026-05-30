@@ -22,6 +22,12 @@ Process OS URL:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/process.html
 ```
 
+Deal Desk URL:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/deal.html
+```
+
 GitHub repository:
 
 ```text
