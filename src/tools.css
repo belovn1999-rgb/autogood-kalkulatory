@@ -181,9 +181,9 @@ a {
 }
 
 .archiveTools {
-  margin-top: 34px;
+  margin-top: 76px;
   border-top: 1px solid #d5e0ea;
-  padding-top: 18px;
+  padding-top: 14px;
 }
 
 .archiveTools h2 {
@@ -198,34 +198,34 @@ a {
 .archiveGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 .archiveGrid a {
   display: grid;
-  gap: 5px;
-  min-height: 82px;
+  gap: 4px;
+  min-height: 68px;
   border: 1px solid #dbe4ee;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.68);
-  padding: 11px;
+  padding: 9px;
 }
 
 .archiveGrid span {
   color: #005b82;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 900;
 }
 
 .archiveGrid strong {
   color: #334155;
-  font-size: 13px;
+  font-size: 10px;
   line-height: 1.2;
 }
 
 .archiveGrid em {
   color: #64748b;
-  font-size: 12px;
+  font-size: 9px;
   font-style: normal;
   line-height: 1.25;
 }
