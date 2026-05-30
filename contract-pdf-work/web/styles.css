@@ -1,0 +1,370 @@
+:root {
+  --brand: #0b67ad;
+  --brand-dark: #004c7b;
+  --line: #cfe1f0;
+  --text: #111827;
+  --muted: #5b6777;
+  --bg: #eef3f8;
+  --panel: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 12px 22px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--brand-dark);
+}
+
+.brand img {
+  width: 178px;
+  max-width: 40vw;
+  height: auto;
+  display: block;
+}
+
+.actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.language-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.lang-btn {
+  min-width: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.date-field,
+.sequence-field {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.date-field input,
+.sequence-field input {
+  height: 36px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 0 9px;
+  background: #fff;
+}
+
+.sequence-field input {
+  width: 70px;
+}
+
+.primary-btn,
+.secondary-btn {
+  height: 38px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: var(--brand);
+  color: #fff;
+}
+
+.secondary-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: #1f2937;
+  color: #fff;
+}
+
+.example-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ghost-btn {
+  height: 34px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--brand-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+
+.paste-panel,
+.contract-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.paste-panel {
+  position: sticky;
+  top: 90px;
+  align-self: start;
+  padding: 14px;
+}
+
+.section-title {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--brand-dark);
+}
+
+#rawClient {
+  width: 100%;
+  min-height: 500px;
+  resize: vertical;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 11px;
+  line-height: 1.35;
+}
+
+.status {
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.contract-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr);
+  gap: 18px;
+}
+
+.contract-card {
+  overflow: hidden;
+}
+
+.card-head {
+  padding: 8px 12px;
+  background: var(--brand);
+  color: #fff;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.card-head.compact {
+  margin-top: 12px;
+}
+
+.field,
+.field-row,
+.checkbox-line,
+.checkbox-group,
+.options-block,
+.two-fields {
+  margin: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field span,
+.option-title {
+  color: #111;
+  text-decoration: underline;
+}
+
+.field input,
+.field textarea,
+.inline-input {
+  width: 100%;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 8px 9px;
+  background: #fff;
+  font-weight: 500;
+}
+
+.field input:disabled,
+.field textarea:disabled {
+  background: #eef2f6;
+  color: #7a8491;
+  cursor: not-allowed;
+}
+
+.field textarea {
+  min-height: 78px;
+  resize: vertical;
+  line-height: 1.35;
+}
+
+.two-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.two-fields .field {
+  margin: 0;
+}
+
+.client-kind {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.checkbox-line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+  flex: 0 0 auto;
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.checkbox-group label,
+.options-block label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.options-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 14px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.option-title {
+  flex-basis: 100%;
+  font-weight: 800;
+}
+
+.inline-input {
+  width: min(180px, 100%);
+}
+
+@media (max-width: 980px) {
+  .workspace,
+  .contract-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .paste-panel {
+    position: static;
+  }
+
+  #rawClient {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .primary-btn {
+    flex: 1;
+  }
+
+  .two-fields {
+    grid-template-columns: 1fr;
+  }
+}

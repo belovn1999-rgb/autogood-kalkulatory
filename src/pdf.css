@@ -198,6 +198,13 @@
   font-weight: 500;
 }
 
+.pdfField input:disabled,
+.pdfField textarea:disabled {
+  background: #eef2f6;
+  color: #7a8491;
+  cursor: not-allowed;
+}
+
 .pdfField textarea {
   min-height: 86px;
   resize: vertical;

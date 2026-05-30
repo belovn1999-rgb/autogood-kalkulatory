@@ -26,7 +26,7 @@
       <section class="pdfTopbar" aria-label="PDF contract actions">
         <div>
           <p class="eyebrow">AUTOGOOD PDF workspace</p>
-          <h1>Umowa Zamowienia Pojazdu</h1>
+          <h1>Umowa Zamówienia Pojazdu</h1>
         </div>
         <div class="pdfActions">
           <label>
@@ -37,7 +37,7 @@
             <span>Nr</span>
             <input id="sequence" type="number" min="1" value="1" />
           </label>
-          <button id="exampleBtn" class="quietBtn" type="button">Przyklad</button>
+          <button id="resetBtn" class="quietBtn" type="button">Wyzeruj</button>
           <button id="saveBtn" class="quietBtn" type="button">Zapisz</button>
           <button id="exportBtn" class="primaryBtn" type="button">Eksport JSON</button>
           <button id="printBtn" class="quietBtn" type="button">Drukuj</button>
@@ -96,7 +96,7 @@
               <label><input name="subject" type="radio" value="mediation" /> wyszukanie ofert oraz posrednictwo w zakupie</label>
               <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> wyszukanie ofert oraz zakup przez AUTOGOOD</label>
               <label><input name="subject" type="radio" value="financing" /> zakup z finansowania</label>
-              <label><input name="subject" type="radio" value="client_indicated_vehicle" /> pojazd wskazany przez Zleceniodawce</label>
+              <label><input id="clientIndicatedVehicle" type="checkbox" /> pojazd wskazany przez Zleceniodawcę</label>
             </div>
 
             <div class="panelHead compact">BUDZET NA ZAKUP</div>

@@ -1,8 +1,31 @@
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
-const pdfStorageKey = "autogoodPdfContract.v1";
+const pdfStorageKey = "autogoodPdfContract.v2";
 const dealStorageKey = "autogoodDealDesk.v1";
+
+const labels = {
+  client: ["Клиент", "Client", "Klient"],
+  clientType: ["Тип клиента", "Rodzaj klienta"],
+  address: ["Адрес", "Adres"],
+  pesel: ["PESEL"],
+  nip: ["NIP"],
+  document: ["Документ", "Dokument"],
+  phone: ["Телефон", "Telefon", "Nr. tel", "Nr tel"],
+  email: ["Email", "E-mail", "Mail"],
+  vehicleMarker: ["Авто", "Auto", "Samochód", "Pojazd"],
+  make: ["Марка", "Marka"],
+  model: ["Модель", "Model"],
+  year: ["Год", "Rok", "Wiek"],
+  body: ["Тип кузова", "Nadwozie"],
+  fuel: ["Топливо", "Paliwo"],
+  gearbox: ["Коробка", "Skrzynia"],
+  budget: ["Бюджет", "Budżet", "Budzet"],
+  deposit: ["Депозит", "Заливка", "Заличка", "Zaliczka"],
+  extra: ["Дополнительно", "Dodatkowo", "Wyposażenie"],
+};
+
+const allLabels = Object.values(labels).flat();
 
 function todayISO() {
   const now = new Date();
@@ -40,17 +63,68 @@ function setStatus(text) {
   statusEl.textContent = text;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractLabeled(text, variants) {
+  const labelPattern = variants.map(escapeRegExp).join("|");
+  const nextPattern = allLabels.map(escapeRegExp).join("|");
+  const pattern = new RegExp(`(?:^|[\\s,;])(?:${labelPattern})\\s*:\\s*(.*?)(?=(?:\\s+(?:${nextPattern})\\s*:)|$)`, "is");
+  return normalizeSpace(text.match(pattern)?.[1] || "");
+}
+
+function cleanupChoice(value) {
+  const cleaned = normalizeSpace(value);
+  return normalizeSpace(cleaned.includes("/") ? cleaned.split("/")[0] : cleaned);
+}
+
+function parseBody(value) {
+  const raw = cleanupChoice(value);
+  const lower = raw.toLowerCase();
+  for (const body of ["sedan", "kombi", "coupe"]) {
+    if (new RegExp(`\\b${body}\\b`).test(lower)) return { type: body, other: "" };
+  }
+  const other = raw.match(/inne\s*:\s*(.+)/i)?.[1];
+  if (other) return { type: "inne", other: normalizeSpace(other) };
+  if (raw) return { type: "inne", other: raw };
+  return { type: "", other: "" };
+}
+
+function parseFuel(value) {
+  const lower = cleanupChoice(value).toLowerCase();
+  return ["benzyna", "diesel", "hybryda", "elektryk"].filter((fuel) => lower.includes(fuel));
+}
+
+function parseGearbox(value) {
+  const lower = cleanupChoice(value).toLowerCase();
+  if (lower.includes("automat")) return "automatyczna";
+  if (lower.includes("manual")) return "manualna";
+  return "";
+}
+
+function syncClientTypeRules() {
+  const isCompany = checkedRadio("clientType") === "company";
+  $("clientEntrepreneur").checked = isCompany;
+  $("clientDocument").disabled = isCompany;
+  if (isCompany) $("clientDocument").value = "";
+}
+
 function parseRawTextValue(text) {
-  const lines = text
+  const compact = normalizeSpace(text);
+  const joined = text
     .split(/\r?\n/)
     .map(normalizeSpace)
-    .filter(Boolean);
-  const joined = lines.join("\n");
+    .filter(Boolean)
+    .join("\n") || compact;
   const lower = joined.toLowerCase();
 
-  const email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
-  const phoneMatches = joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
+  let email = extractLabeled(compact, labels.email);
+  if (!email) email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
+
   let phone = "";
+  const labeledPhone = extractLabeled(compact, labels.phone);
+  const phoneMatches = labeledPhone ? [labeledPhone] : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
   for (const candidate of phoneMatches) {
     const digits = candidate.replace(/\D/g, "");
     const start = joined.indexOf(candidate);
@@ -62,85 +136,70 @@ function parseRawTextValue(text) {
     }
   }
 
-  const pesel = joined.match(/\b\d{11}\b/)?.[0] || "";
-  const nipRaw = joined.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
+  const pesel = extractLabeled(compact, labels.pesel).replace(/\D/g, "") || joined.match(/\b\d{11}\b/)?.[0] || "";
+  const nipRaw = extractLabeled(compact, labels.nip) || joined.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
   const nip = nipRaw.replace(/\D/g, "");
-  const companyMarkers = ["sp. z o.o", "sp z oo", "spolka", "spolka", "s.a.", "nip", "krs"];
-  const isCompany = Boolean(nip && companyMarkers.some((marker) => lower.includes(marker)));
+  const clientType = extractLabeled(compact, labels.clientType).toLowerCase();
+  const companyMarkers = ["sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "nip", "krs"];
+  const isCompany = clientType.includes("firma") || clientType.includes("фирм") || Boolean(nip && companyMarkers.some((marker) => lower.includes(marker)));
 
-  let documentValue = "";
-  const documentMatch = joined.match(/(dow[oó]d osobisty[:\s]+[A-Z0-9 ]+|karta pobytu[:\s]+[A-Z0-9 ]+|paszport[:\s]+[A-Z0-9 ]+)/i);
-  if (documentMatch) {
-    documentValue = normalizeSpace(documentMatch[1]);
-    documentValue = documentValue.slice(0, 1).toUpperCase() + documentValue.slice(1);
-  }
-
-  let name = "";
-  for (const line of lines) {
-    const containsKnownValue = [email, phone, pesel, nipRaw].some((value) => value && line.includes(value));
-    const isSystemLine = /bud[żz]et|zaliczka|adres|pesel|nip|dow[oó]d|paszport|karta/i.test(line);
-    if (!containsKnownValue && !isSystemLine) {
-      name = line;
-      break;
-    }
-  }
-
-  let address = "";
-  for (const line of lines) {
-    if (line === name) continue;
-    if (/\d{2}-\d{3}/.test(line) || /\bul\.|\baleja\b|\bplac\b/i.test(line)) {
-      address = line;
-      break;
-    }
-  }
-
-  const budgetTotal = normalizeSpace(joined.match(/bud[żz]et[:\s-]*([^\n]+)/i)?.[1] || "");
-  const budgetAdvance = normalizeSpace(joined.match(/zaliczka[:\s-]*([^\n]+)/i)?.[1] || "");
+  const make = extractLabeled(compact, labels.make);
+  const model = extractLabeled(compact, labels.model);
+  const makeModel = normalizeSpace(`${make} ${model}`);
 
   return {
     client: {
       type: isCompany ? "company" : "person",
-      name,
-      address,
+      name: extractLabeled(compact, labels.client),
+      address: extractLabeled(compact, labels.address),
       identifier: isCompany ? nip : pesel,
-      document: isCompany ? "" : documentValue,
+      document: isCompany ? "" : extractLabeled(compact, labels.document),
       phone: normalizeSpace(phone),
       email,
     },
     budget: {
-      total: budgetTotal,
-      advance: budgetAdvance,
+      total: extractLabeled(compact, labels.budget),
+      advance: extractLabeled(compact, labels.deposit),
     },
-    vehicle: {},
+    vehicle: {
+      make_model: makeModel,
+      fuel: parseFuel(extractLabeled(compact, labels.fuel)),
+      gearbox: parseGearbox(extractLabeled(compact, labels.gearbox)),
+      first_registration: extractLabeled(compact, labels.year),
+      body: parseBody(extractLabeled(compact, labels.body)),
+      required_equipment: extractLabeled(compact, labels.extra),
+    },
   };
 }
 
 function applyParsed(data) {
   if (data.client?.type) {
-    const typeNode = document.querySelector(`input[name="clientType"][value="${data.client.type}"]`);
-    if (typeNode) typeNode.checked = true;
-    $("clientEntrepreneur").checked = data.client.type === "company";
+    setRadio("clientType", data.client.type);
+    syncClientTypeRules();
   }
-
   $("clientName").value = data.client?.name || $("clientName").value;
   $("clientAddress").value = data.client?.address || $("clientAddress").value;
   $("clientIdentifier").value = data.client?.identifier || $("clientIdentifier").value;
   $("clientDocument").value = data.client?.document || $("clientDocument").value;
   $("clientPhone").value = data.client?.phone || $("clientPhone").value;
   $("clientEmail").value = data.client?.email || $("clientEmail").value;
-
   $("budgetTotal").value = data.budget?.total || $("budgetTotal").value;
   $("budgetAdvance").value = data.budget?.advance || $("budgetAdvance").value;
-
   $("vehicleMakeModel").value = data.vehicle?.make_model || $("vehicleMakeModel").value;
+  if (data.vehicle?.fuel) setFuel(data.vehicle.fuel);
+  if (data.vehicle?.gearbox) setRadio("gearbox", data.vehicle.gearbox);
+  if (data.vehicle?.body?.type) setRadio("bodyType", data.vehicle.body.type);
+  $("bodyOther").value = data.vehicle?.body?.other || $("bodyOther").value;
   $("firstRegistration").value = data.vehicle?.first_registration || $("firstRegistration").value;
   $("mileageTo").value = data.vehicle?.mileage_to || $("mileageTo").value;
   $("requiredEquipment").value = data.vehicle?.required_equipment || $("requiredEquipment").value;
   $("expectedEquipment").value = data.vehicle?.expected_equipment || $("expectedEquipment").value;
+  syncClientTypeRules();
 }
 
 function collectData() {
   const clientType = checkedRadio("clientType") || "person";
+  const isCompany = clientType === "company";
   return {
     contract: {
       date: $("contractDate").value || todayISO(),
@@ -148,16 +207,18 @@ function collectData() {
     },
     client: {
       type: clientType,
+      is_entrepreneur: isCompany || $("clientEntrepreneur").checked,
       name: $("clientName").value.trim(),
       address: $("clientAddress").value.trim(),
-      pesel: clientType === "person" ? $("clientIdentifier").value.trim() : "",
-      nip: clientType === "company" ? $("clientIdentifier").value.trim() : "",
-      document: clientType === "person" ? $("clientDocument").value.trim() : "",
+      pesel: isCompany ? "" : $("clientIdentifier").value.trim(),
+      nip: isCompany ? $("clientIdentifier").value.trim() : "",
+      document: isCompany ? "" : $("clientDocument").value.trim(),
       phone: $("clientPhone").value.trim(),
       email: $("clientEmail").value.trim(),
     },
     agreement: {
       subject: checkedRadio("subject") || "purchase_by_autogood",
+      client_indicated_vehicle: $("clientIndicatedVehicle").checked,
     },
     budget: {
       total: $("budgetTotal").value.trim(),
@@ -209,43 +270,26 @@ function parseRawText() {
     setStatus("Brak danych.");
     return;
   }
-
   applyParsed(parseRawTextValue(text));
   saveData();
   setStatus("Dane rozpoznane.");
 }
 
-function loadNiroExample() {
-  $("contractDate").value = "2026-05-27";
+function resetForm() {
+  $("contractDate").value = todayISO();
   $("sequence").value = "1";
-  $("rawClient").value = [
-    "Bartosz Araszkiewicz",
-    "Tartaczna 27A, 05-300 Minsk Mazowiecki",
-    "PESEL 96012003456",
-    "Dowod osobisty: DHW 589648",
-    "+48 605447011",
-    "coldcans@gmail.com",
-    "Budzet: 63 000 PLN brutto",
-    "Zaliczka: 4 000 PLN brutto",
-  ].join("\n");
-  $("clientName").value = "Bartosz Araszkiewicz";
-  $("clientAddress").value = "Tartaczna 27A, 05-300 Minsk Mazowiecki";
-  $("clientIdentifier").value = "96012003456";
-  $("clientDocument").value = "Dowod osobisty: DHW 589648";
-  $("clientPhone").value = "+48 605447011";
-  $("clientEmail").value = "coldcans@gmail.com";
-  $("budgetTotal").value = "63 000 PLN brutto";
-  $("budgetAdvance").value = "4 000 PLN brutto";
-  $("vehicleMakeModel").value = "Kia Niro EV I";
-  setFuel(["elektryk"]);
-  setRadio("gearbox", "automatyczna");
-  $("firstRegistration").value = "2020+";
-  $("mileageTo").value = "200 000 km.";
-  setRadio("bodyType", "inne");
-  $("bodyOther").value = "SUV";
-  $("requiredEquipment").value = "Wersja XL/Spirit, wentylowane siedzenia przednie, podgrzewane siedzenia z przodu i z tylu, naglosnienie JBL";
-  $("expectedEquipment").value = "Masaz przednich foteli, kamera 360, wersja GT line";
-  saveData();
+  document.querySelectorAll(".pdfShell input, .pdfShell textarea").forEach((node) => {
+    if (node.id === "contractDate" || node.id === "sequence") return;
+    if (node.type === "radio" || node.type === "checkbox") node.checked = false;
+    else node.value = "";
+  });
+  setRadio("clientType", "person");
+  setRadio("subject", "purchase_by_autogood");
+  $("clientDocument").disabled = false;
+  $("clientEntrepreneur").checked = false;
+  localStorage.removeItem(pdfStorageKey);
+  syncClientTypeRules();
+  setStatus("");
 }
 
 function applyDealDeskData() {
@@ -275,14 +319,10 @@ function applyDealDeskData() {
 }
 
 function applySavedData(data) {
-  if (data.contract) {
-    $("contractDate").value = data.contract.date || todayISO();
-    $("sequence").value = data.contract.sequence || 1;
-  }
-
+  $("contractDate").value = data.contract?.date || todayISO();
+  $("sequence").value = data.contract?.sequence || 1;
   const clientType = data.client?.type || (data.client?.nip ? "company" : "person");
   setRadio("clientType", clientType);
-  $("clientEntrepreneur").checked = clientType === "company";
   $("clientName").value = data.client?.name || "";
   $("clientAddress").value = data.client?.address || "";
   $("clientIdentifier").value = data.client?.pesel || data.client?.nip || "";
@@ -290,6 +330,7 @@ function applySavedData(data) {
   $("clientPhone").value = data.client?.phone || "";
   $("clientEmail").value = data.client?.email || "";
   setRadio("subject", data.agreement?.subject || "purchase_by_autogood");
+  $("clientIndicatedVehicle").checked = Boolean(data.agreement?.client_indicated_vehicle);
   $("budgetTotal").value = data.budget?.total || "";
   $("budgetAdvance").value = data.budget?.advance || "";
   $("vehicleMakeModel").value = data.vehicle?.make_model || "";
@@ -303,28 +344,36 @@ function applySavedData(data) {
   $("allowCollision").checked = Boolean(data.vehicle?.allow_collision_without_longitudinals);
   $("requiredEquipment").value = data.vehicle?.required_equipment || "";
   $("expectedEquipment").value = data.vehicle?.expected_equipment || "";
+  syncClientTypeRules();
 }
 
 function loadSavedData() {
   $("contractDate").value = todayISO();
-
   const saved = localStorage.getItem(pdfStorageKey);
-  if (!saved) return;
+  if (!saved) {
+    syncClientTypeRules();
+    return;
+  }
 
   try {
     applySavedData(JSON.parse(saved));
     setStatus("Wczytano zapisane dane.");
   } catch {
     localStorage.removeItem(pdfStorageKey);
+    syncClientTypeRules();
   }
 }
 
 $("parseBtn").addEventListener("click", parseRawText);
-$("exampleBtn").addEventListener("click", loadNiroExample);
+$("resetBtn").addEventListener("click", resetForm);
 $("saveBtn").addEventListener("click", saveData);
 $("exportBtn").addEventListener("click", exportData);
 $("printBtn").addEventListener("click", () => window.print());
 $("dealBtn").addEventListener("click", applyDealDeskData);
+
+document.querySelectorAll('input[name="clientType"]').forEach((node) => {
+  node.addEventListener("change", syncClientTypeRules);
+});
 
 document.querySelectorAll("input, textarea").forEach((field) => {
   field.addEventListener("change", () => localStorage.setItem(pdfStorageKey, JSON.stringify(collectData(), null, 2)));

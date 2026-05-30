@@ -1,0 +1,40 @@
+{
+  "contract": {
+    "date": "2026-05-30",
+    "sequence": 1
+  },
+  "client": {
+    "type": "person",
+    "is_entrepreneur": false,
+    "name": "Jan Kowalski",
+    "address": "ul. Prosta 12/4, 00-001 Warszawa",
+    "pesel": "99070613053",
+    "nip": "",
+    "document": "dowód osobisty ABC123456",
+    "phone": "+48 600 700 800",
+    "email": "jan.kowalski@example.com"
+  },
+  "agreement": {
+    "subject": "purchase_by_autogood",
+    "client_indicated_vehicle": false
+  },
+  "budget": {
+    "total": "75 000 PLN brutto",
+    "advance": "4 000 PLN brutto"
+  },
+  "vehicle": {
+    "make_model": "BMW 530i",
+    "fuel": ["benzyna"],
+    "gearbox": "automatyczna",
+    "euro_standard": null,
+    "first_registration": "2021-2023",
+    "mileage_to": "",
+    "body": {
+      "type": "sedan",
+      "other": ""
+    },
+    "allow_collision_without_longitudinals": false,
+    "required_equipment": "napęd na wszystkie koła, tempomat adaptacyjny, kamera 360",
+    "expected_equipment": ""
+  }
+}
