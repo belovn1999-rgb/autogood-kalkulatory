@@ -16,6 +16,12 @@ Calculators URL:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/calculators.html
 ```
 
+PDF URL:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/pdf.html
+```
+
 Process OS URL:
 
 ```text

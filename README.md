@@ -8,6 +8,12 @@ Pierwsze narzedzie:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/calculators.html
 ```
 
+PDF:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/pdf.html
+```
+
 Mapa procesu managera:
 
 ```text
@@ -69,6 +75,7 @@ Po zmianach uruchom:
 - przeliczanie EUR/PLN;
 - wersja PL/RU;
 - drukowanie lub zapis do PDF z przegladarki.
+- strona startowa dla programu PDF.
 - mapa procesu sprzedazy auta pod zamowienie.
 - karta transakcji z klientem, autem, statusem, zadaniami i finansami.
 - szablony wiadomosci do klienta z podstawieniem danych z Deal Desk.
