@@ -1,6 +1,12 @@
-# AUTOGOOD Kalkulatory
+# AUTOGOOD Tools
 
-Lokalna strona z kalkulatorami AUTOGOOD w jezykach polskim i rosyjskim.
+Publiczna strona AUTOGOOD Tools z zestawem narzedzi operacyjnych.
+
+Pierwsze narzedzie:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/calculators.html
+```
 
 ## Uruchomienie
 

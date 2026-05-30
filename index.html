@@ -3,14 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AUTOGOOD Kalkulatory</title>
-    <link rel="stylesheet" href="./src/styles.css" />
+    <title>AUTOGOOD Tools</title>
+    <link rel="stylesheet" href="./src/tools.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script src="./vendor/react.production.min.js"></script>
-    <script src="./vendor/react-dom.production.min.js"></script>
-    <script src="./vendor/babel.min.js"></script>
-    <script type="text/babel" data-presets="react" src="./src/main.jsx?v=2"></script>
+    <main class="toolsShell">
+      <header class="toolsHeader">
+        <a class="brand" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>Tools</span>
+        </a>
+        <a class="repoLink" href="https://github.com/belovn1999-rgb/autogood-kalkulatory">GitHub</a>
+      </header>
+
+      <section class="intro">
+        <p class="eyebrow">AUTOGOOD</p>
+        <h1>Narzędzia operacyjne</h1>
+        <p>Инструменты для быстрых расчётов и работы с клиентами.</p>
+      </section>
+
+      <section class="toolsGrid" aria-label="AUTOGOOD tools">
+        <a class="toolCard isReady" href="./calculators.html">
+          <span class="toolNumber">01</span>
+          <span class="toolBody">
+            <strong>Kalkulatory / Калькуляторы</strong>
+            <span>VAT 23%, VAT Marża, aukcje, dealerzy</span>
+          </span>
+          <span class="toolArrow" aria-hidden="true">→</span>
+        </a>
+
+        <div class="toolCard isSoon" aria-disabled="true">
+          <span class="toolNumber">02</span>
+          <span class="toolBody">
+            <strong>Dokumenty / Документы</strong>
+            <span>W przygotowaniu</span>
+          </span>
+          <span class="toolBadge">soon</span>
+        </div>
+
+        <div class="toolCard isSoon" aria-disabled="true">
+          <span class="toolNumber">03</span>
+          <span class="toolBody">
+            <strong>CRM / Авто в работе</strong>
+            <span>W przygotowaniu</span>
+          </span>
+          <span class="toolBadge">soon</span>
+        </div>
+      </section>
+    </main>
   </body>
 </html>

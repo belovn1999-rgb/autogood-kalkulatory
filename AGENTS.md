@@ -1,6 +1,6 @@
 # Codex Instructions
 
-This project is the live AUTOGOOD calculators app.
+This project is the live AUTOGOOD Tools site.
 
 ## Public App
 
@@ -8,6 +8,12 @@ Public URL:
 
 ```text
 https://belovn1999-rgb.github.io/autogood-kalkulatory/
+```
+
+Calculators URL:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/calculators.html
 ```
 
 GitHub repository:
@@ -21,7 +27,7 @@ Every pushed change to `main` becomes visible on the public URL after GitHub Pag
 
 ## Required Workflow For Every Future Change
 
-When the user asks to change the calculators app:
+When the user asks to change the AUTOGOOD Tools site or calculators app:
 
 1. Edit the local project files in this folder.
 2. Verify the app locally at `http://127.0.0.1:4173/`.
