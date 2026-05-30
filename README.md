@@ -8,6 +8,12 @@ Pierwsze narzedzie:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/calculators.html
 ```
 
+Mapa procesu managera:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/process.html
+```
+
 ## Uruchomienie
 
 W folderze projektu uruchom:
@@ -45,3 +51,4 @@ Po zmianach uruchom:
 - przeliczanie EUR/PLN;
 - wersja PL/RU;
 - drukowanie lub zapis do PDF z przegladarki.
+- mapa procesu sprzedazy auta pod zamowienie.
