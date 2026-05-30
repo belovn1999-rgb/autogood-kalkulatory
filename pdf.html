@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD PDF</title>
     <link rel="stylesheet" href="./src/tools.css" />
+    <link rel="stylesheet" href="./src/pdf.css" />
   </head>
   <body>
-    <main class="workspaceShell">
+    <main class="workspaceShell pdfShell">
       <header class="workspaceHeader">
         <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
@@ -18,32 +19,165 @@
           <a href="./calculators.html">Kalkulatory</a>
           <a href="./deal.html">Deal Desk</a>
           <a href="./documents.html">Documents</a>
+          <a href="./pdf.html" aria-current="page">PDF</a>
         </nav>
       </header>
 
-      <section class="workspaceHero">
-        <p class="eyebrow">AUTOGOOD PDF workspace</p>
-        <h1>PDF-инструменты</h1>
-        <p>Место для новой PDF-программы. Когда чат PDF закончит разработку, готовый интерфейс подключим сюда, а карточка на главной уже будет вести в правильный раздел.</p>
-      </section>
-
-      <section class="nextBuild">
-        <h2>План для PDF</h2>
-        <div class="nextGrid">
-          <div>
-            <strong>Коммерческое предложение</strong>
-            <span>PDF для клиента с расчётом, авто, условиями и логотипом AUTOGOOD.</span>
-          </div>
-          <div>
-            <strong>Пакет сделки</strong>
-            <span>Бриф, offer summary, вопросы продавцу и чеклисты в одном аккуратном файле.</span>
-          </div>
-          <div>
-            <strong>Архив документов</strong>
-            <span>Структура для будущей сборки файлов по VIN, клиенту и статусу сделки.</span>
-          </div>
+      <section class="pdfTopbar" aria-label="PDF contract actions">
+        <div>
+          <p class="eyebrow">AUTOGOOD PDF workspace</p>
+          <h1>Umowa Zamowienia Pojazdu</h1>
+        </div>
+        <div class="pdfActions">
+          <label>
+            <span>Data</span>
+            <input id="contractDate" type="date" />
+          </label>
+          <label>
+            <span>Nr</span>
+            <input id="sequence" type="number" min="1" value="1" />
+          </label>
+          <button id="exampleBtn" class="quietBtn" type="button">Przyklad</button>
+          <button id="saveBtn" class="quietBtn" type="button">Zapisz</button>
+          <button id="exportBtn" class="primaryBtn" type="button">Eksport JSON</button>
+          <button id="printBtn" class="quietBtn" type="button">Drukuj</button>
         </div>
       </section>
+
+      <section class="pdfWorkspace">
+        <aside class="pastePanel">
+          <div class="panelTitle">Dane wejsciowe</div>
+          <textarea id="rawClient" spellcheck="false" aria-label="Dane wejsciowe"></textarea>
+          <button id="parseBtn" class="darkBtn" type="button">Rozpoznaj dane</button>
+          <button id="dealBtn" class="lightBtn" type="button">Dane z Deal Desk</button>
+          <div id="status" class="statusLine" aria-live="polite"></div>
+        </aside>
+
+        <section class="contractGrid">
+          <div class="contractPanel">
+            <div class="panelHead">ZLECENIODAWCA</div>
+            <div class="fieldRow clientKind">
+              <label><input type="radio" name="clientType" value="person" checked /> osoba</label>
+              <label><input type="radio" name="clientType" value="company" /> firma</label>
+            </div>
+            <label class="pdfField">
+              <span>Imie i Nazwisko/Nazwa</span>
+              <input id="clientName" type="text" />
+            </label>
+            <label class="checkLine">
+              <input id="clientEntrepreneur" type="checkbox" />
+              <span>Zleceniodawca jest przedsiebiorca, zawiera umowe o charakterze zawodowym</span>
+            </label>
+            <label class="pdfField">
+              <span>Adres</span>
+              <input id="clientAddress" type="text" />
+            </label>
+            <label class="pdfField">
+              <span>PESEL/NIP</span>
+              <input id="clientIdentifier" type="text" />
+            </label>
+            <label class="pdfField">
+              <span>Rodzaj, numer i seria dokumentu tozsamosci</span>
+              <input id="clientDocument" type="text" />
+            </label>
+            <div class="twoFields">
+              <label class="pdfField">
+                <span>Nr tel.</span>
+                <input id="clientPhone" type="text" />
+              </label>
+              <label class="pdfField">
+                <span>E-mail</span>
+                <input id="clientEmail" type="email" />
+              </label>
+            </div>
+
+            <div class="panelHead compact">PRZEDMIOT UMOWY</div>
+            <div class="checkGroup">
+              <label><input name="subject" type="radio" value="mediation" /> wyszukanie ofert oraz posrednictwo w zakupie</label>
+              <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> wyszukanie ofert oraz zakup przez AUTOGOOD</label>
+              <label><input name="subject" type="radio" value="financing" /> zakup z finansowania</label>
+              <label><input name="subject" type="radio" value="client_indicated_vehicle" /> pojazd wskazany przez Zleceniodawce</label>
+            </div>
+
+            <div class="panelHead compact">BUDZET NA ZAKUP</div>
+            <div class="twoFields">
+              <label class="pdfField">
+                <span>Budzet</span>
+                <input id="budgetTotal" type="text" />
+              </label>
+              <label class="pdfField">
+                <span>Zaliczka</span>
+                <input id="budgetAdvance" type="text" />
+              </label>
+            </div>
+          </div>
+
+          <div class="contractPanel">
+            <div class="panelHead">KRYTERIA POSZUKIWAN I ZAKUPU</div>
+            <label class="pdfField">
+              <span>Marka i model</span>
+              <input id="vehicleMakeModel" type="text" />
+            </label>
+
+            <div class="optionsBlock">
+              <div class="optionTitle">Dopuszczalne paliwo</div>
+              <label><input data-fuel="diesel" type="checkbox" /> diesel</label>
+              <label><input data-fuel="benzyna" type="checkbox" /> benzyna</label>
+              <label><input data-fuel="hybryda" type="checkbox" /> hybryda</label>
+              <label><input data-fuel="elektryk" type="checkbox" /> elektryk</label>
+            </div>
+
+            <div class="optionsBlock">
+              <div class="optionTitle">Skrzynia biegow</div>
+              <label><input name="gearbox" type="radio" value="manualna" /> manualna</label>
+              <label><input name="gearbox" type="radio" value="automatyczna" /> automatyczna</label>
+            </div>
+
+            <div class="optionsBlock">
+              <div class="optionTitle">Norma spalania euro</div>
+              <label><input name="euroStandard" type="radio" value="6" /> 6</label>
+              <label><input name="euroStandard" type="radio" value="7" /> 7</label>
+              <label><input name="euroStandard" type="radio" value="dowolna" /> dowolna</label>
+              <label><input name="euroStandard" type="radio" value="inna" /> inna</label>
+            </div>
+
+            <div class="twoFields">
+              <label class="pdfField">
+                <span>Wiek</span>
+                <input id="firstRegistration" type="text" />
+              </label>
+              <label class="pdfField">
+                <span>Przebieg do</span>
+                <input id="mileageTo" type="text" />
+              </label>
+            </div>
+
+            <div class="optionsBlock">
+              <div class="optionTitle">Nadwozie</div>
+              <label><input name="bodyType" type="radio" value="sedan" /> sedan</label>
+              <label><input name="bodyType" type="radio" value="kombi" /> kombi</label>
+              <label><input name="bodyType" type="radio" value="coupe" /> coupe</label>
+              <label><input name="bodyType" type="radio" value="inne" /> inne</label>
+              <input id="bodyOther" class="inlineInput" type="text" />
+            </div>
+
+            <label class="checkLine">
+              <input id="allowCollision" type="checkbox" />
+              <span>dopuszczalne jest auto po kolizjach, ale bez uszkodzenia podluznic</span>
+            </label>
+
+            <label class="pdfField">
+              <span>Dodatkowe wymagane cechy/wyposazenie</span>
+              <textarea id="requiredEquipment"></textarea>
+            </label>
+            <label class="pdfField">
+              <span>Dodatkowe oczekiwane cechy/wyposazenie</span>
+              <textarea id="expectedEquipment"></textarea>
+            </label>
+          </div>
+        </section>
+      </section>
     </main>
+    <script src="./src/pdf.js"></script>
   </body>
 </html>
