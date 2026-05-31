@@ -1,302 +1,353 @@
-.pdfShell {
-  max-width: 1440px;
+:root {
+  --brand: #0b67ad;
+  --brand-dark: #004c7b;
+  --line: #cfe1f0;
+  --text: #111827;
+  --muted: #5b6777;
+  --bg: #eef3f8;
+  --panel: #ffffff;
 }
 
-.pdfTopbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
-  margin-bottom: 16px;
+* {
+  box-sizing: border-box;
 }
 
-.pdfTopbar h1 {
+body {
   margin: 0;
-  color: #102033;
-  font-size: clamp(32px, 4.8vw, 56px);
-  line-height: 1;
-  letter-spacing: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
 }
 
-.pdfActions {
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-  align-items: end;
-}
-
-.pdfActions label {
-  display: grid;
-  gap: 5px;
-  color: #526173;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.pdfActions input {
-  width: 150px;
-  height: 39px;
-  border: 1px solid #c9d5e1;
-  border-radius: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 12px 22px;
   background: #fff;
-  color: #102033;
-  padding: 0 10px;
-  font: inherit;
-  font-size: 14px;
+  border-bottom: 1px solid var(--line);
 }
 
-.pdfActions label:nth-child(2) input {
-  width: 76px;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--brand-dark);
 }
 
-.primaryBtn,
-.quietBtn,
-.darkBtn,
-.lightBtn {
-  min-height: 39px;
-  border: 1px solid #c9d5e1;
-  border-radius: 8px;
-  padding: 9px 13px;
-  font: inherit;
-  font-size: 14px;
+.brand img {
+  width: 178px;
+  max-width: 40vw;
+  height: auto;
+  display: block;
+}
+
+.actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.language-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.lang-btn {
+  min-width: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.date-field,
+.sequence-field {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.date-field input,
+.sequence-field input {
+  height: 36px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 0 9px;
+  background: #fff;
+}
+
+.sequence-field input {
+  width: 70px;
+}
+
+.primary-btn,
+.secondary-btn,
+.secondary-top-btn {
+  height: 38px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 16px;
   font-weight: 800;
   cursor: pointer;
 }
 
-.primaryBtn {
-  border-color: #005b82;
-  background: #005b82;
+.primary-btn {
+  background: var(--brand);
   color: #fff;
 }
 
-.quietBtn,
-.lightBtn {
-  background: #fff;
-  color: #334155;
-}
-
-.darkBtn {
-  width: 100%;
-  border-color: #1f2937;
+.secondary-top-btn {
   background: #1f2937;
   color: #fff;
 }
 
-.lightBtn {
+.secondary-btn {
   width: 100%;
+  margin-top: 10px;
+  background: #1f2937;
+  color: #fff;
 }
 
-.pdfWorkspace {
+.example-actions {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.pastePanel,
-.contractPanel {
-  border: 1px solid #d5e0ea;
-  border-radius: 8px;
+.ghost-btn {
+  height: 34px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
   background: #fff;
-  box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
+  color: var(--brand-dark);
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.pastePanel {
-  position: sticky;
-  top: 14px;
+.workspace {
   display: grid;
-  gap: 10px;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+
+.paste-panel,
+.contract-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.paste-panel {
+  position: sticky;
+  top: 90px;
+  align-self: start;
   padding: 14px;
 }
 
-.panelTitle {
-  color: #005b82;
+.section-title {
+  margin-bottom: 10px;
   font-size: 14px;
-  font-weight: 900;
-  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--brand-dark);
 }
 
 #rawClient {
   width: 100%;
-  min-height: 520px;
+  min-height: 500px;
   resize: vertical;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #fbfdff;
-  color: #102033;
-  padding: 12px;
-  font: inherit;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.statusLine {
-  min-height: 20px;
-  color: #526173;
-  font-size: 13px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 11px;
   line-height: 1.35;
 }
 
-.contractGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(340px, 1fr));
-  gap: 12px;
+.status {
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-.contractPanel {
+.contract-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr);
+  gap: 18px;
+}
+
+.contract-card {
   overflow: hidden;
 }
 
-.panelHead {
-  background: #005b82;
+.card-head {
+  padding: 8px 12px;
+  background: var(--brand);
   color: #fff;
-  padding: 10px 12px;
   text-align: center;
-  font-size: 15px;
   font-weight: 900;
   letter-spacing: 0;
 }
 
-.panelHead.compact {
+.card-head.compact {
   margin-top: 12px;
 }
 
-.fieldRow,
-.pdfField,
-.checkLine,
-.checkGroup,
-.optionsBlock,
-.twoFields {
+.field,
+.field-row,
+.checkbox-line,
+.checkbox-group,
+.options-block,
+.two-fields {
   margin: 12px;
 }
 
-.pdfField {
+.field {
   display: grid;
-  gap: 6px;
-  color: #475569;
+  gap: 5px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
-.pdfField span,
-.optionTitle {
-  color: #102033;
+.field span,
+.option-title {
+  color: #111;
+  text-decoration: underline;
 }
 
-.pdfField input,
-.pdfField textarea,
-.inlineInput {
+.field input,
+.field textarea,
+.inline-input {
   width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 8px 9px;
   background: #fff;
-  color: #102033;
-  padding: 10px 11px;
-  font: inherit;
-  font-size: 15px;
   font-weight: 500;
 }
 
-.pdfField input:disabled,
-.pdfField textarea:disabled {
+.field input:disabled,
+.field textarea:disabled {
   background: #eef2f6;
   color: #7a8491;
   cursor: not-allowed;
 }
 
-.pdfField textarea {
-  min-height: 86px;
+.field textarea {
+  min-height: 78px;
   resize: vertical;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
-.twoFields {
+.two-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.twoFields .pdfField {
+.two-fields .field {
   margin: 0;
 }
 
-.clientKind {
+.client-kind {
   display: flex;
-  flex-wrap: wrap;
   gap: 18px;
   align-items: center;
-  color: #334155;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
-.checkLine {
+.checkbox-line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+  flex: 0 0 auto;
+}
+
+.checkbox-group {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
   gap: 9px;
-  align-items: start;
-  color: #526173;
   font-size: 13px;
   line-height: 1.3;
 }
 
-.checkGroup {
-  display: grid;
-  gap: 9px;
-  color: #334155;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.checkGroup label,
-.optionsBlock label {
+.checkbox-group label,
+.options-block label {
   display: flex;
   gap: 8px;
   align-items: flex-start;
 }
 
-.optionsBlock {
+.options-block {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 9px 14px;
   align-items: center;
-  border-bottom: 1px solid #edf2f7;
-  padding-bottom: 12px;
-  color: #334155;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
   font-size: 13px;
 }
 
-.optionTitle {
+.option-title {
   flex-basis: 100%;
-  font-weight: 900;
+  font-weight: 800;
 }
 
-.inlineInput {
+.inline-input {
   width: min(180px, 100%);
-  padding: 8px 10px;
 }
 
-.pdfShell input[type="checkbox"],
-.pdfShell input[type="radio"] {
-  width: 17px;
-  height: 17px;
-  accent-color: #005b82;
-  flex: 0 0 auto;
-}
-
-@media (max-width: 1100px) {
-  .pdfTopbar,
-  .pdfWorkspace,
-  .contractGrid {
+@media (max-width: 980px) {
+  .workspace,
+  .contract-grid {
     grid-template-columns: 1fr;
   }
 
-  .pdfActions {
-    justify-content: flex-start;
-  }
-
-  .pastePanel {
+  .paste-panel {
     position: static;
   }
 
@@ -305,39 +356,21 @@
   }
 }
 
-@media (max-width: 620px) {
-  .pdfActions,
-  .twoFields {
+@media (max-width: 640px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .primary-btn {
+    flex: 1;
+  }
+
+  .two-fields {
     grid-template-columns: 1fr;
-  }
-
-  .pdfActions {
-    display: grid;
-  }
-
-  .pdfActions input,
-  .pdfActions label:nth-child(2) input,
-  .primaryBtn,
-  .quietBtn {
-    width: 100%;
-  }
-}
-
-@media print {
-  .workspaceHeader,
-  .pdfTopbar,
-  .pastePanel {
-    display: none;
-  }
-
-  .pdfWorkspace,
-  .contractGrid,
-  .twoFields {
-    grid-template-columns: 1fr;
-  }
-
-  .contractPanel {
-    box-shadow: none;
-    break-inside: avoid;
   }
 }

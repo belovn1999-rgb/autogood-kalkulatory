@@ -1,179 +1,174 @@
 <!doctype html>
-<html lang="pl">
+<html lang="ru">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AUTOGOOD PDF</title>
-    <link rel="stylesheet" href="./src/tools.css" />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260531-1" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AUTOGOOD Umowa</title>
+    <link rel="stylesheet" href="./src/pdf.css?v=20260531-2" />
   </head>
   <body>
-    <main class="workspaceShell pdfShell">
-      <header class="workspaceHeader">
-        <div class="brand compact" aria-label="AUTOGOOD PDF">
-          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>PDF</span>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <a href="./" aria-label="AUTOGOOD Tools">
+            <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          </a>
+          <span>Umowa</span>
         </div>
-        <nav class="workspaceNav" aria-label="Workspace navigation">
-          <a href="./calculators.html">Kalkulatory</a>
-          <a href="./pdf.html" aria-current="page">PDF</a>
-        </nav>
-      </header>
-
-      <section class="pdfTopbar" aria-label="PDF contract actions">
-        <div>
-          <p class="eyebrow">AUTOGOOD PDF workspace</p>
-          <h1>Umowa Zamówienia Pojazdu</h1>
-        </div>
-        <div class="pdfActions">
-          <label>
-            <span>Data</span>
+        <div class="actions">
+          <div class="language-toggle" aria-label="Language">
+            <button class="lang-btn active" type="button" data-lang="ru">RU</button>
+            <button class="lang-btn" type="button" data-lang="pl">PL</button>
+          </div>
+          <label class="date-field">
+            <span data-i18n="date">Data</span>
             <input id="contractDate" type="date" />
           </label>
-          <label>
+          <label class="sequence-field">
             <span>Nr</span>
             <input id="sequence" type="number" min="1" value="1" />
           </label>
-          <button id="resetBtn" class="quietBtn" type="button">Wyzeruj</button>
-          <button id="saveBtn" class="quietBtn" type="button">Zapisz</button>
-          <button id="exportBtn" class="primaryBtn" type="button">Eksport JSON</button>
-          <button id="printBtn" class="quietBtn" type="button">Drukuj PDF</button>
+          <button id="printBtn" class="primary-btn" type="button" data-i18n="printPdf">Drukuj PDF</button>
+          <button id="generateBtn" class="secondary-top-btn" type="button" data-i18n="generate">DOCX</button>
         </div>
-      </section>
+      </header>
 
-      <section class="pdfWorkspace">
-        <aside class="pastePanel">
-          <div class="panelTitle">Dane wejsciowe</div>
-          <textarea id="rawClient" spellcheck="false" aria-label="Dane wejsciowe"></textarea>
-          <button id="parseBtn" class="darkBtn" type="button">Rozpoznaj dane</button>
-          <div id="status" class="statusLine" aria-live="polite"></div>
+      <section class="workspace">
+        <aside class="paste-panel">
+          <div class="section-title" data-i18n="inputData">Dane wejściowe</div>
+          <textarea id="rawClient" spellcheck="false"></textarea>
+          <div class="example-actions">
+            <button id="resetBtn" class="ghost-btn" type="button" data-i18n="reset">Wyzeruj</button>
+          </div>
+          <button id="parseBtn" class="secondary-btn" type="button" data-i18n="parse">Rozpoznaj dane</button>
+          <div id="status" class="status"></div>
         </aside>
 
-        <section class="contractGrid">
-          <div class="contractPanel">
-            <div class="panelHead">ZLECENIODAWCA</div>
-            <div class="fieldRow clientKind">
-              <label><input type="radio" name="clientType" value="person" checked /> osoba</label>
-              <label><input type="radio" name="clientType" value="company" /> firma</label>
+        <section class="contract-grid">
+          <div class="contract-card">
+            <div class="card-head">ZLECENIODAWCA:</div>
+            <div class="field-row client-kind">
+              <label><input type="radio" name="clientType" value="person" checked /> <span data-i18n="person">osoba</span></label>
+              <label><input type="radio" name="clientType" value="company" /> <span data-i18n="company">firma</span></label>
             </div>
-            <label class="pdfField">
-              <span>Imie i Nazwisko/Nazwa</span>
+            <label class="field">
+              <span>Imię i Nazwisko/Nazwa:</span>
               <input id="clientName" type="text" />
             </label>
-            <label class="checkLine">
+            <label class="checkbox-line">
               <input id="clientEntrepreneur" type="checkbox" />
-              <span>Zleceniodawca jest przedsiebiorca, zawiera umowe o charakterze zawodowym</span>
+              <span>Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym</span>
             </label>
-            <label class="pdfField">
-              <span>Adres</span>
+            <label class="field">
+              <span>Adres:</span>
               <input id="clientAddress" type="text" />
             </label>
-            <label class="pdfField">
-              <span>PESEL/NIP</span>
+            <label class="field">
+              <span>PESEL/NIP:</span>
               <input id="clientIdentifier" type="text" />
             </label>
-            <label class="pdfField">
-              <span>Rodzaj, numer i seria dokumentu tozsamosci</span>
+            <label class="field">
+              <span>Rodzaj, numer i seria dokumentu tożsamości:</span>
               <input id="clientDocument" type="text" />
             </label>
-            <div class="twoFields">
-              <label class="pdfField">
-                <span>Nr tel.</span>
+            <div class="two-fields">
+              <label class="field">
+                <span>Nr. tel.:</span>
                 <input id="clientPhone" type="text" />
               </label>
-              <label class="pdfField">
-                <span>E-mail</span>
+              <label class="field">
+                <span>E-mail:</span>
                 <input id="clientEmail" type="email" />
               </label>
             </div>
 
-            <div class="panelHead compact">PRZEDMIOT UMOWY</div>
-            <div class="checkGroup">
-              <label><input name="subject" type="radio" value="mediation" /> wyszukanie ofert oraz posrednictwo w zakupie</label>
-              <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> wyszukanie ofert oraz zakup przez AUTOGOOD</label>
-              <label><input name="subject" type="radio" value="financing" /> zakup z finansowania</label>
-              <label><input id="clientIndicatedVehicle" type="checkbox" /> pojazd wskazany przez Zleceniodawcę</label>
+            <div class="card-head compact">PRZEDMIOT UMOWY:</div>
+            <div class="checkbox-group">
+              <label><input name="subject" type="radio" value="mediation" /> <span data-i18n="subject1">1) wyszukanie ofert oraz pośrednictwo w zakupie</span></label>
+              <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> <span data-i18n="subject2">2) wyszukanie ofert oraz zakup przez Zleceniobiorcę</span></label>
+              <label><input name="subject" type="radio" value="financing" /> <span data-i18n="subject3">3) zakup z finansowania</span></label>
+              <label><input id="clientIndicatedVehicle" type="checkbox" /> <span data-i18n="subject4">pojazd wskazany przez Zleceniodawcę</span></label>
             </div>
 
-            <div class="panelHead compact">BUDZET NA ZAKUP</div>
-            <div class="twoFields">
-              <label class="pdfField">
-                <span>Budzet</span>
+            <div class="card-head compact">BUDŻET NA ZAKUP</div>
+            <div class="two-fields">
+              <label class="field">
+                <span>Budżet:</span>
                 <input id="budgetTotal" type="text" />
               </label>
-              <label class="pdfField">
-                <span>Zaliczka</span>
+              <label class="field">
+                <span>Zaliczka:</span>
                 <input id="budgetAdvance" type="text" />
               </label>
             </div>
           </div>
 
-          <div class="contractPanel">
-            <div class="panelHead">KRYTERIA POSZUKIWAN I ZAKUPU</div>
-            <label class="pdfField">
-              <span>Marka i model</span>
+          <div class="contract-card">
+            <div class="card-head">KRYTERIA POSZUKIWAŃ I ZAKUPU:</div>
+            <label class="field">
+              <span>Marka i model:</span>
               <input id="vehicleMakeModel" type="text" />
             </label>
 
-            <div class="optionsBlock">
-              <div class="optionTitle">Dopuszczalne paliwo</div>
+            <div class="options-block">
+              <div class="option-title">Dopuszczalne paliwo:</div>
               <label><input data-fuel="diesel" type="checkbox" /> diesel</label>
               <label><input data-fuel="benzyna" type="checkbox" /> benzyna</label>
               <label><input data-fuel="hybryda" type="checkbox" /> hybryda</label>
               <label><input data-fuel="elektryk" type="checkbox" /> elektryk</label>
             </div>
 
-            <div class="optionsBlock">
-              <div class="optionTitle">Skrzynia biegow</div>
+            <div class="options-block">
+              <div class="option-title">Skrzynia biegów:</div>
               <label><input name="gearbox" type="radio" value="manualna" /> manualna</label>
               <label><input name="gearbox" type="radio" value="automatyczna" /> automatyczna</label>
             </div>
 
-            <div class="optionsBlock">
-              <div class="optionTitle">Norma spalania euro</div>
+            <div class="options-block">
+              <div class="option-title">Norma spalania euro:</div>
               <label><input name="euroStandard" type="radio" value="6" /> 6</label>
               <label><input name="euroStandard" type="radio" value="7" /> 7</label>
               <label><input name="euroStandard" type="radio" value="dowolna" /> dowolna</label>
               <label><input name="euroStandard" type="radio" value="inna" /> inna</label>
             </div>
 
-            <div class="twoFields">
-              <label class="pdfField">
-                <span>Wiek</span>
+            <div class="two-fields">
+              <label class="field">
+                <span>Wiek:</span>
                 <input id="firstRegistration" type="text" />
               </label>
-              <label class="pdfField">
-                <span>Przebieg do</span>
+              <label class="field">
+                <span>Przebieg do:</span>
                 <input id="mileageTo" type="text" />
               </label>
             </div>
 
-            <div class="optionsBlock">
-              <div class="optionTitle">Nadwozie</div>
+            <div class="options-block">
+              <div class="option-title">Nadwozie:</div>
               <label><input name="bodyType" type="radio" value="sedan" /> sedan</label>
               <label><input name="bodyType" type="radio" value="kombi" /> kombi</label>
               <label><input name="bodyType" type="radio" value="coupe" /> coupe</label>
-              <label><input name="bodyType" type="radio" value="inne" /> inne</label>
-              <input id="bodyOther" class="inlineInput" type="text" />
+              <label><input name="bodyType" type="radio" value="inne" /> inne:</label>
+              <input id="bodyOther" class="inline-input" type="text" />
             </div>
 
-            <label class="checkLine">
+            <label class="checkbox-line">
               <input id="allowCollision" type="checkbox" />
-              <span>dopuszczalne jest auto po kolizjach, ale bez uszkodzenia podluznic</span>
+              <span>dopuszczalne jest auto po kolizjach, ale bez uszkodzenia podłużnic</span>
             </label>
 
-            <label class="pdfField">
-              <span>Dodatkowe wymagane cechy/wyposazenie</span>
+            <label class="field">
+              <span>Dodatkowe wymagane cechy/wyposażenie:</span>
               <textarea id="requiredEquipment"></textarea>
             </label>
-            <label class="pdfField">
-              <span>Dodatkowe oczekiwane cechy/wyposazenie</span>
+            <label class="field">
+              <span>Dodatkowe oczekiwane cechy/wyposażenie:</span>
               <textarea id="expectedEquipment"></textarea>
             </label>
           </div>
         </section>
       </section>
     </main>
-    <script src="./src/pdf.js?v=20260531-1"></script>
+    <script src="./src/pdf.js?v=20260531-2"></script>
   </body>
 </html>
