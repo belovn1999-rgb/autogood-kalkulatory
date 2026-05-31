@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,31 +16,27 @@
           <span>Umowa</span>
         </div>
         <div class="actions">
-          <div class="language-toggle" aria-label="Language">
-            <button class="lang-btn active" type="button" data-lang="ru">RU</button>
-            <button class="lang-btn" type="button" data-lang="pl">PL</button>
-          </div>
           <label class="date-field">
-            <span data-i18n="date">Data</span>
+            <span>Data</span>
             <input id="contractDate" type="date" />
           </label>
           <label class="sequence-field">
             <span>Nr</span>
             <input id="sequence" type="number" min="1" value="1" />
           </label>
-          <button id="printBtn" class="primary-btn" type="button" data-i18n="printPdf">Drukuj PDF</button>
-          <button id="generateBtn" class="secondary-top-btn" type="button" data-i18n="generate">DOCX</button>
+          <button id="printBtn" class="primary-btn" type="button">PDF</button>
+          <button id="generateBtn" class="secondary-top-btn" type="button">DOCX</button>
         </div>
       </header>
 
       <section class="workspace">
         <aside class="paste-panel">
-          <div class="section-title" data-i18n="inputData">Dane wejściowe</div>
+          <div class="section-title">Dane wejściowe</div>
           <textarea id="rawClient" spellcheck="false"></textarea>
           <div class="example-actions">
-            <button id="resetBtn" class="ghost-btn" type="button" data-i18n="reset">Wyzeruj</button>
+            <button id="resetBtn" class="ghost-btn" type="button">Wyzeruj</button>
           </div>
-          <button id="parseBtn" class="secondary-btn" type="button" data-i18n="parse">Rozpoznaj dane</button>
+          <button id="parseBtn" class="secondary-btn" type="button">Rozpoznaj dane</button>
           <div id="status" class="status"></div>
         </aside>
 
@@ -48,8 +44,8 @@
           <div class="contract-card">
             <div class="card-head">ZLECENIODAWCA:</div>
             <div class="field-row client-kind">
-              <label><input type="radio" name="clientType" value="person" checked /> <span data-i18n="person">osoba</span></label>
-              <label><input type="radio" name="clientType" value="company" /> <span data-i18n="company">firma</span></label>
+              <label><input type="radio" name="clientType" value="person" checked /> <span>osoba</span></label>
+              <label><input type="radio" name="clientType" value="company" /> <span>firma</span></label>
             </div>
             <label class="field">
               <span>Imię i Nazwisko/Nazwa:</span>
@@ -84,10 +80,10 @@
 
             <div class="card-head compact">PRZEDMIOT UMOWY:</div>
             <div class="checkbox-group">
-              <label><input name="subject" type="radio" value="mediation" /> <span data-i18n="subject1">1) wyszukanie ofert oraz pośrednictwo w zakupie</span></label>
-              <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> <span data-i18n="subject2">2) wyszukanie ofert oraz zakup przez Zleceniobiorcę</span></label>
-              <label><input name="subject" type="radio" value="financing" /> <span data-i18n="subject3">3) zakup z finansowania</span></label>
-              <label><input id="clientIndicatedVehicle" type="checkbox" /> <span data-i18n="subject4">pojazd wskazany przez Zleceniodawcę</span></label>
+              <label><input name="subject" type="radio" value="mediation" /> <span>1) wyszukanie ofert oraz pośrednictwo w zakupie</span></label>
+              <label><input name="subject" type="radio" value="purchase_by_autogood" checked /> <span>2) wyszukanie ofert oraz zakup przez Zleceniobiorcę</span></label>
+              <label><input name="subject" type="radio" value="financing" /> <span>3) zakup z finansowania</span></label>
+              <label><input id="clientIndicatedVehicle" type="checkbox" /> <span>pojazd wskazany przez Zleceniodawcę</span></label>
             </div>
 
             <div class="card-head compact">BUDŻET NA ZAKUP</div>
@@ -169,6 +165,8 @@
         </section>
       </section>
     </main>
-    <script src="./src/pdf.js?v=20260531-2"></script>
+    <script src="./vendor/jszip.min.js"></script>
+    <script src="./vendor/jspdf.umd.min.js"></script>
+    <script src="./src/pdf.js?v=20260531-3"></script>
   </body>
 </html>
