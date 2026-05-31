@@ -115,7 +115,8 @@ textarea {
 }
 
 .primary-btn,
-.secondary-btn {
+.secondary-btn,
+.secondary-top-btn {
   height: 38px;
   border: 0;
   border-radius: 6px;
@@ -126,6 +127,11 @@ textarea {
 
 .primary-btn {
   background: var(--brand);
+  color: #fff;
+}
+
+.secondary-top-btn {
+  background: #1f2937;
   color: #fff;
 }
 

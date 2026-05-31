@@ -2,13 +2,15 @@ const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
 let currentLang = "ru";
+let currentDownloadUrl = null;
 
 const translations = {
   ru: {
     date: "Дата",
-    generate: "Создать DOCX",
+    generate: "DOCX",
+    printPdf: "Drukuj PDF",
     inputData: "Входные данные",
-    reset: "Очистить",
+    reset: "Wyzeruj",
     parse: "Распознать данные",
     person: "физлицо",
     company: "фирма",
@@ -20,12 +22,15 @@ const translations = {
     parseFail: "Не удалось распознать данные.",
     parseOk: "Данные распознаны. Проверь поля и чекбоксы.",
     generating: "Генерирую документ...",
+    generatingPdf: "Готовлю PDF...",
     generateFail: "Не удалось создать документ.",
     ready: "Документ готов.",
+    pdfReady: "PDF готов к скачиванию.",
   },
   pl: {
     date: "Data",
-    generate: "Generuj DOCX",
+    generate: "DOCX",
+    printPdf: "Drukuj PDF",
     inputData: "Dane wejściowe",
     reset: "Wyzeruj",
     parse: "Rozpoznaj dane",
@@ -39,8 +44,10 @@ const translations = {
     parseFail: "Nie udało się rozpoznać danych.",
     parseOk: "Dane rozpoznane. Sprawdź pola i checkboxy.",
     generating: "Generuję dokument...",
+    generatingPdf: "Przygotowuję PDF...",
     generateFail: "Nie udało się wygenerować dokumentu.",
     ready: "Dokument gotowy.",
+    pdfReady: "PDF gotowy do pobrania.",
   },
 };
 
@@ -88,12 +95,41 @@ function fuelValues() {
 }
 
 function setStatus(text) {
+  if (currentDownloadUrl) {
+    URL.revokeObjectURL(currentDownloadUrl);
+    currentDownloadUrl = null;
+  }
+  statusEl.innerHTML = "";
   statusEl.textContent = text;
+}
+
+function showDownload(blob, filename, readyText) {
+  if (currentDownloadUrl) {
+    URL.revokeObjectURL(currentDownloadUrl);
+  }
+  currentDownloadUrl = URL.createObjectURL(blob);
+  statusEl.innerHTML = "";
+  const label = document.createElement("span");
+  label.textContent = `${readyText} `;
+  const link = document.createElement("a");
+  link.href = currentDownloadUrl;
+  link.download = filename;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = filename;
+  statusEl.append(label, link);
+  try {
+    link.click();
+  } catch {
+    // The in-app browser can block downloads; the visible link stays available.
+  }
 }
 
 function syncClientTypeRules() {
   const isCompany = checkedRadio("clientType") === "company";
-  $("clientEntrepreneur").checked = isCompany;
+  const entrepreneur = $("clientEntrepreneur");
+  entrepreneur.checked = isCompany;
+  entrepreneur.disabled = isCompany;
   $("clientDocument").disabled = isCompany;
   if (isCompany) {
     $("clientDocument").value = "";
@@ -208,21 +244,35 @@ async function generateContract() {
   const disposition = response.headers.get("content-disposition") || "";
   const match = disposition.match(/filename="([^"]+)"/);
   const filename = match?.[1] || "umowa-autogood.docx";
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  setStatus(t("ready"));
+  showDownload(blob, filename, t("ready"));
+}
+
+async function generatePdf() {
+  setStatus(t("generatingPdf"));
+  const response = await fetch("/api/generate-pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(collectData()),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    setStatus(error || t("generateFail"));
+    return;
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("content-disposition") || "";
+  const match = disposition.match(/filename="([^"]+)"/);
+  const filename = match?.[1] || "umowa-autogood.pdf";
+  showDownload(blob, filename, t("pdfReady"));
 }
 
 function resetForm() {
   $("contractDate").value = todayISO();
   $("sequence").value = "1";
   document.querySelectorAll("input, textarea").forEach((node) => {
+    node.disabled = false;
     if (node.id === "contractDate" || node.id === "sequence") return;
     if (node.type === "radio" || node.type === "checkbox") {
       node.checked = false;
@@ -232,7 +282,6 @@ function resetForm() {
   });
   document.querySelector('input[name="clientType"][value="person"]').checked = true;
   setRadio("subject", "purchase_by_autogood");
-  $("clientDocument").disabled = false;
   $("clientEntrepreneur").checked = false;
   syncClientTypeRules();
   setStatus("");
@@ -240,6 +289,7 @@ function resetForm() {
 
 $("contractDate").value = todayISO();
 $("parseBtn").addEventListener("click", parseRawText);
+$("printBtn").addEventListener("click", generatePdf);
 $("generateBtn").addEventListener("click", generateContract);
 $("resetBtn").addEventListener("click", resetForm);
 document.querySelectorAll('input[name="clientType"]').forEach((node) => {

@@ -2,6 +2,7 @@ const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
 const pdfStorageKey = "autogoodPdfContract.v2";
+let currentDownloadUrl = null;
 
 const labels = {
   client: ["Клиент", "Client", "Klient"],
@@ -59,7 +60,32 @@ function fuelValues() {
 }
 
 function setStatus(text) {
+  if (currentDownloadUrl) {
+    URL.revokeObjectURL(currentDownloadUrl);
+    currentDownloadUrl = null;
+  }
+  statusEl.innerHTML = "";
   statusEl.textContent = text;
+}
+
+function showDownload(blob, filename, readyText) {
+  if (currentDownloadUrl) URL.revokeObjectURL(currentDownloadUrl);
+  currentDownloadUrl = URL.createObjectURL(blob);
+  statusEl.innerHTML = "";
+  const label = document.createElement("span");
+  label.textContent = `${readyText} `;
+  const link = document.createElement("a");
+  link.href = currentDownloadUrl;
+  link.download = filename;
+  link.target = "_blank";
+  link.rel = "noopener";
+  link.textContent = filename;
+  statusEl.append(label, link);
+  try {
+    link.click();
+  } catch {
+    // Some embedded browsers block downloads; the visible link remains available.
+  }
 }
 
 function escapeRegExp(value) {
@@ -105,6 +131,7 @@ function parseGearbox(value) {
 function syncClientTypeRules() {
   const isCompany = checkedRadio("clientType") === "company";
   $("clientEntrepreneur").checked = isCompany;
+  $("clientEntrepreneur").disabled = isCompany;
   $("clientDocument").disabled = isCompany;
   if (isCompany) $("clientDocument").value = "";
 }
@@ -263,6 +290,25 @@ function saveData() {
   setStatus("Zapisano.");
 }
 
+async function generatePdf() {
+  setStatus("Przygotowuje PDF...");
+  try {
+    const response = await fetch("/api/generate-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collectData()),
+    });
+    if (!response.ok) throw new Error(await response.text());
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") || "";
+    const match = disposition.match(/filename="([^"]+)"/);
+    showDownload(blob, match?.[1] || "umowa-autogood.pdf", "PDF gotowy.");
+  } catch {
+    setStatus("Gotowy PDF z szablonu dziala w lokalnej wersji programu: http://127.0.0.1:8765/");
+  }
+}
+
 function parseRawText() {
   const text = $("rawClient").value;
   if (!text.trim()) {
@@ -278,13 +324,13 @@ function resetForm() {
   $("contractDate").value = todayISO();
   $("sequence").value = "1";
   document.querySelectorAll(".pdfShell input, .pdfShell textarea").forEach((node) => {
+    node.disabled = false;
     if (node.id === "contractDate" || node.id === "sequence") return;
     if (node.type === "radio" || node.type === "checkbox") node.checked = false;
     else node.value = "";
   });
   setRadio("clientType", "person");
   setRadio("subject", "purchase_by_autogood");
-  $("clientDocument").disabled = false;
   $("clientEntrepreneur").checked = false;
   localStorage.removeItem(pdfStorageKey);
   syncClientTypeRules();
@@ -341,7 +387,7 @@ $("parseBtn").addEventListener("click", parseRawText);
 $("resetBtn").addEventListener("click", resetForm);
 $("saveBtn").addEventListener("click", saveData);
 $("exportBtn").addEventListener("click", exportData);
-$("printBtn").addEventListener("click", () => window.print());
+$("printBtn").addEventListener("click", generatePdf);
 
 document.querySelectorAll('input[name="clientType"]').forEach((node) => {
   node.addEventListener("change", syncClientTypeRules);

@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
+import subprocess
 import sys
 from datetime import datetime
 from http import HTTPStatus
@@ -206,11 +209,72 @@ def parse_raw_text(text: str) -> dict:
     }
 
 
-def output_filename(data: dict) -> str:
+def output_filename(data: dict, suffix: str = ".docx") -> str:
     date_text = data.get("contract", {}).get("date") or datetime.now().strftime("%Y-%m-%d")
     client_name = data.get("client", {}).get("name") or "klient"
     slug = re.sub(r"[^A-Za-z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+", "-", client_name, flags=re.U).strip("-")
-    return f"umowa-{date_text}-{slug or 'klient'}.docx"
+    return f"umowa-{date_text}-{slug or 'klient'}{suffix}"
+
+
+def find_soffice() -> str | None:
+    candidates = [
+        os.environ.get("SOFFICE_PATH"),
+        "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+        "/tmp/autogood-libreoffice/LibreOffice.app/Contents/MacOS/soffice",
+        shutil.which("soffice"),
+        shutil.which("libreoffice"),
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return str(candidate)
+    return None
+
+
+def convert_docx_to_pdf_with_libreoffice(input_docx: Path, output_pdf: Path) -> None:
+    soffice = find_soffice()
+    if not soffice:
+        raise RuntimeError("LibreOffice nie jest zainstalowany.")
+
+    profile = OUTPUT_DIR / "libreoffice-profile"
+    profile.mkdir(parents=True, exist_ok=True)
+    temp_dir = output_pdf.parent
+    generated_pdf = temp_dir / f"{input_docx.stem}.pdf"
+    generated_pdf.unlink(missing_ok=True)
+
+    result = subprocess.run(
+        [
+            soffice,
+            f"-env:UserInstallation=file://{profile}",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            str(temp_dir),
+            str(input_docx),
+        ],
+        text=True,
+        capture_output=True,
+        timeout=120,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        details = normalize_space(result.stderr or result.stdout or "nieznany błąd")
+        raise RuntimeError(f"LibreOffice nie przygotował PDF: {details}")
+
+    if not generated_pdf.exists() or generated_pdf.stat().st_size == 0:
+        details = normalize_space(result.stderr or result.stdout or "brak pliku PDF")
+        raise RuntimeError(f"LibreOffice nie utworzył pliku PDF: {details}")
+
+    if generated_pdf != output_pdf:
+        generated_pdf.replace(output_pdf)
+
+
+def convert_docx_to_pdf(input_docx: Path, output_pdf: Path) -> None:
+    soffice = find_soffice()
+    if not soffice:
+        raise RuntimeError("LibreOffice nie jest zainstalowany. PDF wymaga LibreOffice.app.")
+    convert_docx_to_pdf_with_libreoffice(input_docx, output_pdf)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -244,6 +308,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.generate_docx(data)
             return
 
+        if self.path == "/api/generate-pdf":
+            self.generate_pdf(data)
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint")
 
     def send_json(self, data: dict) -> None:
@@ -272,6 +340,31 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("content-type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
         self.send_header("content-disposition", f'attachment; filename="{filename}"')
+        self.send_header("content-length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def generate_pdf(self, data: dict) -> None:
+        try:
+            OUTPUT_DIR.mkdir(exist_ok=True)
+            docx_filename = output_filename(data, ".docx")
+            pdf_filename = output_filename(data, ".pdf")
+            docx_output = OUTPUT_DIR / docx_filename
+            pdf_output = OUTPUT_DIR / pdf_filename
+            fill_docx(data, docx_output)
+            convert_docx_to_pdf(docx_output, pdf_output)
+            body = pdf_output.read_bytes()
+        except Exception as exc:
+            message = f"PDF generation failed: {exc}"
+            self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+            self.send_header("content-type", "text/plain; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(message.encode("utf-8"))
+            return
+
+        self.send_response(HTTPStatus.OK)
+        self.send_header("content-type", "application/pdf")
+        self.send_header("content-disposition", f'attachment; filename="{pdf_filename}"')
         self.send_header("content-length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
