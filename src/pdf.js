@@ -55,8 +55,11 @@ const labels = {
   pesel: ["PESEL"],
   nip: ["NIP"],
   document: ["Dokument", "Документ"],
+  documentType: ["Typ dokumentu", "Rodzaj dokumentu", "Тип документа"],
+  documentNumber: ["Numer dokumentu", "Seria dokumentu", "Номер документа"],
   phone: ["Telefon", "Nr. tel", "Nr tel", "Телефон"],
   email: ["Email", "E-mail", "Mail"],
+  vehicleMarker: ["Auto", "Pojazd", "Samochód", "Авто"],
   make: ["Marka", "Марка"],
   model: ["Model", "Модель"],
   year: ["Rok", "Wiek", "Год"],
@@ -140,7 +143,7 @@ function parseBody(value) {
   for (const body of ["sedan", "kombi", "coupe"]) {
     if (new RegExp(`\\b${body}\\b`).test(lower)) return { type: body, other: "" };
   }
-  const other = raw.match(/inne\\s*:\\s*(.+)/i)?.[1];
+  const other = raw.match(/inne\s*:\s*(.+)/i)?.[1];
   if (other) return { type: "inne", other: normalizeSpace(other) };
   if (raw) return { type: "inne", other: raw };
   return { type: "", other: "" };
@@ -156,6 +159,21 @@ function parseGearbox(value) {
   if (lower.includes("automat")) return "automatyczna";
   if (lower.includes("manual")) return "manualna";
   return "";
+}
+
+function parseDocumentValue(text) {
+  const compact = normalizeSpace(text);
+  let documentValue = extractLabeled(compact, labels.document);
+  const documentType = extractLabeled(compact, labels.documentType);
+  const documentNumber = extractLabeled(compact, labels.documentNumber);
+  if (!documentValue && (documentType || documentNumber)) {
+    documentValue = normalizeSpace(`${documentType} ${documentNumber}`);
+  }
+  if (!documentValue) {
+    const match = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*[:-]?\s*([A-Z0-9]{3,}(?:\s+[A-Z0-9]{2,})?)/i);
+    if (match) documentValue = normalizeSpace(`${match[1]} ${match[2]}`);
+  }
+  return documentValue;
 }
 
 function setStatus(text) {
@@ -239,7 +257,7 @@ function parseRawTextValue(text) {
       name: extractLabeled(compact, labels.client),
       address: extractLabeled(compact, labels.address),
       identifier: isCompany ? nip : pesel,
-      document: isCompany ? "" : extractLabeled(compact, labels.document),
+      document: isCompany ? "" : parseDocumentValue(compact),
       phone: normalizeSpace(phone),
       email,
     },
@@ -356,19 +374,33 @@ function wEl(doc, name, attrs = {}) {
   return el;
 }
 
-function setParagraphText(p, text, { size = 16, bold = false } = {}) {
-  for (const run of directChildren(p, W, "r")) run.remove();
-  const doc = p.ownerDocument;
+function makeRun(doc, text, { size = 16, bold = false, breakBefore = false } = {}) {
   const r = wEl(doc, "r");
   const rPr = wEl(doc, "rPr");
   rPr.append(wEl(doc, "rFonts", { ascii: "Calibri", hAnsi: "Calibri", cs: "Calibri" }));
   if (bold) rPr.append(wEl(doc, "b"));
+  else rPr.append(wEl(doc, "b", { val: "0" }), wEl(doc, "bCs", { val: "0" }));
   rPr.append(wEl(doc, "sz", { val: String(size) }));
+  r.append(rPr);
+  if (breakBefore) r.append(wEl(doc, "br"));
   const t = wEl(doc, "t");
   t.setAttribute("xml:space", "preserve");
   t.textContent = text || "";
-  r.append(rPr, t);
-  p.append(r);
+  r.append(t);
+  return r;
+}
+
+function setParagraphText(p, text, { size = 16, bold = false } = {}) {
+  for (const run of directChildren(p, W, "r")) run.remove();
+  const doc = p.ownerDocument;
+  p.append(makeRun(doc, text, { size, bold }));
+}
+
+function setParagraphLabelValue(p, label, value, { size = 16 } = {}) {
+  for (const run of directChildren(p, W, "r")) run.remove();
+  const doc = p.ownerDocument;
+  p.append(makeRun(doc, label, { size, bold: false }));
+  if (value) p.append(makeRun(doc, value, { size, bold: false, breakBefore: true }));
 }
 
 function tableRows(root) {
@@ -409,20 +441,20 @@ async function generateDocx() {
 
   setParagraphText(all(root, W, "p")[0], polishDateLine(data.contract.date), { size: 28 });
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
-  setParagraphText(paragraph(rows[2][0], 1), `Imię i Nazwisko/Nazwa: ${data.client.name}`, { size: 16, bold: true });
-  setParagraphText(paragraph(rows[3][0], 2), `Adres: ${data.client.address}`, { size: 16 });
-  setParagraphText(paragraph(rows[4][0], 2), `PESEL/NIP: ${idValue}`, { size: 16 });
-  setParagraphText(paragraph(rows[5][0], 2), `Rodzaj, numer i seria dokumentu tożsamości: ${docValue}`, { size: 16 });
+  setParagraphLabelValue(paragraph(rows[2][0], 1), "Imię i Nazwisko/Nazwa:", data.client.name, { size: 16 });
+  setParagraphText(paragraph(rows[3][0], 2), data.client.address, { size: 16 });
+  setParagraphText(paragraph(rows[4][0], 2), idValue, { size: 16 });
+  setParagraphText(paragraph(rows[5][0], 2), docValue, { size: 16 });
   setParagraphText(paragraph(rows[6][0], 1), `Nr. tel.: ${data.client.phone}`, { size: 16 });
   setParagraphText(paragraph(rows[6][0], 2), `E-mail: ${data.client.email}`, { size: 16 });
-  setParagraphText(paragraph(rows[7][2], 2), `Marka i model: ${data.vehicle.make_model}`, { size: 16, bold: true });
+  setParagraphText(paragraph(rows[7][2], 2), data.vehicle.make_model, { size: 16 });
   setParagraphText(paragraph(rows[10][2], 2), `Wiek (pierwsza rejestracja w roku/latach): ${data.vehicle.first_registration}`, { size: 16 });
   setParagraphText(paragraph(rows[11][2], 2), `Przebieg do (km): ${data.vehicle.mileage_to}`, { size: 16 });
-  setParagraphText(paragraph(rows[11][0], 1), `Budżet: ${data.budget.total}`, { size: 16, bold: true });
-  setParagraphText(paragraph(rows[12][0], 1), `Zaliczka: ${data.budget.advance}`, { size: 16, bold: true });
+  setParagraphText(paragraph(rows[11][0], 1), `Budżet: ${data.budget.total}`, { size: 16 });
+  setParagraphText(paragraph(rows[12][0], 1), `Zaliczka: ${data.budget.advance}`, { size: 16 });
   if (bodyOther) setParagraphText(paragraph(rows[12][2], 0), `Nadwozie: ${bodyOther}`, { size: 16 });
-  setParagraphText(paragraph(rows[13][2], 2), `Dodatkowe wymagane cechy/wyposażenie: ${data.vehicle.required_equipment}`, { size: 16 });
-  setParagraphText(paragraph(rows[15][2], 2), `Dodatkowe oczekiwane cechy/wyposażenie: ${data.vehicle.expected_equipment}`, { size: 16 });
+  setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment, { size: 16 });
+  setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment, { size: 16 });
   setDocxCheckboxes(root, data);
 
   const serialized = new XMLSerializer().serializeToString(xml);
