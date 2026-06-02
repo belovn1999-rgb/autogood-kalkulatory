@@ -49,29 +49,32 @@ const checkboxIndex = {
 };
 
 const labels = {
-  client: ["Klient", "Client", "Клиент"],
-  clientType: ["Rodzaj klienta", "Тип клиента"],
-  address: ["Adres", "Адрес"],
+  client: ["Klient", "Client", "Клиент", "Zleceniodawca", "Imię i nazwisko", "Imie i nazwisko", "Imię i Nazwisko/Nazwa", "Nazwa"],
+  clientType: ["Rodzaj klienta", "Typ klienta", "Тип клиента"],
+  address: ["Adres", "Адрес", "Address", "Siedziba", "Miejsce zamieszkania"],
   pesel: ["PESEL"],
   nip: ["NIP"],
-  document: ["Dokument", "Документ"],
+  document: ["Dokument", "Документ", "Dowód", "Dowod", "Rodzaj, numer i seria dokumentu tożsamości", "Rodzaj numer i seria dokumentu tozsamosci"],
   documentType: ["Typ dokumentu", "Rodzaj dokumentu", "Тип документа"],
-  documentNumber: ["Numer dokumentu", "Seria dokumentu", "Номер документа"],
-  phone: ["Telefon", "Nr. tel", "Nr tel", "Телефон"],
-  email: ["Email", "E-mail", "Mail"],
-  vehicleMarker: ["Auto", "Pojazd", "Samochód", "Авто"],
+  documentNumber: ["Numer dokumentu", "Seria dokumentu", "Номер документа", "Nr dokumentu", "Numer i seria"],
+  phone: ["Telefon", "Nr. tel", "Nr tel", "Телефон", "Tel", "Phone"],
+  email: ["Email", "E-mail", "Mail", "Adres email", "Adres e-mail", "Имейл"],
+  vehicleMarker: ["Auto", "Pojazd", "Samochód", "Samochod", "Авто", "Автомобиль"],
   make: ["Marka", "Марка"],
   model: ["Model", "Модель"],
-  year: ["Rok", "Wiek", "Год"],
-  body: ["Nadwozie", "Тип кузова"],
-  fuel: ["Paliwo", "Топливо"],
-  gearbox: ["Skrzynia", "Коробка"],
-  budget: ["Budżet", "Budzet", "Бюджет"],
-  deposit: ["Zaliczka", "Депозит", "Заливка", "Заличка"],
-  extra: ["Dodatkowo", "Wyposażenie", "Дополнительно"],
+  year: ["Rok", "Wiek", "Год", "Rocznik", "Pierwsza rejestracja"],
+  mileage: ["Przebieg", "Przebieg do", "Пробег"],
+  body: ["Nadwozie", "Typ nadwozia", "Тип кузова", "Кузов"],
+  fuel: ["Paliwo", "Топливо", "Napęd", "Naped"],
+  gearbox: ["Skrzynia", "Skrzynia biegów", "Skrzynia biegow", "Коробка"],
+  budget: ["Budżet", "Budzet", "Бюджет", "Cena", "Kwota"],
+  deposit: ["Zaliczka", "Депозит", "Заливка", "Заличка", "Advance"],
+  extra: ["Dodatkowo", "Wyposażenie", "Дополнительно", "Dodatkowe", "Wymagania", "Opcje"],
+  expectedExtra: ["Oczekiwane", "Dodatkowe oczekiwane", "Желаемые"],
 };
 
 const allLabels = Object.values(labels).flat();
+const looseStopLabels = allLabels.filter((label) => !labels.vehicleMarker.includes(label));
 
 function todayISO() {
   const now = new Date();
@@ -127,9 +130,17 @@ function escapeRegExp(value) {
 
 function extractLabeled(text, variants) {
   const labelPattern = variants.map(escapeRegExp).join("|");
-  const nextPattern = allLabels.map(escapeRegExp).join("|");
-  const pattern = new RegExp(`(?:^|[\\s,;])(?:${labelPattern})\\s*:\\s*(.*?)(?=(?:\\s+(?:${nextPattern})\\s*:)|$)`, "is");
+  const separatedNextPattern = allLabels.map(escapeRegExp).join("|");
+  const looseNextPattern = looseStopLabels.map(escapeRegExp).join("|");
+  const pattern = new RegExp(
+    `(?:^|[\\s,;|\\n])(?:${labelPattern})\\s*(?::|=|–|-)?\\s*(.*?)(?=(?:[\\s,;|\\n]+(?:${separatedNextPattern})\\s*(?::|=|–|-)\\s*)|(?:[\\s,;|\\n]+(?:${looseNextPattern})\\s+)|$)`,
+    "is"
+  );
   return normalizeSpace(text.match(pattern)?.[1] || "");
+}
+
+function stripKnownNoise(value) {
+  return normalizeSpace(String(value || "").replace(/^[-–—•*]+/, "").replace(/^[/:;,.\s-]+|[/:;,.\s-]+$/g, ""));
 }
 
 function cleanupChoice(value) {
@@ -150,13 +161,19 @@ function parseBody(value) {
 }
 
 function parseFuel(value) {
-  const lower = cleanupChoice(value).toLowerCase();
-  return ["benzyna", "diesel", "hybryda", "elektryk"].filter((fuel) => lower.includes(fuel));
+  const lower = normalizeSpace(value).toLowerCase();
+  const selected = [];
+  if (/\bbenzyn|gasolin|petrol\b/.test(lower)) selected.push("benzyna");
+  if (/\bdiesel|olej nap[eę]dowy\b/.test(lower)) selected.push("diesel");
+  if (/\bhybryd|hybrid\b/.test(lower)) selected.push("hybryda");
+  if (/\belektryk|electric|ev\b/.test(lower)) selected.push("elektryk");
+  return selected;
 }
 
 function parseGearbox(value) {
   const lower = cleanupChoice(value).toLowerCase();
   if (lower.includes("automat")) return "automatyczna";
+  if (lower.includes("auto")) return "automatyczna";
   if (lower.includes("manual")) return "manualna";
   return "";
 }
@@ -174,6 +191,88 @@ function parseDocumentValue(text) {
     if (match) documentValue = normalizeSpace(`${match[1]} ${match[2]}`);
   }
   return documentValue;
+}
+
+function moneyMatch(value) {
+  return normalizeSpace(value.match(/\b\d[\d\s.,]{2,}\s*(?:PLN|EUR|zł|zl|€)(?:\s*brutto|\s*netto)?\b/i)?.[0] || "");
+}
+
+function addressFallback(text) {
+  const pattern =
+    /\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja|улица|adres)\s+.*?(?=\s+(?:PESEL|NIP|Dokument|Dow[oó]d|Paszport|Karta pobytu|Telefon|Tel|Email|E-mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b|$)/i;
+  return stripKnownNoise(text.match(pattern)?.[0] || "");
+}
+
+function documentFallback(text) {
+  const compact = normalizeSpace(text);
+  const full = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?:nr|numer|seria|:|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (full) return normalizeSpace(`${full[1]} ${full[2]}`);
+  const number = compact.match(/\b[A-Z]{2,4}\s?\d{5,8}\b/)?.[0] || "";
+  return normalizeSpace(number);
+}
+
+function valueAfterMarker(text, markerVariants) {
+  const labelPattern = markerVariants.map(escapeRegExp).join("|");
+  const stopPattern = allLabels.map(escapeRegExp).join("|");
+  const match = normalizeSpace(text).match(new RegExp(`(?:^|[\\s,;|])(?:${labelPattern})\\s*(?::|=|–|-)?\\s*(.*?)(?=(?:\\s+(?:${stopPattern})\\s*(?::|=|–|-)?\\s*)|$)`, "is"));
+  return stripKnownNoise(match?.[1] || "");
+}
+
+function vehicleContext(text) {
+  const compact = normalizeSpace(text);
+  const marker = labels.vehicleMarker.map(escapeRegExp).join("|");
+  const strictMatches = [...compact.matchAll(new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s*(?::|=|–|-)\\s*(.*)$`, "gis"))];
+  if (strictMatches.length) return normalizeSpace(strictMatches.at(-1)[1]);
+  const looseMatches = [...compact.matchAll(new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s+(.*)$`, "gis"))];
+  return looseMatches.length ? normalizeSpace(looseMatches.at(-1)[1]) : compact;
+}
+
+function firstRegistrationFallback(text) {
+  return (
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\s*-\s*(?:19|20)\d{2}\b/)?.[0] || "") ||
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\+\b/)?.[0] || "") ||
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\b/)?.[0] || "")
+  );
+}
+
+function mileageFallback(text) {
+  return normalizeSpace(text.match(/\b\d[\d\s.,]{2,}\s*(?:km|км)\b/i)?.[0] || "");
+}
+
+function makeModelFallback(text) {
+  const context = vehicleContext(text)
+    .replace(/\b(?:Rok|Wiek|Rocznik|Год|Paliwo|Топливо|Skrzynia|Коробка|Budżet|Budzet|Бюджет|Zaliczka|Депозит)\b.*$/i, "");
+  const cleaned = stripKnownNoise(
+    context
+      .replace(/\b(?:Marka|Model|Марка|Модель)\s*(?::|=|–|-)?\s*/gi, " ")
+      .replace(/\b(?:19|20)\d{2}(?:\s*-\s*(?:19|20)\d{2}|\+)?\b/g, " ")
+  );
+  const words = cleaned.match(/[A-ZŁŚŻŹĆŃÓĘĄ0-9][\w.+-]*/gi) || [];
+  const filtered = words.filter((word) => !/^(auto|pojazd|samoch[oó]d|авто|rok|paliwo|skrzynia|benzyna|diesel|hybryda|elektryk|automat|automatyczna|manual|manualna|sedan|kombi|coupe)$/i.test(word));
+  return normalizeSpace(filtered.slice(0, 4).join(" "));
+}
+
+function parseClientType(text, nip) {
+  const compact = normalizeSpace(text);
+  const lower = compact.toLowerCase();
+  const labeled = extractLabeled(compact, labels.clientType).toLowerCase();
+  const companyMarkers = ["firma", "фирм", "jdg", "sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "nip", "krs", "regon"];
+  if (labeled.includes("firma") || labeled.includes("фирм") || labeled.includes("jdg")) return "company";
+  if (labeled.includes("osoba") || labeled.includes("fizycz") || labeled.includes("физ")) return "person";
+  return nip && companyMarkers.some((marker) => lower.includes(marker)) ? "company" : "person";
+}
+
+function parseName(text, isCompany) {
+  const compact = normalizeSpace(text);
+  const labeled = extractLabeled(compact, labels.client);
+  if (labeled) return stripKnownNoise(labeled);
+  if (isCompany) {
+    const company = compact.match(/\b[A-Z0-9ĄĆĘŁŃÓŚŹŻ][A-Z0-9ĄĆĘŁŃÓŚŹŻ .&-]{2,}?(?:JDG|sp\.?\s*z\.?\s*o\.?o\.?|spółka|spolka|s\.a\.)\b/i)?.[0];
+    if (company) return stripKnownNoise(company);
+  }
+  const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
+  const person = beforeAddress.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "").match(/\b[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
+  return stripKnownNoise(person || "");
 }
 
 function setStatus(text) {
@@ -223,10 +322,11 @@ function parseRawTextValue(text) {
       .map(normalizeSpace)
       .filter(Boolean)
       .join("\n") || compact;
-  const lower = joined.toLowerCase();
+  const vehicleText = vehicleContext(compact);
 
-  let email = extractLabeled(compact, labels.email);
-  if (!email) email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
+  let email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
+  if (!email) email = extractLabeled(compact, labels.email);
+  email = stripKnownNoise(email);
 
   let phone = "";
   const labeledPhone = extractLabeled(compact, labels.phone);
@@ -242,36 +342,50 @@ function parseRawTextValue(text) {
     }
   }
 
-  const pesel = extractLabeled(compact, labels.pesel).replace(/\D/g, "") || joined.match(/\b\d{11}\b/)?.[0] || "";
+  const peselValue = extractLabeled(compact, labels.pesel);
+  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joined.match(/\b\d{11}\b/)?.[0] || "";
   const nipRaw = extractLabeled(compact, labels.nip) || joined.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
   const nip = nipRaw.replace(/\D/g, "");
-  const clientType = extractLabeled(compact, labels.clientType).toLowerCase();
-  const companyMarkers = ["sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "nip", "krs"];
-  const isCompany = clientType.includes("firma") || clientType.includes("фирм") || Boolean(nip && companyMarkers.some((marker) => lower.includes(marker)));
-  const make = extractLabeled(compact, labels.make);
-  const model = extractLabeled(compact, labels.model);
+  const clientType = parseClientType(compact, nip);
+  const isCompany = clientType === "company";
+  const make = stripKnownNoise(extractLabeled(compact, labels.make));
+  const model = stripKnownNoise(extractLabeled(compact, labels.model));
+  const makeModel = normalizeSpace(`${make} ${model}`) || makeModelFallback(vehicleText);
+  const budgetValue = extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget));
+  const depositValue = extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit));
+  const documentValue = parseDocumentValue(compact) || documentFallback(compact);
+  const addressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
+  const yearValue = extractLabeled(compact, labels.year) || firstRegistrationFallback(vehicleText);
+  const mileageValue = extractLabeled(compact, labels.mileage) || mileageFallback(vehicleText);
+  const fuelValue = extractLabeled(compact, labels.fuel) || vehicleText;
+  const gearboxValue = extractLabeled(compact, labels.gearbox) || vehicleText;
+  const bodyValue = extractLabeled(compact, labels.body) || vehicleText;
+  const requiredEquipment = extractLabeled(compact, labels.extra);
+  const expectedEquipment = extractLabeled(compact, labels.expectedExtra);
 
   return {
     client: {
-      type: isCompany ? "company" : "person",
-      name: extractLabeled(compact, labels.client),
-      address: extractLabeled(compact, labels.address),
+      type: clientType,
+      name: parseName(compact, isCompany),
+      address: addressValue,
       identifier: isCompany ? nip : pesel,
-      document: isCompany ? "" : parseDocumentValue(compact),
+      document: isCompany ? "" : documentValue,
       phone: normalizeSpace(phone),
       email,
     },
     budget: {
-      total: extractLabeled(compact, labels.budget),
-      advance: extractLabeled(compact, labels.deposit),
+      total: budgetValue,
+      advance: depositValue,
     },
     vehicle: {
-      make_model: normalizeSpace(`${make} ${model}`),
-      fuel: parseFuel(extractLabeled(compact, labels.fuel)),
-      gearbox: parseGearbox(extractLabeled(compact, labels.gearbox)),
-      first_registration: extractLabeled(compact, labels.year),
-      body: parseBody(extractLabeled(compact, labels.body)),
-      required_equipment: extractLabeled(compact, labels.extra),
+      make_model: makeModel,
+      fuel: parseFuel(fuelValue),
+      gearbox: parseGearbox(gearboxValue),
+      first_registration: yearValue,
+      mileage_to: mileageValue,
+      body: parseBody(bodyValue),
+      required_equipment: requiredEquipment,
+      expected_equipment: expectedEquipment,
     },
   };
 }
@@ -297,6 +411,7 @@ function applyParsed(data) {
   $("firstRegistration").value = data.vehicle?.first_registration || $("firstRegistration").value;
   $("mileageTo").value = data.vehicle?.mileage_to || $("mileageTo").value;
   $("requiredEquipment").value = data.vehicle?.required_equipment || $("requiredEquipment").value;
+  $("expectedEquipment").value = data.vehicle?.expected_equipment || $("expectedEquipment").value;
   syncClientTypeRules();
 }
 
