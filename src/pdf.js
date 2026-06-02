@@ -180,6 +180,8 @@ function parseGearbox(value) {
 
 function parseDocumentValue(text) {
   const compact = normalizeSpace(text);
+  const exact = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?::|nr|numer|seria|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (exact) return normalizeSpace(`${exact[1]} ${exact[2]}`);
   let documentValue = extractLabeled(compact, labels.document);
   const documentType = extractLabeled(compact, labels.documentType);
   const documentNumber = extractLabeled(compact, labels.documentNumber);
@@ -198,6 +200,11 @@ function moneyMatch(value) {
 }
 
 function addressFallback(text) {
+  const compact = normalizeSpace(text);
+  const postalAddress = compact.match(
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+  );
+  if (postalAddress) return stripKnownNoise(postalAddress[0]);
   const pattern =
     /\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja|улица|adres)\s+.*?(?=\s+(?:PESEL|NIP|Dokument|Dow[oó]d|Paszport|Karta pobytu|Telefon|Tel|Email|E-mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b|$)/i;
   return stripKnownNoise(text.match(pattern)?.[0] || "");
@@ -225,6 +232,13 @@ function vehicleContext(text) {
   if (strictMatches.length) return normalizeSpace(strictMatches.at(-1)[1]);
   const looseMatches = [...compact.matchAll(new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s+(.*)$`, "gis"))];
   return looseMatches.length ? normalizeSpace(looseMatches.at(-1)[1]) : compact;
+}
+
+function hasVehicleSignal(text) {
+  const compact = normalizeSpace(text);
+  const marker = labels.vehicleMarker.map(escapeRegExp).join("|");
+  if (new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s*(?::|=|–|-|\\s+)`, "i").test(compact)) return true;
+  return Boolean(extractLabeled(compact, labels.make) || extractLabeled(compact, labels.model) || extractLabeled(compact, labels.fuel) || extractLabeled(compact, labels.gearbox) || extractLabeled(compact, labels.body));
 }
 
 function firstRegistrationFallback(text) {
@@ -271,6 +285,8 @@ function parseName(text, isCompany) {
     if (company) return stripKnownNoise(company);
   }
   const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
+  const upperPerson = beforeAddress.match(/[\p{Lu}]{2,}(?:\s+[\p{Lu}]{2,}){1,3}/u)?.[0];
+  if (upperPerson) return stripKnownNoise(upperPerson);
   const person = beforeAddress.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "").match(/\b[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
   return stripKnownNoise(person || "");
 }
@@ -322,7 +338,8 @@ function parseRawTextValue(text) {
       .map(normalizeSpace)
       .filter(Boolean)
       .join("\n") || compact;
-  const vehicleText = vehicleContext(compact);
+  const hasVehicle = hasVehicleSignal(compact);
+  const vehicleText = hasVehicle ? vehicleContext(compact) : "";
 
   let email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
   if (!email) email = extractLabeled(compact, labels.email);
@@ -348,20 +365,20 @@ function parseRawTextValue(text) {
   const nip = nipRaw.replace(/\D/g, "");
   const clientType = parseClientType(compact, nip);
   const isCompany = clientType === "company";
-  const make = stripKnownNoise(extractLabeled(compact, labels.make));
-  const model = stripKnownNoise(extractLabeled(compact, labels.model));
-  const makeModel = normalizeSpace(`${make} ${model}`) || makeModelFallback(vehicleText);
+  const make = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.make)) : "";
+  const model = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.model)) : "";
+  const makeModel = hasVehicle ? normalizeSpace(`${make} ${model}`) || makeModelFallback(vehicleText) : "";
   const budgetValue = extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget));
   const depositValue = extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit));
   const documentValue = parseDocumentValue(compact) || documentFallback(compact);
   const addressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
-  const yearValue = extractLabeled(compact, labels.year) || firstRegistrationFallback(vehicleText);
-  const mileageValue = extractLabeled(compact, labels.mileage) || mileageFallback(vehicleText);
-  const fuelValue = extractLabeled(compact, labels.fuel) || vehicleText;
-  const gearboxValue = extractLabeled(compact, labels.gearbox) || vehicleText;
-  const bodyValue = extractLabeled(compact, labels.body) || vehicleText;
-  const requiredEquipment = extractLabeled(compact, labels.extra);
-  const expectedEquipment = extractLabeled(compact, labels.expectedExtra);
+  const yearValue = hasVehicle ? extractLabeled(compact, labels.year) || firstRegistrationFallback(vehicleText) : "";
+  const mileageValue = hasVehicle ? extractLabeled(compact, labels.mileage) || mileageFallback(vehicleText) : "";
+  const fuelValue = hasVehicle ? extractLabeled(compact, labels.fuel) || vehicleText : "";
+  const gearboxValue = hasVehicle ? extractLabeled(compact, labels.gearbox) || vehicleText : "";
+  const bodyValue = hasVehicle ? extractLabeled(compact, labels.body) || vehicleText : "";
+  const requiredEquipment = hasVehicle ? extractLabeled(compact, labels.extra) : "";
+  const expectedEquipment = hasVehicle ? extractLabeled(compact, labels.expectedExtra) : "";
 
   return {
     client: {
