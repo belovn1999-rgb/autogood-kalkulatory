@@ -75,6 +75,7 @@ const labels = {
 
 const allLabels = Object.values(labels).flat();
 const looseStopLabels = allLabels.filter((label) => !labels.vehicleMarker.includes(label));
+const plus48PhonePattern = /\+48[\s-]?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g;
 
 function todayISO() {
   const now = new Date();
@@ -141,6 +142,10 @@ function extractLabeled(text, variants) {
 
 function stripKnownNoise(value) {
   return normalizeSpace(String(value || "").replace(/^[-–—•*]+/, "").replace(/^[/:;,.\s-]+|[/:;,.\s-]+$/g, ""));
+}
+
+function withoutPlus48Phones(value) {
+  return String(value || "").replace(plus48PhonePattern, " ");
 }
 
 function cleanupChoice(value) {
@@ -363,7 +368,9 @@ function parseRawTextValue(text) {
 
   let phone = "";
   const labeledPhone = extractLabeled(compact, labels.phone);
-  const phoneMatches = labeledPhone ? [labeledPhone] : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
+  const labeledPlus48Phone = labeledPhone.match(plus48PhonePattern) || [];
+  const plus48Phones = joined.match(plus48PhonePattern) || [];
+  const phoneMatches = labeledPhone ? labeledPlus48Phone.length ? labeledPlus48Phone : [labeledPhone] : plus48Phones.length ? plus48Phones : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
   for (const candidate of phoneMatches) {
     const digits = candidate.replace(/\D/g, "");
     const start = joined.indexOf(candidate);
@@ -375,9 +382,11 @@ function parseRawTextValue(text) {
     }
   }
 
-  const peselValue = extractLabeled(compact, labels.pesel);
-  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joined.match(/\b\d{11}\b/)?.[0] || "";
-  const nipRaw = extractLabeled(compact, labels.nip) || joined.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
+  const compactWithoutPhones = normalizeSpace(withoutPlus48Phones(compact));
+  const joinedWithoutPhones = normalizeSpace(withoutPlus48Phones(joined));
+  const peselValue = extractLabeled(compactWithoutPhones, labels.pesel);
+  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joinedWithoutPhones.match(/\b\d{11}\b/)?.[0] || "";
+  const nipRaw = extractLabeled(compactWithoutPhones, labels.nip) || joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
   const nip = nipRaw.replace(/\D/g, "");
   const clientType = parseClientType(compact, nip);
   const isCompany = clientType === "company";
