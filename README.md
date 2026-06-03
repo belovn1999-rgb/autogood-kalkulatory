@@ -14,6 +14,20 @@ PDF:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/pdf.html
 ```
 
+PDF z generatora umowy wymaga konwertera DOCX -> PDF z LibreOffice. GitHub Pages
+obsluguje tylko statyczna strone, wiec poprawny PDF dziala po uruchomieniu albo
+wdrozeniu serwisu:
+
+```bash
+python3 converter/server.py
+```
+
+Lokalny adres z konwerterem:
+
+```text
+http://127.0.0.1:8787/pdf.html
+```
+
 Mapa procesu managera:
 
 ```text

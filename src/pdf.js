@@ -4,6 +4,7 @@ const statusEl = $("status");
 const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx";
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
+const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 
 let currentDownloadUrl = null;
 
@@ -752,6 +753,25 @@ async function generatePdfBlob() {
   return doc.output("blob");
 }
 
+async function convertDocxBlobToPdf(docxBlob, filename) {
+  const endpoint = window.AUTOGOOD_PDF_CONVERTER_URL || defaultPdfConverterUrl;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "X-Filename": encodeURIComponent(filename),
+    },
+    body: docxBlob,
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    throw new Error(message || "Konwerter PDF nie jest dostępny.");
+  }
+
+  return await response.blob();
+}
+
 function parseRawText() {
   const text = $("rawClient").value;
   if (!text.trim()) {
@@ -774,11 +794,18 @@ async function generateContract() {
 
 async function generatePdf() {
   try {
-    setStatus("Przygotowuję PDF...");
-    const blob = await generatePdfBlob();
-    showDownload(blob, filenameFor(collectData(), "pdf"), "PDF gotowy.");
+    setStatus("Przygotowuję DOCX do konwersji PDF...");
+    const data = collectData();
+    const docxBlob = await generateDocx();
+    setStatus("Konwertuję DOCX do PDF...");
+    const blob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
+    showDownload(blob, filenameFor(data, "pdf"), "PDF gotowy.");
   } catch (error) {
-    setStatus(`Nie udało się przygotować PDF: ${error.message}`);
+    const message = String(error.message || error);
+    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+      : message;
+    setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
   }
 }
 
