@@ -287,14 +287,17 @@ function makeModelFallback(text) {
   return normalizeSpace(filtered.slice(0, 4).join(" "));
 }
 
-function parseClientType(text, nip) {
+function parseClientType(text, { pesel = "", nip = "" } = {}) {
   const compact = normalizeSpace(text);
   const lower = compact.toLowerCase();
   const labeled = extractLabeled(compact, labels.clientType).toLowerCase();
-  const companyMarkers = ["firma", "фирм", "jdg", "sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "nip", "krs", "regon"];
+  const companyMarkers = ["firma", "фирм", "jdg", "sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "krs", "regon"];
   if (labeled.includes("firma") || labeled.includes("фирм") || labeled.includes("jdg")) return "company";
   if (labeled.includes("osoba") || labeled.includes("fizycz") || labeled.includes("физ")) return "person";
-  return nip && companyMarkers.some((marker) => lower.includes(marker)) ? "company" : "person";
+  if (companyMarkers.some((marker) => lower.includes(marker))) return "company";
+  if (pesel) return "person";
+  if (nip) return "company";
+  return "person";
 }
 
 function parseName(text, isCompany) {
@@ -386,9 +389,12 @@ function parseRawTextValue(text) {
   const joinedWithoutPhones = normalizeSpace(withoutPlus48Phones(joined));
   const peselValue = extractLabeled(compactWithoutPhones, labels.pesel);
   const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joinedWithoutPhones.match(/\b\d{11}\b/)?.[0] || "";
-  const nipRaw = extractLabeled(compactWithoutPhones, labels.nip) || joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] || "";
+  const nipRaw =
+    extractLabeled(compactWithoutPhones, labels.nip) ||
+    joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] ||
+    "";
   const nip = nipRaw.replace(/\D/g, "");
-  const clientType = parseClientType(compact, nip);
+  const clientType = parseClientType(compact, { pesel, nip });
   const isCompany = clientType === "company";
   const make = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.make)) : "";
   const model = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.model)) : "";
