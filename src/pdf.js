@@ -210,6 +210,22 @@ function addressFallback(text) {
   return stripKnownNoise(text.match(pattern)?.[0] || "");
 }
 
+function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = "", document = "" } = {}) {
+  let cleaned = ` ${normalizeSpace(value)} `;
+  for (const token of [phone, email, pesel, nip, document].filter(Boolean)) {
+    cleaned = cleaned.replace(new RegExp(escapeRegExp(token), "gi"), " ");
+  }
+  cleaned = cleaned
+    .replace(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/g, " ")
+    .replace(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g, " ")
+    .replace(/\b\d{11}\b/g, " ")
+    .replace(/\b(?:PESEL|NIP|Telefon|Tel\.?|Phone|Email|E-mail|Mail|Dokument|Dow[oó]d osobisty|Paszport|Karta pobytu)\b.*$/i, " ");
+  const postalAddress = normalizeSpace(cleaned).match(
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+  );
+  return stripKnownNoise(postalAddress?.[0] || cleaned);
+}
+
 function documentFallback(text) {
   const compact = normalizeSpace(text);
   const full = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?:nr|numer|seria|:|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
@@ -371,7 +387,8 @@ function parseRawTextValue(text) {
   const budgetValue = extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget));
   const depositValue = extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit));
   const documentValue = parseDocumentValue(compact) || documentFallback(compact);
-  const addressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
+  const rawAddressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
+  const addressValue = cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue });
   const yearValue = hasVehicle ? extractLabeled(compact, labels.year) || firstRegistrationFallback(vehicleText) : "";
   const mileageValue = hasVehicle ? extractLabeled(compact, labels.mileage) || mileageFallback(vehicleText) : "";
   const fuelValue = hasVehicle ? extractLabeled(compact, labels.fuel) || vehicleText : "";
