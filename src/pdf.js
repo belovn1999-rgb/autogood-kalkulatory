@@ -257,9 +257,12 @@ function vehicleContext(text) {
 
 function hasVehicleSignal(text) {
   const compact = normalizeSpace(text);
+  const lower = compact.toLowerCase();
   const marker = labels.vehicleMarker.map(escapeRegExp).join("|");
-  if (new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s*(?::|=|–|-|\\s+)`, "i").test(compact)) return true;
-  return Boolean(extractLabeled(compact, labels.make) || extractLabeled(compact, labels.model) || extractLabeled(compact, labels.fuel) || extractLabeled(compact, labels.gearbox) || extractLabeled(compact, labels.body));
+  if (new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s*(?::|=|–|-)`, "i").test(compact)) return true;
+  if (extractLabeled(compact, labels.make) || extractLabeled(compact, labels.model) || extractLabeled(compact, labels.fuel) || extractLabeled(compact, labels.gearbox) || extractLabeled(compact, labels.body)) return true;
+  if (/\b(firma|jdg|sp\.?\s*z\.?\s*o\.?o\.?|spółka|spolka|s\.a\.|krs|regon)\b/i.test(lower)) return false;
+  return new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s+`, "i").test(compact);
 }
 
 function firstRegistrationFallback(text) {
@@ -340,10 +343,12 @@ function showDownload(blob, filename, readyText) {
 }
 
 function filenameFor(data, extension) {
-  const slug = normalizeSpace(data.client.name || "klient")
-    .replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-")
-    .replace(/^-+|-+$/g, "");
-  return `umowa-${data.contract.date}-${slug || "klient"}.${extension}`;
+  const make = normalizeSpace(data.vehicle.make_model || "AUTO").split(/\s+/)[0] || "AUTO";
+  const slug = make
+    .replace(/[\\/:*?"<>|]+/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return `Umowa_Zamówienia_Pojazdu_${slug || "AUTO"}.${extension}`;
 }
 
 function syncClientTypeRules() {
@@ -742,7 +747,7 @@ async function generatePdfBlob() {
   y = Math.max(y + 12, 245);
   text("ZLECENIODAWCA:", margin + 20, y, 9, { align: "center" });
   text("ZLECENIOBIORCA:", pageWidth - margin - 25, y, 9, { align: "center" });
-  doc.addImage(stamp, "JPEG", pageWidth - margin - 55, y + 4, 45, 25);
+  doc.addImage(stamp, "JPEG", pageWidth - margin - 50, y + 5, 38, 24);
 
   return doc.output("blob");
 }
