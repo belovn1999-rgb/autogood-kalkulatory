@@ -610,11 +610,15 @@ function App() {
       className: "startup"
     }, /*#__PURE__*/React.createElement("section", {
       className: "languageCard"
+    }, /*#__PURE__*/React.createElement("a", {
+      className: "logoLink logoLinkStartup",
+      href: "./",
+      "aria-label": "AUTOGOOD home"
     }, /*#__PURE__*/React.createElement("img", {
       className: "logoMark logoMarkStartup",
       src: "./assets/autogood-logo.png",
       alt: "AUTOGOOD"
-    }), /*#__PURE__*/React.createElement("h1", null, copy.pl.pickLang, " / ", copy.ru.pickLang), /*#__PURE__*/React.createElement("div", {
+    })), /*#__PURE__*/React.createElement("h1", null, copy.pl.pickLang, " / ", copy.ru.pickLang), /*#__PURE__*/React.createElement("div", {
       className: "startupActions"
     }, /*#__PURE__*/React.createElement("button", {
       onClick: () => setLang("pl")
@@ -626,11 +630,15 @@ function App() {
     className: "appShell"
   }, /*#__PURE__*/React.createElement("header", {
     className: "topbar"
+  }, /*#__PURE__*/React.createElement("a", {
+    className: "logoLink",
+    href: "./",
+    "aria-label": "AUTOGOOD home"
   }, /*#__PURE__*/React.createElement("img", {
     className: "logoMark",
     src: "./assets/autogood-logo.png",
     alt: "AUTOGOOD"
-  }), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     className: "headerActions"
   }, /*#__PURE__*/React.createElement(RateInput, {
     label: c.exchange,
@@ -704,8 +712,8 @@ function App() {
     className: "rowLabel"
   }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {
     className: "rowValue"
-  }, item.valuePrefix && /*#__PURE__*/React.createElement("span", {
-    className: "valuePrefix"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`
   }, item.valuePrefix), /*#__PURE__*/React.createElement("strong", null, item.exact ? moneyExact(item.value) : money(item.value)), tagLabel(item.tag))))), /*#__PURE__*/React.createElement("div", {
     className: "totalBox"
   }, /*#__PURE__*/React.createElement("div", {

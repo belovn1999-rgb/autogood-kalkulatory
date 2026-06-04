@@ -551,7 +551,9 @@ function App() {
     return (
       <main className="startup">
         <section className="languageCard">
-          <img className="logoMark logoMarkStartup" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <a className="logoLink logoLinkStartup" href="./" aria-label="AUTOGOOD home">
+            <img className="logoMark logoMarkStartup" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          </a>
           <h1>{copy.pl.pickLang} / {copy.ru.pickLang}</h1>
           <div className="startupActions">
             <button onClick={() => setLang("pl")}>PL</button>
@@ -565,7 +567,9 @@ function App() {
   return (
     <main className="appShell">
       <header className="topbar">
-        <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+        <a className="logoLink" href="./" aria-label="AUTOGOOD home">
+          <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+        </a>
         <div className="headerActions">
           <RateInput label={c.exchange} value={rate} onChange={setRate} />
           <div className="segmented" aria-label="Language">
@@ -639,7 +643,7 @@ function App() {
                   {item.sub && <small>{item.sub}</small>}
                 </div>
                 <div className="rowValue">
-                  {item.valuePrefix && <span className="valuePrefix">{item.valuePrefix}</span>}
+                  <span className={`valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`}>{item.valuePrefix}</span>
                   <strong>{item.exact ? moneyExact(item.value) : money(item.value)}</strong>
                   {tagLabel(item.tag)}
                 </div>
