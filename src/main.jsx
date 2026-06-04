@@ -223,6 +223,10 @@ function percentLabel(value) {
   return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
 }
 
+function carConversionLabel(carEur, carPln) {
+  return `${money(carEur, "EUR")} = ${money(carPln)}`;
+}
+
 function NumInput({ label, value, onChange, suffix, className = "" }) {
   return (
     <label className={`field ${className}`}>
@@ -342,7 +346,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.directCarBrutto, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.directCarBrutto, carPln, "", carConversionLabel(car, carPln)),
         row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
         row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
@@ -366,7 +370,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.carNetto, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.carNetto, carPln, "", carConversionLabel(car, carPln)),
         row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.transport, transPln, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
@@ -392,7 +396,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.car, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.car, carPln, "", carConversionLabel(car, carPln)),
         row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`),
         row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
@@ -414,7 +418,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.carNetto, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.carNetto, carPln, "", carConversionLabel(car, carPln)),
         row(t.inspection, inspection, "+VAT 23%", ""),
         row(t.transport, transport, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
@@ -437,7 +441,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   return {
     total,
     rows: [
-    row(t.car, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
+    row(t.car, carPln, "", carConversionLabel(car, carPln)),
       row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
       row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
       row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
