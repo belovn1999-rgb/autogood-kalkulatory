@@ -1,6 +1,8 @@
 const {
   Component,
+  useEffect,
   useMemo,
+  useRef,
   useState
 } = React;
 const VAT = 0.23;
@@ -9,6 +11,29 @@ const TO_FEE = 150;
 const DOC_TRANSLATION = 250;
 const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
+const RATES_URL = "./data/exchange-rates.json";
+const RATES_FALLBACK = {
+  source: "money.pl / NBP",
+  sourceUrl: "https://www.money.pl/pieniadze/nbp/kupnosprzedaz/",
+  effectiveDate: "",
+  rates: {
+    EUR_PLN: {
+      label: "EUR - PLN",
+      value: DEFAULT_RATE,
+      unit: "PLN"
+    },
+    SEK_EUR: {
+      label: "SEK - EUR",
+      value: 0,
+      unit: "EUR"
+    },
+    DKK_EUR: {
+      label: "DKK - EUR",
+      value: 0,
+      unit: "EUR"
+    }
+  }
+};
 const copy = {
   pl: {
     pickLang: "Wybierz język",
@@ -24,6 +49,10 @@ const copy = {
     total: "Razem",
     totalJoin: "lub",
     rateLine: "Przeliczono po kursie",
+    ratesTitle: "Kursy sprzedaży",
+    ratesSource: "źródło",
+    ratesUpdated: "aktualizacja",
+    ratesLoading: "Ładowanie kursów",
     errorTitle: "Coś poszło nie tak.",
     errorBody: "Odśwież stronę i spróbuj ponownie.",
     selectPlaceholder: "Wybierz typ silnika",
@@ -56,6 +85,10 @@ const copy = {
     total: "Итого",
     totalJoin: "или",
     rateLine: "Расчёт по курсу",
+    ratesTitle: "Курсы продажи",
+    ratesSource: "источник",
+    ratesUpdated: "обновлено",
+    ratesLoading: "Загрузка курсов",
     errorTitle: "Что-то пошло не так.",
     errorBody: "Обновите страницу и попробуйте снова.",
     selectPlaceholder: "Выберите тип двигателя",
@@ -362,6 +395,32 @@ function RateInput({
     onClick: () => stepRate(-0.01)
   }, "\u2212")), /*#__PURE__*/React.createElement("b", null, "PLN")));
 }
+function formatRate(value, digits = 4) {
+  if (!Number.isFinite(Number(value))) return "—";
+  return new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: value >= 1 ? 2 : 4,
+    maximumFractionDigits: digits
+  }).format(Number(value));
+}
+function ExchangeRatesPanel({
+  data,
+  status,
+  lang
+}) {
+  const c = copy[lang];
+  const safeData = data || RATES_FALLBACK;
+  const rows = ["EUR_PLN", "SEK_EUR", "DKK_EUR"].map(key => safeData.rates?.[key]).filter(Boolean);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "ratesPanel",
+    "aria-label": c.ratesTitle
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "ratesPanelHead"
+  }, /*#__PURE__*/React.createElement("strong", null, c.ratesTitle), status === "loading" && /*#__PURE__*/React.createElement("span", null, c.ratesLoading)), /*#__PURE__*/React.createElement("div", {
+    className: "ratesTable"
+  }, rows.map(item => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: item.label
+  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), /*#__PURE__*/React.createElement("small", null, safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : "", c.ratesSource, ": money.pl / NBP"));
+}
 function MoneyIcon() {
   return /*#__PURE__*/React.createElement("svg", {
     className: "moneyIcon",
@@ -587,15 +646,43 @@ function App() {
   const [lang, setLang] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [rate, setRate] = useState(DEFAULT_RATE);
+  const [marketRates, setMarketRates] = useState(RATES_FALLBACK);
+  const [ratesStatus, setRatesStatus] = useState("loading");
   const [engineIndex, setEngineIndex] = useState(0);
   const [financed, setFinanced] = useState(false);
   const [values, setValues] = useState({});
+  const rateTouchedRef = useRef(false);
   const safeLang = lang || "pl";
   const c = copy[safeLang];
   const tab = tabs[activeTab];
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
   const calc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
+  useEffect(() => {
+    let isMounted = true;
+    const today = new Date().toISOString().slice(0, 10);
+    fetch(`${RATES_URL}?date=${today}`, {
+      cache: "no-store"
+    }).then(response => {
+      if (!response.ok) throw new Error("Rates file not available");
+      return response.json();
+    }).then(data => {
+      if (!isMounted) return;
+      setMarketRates(data);
+      setRatesStatus("ready");
+      const nextRate = Number(data?.rates?.EUR_PLN?.value);
+      if (Number.isFinite(nextRate) && nextRate > 0 && !rateTouchedRef.current) {
+        setRate(nextRate.toFixed(2));
+      }
+    }).catch(() => {
+      if (!isMounted) return;
+      setMarketRates(RATES_FALLBACK);
+      setRatesStatus("fallback");
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const switchTab = id => {
     setActiveTab(id);
     setValues({});
@@ -605,6 +692,10 @@ function App() {
     ...current,
     [key]: value
   }));
+  const setManualRate = value => {
+    rateTouchedRef.current = true;
+    setRate(value);
+  };
   if (!lang) {
     return /*#__PURE__*/React.createElement("main", {
       className: "startup"
@@ -640,10 +731,14 @@ function App() {
     alt: "AUTOGOOD"
   })), /*#__PURE__*/React.createElement("div", {
     className: "headerActions"
-  }, /*#__PURE__*/React.createElement(RateInput, {
+  }, /*#__PURE__*/React.createElement(ExchangeRatesPanel, {
+    data: marketRates,
+    status: ratesStatus,
+    lang: safeLang
+  }), /*#__PURE__*/React.createElement(RateInput, {
     label: c.exchange,
     value: rate,
-    onChange: setRate
+    onChange: setManualRate
   }), /*#__PURE__*/React.createElement("div", {
     className: "segmented",
     "aria-label": "Language"
