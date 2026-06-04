@@ -360,16 +360,16 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const base = carPln + feePln;
     const excise = exciseRate * base;
     const commissionNetto = finFix + finPct * base;
-    const vatBase = base + transPln + commissionNetto;
+    const vatBase = base + transPln + excise + commissionNetto;
     const vat = vatBase * VAT;
-    const total = vatBase + vat + excise + TO_FEE + DOC_TRANSLATION;
+    const total = vatBase + vat + TO_FEE + DOC_TRANSLATION;
     return {
       total,
       rows: [
         row(t.carNetto, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.transport, transPln, "+VAT 23%", ""),
-        row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
+        row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`),
         row(t.vat, vat, "", `23% × ${money(vatBase)}`),
         row(t.to, TO_FEE, "", "", false, true),
@@ -385,16 +385,17 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const transBrutto = transNetto * 1.23;
     const base = carPln + feePln;
     const excise = exciseRate * base;
+    const exciseBrutto = excise * 1.23;
     const commissionNetto = finFix + finPct * base;
     const commissionBrutto = commissionNetto * 1.23;
-    const total = carPln + feePln + transBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
+    const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE + DOC_TRANSLATION;
     return {
       total,
       rows: [
         row(t.car, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`),
-        row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
+        row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`),
         row(t.to, TO_FEE, "", "", false, true),
         row(t.doc, DOC_TRANSLATION, "", "", false, true),
@@ -407,16 +408,16 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const excise = exciseRate * carPln;
     const bruttoBase = carPln * 1.19;
     const commissionNetto = finFix + finPct * bruttoBase;
-    const vatBase = carPln + inspection + transport + commissionNetto;
+    const vatBase = carPln + inspection + transport + excise + commissionNetto;
     const vat = vatBase * VAT;
-    const total = vatBase + vat + excise + TO_FEE + DOC_TRANSLATION;
+    const total = vatBase + vat + TO_FEE + DOC_TRANSLATION;
     return {
       total,
       rows: [
         row(t.carNetto, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
         row(t.inspection, inspection, "+VAT 23%", ""),
         row(t.transport, transport, "+VAT 23%", ""),
-        row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
+        row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}`),
         row(t.vat, vat, "", `23% × ${money(vatBase)}`),
         row(t.to, TO_FEE, "", "", false, true),
@@ -429,16 +430,17 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const inspectionBrutto = inspection * 1.23;
   const transportBrutto = transport * 1.23;
   const excise = exciseRate * carPln;
+  const exciseBrutto = excise * 1.23;
   const commissionNetto = finFix + finPct * carPln;
   const commissionBrutto = commissionNetto * 1.23;
-  const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
+  const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE + DOC_TRANSLATION;
   return {
     total,
     rows: [
     row(t.car, carPln, "", `${money(car, "EUR")} × ${useRate.toFixed(2)}`),
       row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
       row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
-      row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
+      row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
       row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`),
       row(t.to, TO_FEE, "", "", false, true),
       row(t.doc, DOC_TRANSLATION, "", "", false, true),
