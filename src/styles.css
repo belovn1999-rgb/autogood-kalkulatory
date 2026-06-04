@@ -348,11 +348,11 @@ select {
 
 .resultRow {
   display: grid;
-  grid-template-columns: 520px 190px;
+  grid-template-columns: 500px 280px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 758px;
+  width: 826px;
   max-width: 100%;
   min-height: 44px;
   padding: 7px 14px;
@@ -378,7 +378,14 @@ select {
   justify-content: flex-start;
   gap: 4px;
   white-space: nowrap;
-  min-width: 190px;
+  min-width: 280px;
+}
+
+.valuePrefix {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+  margin-right: 2px;
 }
 
 .rowValue strong {
@@ -420,11 +427,11 @@ select {
 
 .totalBox {
   display: grid;
-  grid-template-columns: 520px 190px;
+  grid-template-columns: 500px 280px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 758px;
+  width: 826px;
   max-width: 100%;
   margin-top: 16px;
   border-radius: 12px;
@@ -462,11 +469,10 @@ select {
   display: flex;
   align-items: baseline;
   white-space: nowrap;
-  transform: translateX(-72px);
 }
 
 .rateNote {
-  width: 758px;
+  width: 826px;
   max-width: 100%;
   margin: 10px 0 0;
   padding: 0 14px;

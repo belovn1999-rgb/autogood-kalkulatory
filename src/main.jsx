@@ -223,8 +223,15 @@ function percentLabel(value) {
   return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
 }
 
-function carConversionLabel(carEur, carPln) {
-  return `${money(carEur, "EUR")} = ${money(carPln)}`;
+function inputCurrencyLabel(value, currency = "EUR") {
+  return `${new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(value) ? value : 0)} ${currency}`;
+}
+
+function conversionPrefix(value, currency = "EUR") {
+  return `${inputCurrencyLabel(value, currency)} =`;
 }
 
 function NumInput({ label, value, onChange, suffix, className = "" }) {
@@ -321,8 +328,8 @@ function tagLabel(tag) {
   return <span className={`tag tag-${className}`}>{tag}</span>;
 }
 
-function row(label, value, tag, sub, highlight = false, exact = false) {
-  return { label, value, tag, sub, highlight, exact };
+function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "") {
+  return { label, value, tag, sub, highlight, exact, valuePrefix };
 }
 
 function calculate(tabId, values, rate, exciseRate, financed, lang) {
@@ -346,7 +353,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.directCarBrutto, carPln, "", carConversionLabel(car, carPln)),
+        row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)),
         row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
         row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
@@ -370,8 +377,8 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.carNetto, carPln, "", carConversionLabel(car, carPln)),
-        row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
+        row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)),
         row(t.transport, transPln, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`),
@@ -396,8 +403,8 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.car, carPln, "", carConversionLabel(car, carPln)),
-        row(t.auctionFee, feePln, "", `${money(fee, "EUR")} × ${useRate.toFixed(2)}`),
+        row(t.car, carPln, "", "", false, false, conversionPrefix(car)),
+        row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)),
         row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`),
         row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`),
@@ -418,7 +425,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     return {
       total,
       rows: [
-        row(t.carNetto, carPln, "", carConversionLabel(car, carPln)),
+        row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
         row(t.inspection, inspection, "+VAT 23%", ""),
         row(t.transport, transport, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
@@ -441,7 +448,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   return {
     total,
     rows: [
-    row(t.car, carPln, "", carConversionLabel(car, carPln)),
+    row(t.car, carPln, "", "", false, false, conversionPrefix(car)),
       row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
       row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
       row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`),
@@ -464,7 +471,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
             ${item.sub ? `<small>${item.sub}</small>` : ""}
           </td>
           <td>
-            <div class="amount">${item.exact ? moneyExact(item.value) : money(item.value)} ${item.tag ? `<span>${item.tag}</span>` : ""}</div>
+            <div class="amount">${item.valuePrefix ? `<em>${item.valuePrefix}</em>` : ""} ${item.exact ? moneyExact(item.value) : money(item.value)} ${item.tag ? `<span>${item.tag}</span>` : ""}</div>
           </td>
         </tr>`
     )
@@ -488,6 +495,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
     small{display:block;color:#64748b;margin-top:3px}
     span{border:1px solid #cbd5e1;border-radius:999px;padding:3px 8px;font-size:12px;color:#64748b}
     .amount{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+    .amount em{font-style:normal;color:#64748b;font-weight:600}
     .vat{background:#fff;color:#102033}
     .total{background:#005B82;color:white;border-radius:12px;padding:18px 20px;margin-top:20px;text-align:right}
     .total b{display:block;font-size:30px;margin-top:4px}
@@ -631,6 +639,7 @@ function App() {
                   {item.sub && <small>{item.sub}</small>}
                 </div>
                 <div className="rowValue">
+                  {item.valuePrefix && <span className="valuePrefix">{item.valuePrefix}</span>}
                   <strong>{item.exact ? moneyExact(item.value) : money(item.value)}</strong>
                   {tagLabel(item.tag)}
                 </div>
