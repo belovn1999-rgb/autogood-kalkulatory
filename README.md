@@ -28,6 +28,21 @@ Lokalny adres z konwerterem:
 http://127.0.0.1:8787/pdf.html
 ```
 
+Import danych z Mobile.de w kalkulatorze `Zakup bezposredni` wymaga backendu:
+
+```bash
+npm run mobilede
+```
+
+Domyslny endpoint importu:
+
+```text
+http://127.0.0.1:8788/mobilede/import
+```
+
+Na publicznym GitHub Pages backend musi byc wdrozony osobno pod adresem HTTPS i
+podany w `window.AUTOGOOD_MOBILEDE_API_URL`.
+
 Mapa procesu managera:
 
 ```text

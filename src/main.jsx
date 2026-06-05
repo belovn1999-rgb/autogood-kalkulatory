@@ -7,6 +7,7 @@ const DOC_TRANSLATION = 250;
 const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
+const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
 const RATES_FALLBACK = {
   source: "money.pl / NBP",
   sourceUrl: "https://www.money.pl/pieniadze/nbp/kupnosprzedaz/",
@@ -37,6 +38,13 @@ const copy = {
     ratesSource: "źródło",
     ratesUpdated: "aktualizacja",
     ratesLoading: "Ładowanie kursów",
+    mobileImportTitle: "Link Mobile.de",
+    mobileImportPlaceholder: "Wklej link ogłoszenia",
+    mobileImportButton: "Załaduj dane",
+    mobileImportLoading: "Pobieram dane...",
+    mobileImportReady: "Dane podstawione: cena brutto, silnik i akcyza.",
+    mobileImportError: "Nie udało się pobrać danych. Sprawdź link albo backend.",
+    mobileImportFound: "Znaleziono",
     errorTitle: "Coś poszło nie tak.",
     errorBody: "Odśwież stronę i spróbuj ponownie.",
     selectPlaceholder: "Wybierz typ silnika",
@@ -73,6 +81,13 @@ const copy = {
     ratesSource: "источник",
     ratesUpdated: "обновлено",
     ratesLoading: "Загрузка курсов",
+    mobileImportTitle: "Ссылка Mobile.de",
+    mobileImportPlaceholder: "Вставь ссылку объявления",
+    mobileImportButton: "Загрузить данные",
+    mobileImportLoading: "Загружаю данные...",
+    mobileImportReady: "Данные подставлены: цена brutto, двигатель и акциз.",
+    mobileImportError: "Не удалось загрузить данные. Проверь ссылку или backend.",
+    mobileImportFound: "Найдено",
     errorTitle: "Что-то пошло не так.",
     errorBody: "Обновите страницу и попробуйте снова.",
     selectPlaceholder: "Выберите тип двигателя",
@@ -253,6 +268,13 @@ function conversionPrefix(value, currency = "EUR") {
   return `${inputCurrencyLabel(value, currency)} =`;
 }
 
+function formatPlainAmount(value, currency = "EUR") {
+  return `${new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(value) ? value : 0)} ${currency}`;
+}
+
 function NumInput({ label, value, onChange, suffix, className = "" }) {
   return (
     <label className={`field ${className}`}>
@@ -332,6 +354,39 @@ function ExchangeRatesPanel({ data, status, lang }) {
         {safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : ""}
         {c.ratesSource}: money.pl / NBP
       </small>
+    </section>
+  );
+}
+
+function MobileDeImport({ c, url, status, summary, onUrlChange, onImport }) {
+  return (
+    <section className="mobileImport">
+      <label className="field">
+        <span>{c.mobileImportTitle}</span>
+        <div className="mobileImportControl">
+          <input
+            type="url"
+            value={url}
+            onChange={(event) => onUrlChange(event.target.value)}
+            placeholder={c.mobileImportPlaceholder}
+          />
+          <button type="button" onClick={onImport} disabled={status === "loading" || !url.trim()}>
+            {status === "loading" ? "..." : c.mobileImportButton}
+          </button>
+        </div>
+      </label>
+      {status && (
+        <p className={`mobileImportStatus ${status}`}>
+          {status === "loading" && c.mobileImportLoading}
+          {status === "ready" && c.mobileImportReady}
+          {status === "error" && c.mobileImportError}
+        </p>
+      )}
+      {summary && (
+        <p className="mobileImportSummary">
+          <b>{c.mobileImportFound}:</b> {summary}
+        </p>
+      )}
     </section>
   );
 }
@@ -586,6 +641,9 @@ function App() {
   const [engineIndex, setEngineIndex] = useState(0);
   const [financed, setFinanced] = useState(false);
   const [values, setValues] = useState({});
+  const [mobileDeUrl, setMobileDeUrl] = useState("");
+  const [mobileDeStatus, setMobileDeStatus] = useState("");
+  const [mobileDeSummary, setMobileDeSummary] = useState("");
   const rateTouchedRef = useRef(false);
 
   const safeLang = lang || "pl";
@@ -638,6 +696,41 @@ function App() {
     setRate(value);
   };
 
+  const loadMobileDeData = async () => {
+    const sourceUrl = mobileDeUrl.trim();
+    if (!sourceUrl) return;
+
+    setMobileDeStatus("loading");
+    setMobileDeSummary("");
+
+    try {
+      const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
+      if (!response.ok) throw new Error("Mobile.de import failed");
+      const data = await response.json();
+      const carBruttoEur = Number(data?.carBruttoEur);
+      const nextEngineIndex = Number(data?.engineTypeIndex);
+
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
+        setField("car", String(Math.round(carBruttoEur)));
+      }
+
+      if (Number.isInteger(nextEngineIndex) && engineTypes[nextEngineIndex]) {
+        setEngineIndex(nextEngineIndex);
+      }
+
+      const summaryParts = [];
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
+      if (data?.fuel) summaryParts.push(data.fuel);
+      if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
+      if (data?.engineTypeLabel) summaryParts.push(data.engineTypeLabel);
+
+      setMobileDeSummary(summaryParts.join(" • "));
+      setMobileDeStatus("ready");
+    } catch (error) {
+      setMobileDeStatus("error");
+    }
+  };
+
   if (!lang) {
     return (
       <main className="startup">
@@ -686,6 +779,17 @@ function App() {
       <section className="grid">
         <aside className="card sidebar">
           <h2>{c.inputs}</h2>
+
+          {activeTab === 0 && (
+            <MobileDeImport
+              c={c}
+              url={mobileDeUrl}
+              status={mobileDeStatus}
+              summary={mobileDeSummary}
+              onUrlChange={setMobileDeUrl}
+              onImport={loadMobileDeData}
+            />
+          )}
 
           <label className="field">
             <span>{c.engine}</span>

@@ -12,6 +12,7 @@ const DOC_TRANSLATION = 250;
 const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
+const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
 const RATES_FALLBACK = {
   source: "money.pl / NBP",
   sourceUrl: "https://www.money.pl/pieniadze/nbp/kupnosprzedaz/",
@@ -53,6 +54,13 @@ const copy = {
     ratesSource: "źródło",
     ratesUpdated: "aktualizacja",
     ratesLoading: "Ładowanie kursów",
+    mobileImportTitle: "Link Mobile.de",
+    mobileImportPlaceholder: "Wklej link ogłoszenia",
+    mobileImportButton: "Załaduj dane",
+    mobileImportLoading: "Pobieram dane...",
+    mobileImportReady: "Dane podstawione: cena brutto, silnik i akcyza.",
+    mobileImportError: "Nie udało się pobrać danych. Sprawdź link albo backend.",
+    mobileImportFound: "Znaleziono",
     errorTitle: "Coś poszło nie tak.",
     errorBody: "Odśwież stronę i spróbuj ponownie.",
     selectPlaceholder: "Wybierz typ silnika",
@@ -89,6 +97,13 @@ const copy = {
     ratesSource: "источник",
     ratesUpdated: "обновлено",
     ratesLoading: "Загрузка курсов",
+    mobileImportTitle: "Ссылка Mobile.de",
+    mobileImportPlaceholder: "Вставь ссылку объявления",
+    mobileImportButton: "Загрузить данные",
+    mobileImportLoading: "Загружаю данные...",
+    mobileImportReady: "Данные подставлены: цена brutto, двигатель и акциз.",
+    mobileImportError: "Не удалось загрузить данные. Проверь ссылку или backend.",
+    mobileImportFound: "Найдено",
     errorTitle: "Что-то пошло не так.",
     errorBody: "Обновите страницу и попробуйте снова.",
     selectPlaceholder: "Выберите тип двигателя",
@@ -344,6 +359,12 @@ function inputCurrencyLabel(value, currency = "EUR") {
 function conversionPrefix(value, currency = "EUR") {
   return `${inputCurrencyLabel(value, currency)} =`;
 }
+function formatPlainAmount(value, currency = "EUR") {
+  return `${new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Number.isFinite(value) ? value : 0)} ${currency}`;
+}
 function NumInput({
   label,
   value,
@@ -420,6 +441,35 @@ function ExchangeRatesPanel({
   }, rows.map(item => /*#__PURE__*/React.createElement(React.Fragment, {
     key: item.label
   }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), /*#__PURE__*/React.createElement("small", null, safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : "", c.ratesSource, ": money.pl / NBP"));
+}
+function MobileDeImport({
+  c,
+  url,
+  status,
+  summary,
+  onUrlChange,
+  onImport
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    className: "mobileImport"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("span", null, c.mobileImportTitle), /*#__PURE__*/React.createElement("div", {
+    className: "mobileImportControl"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "url",
+    value: url,
+    onChange: event => onUrlChange(event.target.value),
+    placeholder: c.mobileImportPlaceholder
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onImport,
+    disabled: status === "loading" || !url.trim()
+  }, status === "loading" ? "..." : c.mobileImportButton))), status && /*#__PURE__*/React.createElement("p", {
+    className: `mobileImportStatus ${status}`
+  }, status === "loading" && c.mobileImportLoading, status === "ready" && c.mobileImportReady, status === "error" && c.mobileImportError), summary && /*#__PURE__*/React.createElement("p", {
+    className: "mobileImportSummary"
+  }, /*#__PURE__*/React.createElement("b", null, c.mobileImportFound, ":"), " ", summary));
 }
 function MoneyIcon() {
   return /*#__PURE__*/React.createElement("svg", {
@@ -651,6 +701,9 @@ function App() {
   const [engineIndex, setEngineIndex] = useState(0);
   const [financed, setFinanced] = useState(false);
   const [values, setValues] = useState({});
+  const [mobileDeUrl, setMobileDeUrl] = useState("");
+  const [mobileDeStatus, setMobileDeStatus] = useState("");
+  const [mobileDeSummary, setMobileDeSummary] = useState("");
   const rateTouchedRef = useRef(false);
   const safeLang = lang || "pl";
   const c = copy[safeLang];
@@ -695,6 +748,34 @@ function App() {
   const setManualRate = value => {
     rateTouchedRef.current = true;
     setRate(value);
+  };
+  const loadMobileDeData = async () => {
+    const sourceUrl = mobileDeUrl.trim();
+    if (!sourceUrl) return;
+    setMobileDeStatus("loading");
+    setMobileDeSummary("");
+    try {
+      const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
+      if (!response.ok) throw new Error("Mobile.de import failed");
+      const data = await response.json();
+      const carBruttoEur = Number(data?.carBruttoEur);
+      const nextEngineIndex = Number(data?.engineTypeIndex);
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
+        setField("car", String(Math.round(carBruttoEur)));
+      }
+      if (Number.isInteger(nextEngineIndex) && engineTypes[nextEngineIndex]) {
+        setEngineIndex(nextEngineIndex);
+      }
+      const summaryParts = [];
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
+      if (data?.fuel) summaryParts.push(data.fuel);
+      if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
+      if (data?.engineTypeLabel) summaryParts.push(data.engineTypeLabel);
+      setMobileDeSummary(summaryParts.join(" • "));
+      setMobileDeStatus("ready");
+    } catch (error) {
+      setMobileDeStatus("error");
+    }
   };
   if (!lang) {
     return /*#__PURE__*/React.createElement("main", {
@@ -768,7 +849,14 @@ function App() {
     className: "grid"
   }, /*#__PURE__*/React.createElement("aside", {
     className: "card sidebar"
-  }, /*#__PURE__*/React.createElement("h2", null, c.inputs), /*#__PURE__*/React.createElement("label", {
+  }, /*#__PURE__*/React.createElement("h2", null, c.inputs), activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
+    c: c,
+    url: mobileDeUrl,
+    status: mobileDeStatus,
+    summary: mobileDeSummary,
+    onUrlChange: setMobileDeUrl,
+    onImport: loadMobileDeData
+  }), /*#__PURE__*/React.createElement("label", {
     className: "field"
   }, /*#__PURE__*/React.createElement("span", null, c.engine), /*#__PURE__*/React.createElement("select", {
     value: engineIndex,
