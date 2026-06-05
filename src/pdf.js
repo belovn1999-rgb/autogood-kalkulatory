@@ -363,8 +363,8 @@ function showDownload(blob, filename, readyText) {
 }
 
 function filenameFor(data, extension) {
-  const make = normalizeSpace(data.vehicle.make_model || "AUTO").split(/\s+/)[0] || "AUTO";
-  const slug = make
+  const makeModel = normalizeSpace(data.vehicle.make_model || "AUTO");
+  const slug = makeModel
     .replace(/[\\/:*?"<>|]+/g, "")
     .replace(/\s+/g, "_")
     .replace(/^_+|_+$/g, "");
