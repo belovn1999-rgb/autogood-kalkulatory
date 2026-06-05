@@ -13,8 +13,8 @@ const RATES_FALLBACK = {
   effectiveDate: "",
   rates: {
     EUR_PLN: { label: "EUR - PLN", value: DEFAULT_RATE, unit: "PLN" },
-    SEK_EUR: { label: "SEK - EUR", value: 0, unit: "EUR" },
-    DKK_EUR: { label: "DKK - EUR", value: 0, unit: "EUR" },
+    SEK_PLN: { label: "SEK - PLN", value: 0, unit: "PLN" },
+    DKK_PLN: { label: "DKK - PLN", value: 0, unit: "PLN" },
   },
 };
 
@@ -310,7 +310,7 @@ function formatRate(value, digits = 4) {
 function ExchangeRatesPanel({ data, status, lang }) {
   const c = copy[lang];
   const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN", "SEK_EUR", "DKK_EUR"]
+  const rows = ["EUR_PLN", "SEK_PLN", "DKK_PLN"]
     .map((key) => safeData.rates?.[key])
     .filter(Boolean);
 
