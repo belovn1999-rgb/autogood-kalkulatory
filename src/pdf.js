@@ -205,6 +205,25 @@ function moneyMatch(value) {
   return normalizeSpace(value.match(/\b\d[\d\s.,]{2,}\s*(?:PLN|EUR|zł|zl|€)(?:\s*brutto|\s*netto)?\b/i)?.[0] || "");
 }
 
+function parseMoneyValue(value) {
+  const raw = normalizeSpace(value);
+  const currencyMatch = raw.match(/\b(EUR|PLN)\b|€|zł|zl/i);
+  let currency = "PLN";
+  if (currencyMatch) {
+    const token = currencyMatch[0].toUpperCase();
+    currency = token === "EUR" || token === "€" ? "EUR" : "PLN";
+  }
+  const amount = stripKnownNoise(raw.replace(/\b(EUR|PLN)\b|€|zł|zl|\bbrutto\b|\bnetto\b/gi, ""));
+  return { amount, currency };
+}
+
+function formatMoneyValue(amount, currency) {
+  const cleanAmount = parseMoneyValue(amount).amount;
+  if (!cleanAmount) return "";
+  const cleanCurrency = currency === "EUR" ? "EUR" : "PLN";
+  return `${cleanAmount} ${cleanCurrency} brutto`;
+}
+
 function addressFallback(text) {
   const compact = normalizeSpace(text);
   const postalAddress = compact.match(
@@ -405,8 +424,8 @@ function parseRawTextValue(text) {
   const make = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.make)) : "";
   const model = hasVehicle ? stripKnownNoise(extractLabeled(compact, labels.model)) : "";
   const makeModel = hasVehicle ? normalizeSpace(`${make} ${model}`) || makeModelFallback(vehicleText) : "";
-  const budgetValue = extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget));
-  const depositValue = extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit));
+  const budgetMoney = parseMoneyValue(extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget)));
+  const depositMoney = parseMoneyValue(extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit)));
   const documentValue = parseDocumentValue(compact) || documentFallback(compact);
   const rawAddressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
   const addressValue = cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue });
@@ -429,8 +448,10 @@ function parseRawTextValue(text) {
       email,
     },
     budget: {
-      total: budgetValue,
-      advance: depositValue,
+      total: budgetMoney.amount,
+      total_currency: budgetMoney.currency,
+      advance: depositMoney.amount,
+      advance_currency: depositMoney.currency,
     },
     vehicle: {
       make_model: makeModel,
@@ -457,7 +478,9 @@ function applyParsed(data) {
   $("clientPhone").value = data.client?.phone || $("clientPhone").value;
   $("clientEmail").value = data.client?.email || $("clientEmail").value;
   $("budgetTotal").value = data.budget?.total || $("budgetTotal").value;
+  $("budgetCurrency").value = data.budget?.total_currency || $("budgetCurrency").value;
   $("budgetAdvance").value = data.budget?.advance || $("budgetAdvance").value;
+  $("advanceCurrency").value = data.budget?.advance_currency || $("advanceCurrency").value;
   $("vehicleMakeModel").value = data.vehicle?.make_model || $("vehicleMakeModel").value;
   if (data.vehicle?.fuel) setFuel(data.vehicle.fuel);
   if (data.vehicle?.gearbox) setRadio("gearbox", data.vehicle.gearbox);
@@ -494,8 +517,8 @@ function collectData() {
       client_indicated_vehicle: $("clientIndicatedVehicle").checked,
     },
     budget: {
-      total: $("budgetTotal").value.trim(),
-      advance: $("budgetAdvance").value.trim(),
+      total: formatMoneyValue($("budgetTotal").value, $("budgetCurrency").value),
+      advance: formatMoneyValue($("budgetAdvance").value, $("advanceCurrency").value),
     },
     vehicle: {
       make_model: $("vehicleMakeModel").value.trim(),
@@ -812,9 +835,13 @@ async function generatePdf() {
 function resetForm() {
   $("contractDate").value = todayISO();
   $("sequence").value = "1";
-  document.querySelectorAll("input, textarea").forEach((node) => {
+  document.querySelectorAll("input, textarea, select").forEach((node) => {
     node.disabled = false;
     if (node.id === "contractDate" || node.id === "sequence") return;
+    if (node.tagName === "SELECT") {
+      node.selectedIndex = 0;
+      return;
+    }
     if (node.type === "radio" || node.type === "checkbox") node.checked = false;
     else node.value = "";
   });

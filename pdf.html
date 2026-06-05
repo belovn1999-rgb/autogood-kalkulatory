@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AUTOGOOD Umowa</title>
-    <link rel="stylesheet" href="./src/pdf.css?v=20260531-2" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260605-1" />
   </head>
   <body>
     <main class="app-shell">
@@ -90,11 +90,23 @@
             <div class="two-fields">
               <label class="field">
                 <span>Budżet:</span>
-                <input id="budgetTotal" type="text" />
+                <div class="amount-control">
+                  <input id="budgetTotal" type="text" inputmode="decimal" />
+                  <select id="budgetCurrency" aria-label="Waluta budżetu">
+                    <option value="PLN" selected>PLN</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
               </label>
               <label class="field">
                 <span>Zaliczka:</span>
-                <input id="budgetAdvance" type="text" />
+                <div class="amount-control">
+                  <input id="budgetAdvance" type="text" inputmode="decimal" />
+                  <select id="advanceCurrency" aria-label="Waluta zaliczki">
+                    <option value="PLN" selected>PLN</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
               </label>
             </div>
           </div>
@@ -167,6 +179,6 @@
     </main>
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
-    <script src="./src/pdf.js?v=20260603-5"></script>
+    <script src="./src/pdf.js?v=20260605-1"></script>
   </body>
 </html>

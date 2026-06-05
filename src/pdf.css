@@ -21,6 +21,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -250,6 +251,7 @@ textarea {
 }
 
 .field input,
+.field select,
 .field textarea,
 .inline-input {
   width: 100%;
@@ -261,10 +263,22 @@ textarea {
 }
 
 .field input:disabled,
+.field select:disabled,
 .field textarea:disabled {
   background: #eef2f6;
   color: #7a8491;
   cursor: not-allowed;
+}
+
+.amount-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 82px;
+  gap: 8px;
+}
+
+.amount-control select {
+  font-weight: 800;
+  color: var(--brand-dark);
 }
 
 .field textarea {
