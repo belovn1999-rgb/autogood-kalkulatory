@@ -367,6 +367,10 @@ button {
   color: #102033;
 }
 
+.mobileImportSummary.errorDetail {
+  color: #c2410c;
+}
+
 .rateControl {
   display: grid;
   grid-template-columns: minmax(74px, 1fr) 28px 46px;

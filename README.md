@@ -31,8 +31,13 @@ http://127.0.0.1:8787/pdf.html
 Import danych z Mobile.de w kalkulatorze `Zakup bezposredni` wymaga backendu:
 
 ```bash
+npm install
+npx playwright install chromium
 npm run mobilede
 ```
+
+Na lokalnym macOS backend moze tez uzyc systemowego Google Chrome. W razie potrzeby
+podaj sciezke przez `MOBILEDE_CHROME_PATH`.
 
 Domyslny endpoint importu:
 

@@ -467,9 +467,11 @@ function MobileDeImport({
     disabled: status === "loading" || !url.trim()
   }, status === "loading" ? "..." : c.mobileImportButton))), status && /*#__PURE__*/React.createElement("p", {
     className: `mobileImportStatus ${status}`
-  }, status === "loading" && c.mobileImportLoading, status === "ready" && c.mobileImportReady, status === "error" && c.mobileImportError), summary && /*#__PURE__*/React.createElement("p", {
+  }, status === "loading" && c.mobileImportLoading, status === "ready" && c.mobileImportReady, status === "error" && c.mobileImportError), summary && status !== "error" && /*#__PURE__*/React.createElement("p", {
     className: "mobileImportSummary"
-  }, /*#__PURE__*/React.createElement("b", null, c.mobileImportFound, ":"), " ", summary));
+  }, /*#__PURE__*/React.createElement("b", null, c.mobileImportFound, ":"), " ", summary), summary && status === "error" && /*#__PURE__*/React.createElement("p", {
+    className: "mobileImportSummary errorDetail"
+  }, summary));
 }
 function MoneyIcon() {
   return /*#__PURE__*/React.createElement("svg", {
@@ -756,7 +758,10 @@ function App() {
     setMobileDeSummary("");
     try {
       const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
-      if (!response.ok) throw new Error("Mobile.de import failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || "Mobile.de import failed");
+      }
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
       const nextEngineIndex = Number(data?.engineTypeIndex);
@@ -774,6 +779,7 @@ function App() {
       setMobileDeSummary(summaryParts.join(" • "));
       setMobileDeStatus("ready");
     } catch (error) {
+      setMobileDeSummary(error.message || "");
       setMobileDeStatus("error");
     }
   };

@@ -1,6 +1,12 @@
 import http from "node:http";
+import { existsSync } from "node:fs";
 
 const PORT = Number(process.env.PORT || 8788);
+const SYSTEM_CHROME_PATHS = [
+  process.env.MOBILEDE_CHROME_PATH,
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+].filter(Boolean);
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -23,10 +29,39 @@ function stripTags(value) {
     .trim();
 }
 
+function parseNumber(value) {
+  let text = String(value ?? "")
+    .replace(/\\u00a0/g, " ")
+    .replace(/[^\d., -]/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (!text) return 0;
+
+  const hasComma = text.includes(",");
+  const hasDot = text.includes(".");
+
+  if (hasComma && hasDot) {
+    text = text.lastIndexOf(",") > text.lastIndexOf(".")
+      ? text.replace(/\./g, "").replace(",", ".")
+      : text.replace(/,/g, "");
+  } else if (hasComma) {
+    text = text.replace(",", ".");
+  } else if (hasDot) {
+    const [head, tail] = text.split(".");
+    if (tail?.length === 3 && head.length <= 3) {
+      text = `${head}${tail}`;
+    }
+  }
+
+  const number = Number(text);
+  return Number.isFinite(number) && number > 0 ? number : 0;
+}
+
 function firstFinite(...values) {
   for (const value of values) {
-    const number = Number(String(value ?? "").replace(",", "."));
-    if (Number.isFinite(number) && number > 0) return number;
+    const number = parseNumber(value);
+    if (number > 0) return number;
   }
   return 0;
 }
@@ -56,71 +91,109 @@ function readJsonLd(html) {
     .filter(Boolean);
 }
 
-function extractPrice(html, jsonLd) {
+function readJsonBlocks(html) {
+  const blocks = [];
+  const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
+
+  scripts.forEach((match) => {
+    const raw = match[1]
+      .replace(/&quot;/g, "\"")
+      .replace(/&amp;/g, "&")
+      .trim();
+    if (!raw) return;
+
+    if (/^\s*[{[]/.test(raw)) {
+      try {
+        blocks.push(JSON.parse(raw));
+      } catch {
+        // Some Mobile.de script tags contain JS chunks rather than plain JSON.
+      }
+    }
+  });
+
+  return blocks;
+}
+
+function collectRegexMatches(text, patterns) {
+  const values = [];
+  patterns.forEach((pattern) => {
+    for (const match of text.matchAll(pattern)) {
+      if (match?.[1]) values.push(match[1]);
+    }
+  });
+  return values;
+}
+
+function isAccessDenied(html, text = "") {
+  return /Zugriff verweigert|Access denied|For security reasons/i.test(`${html}\n${text}`);
+}
+
+function extractPrice(html, jsonData) {
   const candidates = [];
 
-  jsonLd.forEach((item) => {
+  jsonData.forEach((item) => {
     walk(item, (key, value, parent) => {
       const lower = key.toLowerCase();
-      if (["price", "grossprice", "consumerpricegross"].includes(lower)) candidates.push(value);
+      if ([
+        "consumerpricegross",
+        "dealerpricegross",
+        "grossprice",
+        "grosslistprice",
+        "price",
+      ].includes(lower)) candidates.push(value);
       if (lower === "amount" && /eur/i.test(String(parent?.currency || parent?.priceCurrency || ""))) candidates.push(value);
     });
   });
 
-  [
-    /"grossPrice"\s*:\s*"?(\d+(?:[.,]\d+)?)"?/i,
-    /"consumerPriceGross"\s*:\s*"?(\d+(?:[.,]\d+)?)"?/i,
-    /"price"\s*:\s*"?(\d+(?:[.,]\d+)?)"?/i,
-    /€\s*([\d. ]+)/i,
-    /([\d. ]+)\s*€/i,
-  ].forEach((pattern) => {
-    const match = html.match(pattern);
-    if (match?.[1]) candidates.push(match[1].replace(/[ .]/g, ""));
-  });
+  candidates.push(...collectRegexMatches(html, [
+    /\\?"consumerPriceGross\\?"\s*:\s*\\?"?([\d., ]+)/gi,
+    /\\?"dealerPriceGross\\?"\s*:\s*\\?"?([\d., ]+)/gi,
+    /\\?"grossPrice\\?"\s*:\s*\\?"?([\d., ]+)/gi,
+    /\\?"grossListPrice\\?"\s*:\s*\\?"?([\d., ]+)/gi,
+    /\\?"price\\?"\s*:\s*\\?"?([\d., ]+)/gi,
+    /€\s*([\d. ]+)/gi,
+    /([\d. ]+)\s*€/gi,
+  ]));
 
   return firstFinite(...candidates);
 }
 
-function extractDisplacement(html, jsonLd, text) {
+function extractDisplacement(html, jsonData, text) {
   const candidates = [];
 
-  jsonLd.forEach((item) => {
+  jsonData.forEach((item) => {
     walk(item, (key, value) => {
-      if (/displacement|hubraum|ccm|enginecapacity/i.test(key)) candidates.push(value);
+      if (/displacement|hubraum|ccm|enginecapacity|cubiccapacity/i.test(key)) candidates.push(value);
     });
   });
 
-  [
-    /"displacementCcm"\s*:\s*(\d+)/i,
-    /"cubicCapacity"\s*:\s*(\d+)/i,
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\?"displacementCcm\\?"\s*:\s*\\?"?([\d. ]+)/gi,
+    /\\?"cubicCapacity\\?"\s*:\s*\\?"?([\d. ]+)/gi,
+    /\\?"engineCapacity\\?"\s*:\s*\\?"?([\d. ]+)/gi,
     /Hubraum[^0-9]{0,80}([\d. ]+)\s*cm/i,
     /([\d. ]+)\s*cm³/i,
     /([\d. ]+)\s*ccm/i,
-  ].forEach((pattern) => {
-    const match = (html.match(pattern) || text.match(pattern));
-    if (match?.[1]) candidates.push(String(match[1]).replace(/[ .]/g, ""));
-  });
+  ]));
 
   return Math.round(firstFinite(...candidates));
 }
 
-function extractFuel(html, jsonLd, text) {
+function extractFuel(html, jsonData, text) {
   const candidates = [];
 
-  jsonLd.forEach((item) => {
+  jsonData.forEach((item) => {
     walk(item, (key, value) => {
       if (/fuel|kraftstoff|engine/i.test(key) && typeof value !== "object") candidates.push(value);
     });
   });
 
-  [
-    /"fuel"\s*:\s*"([^"]+)"/i,
-    /"fuelType"\s*:\s*"([^"]+)"/i,
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\?"fuel\\?"\s*:\s*\\?"([^"\\]+)/gi,
+    /\\?"fuelType\\?"\s*:\s*\\?"([^"\\]+)/gi,
+    /\\?"fuelCategory\\?"\s*:\s*\\?"([^"\\]+)/gi,
     /Kraftstoff(?:art)?[^A-Za-zА-Яа-я0-9]{0,80}([A-Za-zÄÖÜäöüß -]+)/i,
-  ].forEach((pattern) => {
-    const match = (html.match(pattern) || text.match(pattern));
-    if (match?.[1]) candidates.push(match[1]);
-  });
+  ]));
 
   const joined = candidates.map(String).join(" ").trim();
   if (joined) return joined;
@@ -158,8 +231,52 @@ async function fetchListing(url) {
     redirect: "follow",
   });
 
-  if (!response.ok) throw new Error(`Mobile.de returned ${response.status}`);
-  return response.text();
+  const html = await response.text();
+  if (!response.ok && !isAccessDenied(html)) throw new Error(`Mobile.de returned ${response.status}`);
+  return html;
+}
+
+async function importPlaywright() {
+  try {
+    return await import("playwright");
+  } catch {
+    throw new Error("Mobile.de blocked plain HTTP fetch. Install Playwright for browser fallback: npm install && npx playwright install chromium");
+  }
+}
+
+async function fetchListingWithBrowser(url) {
+  const { chromium } = await importPlaywright();
+  const executablePath = SYSTEM_CHROME_PATHS.find((path) => path && existsSync(path));
+  const browser = await chromium.launch({
+    headless: !process.env.MOBILEDE_SHOW_BROWSER,
+    ...(executablePath ? { executablePath } : {}),
+  });
+
+  try {
+    const page = await browser.newPage({
+      locale: "de-DE",
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await page.waitForTimeout(3500);
+
+    const html = await page.content();
+    const text = await page.locator("body").innerText({ timeout: 10000 }).catch(() => "");
+    return { html, text, mode: "browser" };
+  } finally {
+    await browser.close();
+  }
+}
+
+async function loadListing(url) {
+  const html = await fetchListing(url);
+  const text = stripTags(html);
+
+  if (!isAccessDenied(html, text)) {
+    return { html, text, mode: "http" };
+  }
+
+  return fetchListingWithBrowser(url);
 }
 
 const server = http.createServer(async (request, response) => {
@@ -176,18 +293,21 @@ const server = http.createServer(async (request, response) => {
   }
 
   try {
-    const html = await fetchListing(sourceUrl);
-    const text = stripTags(html);
-    const jsonLd = readJsonLd(html);
-    const carBruttoEur = extractPrice(html, jsonLd);
-    const displacementCcm = extractDisplacement(html, jsonLd, text);
-    const fuel = extractFuel(html, jsonLd, text);
+    const { html, text: loadedText, mode } = await loadListing(sourceUrl);
+    const text = loadedText || stripTags(html);
+    if (isAccessDenied(html, text)) throw new Error("Mobile.de returned Access denied");
+
+    const jsonData = [...readJsonLd(html), ...readJsonBlocks(html)];
+    const carBruttoEur = extractPrice(html, jsonData);
+    const displacementCcm = extractDisplacement(html, jsonData, text);
+    const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
 
     if (!carBruttoEur) throw new Error("Price not found");
 
     sendJson(response, 200, {
       sourceUrl,
+      importMode: mode,
       carBruttoEur,
       fuel,
       displacementCcm,

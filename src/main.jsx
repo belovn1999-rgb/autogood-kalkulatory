@@ -382,10 +382,13 @@ function MobileDeImport({ c, url, status, summary, onUrlChange, onImport }) {
           {status === "error" && c.mobileImportError}
         </p>
       )}
-      {summary && (
+      {summary && status !== "error" && (
         <p className="mobileImportSummary">
           <b>{c.mobileImportFound}:</b> {summary}
         </p>
+      )}
+      {summary && status === "error" && (
+        <p className="mobileImportSummary errorDetail">{summary}</p>
       )}
     </section>
   );
@@ -705,7 +708,10 @@ function App() {
 
     try {
       const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
-      if (!response.ok) throw new Error("Mobile.de import failed");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || "Mobile.de import failed");
+      }
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
       const nextEngineIndex = Number(data?.engineTypeIndex);
@@ -727,6 +733,7 @@ function App() {
       setMobileDeSummary(summaryParts.join(" • "));
       setMobileDeStatus("ready");
     } catch (error) {
+      setMobileDeSummary(error.message || "");
       setMobileDeStatus("error");
     }
   };
