@@ -62,6 +62,10 @@ button {
   font-weight: 700;
 }
 
+.screenshotBtn {
+  background: #102033;
+}
+
 .appShell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -630,6 +634,24 @@ select {
   background: #fff;
   padding: 26px;
   box-shadow: 0 16px 40px rgba(15, 35, 52, 0.08);
+}
+
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 20;
+  border-radius: 10px;
+  background: #102033;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 14px 34px rgba(15, 35, 52, 0.22);
+}
+
+.toast.error {
+  background: #c2410c;
 }
 
 @media (max-width: 860px) {

@@ -40,6 +40,10 @@ const copy = {
     pickLang: "Wybierz język",
     appTitle: "AUTOGOOD Kalkulatory",
     print: "Druk / PDF",
+    screenshot: "Kopiuj obraz",
+    screenshotReady: "Obraz skopiowany.",
+    screenshotOpened: "Obraz otwarty w nowej karcie.",
+    screenshotError: "Nie udało się skopiować obrazu.",
     exchange: "Kurs EUR/PLN",
     engine: "Typ silnika",
     commissionType: "Rodzaj prowizji",
@@ -83,6 +87,10 @@ const copy = {
     pickLang: "Выберите язык",
     appTitle: "AUTOGOOD Калькуляторы",
     print: "Печать / PDF",
+    screenshot: "Скопировать скрин",
+    screenshotReady: "Скрин скопирован.",
+    screenshotOpened: "Скрин открыт в новой вкладке.",
+    screenshotError: "Не удалось скопировать скрин.",
     exchange: "Курс EUR/PLN",
     engine: "Тип двигателя",
     commissionType: "Тип комиссии",
@@ -694,6 +702,11 @@ function printCalculation({
   window.open(url, "_blank", "noopener,noreferrer");
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function canvasToBlob(canvas) {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), "image/png", 1);
+  });
+}
 function App() {
   const [lang, setLang] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -706,6 +719,8 @@ function App() {
   const [mobileDeUrl, setMobileDeUrl] = useState("");
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
+  const [screenshotStatus, setScreenshotStatus] = useState("");
+  const resultsRef = useRef(null);
   const rateTouchedRef = useRef(false);
   const safeLang = lang || "pl";
   const c = copy[safeLang];
@@ -783,6 +798,32 @@ function App() {
       setMobileDeStatus("error");
     }
   };
+  const copyScreenshot = async () => {
+    setScreenshotStatus("");
+    try {
+      if (!window.html2canvas || !resultsRef.current) throw new Error("Screenshot tool not available");
+      const canvas = await window.html2canvas(resultsRef.current, {
+        backgroundColor: "#ffffff",
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        useCORS: true
+      });
+      const blob = await canvasToBlob(canvas);
+      if (!blob) throw new Error("Image was not created");
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({
+          "image/png": blob
+        })]);
+        setScreenshotStatus("ready");
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setScreenshotStatus("opened");
+    } catch (error) {
+      setScreenshotStatus("error");
+    }
+  };
   if (!lang) {
     return /*#__PURE__*/React.createElement("main", {
       className: "startup"
@@ -844,7 +885,10 @@ function App() {
       total: calc.total,
       rate: n(rate) || DEFAULT_RATE
     })
-  }, c.print))), /*#__PURE__*/React.createElement("nav", {
+  }, c.print), /*#__PURE__*/React.createElement("button", {
+    className: "printBtn screenshotBtn",
+    onClick: copyScreenshot
+  }, c.screenshot))), /*#__PURE__*/React.createElement("nav", {
     className: "tabs",
     "aria-label": "Calculators"
   }, tabs.map(item => /*#__PURE__*/React.createElement("button", {
@@ -889,7 +933,8 @@ function App() {
     onChange: value => setField(field.key, value),
     suffix: field.currency
   }))), /*#__PURE__*/React.createElement("section", {
-    className: "card results"
+    className: "card results",
+    ref: resultsRef
   }, /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
   }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results), /*#__PURE__*/React.createElement("strong", null, tab.name[lang])), /*#__PURE__*/React.createElement("div", {
@@ -915,6 +960,8 @@ function App() {
     className: "footnotes"
   }, tab.notes[lang].map(note => /*#__PURE__*/React.createElement("p", {
     key: note
-  }, note))))));
+  }, note))))), screenshotStatus && /*#__PURE__*/React.createElement("div", {
+    className: `toast ${screenshotStatus}`
+  }, screenshotStatus === "ready" && c.screenshotReady, screenshotStatus === "opened" && c.screenshotOpened, screenshotStatus === "error" && c.screenshotError));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(App, null)));

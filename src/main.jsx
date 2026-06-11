@@ -24,6 +24,10 @@ const copy = {
     pickLang: "Wybierz język",
     appTitle: "AUTOGOOD Kalkulatory",
     print: "Druk / PDF",
+    screenshot: "Kopiuj obraz",
+    screenshotReady: "Obraz skopiowany.",
+    screenshotOpened: "Obraz otwarty w nowej karcie.",
+    screenshotError: "Nie udało się skopiować obrazu.",
     exchange: "Kurs EUR/PLN",
     engine: "Typ silnika",
     commissionType: "Rodzaj prowizji",
@@ -67,6 +71,10 @@ const copy = {
     pickLang: "Выберите язык",
     appTitle: "AUTOGOOD Калькуляторы",
     print: "Печать / PDF",
+    screenshot: "Скопировать скрин",
+    screenshotReady: "Скрин скопирован.",
+    screenshotOpened: "Скрин открыт в новой вкладке.",
+    screenshotError: "Не удалось скопировать скрин.",
     exchange: "Курс EUR/PLN",
     engine: "Тип двигателя",
     commissionType: "Тип комиссии",
@@ -635,6 +643,12 @@ function printCalculation({ lang, tab, rows, total, rate }) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function canvasToBlob(canvas) {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), "image/png", 1);
+  });
+}
+
 function App() {
   const [lang, setLang] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -647,6 +661,8 @@ function App() {
   const [mobileDeUrl, setMobileDeUrl] = useState("");
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
+  const [screenshotStatus, setScreenshotStatus] = useState("");
+  const resultsRef = useRef(null);
   const rateTouchedRef = useRef(false);
 
   const safeLang = lang || "pl";
@@ -738,6 +754,34 @@ function App() {
     }
   };
 
+  const copyScreenshot = async () => {
+    setScreenshotStatus("");
+
+    try {
+      if (!window.html2canvas || !resultsRef.current) throw new Error("Screenshot tool not available");
+      const canvas = await window.html2canvas(resultsRef.current, {
+        backgroundColor: "#ffffff",
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        useCORS: true,
+      });
+      const blob = await canvasToBlob(canvas);
+      if (!blob) throw new Error("Image was not created");
+
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        setScreenshotStatus("ready");
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setScreenshotStatus("opened");
+    } catch (error) {
+      setScreenshotStatus("error");
+    }
+  };
+
   if (!lang) {
     return (
       <main className="startup">
@@ -770,6 +814,9 @@ function App() {
           </div>
           <button className="printBtn" onClick={() => printCalculation({ lang, tab, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE })}>
             {c.print}
+          </button>
+          <button className="printBtn screenshotBtn" onClick={copyScreenshot}>
+            {c.screenshot}
           </button>
         </div>
       </header>
@@ -832,7 +879,7 @@ function App() {
           ))}
         </aside>
 
-        <section className="card results">
+        <section className="card results" ref={resultsRef}>
           <div className="resultsTitle">
             <h2><MoneyIcon />{c.results}</h2>
             <strong>{tab.name[lang]}</strong>
@@ -873,6 +920,13 @@ function App() {
           </footer>
         </section>
       </section>
+      {screenshotStatus && (
+        <div className={`toast ${screenshotStatus}`}>
+          {screenshotStatus === "ready" && c.screenshotReady}
+          {screenshotStatus === "opened" && c.screenshotOpened}
+          {screenshotStatus === "error" && c.screenshotError}
+        </div>
+      )}
     </main>
   );
 }
