@@ -610,6 +610,39 @@ function appendParagraphValue(p, value, { size = 16, prefix = " " } = {}) {
   p.append(makeRun(p.ownerDocument, `${prefix}${value}`, { size, bold: false }));
 }
 
+function setParagraphValueAfterPrefix(p, prefix, value, { size = 16 } = {}) {
+  let remaining = prefix.length;
+  let reachedPrefixEnd = false;
+
+  for (const child of [...p.childNodes]) {
+    if (child.namespaceURI !== W || child.localName !== "r") continue;
+    const textNodes = all(child, W, "t");
+    const runText = textNodes.map((t) => t.textContent || "").join("");
+
+    if (!reachedPrefixEnd) {
+      if (remaining > runText.length) {
+        remaining -= runText.length;
+        continue;
+      }
+
+      if (remaining === runText.length) {
+        reachedPrefixEnd = true;
+        continue;
+      }
+
+      const firstText = textNodes[0];
+      if (firstText) firstText.textContent = runText.slice(0, remaining);
+      for (const textNode of textNodes.slice(1)) textNode.textContent = "";
+      reachedPrefixEnd = true;
+      continue;
+    }
+
+    child.remove();
+  }
+
+  p.append(makeRun(p.ownerDocument, value ? ` ${value}` : "", { size, bold: false }));
+}
+
 function applyRunStyle(run, { size = 18, bold = true, underline = true } = {}) {
   let rPr = directChildren(run, W, "rPr")[0];
   if (!rPr) {
@@ -635,6 +668,16 @@ function styleParagraphPrefix(p, prefix, options = {}) {
   }
 }
 
+function setParagraphLastRunText(p, value) {
+  const runs = directChildren(p, W, "r");
+  const lastRun = runs[runs.length - 1];
+  if (!lastRun) return;
+  const textNode = all(lastRun, W, "t")[0];
+  if (!textNode) return;
+  applyRunStyle(lastRun, { size: 16, bold: false, underline: false });
+  textNode.textContent = value || " ";
+}
+
 function tableRows(root) {
   const tbl = all(root, W, "tbl")[0];
   return directChildren(tbl, W, "tr").map((row) => directChildren(row, W, "tc"));
@@ -651,7 +694,7 @@ function setDocxCheckboxes(root, data) {
   controls.forEach((sdt, index) => {
     const checked = checkedNumbers.has(index + 1);
     for (const checkedEl of all(sdt, W14, "checked")) checkedEl.setAttributeNS(W14, "w14:val", checked ? "1" : "0");
-    const textEl = all(sdt, W, "t")[0];
+    const textEl = all(sdt, W, "t").find((node) => ["¨", "þ", "☐", "☒"].includes(node.textContent || ""));
     if (textEl) textEl.textContent = checked ? "þ" : "¨";
   });
 }
@@ -677,16 +720,16 @@ async function generateDocx() {
   setParagraphText(paragraph(rows[3][0], 2), data.client.address, { size: 16 });
   setParagraphText(paragraph(rows[4][0], 2), idValue, { size: 16 });
   setParagraphText(paragraph(rows[5][0], 2), docValue, { size: 16 });
-  setParagraphText(paragraph(rows[6][0], 1), `Nr. tel.: ${data.client.phone}`, { size: 16 });
-  setParagraphText(paragraph(rows[6][0], 2), `E-mail: ${data.client.email}`, { size: 16 });
+  setParagraphValueAfterPrefix(paragraph(rows[6][0], 1), "Nr. tel.:", data.client.phone);
+  setParagraphValueAfterPrefix(paragraph(rows[6][0], 2), "E-mail:", data.client.email);
   setParagraphLabel(paragraph(rows[7][2], 1), "Marka i model:");
   setParagraphText(paragraph(rows[7][2], 2), data.vehicle.make_model, { size: 16 });
-  setParagraphText(paragraph(rows[10][2], 2), `Wiek (pierwsza rejestracja w roku/latach): ${data.vehicle.first_registration}`, { size: 16 });
-  setParagraphText(paragraph(rows[11][2], 2), `Przebieg do (km): ${data.vehicle.mileage_to}`, { size: 16 });
+  setParagraphValueAfterPrefix(paragraph(rows[10][2], 2), "Wiek (pierwsza rejestracja w roku/latach):", data.vehicle.first_registration);
+  setParagraphValueAfterPrefix(paragraph(rows[11][2], 2), "Przebieg do (km):", data.vehicle.mileage_to);
   setParagraphLabelValue(paragraph(rows[11][0], 1), "Budżet:", data.budget.total, { valueBreak: false });
   setParagraphLabelValue(paragraph(rows[12][0], 1), "Zaliczka:", data.budget.advance, { valueBreak: false });
   styleParagraphPrefix(paragraph(rows[12][2], 0), "Nadwozie:");
-  appendParagraphValue(paragraph(rows[12][2], 0), bodyOther.trim(), { size: 16 });
+  setParagraphLastRunText(paragraph(rows[12][2], 0), bodyOther ? bodyOther : " ");
   setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment, { size: 16 });
   setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment, { size: 16 });
   setDocxCheckboxes(root, data);
