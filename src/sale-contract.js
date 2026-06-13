@@ -217,6 +217,10 @@ function applyDefaultChecklistValues() {
   });
 }
 
+function applyDefaultFieldValues() {
+  setField("generalWear", "przecietne");
+}
+
 function collectSaleContract() {
   const data = {};
   fields.forEach((field) => {
@@ -401,6 +405,7 @@ generateButton.addEventListener("click", () => {
 });
 
 applyDefaultChecklistValues();
+applyDefaultFieldValues();
 loadSavedSaleContract();
 restoreDamageMarks(damageMarksInput.value);
 updateSummary();
