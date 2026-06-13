@@ -539,12 +539,13 @@ a {
 
 .contractMetaGrid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .contractMetaPanel input,
 .contractMetaPanel select {
+  height: 44px;
   min-height: 44px;
   padding: 9px 10px;
   font-size: 14px;
@@ -554,6 +555,20 @@ a {
 .contractMetaPanel select {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.saleStatus {
+  flex-basis: 100%;
+  min-height: 20px;
+  color: #005b82;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.saleStatus a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .yesNoChecklist,
