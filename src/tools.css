@@ -591,6 +591,68 @@ a {
   accent-color: #005b82;
 }
 
+.damageMap {
+  display: grid;
+  gap: 10px;
+}
+
+.damageMapHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.damageMapHead button {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #005b82;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.damageMapCanvas {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.damageMapCanvas img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.damageMark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #b42318;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #b42318;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .dealSidebar {
   position: sticky;
   top: 14px;

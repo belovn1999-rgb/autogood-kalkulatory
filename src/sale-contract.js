@@ -4,6 +4,10 @@ const form = document.querySelector("#saleContractForm");
 const saveButton = document.querySelector("#saveSaleContract");
 const exportButton = document.querySelector("#exportSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
+const parseButton = document.querySelector("#parseSaleData");
+const damageCanvas = document.querySelector("#damageMapCanvas");
+const damageMarksInput = document.querySelector("#damageMarks");
+const clearDamageButton = document.querySelector("#clearDamageMarks");
 
 const checklistGroups = {
   documentsChecklist: [
@@ -156,6 +160,7 @@ function renderChecklists() {
 renderChecklists();
 
 const fields = [...form.querySelectorAll("input[name], select[name], textarea[name]")];
+let damageMarks = [];
 
 function collectSaleContract() {
   const data = {};
@@ -188,6 +193,7 @@ function applySaleContract(data) {
     }
     field.value = data[field.name];
   });
+  restoreDamageMarks(data.damageMarks);
   updateSummary();
 }
 
@@ -200,8 +206,93 @@ function updateSummary() {
   document.querySelector("#saleSummaryBuyer").textContent = valueOrFallback(data.buyerName);
   document.querySelector("#saleSummaryVehicle").textContent = valueOrFallback(data.vehicleMakeModel);
   document.querySelector("#saleSummaryVin").textContent = valueOrFallback(data.vehicleVin);
-  const price = [data.salePrice, data.saleCurrency].filter(Boolean).join(" ");
-  document.querySelector("#saleSummaryPrice").textContent = valueOrFallback(price);
+  document.querySelector("#saleSummaryPrice").textContent = valueOrFallback(data.salePrice);
+}
+
+function normalizeSpace(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function setField(name, value) {
+  const field = form.querySelector(`[name="${name}"]`);
+  if (!field || !value) return;
+  field.value = value;
+}
+
+function labeledValue(text, labels) {
+  const alternatives = labels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const pattern = new RegExp(`(?:^|\\n)\\s*(?:${alternatives})\\s*(?::|-)?\\s*([^\\n]+)`, "i");
+  const match = text.match(pattern);
+  return match ? normalizeSpace(match[1]) : "";
+}
+
+function parseSaleData() {
+  const text = document.querySelector("#rawSaleData").value;
+  if (!text.trim()) return;
+
+  const phone = text.match(/\+48[\s-]?\d{3}[\s-]?\d{3}[\s-]?\d{3}/);
+  const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  const vin = text.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i);
+  const nip = text.match(/\b(?:NIP|nip)\s*:?\s*([0-9\-\s]{10,})/);
+
+  setField("buyerName", labeledValue(text, ["Kupujący", "Nabywca", "Klient", "Firma", "Nazwa", "Imię i nazwisko"]));
+  setField("buyerAddress", labeledValue(text, ["Adres", "Ulica", "Siedziba"]));
+  setField("buyerIdentifier", nip ? normalizeSpace(nip[1]) : labeledValue(text, ["PESEL", "NIP"]));
+  setField("buyerPhone", labeledValue(text, ["Telefon", "Tel", "Nr tel"]) || (phone ? normalizeSpace(phone[0]) : ""));
+  setField("buyerEmail", email ? email[0] : labeledValue(text, ["Email", "E-mail", "Mail"]));
+  setField("vehicleMakeModel", labeledValue(text, ["Marka i model", "Auto", "Pojazd", "Samochód"]));
+  setField("vehicleVin", vin ? vin[0].toUpperCase() : labeledValue(text, ["VIN"]));
+  setField("vehicleMileage", labeledValue(text, ["Przebieg", "Stan licznika"]));
+  setField("salePrice", labeledValue(text, ["Cena", "Cena sprzedaży", "Kwota"]));
+  setField("firstRegistration", labeledValue(text, ["Pierwsza rejestracja", "Rok pierwszej rejestracji"]));
+  setField("lastTechnicalInspection", labeledValue(text, ["Badanie techniczne", "Data ostatniego badania technicznego"]));
+  updateSummary();
+}
+
+function writeDamageMarks() {
+  damageMarksInput.value = JSON.stringify(damageMarks);
+}
+
+function renderDamageMarks() {
+  damageCanvas.querySelectorAll(".damageMark").forEach((mark) => mark.remove());
+  damageMarks.forEach((mark, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "damageMark";
+    button.textContent = "X";
+    button.style.left = `${mark.x}%`;
+    button.style.top = `${mark.y}%`;
+    button.title = "Usuń zaznaczenie";
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      damageMarks.splice(index, 1);
+      writeDamageMarks();
+      renderDamageMarks();
+    });
+    damageCanvas.appendChild(button);
+  });
+}
+
+function restoreDamageMarks(value) {
+  try {
+    const parsed = typeof value === "string" && value ? JSON.parse(value) : [];
+    damageMarks = Array.isArray(parsed) ? parsed.filter((mark) => Number.isFinite(mark.x) && Number.isFinite(mark.y)) : [];
+  } catch {
+    damageMarks = [];
+  }
+  writeDamageMarks();
+  renderDamageMarks();
+}
+
+function addDamageMark(event) {
+  if (event.target.classList.contains("damageMark")) return;
+  const rect = damageCanvas.getBoundingClientRect();
+  damageMarks.push({
+    x: Math.round(((event.clientX - rect.left) / rect.width) * 1000) / 10,
+    y: Math.round(((event.clientY - rect.top) / rect.height) * 1000) / 10,
+  });
+  writeDamageMarks();
+  renderDamageMarks();
 }
 
 function saveSaleContract() {
@@ -243,9 +334,17 @@ fields.forEach((field) => {
 
 saveButton.addEventListener("click", saveSaleContract);
 exportButton.addEventListener("click", exportSaleContract);
+parseButton.addEventListener("click", parseSaleData);
+damageCanvas.addEventListener("click", addDamageMark);
+clearDamageButton.addEventListener("click", () => {
+  damageMarks = [];
+  writeDamageMarks();
+  renderDamageMarks();
+});
 generateButton.addEventListener("click", () => {
   window.alert("DOCX będzie dostępny po dodaniu pustego szablonu Word dla umowy sprzedaży.");
 });
 
 loadSavedSaleContract();
+restoreDamageMarks(damageMarksInput.value);
 updateSummary();

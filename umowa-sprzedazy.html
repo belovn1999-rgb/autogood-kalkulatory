@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Umowa Sprzedaży</title>
-    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-2" />
+    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-3" />
   </head>
   <body>
     <main class="workspaceShell">
@@ -39,7 +39,25 @@
             <h2>Данные входа</h2>
             <label>
               Быстрая вставка данных клиента и автомобиля
-              <textarea id="rawSaleData" name="rawSaleData" placeholder="Например: klient, telefon, e-mail, marka, model, VIN, rok, przebieg, cena, numer faktury..."></textarea>
+              <textarea id="rawSaleData" name="rawSaleData" placeholder="Например: klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
+            </label>
+            <div class="example-actions">
+              <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
+            </div>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Umowa sprzedaży</h2>
+            <label>
+              Data zawarcia
+              <input name="contractDate" type="date" />
+            </label>
+            <label>
+              Miejsce zawarcia
+              <select name="contractPlace">
+                <option value="seller" selected>U sprzedawcy - w lokalu lub na placu sprzedaży</option>
+                <option value="buyer">U kupującego, w innym miejscu lub na odległość</option>
+              </select>
             </label>
           </div>
 
@@ -59,15 +77,11 @@
                 <input name="buyerIdentifier" type="text" />
               </label>
               <label>
-                Dokument tożsamości
-                <input name="buyerDocument" type="text" />
-              </label>
-            </div>
-            <div class="dealFieldsTwo">
-              <label>
                 Telefon
                 <input name="buyerPhone" type="text" />
               </label>
+            </div>
+            <div class="dealFieldsTwo">
               <label>
                 E-mail
                 <input name="buyerEmail" type="email" />
@@ -84,7 +98,7 @@
           </div>
 
           <div class="dealPanel">
-            <h2>Pojazd / Автомобиль</h2>
+            <h2>Przedmiot umowy</h2>
             <label>
               Marka i model
               <input name="vehicleMakeModel" type="text" />
@@ -95,25 +109,27 @@
                 <input name="vehicleVin" type="text" />
               </label>
               <label>
-                Rok produkcji
-                <input name="vehicleYear" type="text" />
-              </label>
-            </div>
-            <div class="dealFieldsTwo">
-              <label>
-                Przebieg
+                Stan licznika
                 <input name="vehicleMileage" type="text" />
               </label>
-              <label>
-                Nr rejestracyjny
-                <input name="vehiclePlate" type="text" />
-              </label>
             </div>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Cena</h2>
+            <label>
+              Cena sprzedaży
+              <input name="salePrice" type="text" placeholder="np. 124 700 PLN brutto" />
+            </label>
+            <label>
+              Zniżka lub dodatkowa korzyść po negocjacjach
+              <textarea name="discountBenefit" placeholder="Wpisz kwotę, opis korzyści albo '-' jeśli nie było."></textarea>
+            </label>
+          </div>
+
+          <div class="dealPanel dealPanelWide">
+            <h2>Oznaczenie i historia pojazdu</h2>
             <div class="dealFieldsTwo">
-              <label>
-                Kolor
-                <input name="vehicleColor" type="text" />
-              </label>
               <label>
                 Data pierwszej rejestracji
                 <input name="firstRegistration" type="text" />
@@ -138,46 +154,7 @@
             </div>
           </div>
 
-          <div class="dealPanel">
-            <h2>Sprzedaż / Фактура</h2>
-            <div class="dealFieldsTwo">
-              <label>
-                Data umowy
-                <input name="contractDate" type="date" />
-              </label>
-              <label>
-                Numer faktury
-                <input name="invoiceNumber" type="text" />
-              </label>
-            </div>
-            <div class="dealFieldsTwo">
-              <label>
-                Cena sprzedaży
-                <input name="salePrice" type="text" inputmode="decimal" />
-              </label>
-              <label>
-                Waluta
-                <select name="saleCurrency">
-                  <option value="PLN" selected>PLN</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </label>
-            </div>
-            <label>
-              Typ sprzedaży
-              <select name="saleType">
-                <option value="FV 23%">FV 23%</option>
-                <option value="VAT Marża">VAT Marża</option>
-                <option value="Inny">Inny</option>
-              </select>
-            </label>
-            <label>
-              Zniżka lub dodatkowa korzyść po negocjacjach
-              <textarea name="discountBenefit" placeholder="Wpisz kwotę, opis korzyści albo '-' jeśli nie było."></textarea>
-            </label>
-          </div>
-
-          <div class="dealPanel">
+          <div class="dealPanel dealPanelWide">
             <h2>Stan pojazdu</h2>
             <label>
               Ogólne zużycie
@@ -188,8 +165,18 @@
                 <option value="skrajne">Skrajne</option>
               </select>
             </label>
+            <div class="damageMap">
+              <div class="damageMapHead">
+                <span>Oznaczenia miejsc korekt lakieru, napraw, uszkodzeń</span>
+                <button id="clearDamageMarks" type="button">Wyczyść X</button>
+              </div>
+              <div id="damageMapCanvas" class="damageMapCanvas" aria-label="Mapa uszkodzeń pojazdu">
+                <img src="./assets/sale-car-damage-map.png?v=20260613-3" alt="Schemat pojazdu do oznaczenia uszkodzeń" />
+              </div>
+              <input id="damageMarks" name="damageMarks" type="hidden" />
+            </div>
             <label>
-              Oznaczenia miejsc korekt lakieru, napraw, uszkodzeń
+              Opis zaznaczeń i uszkodzeń
               <textarea name="damageNotes"></textarea>
             </label>
             <label>
@@ -245,22 +232,6 @@
             </dl>
           </section>
 
-          <section class="dealChecklist">
-            <h2>Przed generowaniem</h2>
-            <label>
-              <input type="checkbox" checked />
-              <span>Blankiet Word dla umowy sprzedaży został dodany do projektu.</span>
-            </label>
-            <label>
-              <input type="checkbox" checked />
-              <span>Mapa pól została potwierdzona na podstawie szablonu.</span>
-            </label>
-            <label>
-              <input type="checkbox" />
-              <span>Generowanie DOCX zostało przetestowane na realnych danych.</span>
-            </label>
-          </section>
-
           <section class="dealQuickLinks">
             <h2>Status projektu</h2>
             <span class="statusPill">Szablon i pola dodane</span>
@@ -269,6 +240,6 @@
       </form>
     </main>
 
-    <script src="./src/sale-contract.js?v=20260613-2"></script>
+    <script src="./src/sale-contract.js?v=20260613-3"></script>
   </body>
 </html>
