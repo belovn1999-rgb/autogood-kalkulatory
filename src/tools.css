@@ -104,7 +104,8 @@ a {
   gap: 12px;
 }
 
-.toolCard {
+.toolCard,
+.contractChoiceCard {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr) auto;
   align-items: center;
@@ -117,12 +118,25 @@ a {
   box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
 }
 
-.toolCard.isReady {
+.contractChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.contractChoiceCard {
+  min-height: 168px;
+}
+
+.toolCard.isReady,
+.contractChoiceCard.isReady {
   border-color: rgba(0, 91, 130, 0.35);
 }
 
 .toolCard.isReady:hover,
-.toolCard.isReady:focus-visible {
+.toolCard.isReady:focus-visible,
+.contractChoiceCard.isReady:hover,
+.contractChoiceCard.isReady:focus-visible {
   border-color: #005b82;
   outline: none;
   transform: translateY(-1px);
@@ -604,6 +618,20 @@ a {
   font-weight: 800;
 }
 
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 8px;
+  background: #edf7f5;
+  color: #007c89;
+  padding: 11px 12px;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .messageLayout {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
@@ -807,6 +835,7 @@ a {
   .pipeline,
   .nextGrid,
   .archiveGrid,
+  .contractChoiceGrid,
   .dealLayout,
   .dealForm,
   .messageLayout,

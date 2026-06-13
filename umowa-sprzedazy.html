@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD Umowa Sprzedaży</title>
+    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-1" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./umowy.html" aria-label="AUTOGOOD Umowy">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>Umowa sprzedaży</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./umowy.html">Umowy</a>
+          <a href="./pdf.html?v=20260611-1">Umowa wyszukiwania</a>
+        </nav>
+      </header>
+
+      <section class="dealHero">
+        <div>
+          <p class="eyebrow">Załącznik do faktury</p>
+          <h1>Umowa sprzedaży pojazdu</h1>
+          <p>Рабочая заготовка под новый шаблон Word. После загрузки пустого DOCX-шаблона здесь будет генерация только Word-файла для договора продажи автомобиля через AUTOGOOD.</p>
+        </div>
+        <div class="dealActions">
+          <button id="saveSaleContract" type="button">Сохранить</button>
+          <button id="exportSaleContract" type="button">Экспорт данных</button>
+          <button id="generateSaleDocx" type="button">DOCX</button>
+        </div>
+      </section>
+
+      <form id="saleContractForm" class="dealLayout">
+        <section class="dealForm">
+          <div class="dealPanel dealPanelWide">
+            <h2>Данные входа</h2>
+            <label>
+              Быстрая вставка данных клиента и автомобиля
+              <textarea id="rawSaleData" name="rawSaleData" placeholder="Например: klient, telefon, e-mail, marka, model, VIN, rok, przebieg, cena, numer faktury..."></textarea>
+            </label>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Nabywca / Покупатель</h2>
+            <label>
+              Imię i nazwisko / Nazwa
+              <input name="buyerName" type="text" />
+            </label>
+            <label>
+              Adres
+              <input name="buyerAddress" type="text" />
+            </label>
+            <div class="dealFieldsTwo">
+              <label>
+                PESEL / NIP
+                <input name="buyerIdentifier" type="text" />
+              </label>
+              <label>
+                Dokument tożsamości
+                <input name="buyerDocument" type="text" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Telefon
+                <input name="buyerPhone" type="text" />
+              </label>
+              <label>
+                E-mail
+                <input name="buyerEmail" type="email" />
+              </label>
+            </div>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Pojazd / Автомобиль</h2>
+            <label>
+              Marka i model
+              <input name="vehicleMakeModel" type="text" />
+            </label>
+            <div class="dealFieldsTwo">
+              <label>
+                VIN
+                <input name="vehicleVin" type="text" />
+              </label>
+              <label>
+                Rok produkcji
+                <input name="vehicleYear" type="text" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Przebieg
+                <input name="vehicleMileage" type="text" />
+              </label>
+              <label>
+                Nr rejestracyjny
+                <input name="vehiclePlate" type="text" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Kolor
+                <input name="vehicleColor" type="text" />
+              </label>
+              <label>
+                Data pierwszej rejestracji
+                <input name="firstRegistration" type="text" />
+              </label>
+            </div>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Sprzedaż / Фактура</h2>
+            <div class="dealFieldsTwo">
+              <label>
+                Data umowy
+                <input name="contractDate" type="date" />
+              </label>
+              <label>
+                Numer faktury
+                <input name="invoiceNumber" type="text" />
+              </label>
+            </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Cena sprzedaży
+                <input name="salePrice" type="text" inputmode="decimal" />
+              </label>
+              <label>
+                Waluta
+                <select name="saleCurrency">
+                  <option value="PLN" selected>PLN</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Typ sprzedaży
+              <select name="saleType">
+                <option value="FV 23%">FV 23%</option>
+                <option value="VAT Marża">VAT Marża</option>
+                <option value="Inny">Inny</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="dealPanel">
+            <h2>Uwagi</h2>
+            <label>
+              Informacje dodatkowe do umowy
+              <textarea name="notes"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <aside class="dealSidebar">
+          <section class="dealSummary">
+            <h2>Podsumowanie</h2>
+            <dl>
+              <div>
+                <dt>Kupujący</dt>
+                <dd id="saleSummaryBuyer">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Auto</dt>
+                <dd id="saleSummaryVehicle">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>VIN</dt>
+                <dd id="saleSummaryVin">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Cena</dt>
+                <dd id="saleSummaryPrice">Nie wskazano</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="dealChecklist">
+            <h2>Przed generowaniem</h2>
+            <label>
+              <input type="checkbox" />
+              <span>Blankiet Word dla umowy sprzedaży został dodany do projektu.</span>
+            </label>
+            <label>
+              <input type="checkbox" />
+              <span>Mapa pól została potwierdzona na podstawie szablonu.</span>
+            </label>
+            <label>
+              <input type="checkbox" />
+              <span>Generowanie DOCX zostało przetestowane na realnych danych.</span>
+            </label>
+          </section>
+
+          <section class="dealQuickLinks">
+            <h2>Status projektu</h2>
+            <span class="statusPill">Czeka na szablon Word</span>
+          </section>
+        </aside>
+      </form>
+    </main>
+
+    <script src="./src/sale-contract.js?v=20260613-1"></script>
+  </body>
+</html>
