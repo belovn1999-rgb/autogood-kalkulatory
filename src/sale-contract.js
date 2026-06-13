@@ -1,4 +1,4 @@
-const saleStorageKey = "autogoodSaleContract.v1";
+const saleStorageKey = "autogoodSaleContract.v2";
 
 const form = document.querySelector("#saleContractForm");
 const saveButton = document.querySelector("#saveSaleContract");
@@ -127,6 +127,54 @@ const technicalGroups = [
   },
 ];
 
+const defaultChecklistValues = {
+  emissionEuro6: "tak",
+  spareKey: "tak",
+  serviceBook: "tak",
+  manualBook: "tak",
+  registrationCertificate: "nie",
+  intermediateContracts: "nie",
+  foreignRegistrationCertificate: "tak",
+  exciseProof: "tak",
+  technicalInspectionProof: "tak",
+  noPlatesStatement: "tak",
+  testDrive: "tak",
+  checkedAtStation: "nie",
+  checkedOnLift: "nie",
+  checkedListingEquipment: "tak",
+  checkedControls: "tak",
+  paintMeterCheck: "tak",
+  engineWorks: "tak",
+  noOilFilterData: "tak",
+  noTimingData: "tak",
+  reducedEnginePower: "nie",
+  engineLeaks: "nie",
+  gearboxNoOilData: "tak",
+  gearboxLeaks: "nie",
+  gearboxWear: "",
+  clutchWear: "",
+  clutchNoise: "nie",
+  steeringPlay: "nie",
+  steeringLeaks: "nie",
+  steeringWear: "tak",
+  acWorks: "tak",
+  acCoolantLoss: "nie",
+  coolingWorks: "tak",
+  coolingLeaks: "nie",
+  interiorHeavyWear: "nie",
+  interiorScratches: "tak",
+  higherMileageSigns: "nie",
+  extraTires: "",
+  extraRims: "",
+  spareWheel: "tak",
+  temporaryPlates: "nie",
+  navigationCard: "nie",
+  discountGiven: "nie",
+  discountWearReason: "nie",
+  discountPostPurchaseRepairs: "nie",
+  discountEngineFaults: "nie",
+};
+
 function createYesNoRow(name, label) {
   const row = document.createElement("div");
   row.className = "yesNoRow";
@@ -161,6 +209,13 @@ renderChecklists();
 
 const fields = [...form.querySelectorAll("input[name], select[name], textarea[name]")];
 let damageMarks = [];
+
+function applyDefaultChecklistValues() {
+  Object.entries(defaultChecklistValues).forEach(([name, value]) => {
+    const option = form.querySelector(`input[name="${name}"][value="${value}"]`);
+    if (option) option.checked = true;
+  });
+}
 
 function collectSaleContract() {
   const data = {};
@@ -345,6 +400,7 @@ generateButton.addEventListener("click", () => {
   window.alert("DOCX będzie dostępny po dodaniu pustego szablonu Word dla umowy sprzedaży.");
 });
 
+applyDefaultChecklistValues();
 loadSavedSaleContract();
 restoreDamageMarks(damageMarksInput.value);
 updateSummary();
