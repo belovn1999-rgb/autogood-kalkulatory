@@ -532,6 +532,30 @@ a {
   gap: 10px;
 }
 
+.contractMetaPanel {
+  align-content: start;
+  align-self: start;
+}
+
+.contractMetaGrid {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.82fr) minmax(0, 1.18fr);
+  gap: 10px;
+}
+
+.contractMetaPanel input,
+.contractMetaPanel select {
+  min-height: 44px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.contractMetaPanel select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .yesNoChecklist,
 .saleChecklistGroups {
   display: grid;
@@ -961,6 +985,7 @@ a {
   .dealLayout,
   .dealForm,
   .messageLayout,
+  .contractMetaGrid,
   .dealFieldsTwo {
     grid-template-columns: 1fr;
   }

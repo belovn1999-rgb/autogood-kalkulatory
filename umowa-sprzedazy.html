@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Umowa Sprzedaży</title>
-    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-5" />
+    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-6" />
   </head>
   <body>
     <main class="workspaceShell">
@@ -46,19 +46,21 @@
             </div>
           </div>
 
-          <div class="dealPanel">
+          <div class="dealPanel contractMetaPanel">
             <h2>Umowa sprzedaży</h2>
-            <label>
-              Data zawarcia
-              <input name="contractDate" type="date" />
-            </label>
-            <label>
-              Miejsce zawarcia
-              <select name="contractPlace">
-                <option value="seller" selected>U sprzedawcy - w lokalu lub na placu sprzedaży</option>
-                <option value="buyer">U kupującego, w innym miejscu lub na odległość</option>
-              </select>
-            </label>
+            <div class="contractMetaGrid">
+              <label>
+                Data zawarcia
+                <input name="contractDate" type="date" />
+              </label>
+              <label>
+                Miejsce zawarcia
+                <select name="contractPlace">
+                  <option value="seller" selected>U sprzedawcy - lokal lub plac sprzedaży</option>
+                  <option value="buyer">U kupującego / inne miejsce / na odległość</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <div class="dealPanel">
@@ -232,6 +234,6 @@
       </form>
     </main>
 
-    <script src="./src/sale-contract.js?v=20260613-5"></script>
+    <script src="./src/sale-contract.js?v=20260613-6"></script>
   </body>
 </html>
