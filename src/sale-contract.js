@@ -620,12 +620,14 @@ function fillGeneralWear(root, data) {
     przecietne: data.generalWear === "przecietne" ? "X" : " ",
     skrajne: data.generalWear === "skrajne" ? "X" : " ",
   };
-  all(root, W, "t").forEach((node) => {
-    const text = node.textContent || "";
-    if (text.includes("ogólne zużycie:")) {
-      node.textContent = `ogólne zużycie: [ ${marks.brak} ] brak, [ ${marks.przecietne} ] przeciętne, [ ${marks.skrajne} ] skrajne, oznaczenia miejsc korekt lakieru, napraw, uszkodzeń (znak „X”):`;
-    }
-  });
+  const tables = all(root, W, "tbl");
+  const documentsRows = directChildren(tables[4], W, "tr");
+  const stateCells = directChildren(documentsRows[10], W, "tc");
+  setCellText(
+    stateCells[4],
+    `ogólne zużycie: [ ${marks.brak} ] brak, [ ${marks.przecietne} ] przeciętne, [ ${marks.skrajne} ] skrajne; oznaczenia miejsc korekt lakieru, napraw, uszkodzeń (znak "X"):`,
+    { size: "17" },
+  );
 }
 
 function fillVehicleHistoryTable(root, data) {
