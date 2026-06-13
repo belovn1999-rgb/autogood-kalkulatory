@@ -10,7 +10,7 @@ const statusEl = document.querySelector("#saleStatus");
 const damageCanvas = document.querySelector("#damageMapCanvas");
 const damageMarksInput = document.querySelector("#damageMarks");
 const clearDamageButton = document.querySelector("#clearDamageMarks");
-const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx?v=20260613-2";
+const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx?v=20260613-3";
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
 
