@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Umowa Sprzedaży</title>
-    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-1" />
+    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-2" />
   </head>
   <body>
     <main class="workspaceShell">
@@ -73,6 +73,14 @@
                 <input name="buyerEmail" type="email" />
               </label>
             </div>
+            <label>
+              Kupuje przedsiębiorca zawierając umowę o charakterze zawodowym
+              <select name="buyerProfessional">
+                <option value="">Nie wskazano</option>
+                <option value="tak">Tak</option>
+                <option value="nie">Nie</option>
+              </select>
+            </label>
           </div>
 
           <div class="dealPanel">
@@ -111,6 +119,23 @@
                 <input name="firstRegistration" type="text" />
               </label>
             </div>
+            <div class="dealFieldsTwo">
+              <label>
+                Typ paliwa
+                <select name="fuelType">
+                  <option value="">Nie wskazano</option>
+                  <option value="ON">ON</option>
+                  <option value="LPG">LPG</option>
+                  <option value="B">B</option>
+                  <option value="H">H</option>
+                  <option value="EL">EL</option>
+                </select>
+              </label>
+              <label>
+                Data ostatniego badania technicznego
+                <input name="lastTechnicalInspection" type="text" />
+              </label>
+            </div>
           </div>
 
           <div class="dealPanel">
@@ -146,9 +171,49 @@
                 <option value="Inny">Inny</option>
               </select>
             </label>
+            <label>
+              Zniżka lub dodatkowa korzyść po negocjacjach
+              <textarea name="discountBenefit" placeholder="Wpisz kwotę, opis korzyści albo '-' jeśli nie było."></textarea>
+            </label>
           </div>
 
           <div class="dealPanel">
+            <h2>Stan pojazdu</h2>
+            <label>
+              Ogólne zużycie
+              <select name="generalWear">
+                <option value="">Nie wskazano</option>
+                <option value="brak">Brak</option>
+                <option value="przecietne">Przeciętne</option>
+                <option value="skrajne">Skrajne</option>
+              </select>
+            </label>
+            <label>
+              Oznaczenia miejsc korekt lakieru, napraw, uszkodzeń
+              <textarea name="damageNotes"></textarea>
+            </label>
+            <label>
+              Inne cechy i stwierdzone usterki pojazdu
+              <textarea name="defectsNotes"></textarea>
+            </label>
+          </div>
+
+          <div class="dealPanel dealPanelWide">
+            <h2>Dokumenty i emisje</h2>
+            <div id="documentsChecklist" class="yesNoChecklist"></div>
+          </div>
+
+          <div class="dealPanel dealPanelWide">
+            <h2>Nabycie i sprawdzenie pojazdu</h2>
+            <div id="purchaseChecklist" class="yesNoChecklist"></div>
+          </div>
+
+          <div class="dealPanel dealPanelWide">
+            <h2>Stan techniczny i wyposażenie</h2>
+            <div id="technicalChecklists" class="saleChecklistGroups"></div>
+          </div>
+
+          <div class="dealPanel dealPanelWide">
             <h2>Uwagi</h2>
             <label>
               Informacje dodatkowe do umowy
@@ -183,11 +248,11 @@
           <section class="dealChecklist">
             <h2>Przed generowaniem</h2>
             <label>
-              <input type="checkbox" />
+              <input type="checkbox" checked />
               <span>Blankiet Word dla umowy sprzedaży został dodany do projektu.</span>
             </label>
             <label>
-              <input type="checkbox" />
+              <input type="checkbox" checked />
               <span>Mapa pól została potwierdzona na podstawie szablonu.</span>
             </label>
             <label>
@@ -198,12 +263,12 @@
 
           <section class="dealQuickLinks">
             <h2>Status projektu</h2>
-            <span class="statusPill">Czeka na szablon Word</span>
+            <span class="statusPill">Szablon i pola dodane</span>
           </section>
         </aside>
       </form>
     </main>
 
-    <script src="./src/sale-contract.js?v=20260613-1"></script>
+    <script src="./src/sale-contract.js?v=20260613-2"></script>
   </body>
 </html>
