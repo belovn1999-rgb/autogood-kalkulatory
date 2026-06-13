@@ -10,7 +10,7 @@ const statusEl = document.querySelector("#saleStatus");
 const damageCanvas = document.querySelector("#damageMapCanvas");
 const damageMarksInput = document.querySelector("#damageMarks");
 const clearDamageButton = document.querySelector("#clearDamageMarks");
-const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx";
+const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx?v=20260613-2";
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
 
@@ -598,6 +598,32 @@ function setCheckboxControl(sdt, checked) {
   });
 }
 
+function setControlAlignment(sdt, horizontal, vertical) {
+  if (!sdt) return;
+  all(sdt, W, "p")
+    .filter((node) => belongsToControl(sdt, node))
+    .forEach((paragraph) => {
+      let pPr = directChildren(paragraph, W, "pPr")[0];
+      if (!pPr) {
+        pPr = wEl(paragraph.ownerDocument, "pPr");
+        paragraph.insertBefore(pPr, paragraph.firstChild);
+      }
+      directChildren(pPr, W, "jc").forEach((node) => node.remove());
+      pPr.appendChild(wEl(paragraph.ownerDocument, "jc", { val: horizontal }));
+    });
+
+  let cell = sdt.parentNode;
+  while (cell && !(cell.namespaceURI === W && cell.localName === "tc")) cell = cell.parentNode;
+  if (!cell) return;
+  let tcPr = directChildren(cell, W, "tcPr")[0];
+  if (!tcPr) {
+    tcPr = wEl(cell.ownerDocument, "tcPr");
+    cell.insertBefore(tcPr, cell.firstChild);
+  }
+  directChildren(tcPr, W, "vAlign").forEach((node) => node.remove());
+  tcPr.appendChild(wEl(cell.ownerDocument, "vAlign", { val: vertical }));
+}
+
 function replaceText(root, search, replacement) {
   all(root, W, "t").forEach((node) => {
     if ((node.textContent || "").includes(search)) {
@@ -712,6 +738,7 @@ function fillDocx(root, data) {
   setTextControl(controls[5], data.vehicleMakeModel);
   setTextControl(controls[6], vinMileage || data.vehicleVin || data.vehicleMileage);
   setTextControl(controls[7], data.salePrice);
+  setControlAlignment(controls[7], "center", "center");
   setTextControl(controls[8], data.discountBenefit || "-");
   setTextControl(controls[23], data.notes);
 
