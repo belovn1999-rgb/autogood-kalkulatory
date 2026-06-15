@@ -584,6 +584,8 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
 function printCalculation({ lang, tab, rows, total, rate }) {
   const c = copy[lang];
   const roundedTotal = roundedCurrencyValue(total, "PLN");
+  const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
+  const homeUrl = new URL("./", window.location.href).href;
   const rowsHtml = rows
     .map(
       (item) => `
@@ -604,36 +606,65 @@ function printCalculation({ lang, tab, rows, total, rate }) {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>${c.appTitle} - ${tab.name[lang]}</title>
+  <title></title>
   <style>
-    body{font-family:Arial,sans-serif;margin:32px;color:#102033}
-    header{border-bottom:3px solid #005B82;padding-bottom:16px;margin-bottom:22px}
-    .printLogo{display:block;width:260px;height:auto;margin:0 0 10px}
-    h1{color:#005B82;margin:0 0 6px;font-size:26px}
-    h2{margin:0;color:#334155;font-size:18px}
-    table{width:100%;border-collapse:collapse;margin-top:18px}
-    td{border-bottom:1px solid #dbe4ee;padding:12px 8px;vertical-align:top}
-    td:last-child{text-align:right;font-weight:700;white-space:nowrap}
-    small{display:block;color:#64748b;margin-top:3px}
-    span{border:1px solid #cbd5e1;border-radius:999px;padding:3px 8px;font-size:12px;color:#64748b}
-    .amount{display:flex;justify-content:flex-end;align-items:center;gap:8px}
-    .amount em{font-style:normal;color:#64748b;font-weight:600}
-    .vat{background:#fff;color:#102033}
-    .total{background:#005B82;color:white;border-radius:12px;padding:18px 20px;margin-top:20px;text-align:right}
-    .total b{display:block;font-size:30px;margin-top:4px}
-    .rate{text-align:right;font-style:italic;color:#64748b;margin-top:10px}
-    .notes{border-top:1px dashed #94a3b8;margin-top:18px;padding-top:10px;font-style:italic;color:#475569;font-size:13px}
+    @page{size:auto;margin:0}
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:0;background:#eef3f8;color:#102033;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .page{position:relative;min-height:100vh;padding:28px 34px 32px;background:#fff;overflow:hidden}
+    .page:before{content:"";position:absolute;inset:0 0 auto;height:10px;background:#005B82}
+    .page:after{content:"";position:absolute;right:-78px;top:54px;width:230px;height:230px;border:22px solid rgba(0,91,130,.10);border-radius:50%}
+    .corner{position:absolute;right:0;bottom:0;width:190px;height:190px;background:linear-gradient(135deg,transparent 50%,rgba(0,91,130,.08) 50%)}
+    header{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px;padding-bottom:18px;border-bottom:2px solid #dbe4ee}
+    .brand{display:flex;align-items:center;gap:18px;text-decoration:none;color:#102033}
+    .printLogo{display:block;width:250px;height:auto}
+    .titleBox{text-align:right;padding-top:4px}
+    h1{margin:0;color:#005B82;font-size:30px;line-height:1;font-weight:800}
+    h2{margin:7px 0 0;color:#64748b;font-size:17px;font-weight:800}
+    .accentGrid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+    .accent{min-height:8px;border-radius:999px;background:#005B82}
+    .accent:nth-child(2){background:#dbe4ee}
+    .accent:nth-child(3){background:#102033}
+    table{position:relative;z-index:1;width:100%;border-collapse:separate;border-spacing:0 7px;margin-top:4px}
+    td{background:#fff;border-top:1px solid #dbe4ee;border-bottom:1px solid #dbe4ee;padding:11px 14px;vertical-align:middle}
+    td:first-child{border-left:1px solid #dbe4ee;border-radius:8px 0 0 8px}
+    td:last-child{border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;font-weight:800;white-space:nowrap}
+    strong{font-size:15px}
+    small{display:block;color:#64748b;margin-top:3px;font-size:11px}
+    span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
+    .amount{display:flex;justify-content:flex-end;align-items:center;gap:7px}
+    .amount em{font-style:normal;color:#64748b;font-weight:800}
+    .vat td{background:#fff}
+    .total{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px;margin-top:18px;padding:22px 24px;border:3px solid #005B82;border-radius:14px;background:#f8fbfd;color:#005B82}
+    .totalLabel{font-size:22px;font-weight:900;text-align:left}
+    .total b{display:block;margin:0;color:#005B82;font-size:48px;line-height:1;font-weight:900;letter-spacing:0}
+    .totalAmount{color:#005B82;font-size:22px;font-weight:900;text-align:right}
+    .totalAmount div{margin-top:4px}
+    .rate{text-align:right;font-style:italic;color:#64748b;margin-top:12px;font-size:13px}
+    .notes{position:relative;z-index:1;border-top:1px dashed #94a3b8;margin-top:18px;padding-top:12px;font-style:italic;color:#475569;font-size:13px}
+    .notes p{margin:5px 0}
+    .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}
   </style>
 </head>
 <body>
-  <header>
-    <img class="printLogo" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-    <h2>${tab.name[lang]}</h2>
-  </header>
-  <table>${rowsHtml}</table>
-  <div class="total">${c.total}<b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div>
-  <div class="rate">${c.rateLine}: 1 EUR = ${rate.toFixed(2)} PLN</div>
-  <div class="notes">${notesHtml}</div>
+  <main class="page">
+    <div class="corner"></div>
+    <header>
+      <a class="brand" href="${homeUrl}" target="_blank" rel="noopener">
+        <img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" />
+      </a>
+      <div class="titleBox">
+        <h1>${c.results}</h1>
+        <h2>${tab.name[lang]}</h2>
+      </div>
+    </header>
+    <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
+    <table>${rowsHtml}</table>
+    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div></div>
+    <div class="rate">${c.rateLine}: 1 EUR = ${rate.toFixed(2)} PLN</div>
+    <div class="notes">${notesHtml}</div>
+    <div class="footerMark">AG</div>
+  </main>
   <script>window.onload = function(){ window.print(); };</script>
 </body>
 </html>`;
