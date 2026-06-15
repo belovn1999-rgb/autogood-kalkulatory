@@ -276,6 +276,12 @@ textarea {
   gap: 8px;
 }
 
+.document-control {
+  display: grid;
+  grid-template-columns: minmax(128px, 0.48fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
 .amount-control select {
   font-weight: 800;
   color: var(--brand-dark);
@@ -385,6 +391,10 @@ input[type="radio"] {
   }
 
   .two-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .document-control {
     grid-template-columns: 1fr;
   }
 }

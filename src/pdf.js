@@ -166,6 +166,11 @@ function parseBody(value) {
   return { type: "", other: "" };
 }
 
+function bodyFallback(value) {
+  const match = normalizeSpace(value).match(/\b(sedan|kombi|coupe|suv|camper|hatchback|liftback|van|minivan|cabrio|kabriolet)\b/i);
+  return match?.[0] || "";
+}
+
 function parseFuel(value) {
   const lower = normalizeSpace(value).toLowerCase();
   const selected = [];
@@ -184,8 +189,55 @@ function parseGearbox(value) {
   return "";
 }
 
+function linesFromText(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map(normalizeSpace)
+    .filter(Boolean);
+}
+
+function isAddressStreetLine(line) {
+  const clean = stripKnownNoise(line);
+  return /^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)?\s*[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[/-]\d+[A-Z]?)?$/u.test(clean);
+}
+
+function isPostalCityLine(line) {
+  return /^\d{2}-\d{3}\s+[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}$/u.test(stripKnownNoise(line));
+}
+
+function isClientDataMarkerLine(line) {
+  return /^(?:PESEL|NIP|DO|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b/i.test(line);
+}
+
+function normalizeDocumentType(value) {
+  const lower = normalizeSpace(value).toLowerCase();
+  if (!lower) return "";
+  if (/^(?:do|d\.o\.|dow[oó]d|dow[oó]d osobisty)\b/.test(lower)) return "dowód osobisty";
+  if (/^paszport\b/.test(lower)) return "paszport";
+  if (/^karta\s+pobytu\b/.test(lower)) return "karta pobytu";
+  return "";
+}
+
+function splitDocumentValue(value) {
+  const clean = stripKnownNoise(value);
+  if (!clean) return { type: "", number: "" };
+  const type = normalizeDocumentType(clean);
+  const number = stripKnownNoise(clean.replace(/\b(?:DO|D\.O\.|dow[oó]d osobisty|dow[oó]d|paszport|karta pobytu)\b\s*(?::|nr|numer|seria|-)?/i, ""));
+  return { type, number };
+}
+
+function composeDocumentValue(type, number) {
+  const cleanType = normalizeDocumentType(type) || "dowód osobisty";
+  const cleanNumber = stripKnownNoise(number);
+  if (!cleanNumber) return "";
+  const numberWithoutType = splitDocumentValue(cleanNumber).number || cleanNumber;
+  return normalizeSpace(`${cleanType} ${numberWithoutType}`);
+}
+
 function parseDocumentValue(text) {
   const compact = normalizeSpace(text);
+  const shorthand = compact.match(/\b(?:DO|D\.O\.)\s*(?::|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (shorthand) return normalizeSpace(`dowód osobisty ${shorthand[1]}`);
   const exact = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?::|nr|numer|seria|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
   if (exact) return normalizeSpace(`${exact[1]} ${exact[2]}`);
   let documentValue = extractLabeled(compact, labels.document);
@@ -225,6 +277,15 @@ function formatMoneyValue(amount, currency) {
 }
 
 function addressFallback(text) {
+  const lines = linesFromText(text);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!isAddressStreetLine(line)) continue;
+    const nextLine = lines[index + 1] || "";
+    if (isPostalCityLine(nextLine)) return `${line}, ${nextLine}`;
+    return line;
+  }
+
   const compact = normalizeSpace(text);
   const postalAddress = compact.match(
     /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
@@ -253,6 +314,8 @@ function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = ""
 
 function documentFallback(text) {
   const compact = normalizeSpace(text);
+  const shorthand = compact.match(/\b(?:DO|D\.O\.)\s*(?::|-)?\s*([A-Z]{1,4}\s?\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (shorthand) return normalizeSpace(`dowód osobisty ${shorthand[1]}`);
   const full = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?:nr|numer|seria|:|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
   if (full) return normalizeSpace(`${full[1]} ${full[2]}`);
   const number = compact.match(/\b[A-Z]{2,4}\s?\d{5,8}\b/)?.[0] || "";
@@ -324,6 +387,7 @@ function parseClientType(text, { pesel = "", nip = "" } = {}) {
 }
 
 function parseName(text, isCompany) {
+  const lines = linesFromText(text);
   const compact = normalizeSpace(text);
   const labeled = extractLabeled(compact, labels.client);
   if (labeled) return stripKnownNoise(labeled);
@@ -331,6 +395,16 @@ function parseName(text, isCompany) {
     const company = compact.match(/\b[A-Z0-9ĄĆĘŁŃÓŚŹŻ][A-Z0-9ĄĆĘŁŃÓŚŹŻ .&-]{2,}?(?:JDG|sp\.?\s*z\.?\s*o\.?o\.?|spółka|spolka|s\.a\.)\b/i)?.[0];
     if (company) return stripKnownNoise(company);
   }
+
+  const firstNameLine = lines.find((line) => {
+    const candidate = stripKnownNoise(line.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    if (!candidate || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
+    if (/@|\+48|\d{2}-\d{3}|\b\d{10,11}\b/.test(candidate)) return false;
+    const words = candidate.match(/[\p{L}'-]+/gu) || [];
+    return words.length >= 2 && words.length <= 4;
+  });
+  if (firstNameLine) return stripKnownNoise(firstNameLine.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+
   const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
   const upperPerson = beforeAddress.match(/[\p{Lu}]{2,}(?:\s+[\p{Lu}]{2,}){1,3}/u)?.[0];
   if (upperPerson) return stripKnownNoise(upperPerson);
@@ -375,8 +449,12 @@ function syncClientTypeRules() {
   const isCompany = checkedRadio("clientType") === "company";
   $("clientEntrepreneur").checked = isCompany;
   $("clientEntrepreneur").disabled = isCompany;
+  $("clientDocumentType").disabled = isCompany;
   $("clientDocument").disabled = isCompany;
-  if (isCompany) $("clientDocument").value = "";
+  if (isCompany) {
+    $("clientDocumentType").value = "dowód osobisty";
+    $("clientDocument").value = "";
+  }
 }
 
 function parseRawTextValue(text) {
@@ -427,23 +505,26 @@ function parseRawTextValue(text) {
   const budgetMoney = parseMoneyValue(extractLabeled(compact, labels.budget) || moneyMatch(valueAfterMarker(compact, labels.budget)));
   const depositMoney = parseMoneyValue(extractLabeled(compact, labels.deposit) || moneyMatch(valueAfterMarker(compact, labels.deposit)));
   const documentValue = parseDocumentValue(compact) || documentFallback(compact);
-  const rawAddressValue = extractLabeled(compact, labels.address) || addressFallback(compact);
+  const documentParts = splitDocumentValue(documentValue);
+  const rawAddressValue = extractLabeled(compact, labels.address) || addressFallback(joined);
   const addressValue = cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue });
   const yearValue = hasVehicle ? extractLabeled(compact, labels.year) || firstRegistrationFallback(vehicleText) : "";
   const mileageValue = hasVehicle ? extractLabeled(compact, labels.mileage) || mileageFallback(vehicleText) : "";
   const fuelValue = hasVehicle ? extractLabeled(compact, labels.fuel) || vehicleText : "";
   const gearboxValue = hasVehicle ? extractLabeled(compact, labels.gearbox) || vehicleText : "";
-  const bodyValue = hasVehicle ? extractLabeled(compact, labels.body) || vehicleText : "";
+  const bodyValue = hasVehicle ? extractLabeled(compact, labels.body) || bodyFallback(vehicleText) : "";
   const requiredEquipment = hasVehicle ? extractLabeled(compact, labels.extra) : "";
   const expectedEquipment = hasVehicle ? extractLabeled(compact, labels.expectedExtra) : "";
 
   return {
     client: {
       type: clientType,
-      name: parseName(compact, isCompany),
+      name: parseName(joined, isCompany),
       address: addressValue,
       identifier: isCompany ? nip : pesel,
       document: isCompany ? "" : documentValue,
+      document_type: isCompany ? "" : documentParts.type || "dowód osobisty",
+      document_number: isCompany ? "" : documentParts.number || documentValue,
       phone: normalizeSpace(phone),
       email,
     },
@@ -474,7 +555,8 @@ function applyParsed(data) {
   $("clientName").value = data.client?.name || $("clientName").value;
   $("clientAddress").value = data.client?.address || $("clientAddress").value;
   $("clientIdentifier").value = data.client?.identifier || $("clientIdentifier").value;
-  $("clientDocument").value = data.client?.document || $("clientDocument").value;
+  $("clientDocumentType").value = data.client?.document_type || $("clientDocumentType").value;
+  $("clientDocument").value = data.client?.document_number || data.client?.document || $("clientDocument").value;
   $("clientPhone").value = data.client?.phone || $("clientPhone").value;
   $("clientEmail").value = data.client?.email || $("clientEmail").value;
   $("budgetTotal").value = data.budget?.total || $("budgetTotal").value;
@@ -508,7 +590,7 @@ function collectData() {
       address: $("clientAddress").value.trim(),
       pesel: isCompany ? "" : $("clientIdentifier").value.trim(),
       nip: isCompany ? $("clientIdentifier").value.trim() : "",
-      document: isCompany ? "" : $("clientDocument").value.trim(),
+      document: isCompany ? "" : composeDocumentValue($("clientDocumentType").value, $("clientDocument").value),
       phone: $("clientPhone").value.trim(),
       email: $("clientEmail").value.trim(),
     },
