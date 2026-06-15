@@ -105,9 +105,20 @@ function checkedRadio(name) {
   return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
 }
 
+function checkedValues(name) {
+  return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((node) => node.value);
+}
+
 function setRadio(name, value) {
   document.querySelectorAll(`input[name="${name}"]`).forEach((node) => {
     node.checked = node.value === value;
+  });
+}
+
+function setCheckedValues(name, values) {
+  const selected = new Set(values || []);
+  document.querySelectorAll(`input[name="${name}"]`).forEach((node) => {
+    node.checked = selected.has(node.value);
   });
 }
 
@@ -595,7 +606,7 @@ function collectData() {
       email: $("clientEmail").value.trim(),
     },
     agreement: {
-      subject: checkedRadio("subject") || "purchase_by_autogood",
+      subjects: checkedValues("subject"),
       client_indicated_vehicle: $("clientIndicatedVehicle").checked,
     },
     budget: {
@@ -622,10 +633,11 @@ function collectData() {
 
 function checkedKeys(data) {
   const checks = new Set();
+  const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
   if (data.client.is_entrepreneur || data.client.type === "company") checks.add("client_is_entrepreneur");
-  if (data.agreement.subject === "mediation") checks.add("subject_mediation");
-  if (data.agreement.subject === "purchase_by_autogood") checks.add("subject_purchase_by_autogood");
-  if (data.agreement.subject === "financing") checks.add("subject_financing");
+  if (subjects.has("mediation")) checks.add("subject_mediation");
+  if (subjects.has("purchase_by_autogood")) checks.add("subject_purchase_by_autogood");
+  if (subjects.has("financing")) checks.add("subject_financing");
   if (data.agreement.client_indicated_vehicle) checks.add("subject_client_indicated_vehicle");
   for (const fuel of data.vehicle.fuel || []) checks.add(`fuel_${fuel}`);
   if (data.vehicle.gearbox) checks.add(`gearbox_${data.vehicle.gearbox}`);
@@ -909,9 +921,10 @@ async function generatePdfBlob() {
   line("E-mail", data.client.email);
 
   section("PRZEDMIOT UMOWY");
-  box("wyszukanie ofert oraz pośrednictwo w zakupie", data.agreement.subject === "mediation");
-  box("wyszukanie ofert oraz zakup przez Zleceniobiorcę", data.agreement.subject === "purchase_by_autogood");
-  box("zakup z finansowania", data.agreement.subject === "financing");
+  const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
+  box("wyszukanie ofert oraz pośrednictwo w zakupie", subjects.has("mediation"));
+  box("wyszukanie ofert oraz zakup przez Zleceniobiorcę", subjects.has("purchase_by_autogood"));
+  box("zakup z finansowania", subjects.has("financing"));
   box("pojazd wskazany przez Zleceniodawcę", data.agreement.client_indicated_vehicle);
 
   section("BUDŻET NA ZAKUP");
@@ -1012,7 +1025,7 @@ function resetForm() {
     else node.value = "";
   });
   setRadio("clientType", "person");
-  setRadio("subject", "purchase_by_autogood");
+  setCheckedValues("subject", ["purchase_by_autogood"]);
   $("clientEntrepreneur").checked = false;
   syncClientTypeRules();
   setStatus("");
