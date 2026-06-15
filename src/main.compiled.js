@@ -23,15 +23,15 @@ const RATES_FALLBACK = {
       value: DEFAULT_RATE,
       unit: "PLN"
     },
-    SEK_PLN: {
-      label: "SEK - PLN",
+    EUR_SEK: {
+      label: "EUR - SEK",
       value: 0,
-      unit: "PLN"
+      unit: "SEK"
     },
-    DKK_PLN: {
-      label: "DKK - PLN",
+    EUR_DKK: {
+      label: "EUR - DKK",
       value: 0,
-      unit: "PLN"
+      unit: "DKK"
     }
   }
 };
@@ -438,7 +438,7 @@ function ExchangeRatesPanel({
 }) {
   const c = copy[lang];
   const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN", "SEK_PLN", "DKK_PLN"].map(key => safeData.rates?.[key]).filter(Boolean);
+  const rows = ["EUR_PLN", "EUR_SEK", "EUR_DKK"].map(key => safeData.rates?.[key]).filter(Boolean);
   return /*#__PURE__*/React.createElement("section", {
     className: "ratesPanel",
     "aria-label": c.ratesTitle

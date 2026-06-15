@@ -2,25 +2,25 @@
   "source": "money.pl / NBP tabela C - kurs sprzedaży",
   "sourceUrl": "https://www.money.pl/pieniadze/nbp/kupnosprzedaz/",
   "providerApiUrl": "https://api.nbp.pl/api/exchangerates/tables/C?format=json",
-  "updatedAt": "2026-06-05T11:09:42.331Z",
-  "tradingDate": "2026-06-03",
-  "effectiveDate": "2026-06-05",
-  "tableNo": "107/C/NBP/2026",
+  "updatedAt": "2026-06-15T15:18:50.433Z",
+  "tradingDate": "2026-06-12",
+  "effectiveDate": "2026-06-15",
+  "tableNo": "113/C/NBP/2026",
   "rates": {
     "EUR_PLN": {
       "label": "EUR - PLN",
-      "value": 4.2842,
+      "value": 4.2906,
       "unit": "PLN"
     },
-    "SEK_PLN": {
-      "label": "SEK - PLN",
-      "value": 0.3932,
-      "unit": "PLN"
+    "EUR_SEK": {
+      "label": "EUR - SEK",
+      "value": 10.9231,
+      "unit": "SEK"
     },
-    "DKK_PLN": {
-      "label": "DKK - PLN",
-      "value": 0.5732,
-      "unit": "PLN"
+    "EUR_DKK": {
+      "label": "EUR - DKK",
+      "value": 7.4736,
+      "unit": "DKK"
     }
   }
 }

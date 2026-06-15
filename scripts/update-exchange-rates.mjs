@@ -51,15 +51,15 @@ const data = {
       value: rounded(eur.ask, 4),
       unit: "PLN",
     },
-    SEK_PLN: {
-      label: "SEK - PLN",
-      value: rounded(sek.ask, 4),
-      unit: "PLN",
+    EUR_SEK: {
+      label: "EUR - SEK",
+      value: rounded(eur.ask / sek.ask, 4),
+      unit: "SEK",
     },
-    DKK_PLN: {
-      label: "DKK - PLN",
-      value: rounded(dkk.ask, 4),
-      unit: "PLN",
+    EUR_DKK: {
+      label: "EUR - DKK",
+      value: rounded(eur.ask / dkk.ask, 4),
+      unit: "DKK",
     },
   },
 };
@@ -69,5 +69,5 @@ await writeFile(OUTPUT_PATH, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 
 console.log(`Updated exchange rates from ${data.source}`);
 console.log(`${data.rates.EUR_PLN.label}: ${data.rates.EUR_PLN.value} ${data.rates.EUR_PLN.unit}`);
-console.log(`${data.rates.SEK_PLN.label}: ${data.rates.SEK_PLN.value} ${data.rates.SEK_PLN.unit}`);
-console.log(`${data.rates.DKK_PLN.label}: ${data.rates.DKK_PLN.value} ${data.rates.DKK_PLN.unit}`);
+console.log(`${data.rates.EUR_SEK.label}: ${data.rates.EUR_SEK.value} ${data.rates.EUR_SEK.unit}`);
+console.log(`${data.rates.EUR_DKK.label}: ${data.rates.EUR_DKK.value} ${data.rates.EUR_DKK.unit}`);
