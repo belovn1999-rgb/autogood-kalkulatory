@@ -238,9 +238,9 @@ function splitDocumentValue(value) {
 }
 
 function composeDocumentValue(type, number) {
-  const cleanType = normalizeDocumentType(type) || "dowód osobisty";
+  const cleanType = normalizeDocumentType(type);
   const cleanNumber = stripKnownNoise(number);
-  if (!cleanNumber) return "";
+  if (!cleanType || !cleanNumber) return "";
   const numberWithoutType = splitDocumentValue(cleanNumber).number || cleanNumber;
   return normalizeSpace(`${cleanType} ${numberWithoutType}`);
 }
@@ -463,7 +463,7 @@ function syncClientTypeRules() {
   $("clientDocumentType").disabled = isCompany;
   $("clientDocument").disabled = isCompany;
   if (isCompany) {
-    $("clientDocumentType").value = "dowód osobisty";
+    $("clientDocumentType").value = "";
     $("clientDocument").value = "";
   }
 }
