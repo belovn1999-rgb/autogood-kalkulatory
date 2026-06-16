@@ -32,6 +32,14 @@ a {
   margin-bottom: 64px;
 }
 
+.toolsHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -69,6 +77,20 @@ a {
   font-weight: 700;
 }
 
+.userBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #7c2d12;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .intro {
   max-width: 680px;
   margin-bottom: 28px;
@@ -92,11 +114,12 @@ a {
 }
 
 .intro p:last-child {
-  max-width: 560px;
-  margin: 18px 0 0;
+  max-width: 720px;
+  margin: 10px 0 0;
   color: #526173;
-  font-size: 18px;
+  font-size: 23px;
   line-height: 1.45;
+  font-weight: 700;
 }
 
 .toolsGrid {
