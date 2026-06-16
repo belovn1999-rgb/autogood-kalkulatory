@@ -144,7 +144,7 @@ const tabs = [
   },
   {
     id: 1,
-    name: { pl: "Aukcje VAT 23%", ru: "Аукциона VAT 23%" },
+    name: { pl: "Aukcje VAT 23%", ru: "Аукционы VAT 23%" },
     subtitle: {
       pl: "Aukcja zagraniczna. Wszystkie wartości netto, VAT na końcu.",
       ru: "Зарубежный аукцион. Все значения netto, VAT в конце.",

@@ -279,6 +279,45 @@ button {
   padding: 20px;
 }
 
+.results {
+  position: relative;
+  overflow: hidden;
+}
+
+.results::before,
+.results::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.results::before {
+  inset: 8px 10px auto auto;
+  width: min(370px, 46%);
+  height: 210px;
+  opacity: 0.16;
+  background:
+    radial-gradient(circle at 20% 78%, transparent 0 17px, #005b82 18px 20px, transparent 21px),
+    radial-gradient(circle at 75% 78%, transparent 0 17px, #005b82 18px 20px, transparent 21px),
+    linear-gradient(0deg, transparent 71%, #005b82 72% 74%, transparent 75%),
+    radial-gradient(ellipse 135px 52px at 50% 66%, transparent 57%, #005b82 58% 60%, transparent 61%),
+    linear-gradient(24deg, transparent 39%, #005b82 40% 41%, transparent 42%),
+    linear-gradient(156deg, transparent 42%, #005b82 43% 44%, transparent 45%);
+}
+
+.results::after {
+  right: -44px;
+  bottom: 88px;
+  width: 380px;
+  height: 170px;
+  opacity: 0.18;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(0, 91, 130, 0.34) 22px 24px, transparent 24px 46px),
+    radial-gradient(ellipse 330px 112px at 54% 102%, transparent 61%, rgba(0, 91, 130, 0.42) 61.5% 62.5%, transparent 63%),
+    linear-gradient(118deg, transparent 0 45%, rgba(0, 91, 130, 0.36) 45.2% 46%, transparent 46.2% 100%);
+  transform: rotate(-2deg);
+}
+
 .card h2 {
   margin: 0 0 16px;
   color: #005b82;
@@ -458,6 +497,8 @@ select {
 }
 
 .resultsTitle {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: flex-start;
   gap: 14px;
@@ -481,6 +522,8 @@ select {
 }
 
 .rows {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 4px;
   justify-items: start;
@@ -588,6 +631,8 @@ select {
 }
 
 .totalBox {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 410px 370px;
   justify-content: start;
@@ -635,6 +680,8 @@ select {
 }
 
 .rateNote {
+  position: relative;
+  z-index: 1;
   width: 826px;
   max-width: 100%;
   margin: 10px 0 0;
@@ -646,6 +693,8 @@ select {
 }
 
 .footnotes {
+  position: relative;
+  z-index: 1;
   margin-top: 18px;
   padding-top: 12px;
   border-top: 1px dashed #94a3b8;
