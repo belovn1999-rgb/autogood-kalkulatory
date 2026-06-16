@@ -2,7 +2,10 @@ services:
   - type: web
     name: autogood-pdf-converter
     runtime: docker
+    region: frankfurt
+    dockerContext: .
     dockerfilePath: ./converter/Dockerfile
+    healthCheckPath: /api/health
     envVars:
       - key: HOST
         value: 0.0.0.0

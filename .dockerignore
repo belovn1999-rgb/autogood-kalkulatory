@@ -1,0 +1,10 @@
+.git
+.DS_Store
+node_modules
+**/__pycache__
+*.pyc
+contract-pdf-work/output
+contract-pdf-work/temp
+contract-pdf-work/*.zip
+contract-pdf-work/*.pdf
+contract-pdf-work/*.docx

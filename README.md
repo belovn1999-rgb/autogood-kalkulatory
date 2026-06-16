@@ -31,8 +31,8 @@ http://127.0.0.1:8787/pdf.html
 Publiczny PDF:
 
 - najlepszy wariant to wdrozyc caly projekt jako Docker web-service z
-  `converter/Dockerfile`; wtedy strona i endpoint `/api/convert-docx-to-pdf`
-  dzialaja pod tym samym adresem;
+  `render.yaml`; wtedy strona i endpoint `/api/convert-docx-to-pdf` dzialaja
+  pod tym samym adresem;
 - alternatywnie mozna zostawic frontend na GitHub Pages i wpisac publiczny adres
   konwertera w `src/pdf-config.js` jako `window.AUTOGOOD_PDF_CONVERTER_URL`.
 
