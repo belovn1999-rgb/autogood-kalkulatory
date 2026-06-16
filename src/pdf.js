@@ -976,7 +976,7 @@ async function generatePdfBlob() {
   y = Math.max(y + 12, 245);
   text("ZLECENIODAWCA:", margin + 20, y, 9, { align: "center" });
   text("ZLECENIOBIORCA:", pageWidth - margin - 25, y, 9, { align: "center" });
-  doc.addImage(stamp, "JPEG", pageWidth - margin - 50, y + 5, 38, 24);
+  doc.addImage(stamp, "JPEG", pageWidth - margin - 50, y + 2, 38, 24);
 
   return doc.output("blob");
 }
