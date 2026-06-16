@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
-const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx";
+const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260616-1";
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
@@ -661,7 +661,7 @@ function wEl(doc, name, attrs = {}) {
   return el;
 }
 
-function makeRun(doc, text, { size = 16, bold = false, underline = false, breakBefore = false } = {}) {
+function makeRun(doc, text, { size = 18, bold = false, underline = false, breakBefore = false } = {}) {
   const r = wEl(doc, "r");
   const rPr = wEl(doc, "rPr");
   rPr.append(wEl(doc, "rFonts", { ascii: "Calibri", hAnsi: "Calibri", cs: "Calibri" }));
@@ -678,13 +678,13 @@ function makeRun(doc, text, { size = 16, bold = false, underline = false, breakB
   return r;
 }
 
-function setParagraphText(p, text, { size = 16, bold = false } = {}) {
+function setParagraphText(p, text, { size = 18, bold = false } = {}) {
   for (const run of directChildren(p, W, "r")) run.remove();
   const doc = p.ownerDocument;
   p.append(makeRun(doc, text, { size, bold }));
 }
 
-function setParagraphLabelValue(p, label, value, { size = 18, valueSize = 16, valueBreak = true } = {}) {
+function setParagraphLabelValue(p, label, value, { size = 18, valueSize = 18, valueBreak = true } = {}) {
   for (const run of directChildren(p, W, "r")) run.remove();
   const doc = p.ownerDocument;
   p.append(makeRun(doc, label, { size, bold: true, underline: true }));
@@ -699,12 +699,12 @@ function setParagraphLabel(p, label, { size = 18 } = {}) {
   p.append(makeRun(p.ownerDocument, label, { size, bold: true, underline: true }));
 }
 
-function appendParagraphValue(p, value, { size = 16, prefix = " " } = {}) {
+function appendParagraphValue(p, value, { size = 18, prefix = " " } = {}) {
   if (!value) return;
   p.append(makeRun(p.ownerDocument, `${prefix}${value}`, { size, bold: false }));
 }
 
-function setParagraphValueAfterPrefix(p, prefix, value, { size = 16 } = {}) {
+function setParagraphValueAfterPrefix(p, prefix, value, { size = 18 } = {}) {
   let remaining = prefix.length;
   let reachedPrefixEnd = false;
 
@@ -768,7 +768,7 @@ function setParagraphLastRunText(p, value) {
   if (!lastRun) return;
   const textNode = all(lastRun, W, "t")[0];
   if (!textNode) return;
-  applyRunStyle(lastRun, { size: 16, bold: false, underline: false });
+  applyRunStyle(lastRun, { size: 18, bold: false, underline: false });
   textNode.textContent = value || " ";
 }
 
@@ -811,21 +811,21 @@ async function generateDocx() {
   setParagraphText(all(root, W, "p")[0], polishDateLine(data.contract.date), { size: 28 });
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
   setParagraphLabelValue(paragraph(rows[2][0], 1), "Imię i Nazwisko/Nazwa:", data.client.name);
-  setParagraphText(paragraph(rows[3][0], 2), data.client.address, { size: 16 });
-  setParagraphText(paragraph(rows[4][0], 2), idValue, { size: 16 });
-  setParagraphText(paragraph(rows[5][0], 2), docValue, { size: 16 });
+  setParagraphText(paragraph(rows[3][0], 2), data.client.address);
+  setParagraphText(paragraph(rows[4][0], 2), idValue);
+  setParagraphText(paragraph(rows[5][0], 2), docValue);
   setParagraphValueAfterPrefix(paragraph(rows[6][0], 1), "Nr. tel.:", data.client.phone);
   setParagraphValueAfterPrefix(paragraph(rows[6][0], 2), "E-mail:", data.client.email);
   setParagraphLabel(paragraph(rows[7][2], 1), "Marka i model:");
-  setParagraphText(paragraph(rows[7][2], 2), data.vehicle.make_model, { size: 16 });
+  setParagraphText(paragraph(rows[7][2], 2), data.vehicle.make_model);
   setParagraphValueAfterPrefix(paragraph(rows[10][2], 2), "Wiek (pierwsza rejestracja w roku/latach):", data.vehicle.first_registration);
   setParagraphValueAfterPrefix(paragraph(rows[11][2], 2), "Przebieg do (km):", data.vehicle.mileage_to);
   setParagraphLabelValue(paragraph(rows[11][0], 1), "Budżet:", data.budget.total, { valueBreak: false });
   setParagraphLabelValue(paragraph(rows[12][0], 1), "Zaliczka:", data.budget.advance, { valueBreak: false });
   styleParagraphPrefix(paragraph(rows[12][2], 0), "Nadwozie:");
   setParagraphLastRunText(paragraph(rows[12][2], 0), bodyOther ? bodyOther : " ");
-  setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment, { size: 16 });
-  setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment, { size: 16 });
+  setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment);
+  setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment);
   setDocxCheckboxes(root, data);
 
   const serialized = new XMLSerializer().serializeToString(xml);
