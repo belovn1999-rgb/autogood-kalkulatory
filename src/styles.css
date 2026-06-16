@@ -443,7 +443,7 @@ select {
 
 .resultsTitle {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   align-items: center;
   margin-bottom: 8px;
@@ -454,6 +454,7 @@ select {
   align-items: center;
   gap: 8px;
   line-height: 1;
+  color: #005b82;
 }
 
 .moneyIcon {
@@ -461,11 +462,6 @@ select {
   width: 24px;
   height: 24px;
   color: #005b82;
-}
-
-.resultsTitle strong {
-  color: #64748b;
-  font-size: 13px;
 }
 
 .rows {
@@ -494,6 +490,23 @@ select {
   margin-top: 2px;
   color: #64748b;
   font-size: 11px;
+}
+
+.resultRow.isPrimary {
+  min-height: 54px;
+  margin-bottom: 4px;
+  border-color: #cbd8e6;
+  background: #f8fbfd;
+}
+
+.resultRow.isPrimary .rowLabel {
+  color: #005b82;
+  font-size: 18px;
+}
+
+.resultRow.isPrimary .rowValue strong {
+  color: #005b82;
+  font-size: 20px;
 }
 
 .rowLabel {
@@ -560,7 +573,7 @@ select {
 
 .totalBox {
   display: grid;
-  grid-template-columns: 350px 430px;
+  grid-template-columns: 390px 390px;
   justify-content: start;
   gap: 18px;
   align-items: center;

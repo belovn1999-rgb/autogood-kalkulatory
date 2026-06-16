@@ -40,6 +40,37 @@ a {
   flex-wrap: wrap;
 }
 
+.homeRatesPanel {
+  min-width: 212px;
+  border: 1px solid #dbe4ee;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  color: #475569;
+  font-size: 11px;
+  box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
+}
+
+.homeRatesRows {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 16px;
+  row-gap: 3px;
+}
+
+.homeRatesRows b {
+  justify-self: end;
+  color: #005b82;
+}
+
+.homeRatesPanel small {
+  display: block;
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -949,6 +980,16 @@ a {
   .toolsHeader {
     align-items: flex-start;
     margin-bottom: 44px;
+  }
+
+  .toolsHeaderActions {
+    align-items: flex-end;
+    flex-direction: column;
+  }
+
+  .homeRatesPanel {
+    min-width: 0;
+    width: min(220px, 100%);
   }
 
   .brand {

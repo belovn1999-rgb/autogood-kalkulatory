@@ -14,8 +14,8 @@ const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
 const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
 const RATES_FALLBACK = {
-  source: "money.pl / NBP",
-  sourceUrl: "https://www.money.pl/pieniadze/nbp/kupnosprzedaz/",
+  source: "Walutomat",
+  sourceUrl: "https://www.walutomat.pl/kursy-walut/",
   effectiveDate: "",
   rates: {
     EUR_PLN: {
@@ -23,15 +23,15 @@ const RATES_FALLBACK = {
       value: DEFAULT_RATE,
       unit: "PLN"
     },
-    EUR_SEK: {
-      label: "EUR - SEK",
+    SEK_PLN: {
+      label: "SEK - PLN",
       value: 0,
-      unit: "SEK"
+      unit: "PLN"
     },
-    EUR_DKK: {
-      label: "EUR - DKK",
+    DKK_PLN: {
+      label: "DKK - PLN",
       value: 0,
-      unit: "DKK"
+      unit: "PLN"
     }
   }
 };
@@ -441,7 +441,7 @@ function ExchangeRatesPanel({
 }) {
   const c = copy[lang];
   const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN", "EUR_SEK", "EUR_DKK"].map(key => safeData.rates?.[key]).filter(Boolean);
+  const rows = ["EUR_PLN", "SEK_PLN", "DKK_PLN"].map(key => safeData.rates?.[key]).filter(Boolean);
   return /*#__PURE__*/React.createElement("section", {
     className: "ratesPanel",
     "aria-label": c.ratesTitle
@@ -451,7 +451,7 @@ function ExchangeRatesPanel({
     className: "ratesTable"
   }, rows.map(item => /*#__PURE__*/React.createElement(React.Fragment, {
     key: item.label
-  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), /*#__PURE__*/React.createElement("small", null, safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : "", c.ratesSource, ": money.pl / NBP"));
+  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), /*#__PURE__*/React.createElement("small", null, safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : "", c.ratesSource, ": ", safeData.source || "Walutomat"));
 }
 function MobileDeImport({
   c,
@@ -592,10 +592,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const commissionNetto = finFix + finPct * base;
     const vatBase = base + transPln + excise + commissionNetto;
     const vat = vatBase * VAT;
-    const total = vatBase + vat + TO_FEE + DOC_TRANSLATION;
+    const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.vat, vat, "", `23% × ${money(vatBase)}`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.vat, vat, "", `23% × ${money(vatBase)}`), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   if (tabId === 2) {
@@ -608,10 +608,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const exciseBrutto = excise * 1.23;
     const commissionNetto = finFix + finPct * base;
     const commissionBrutto = commissionNetto * 1.23;
-    const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE + DOC_TRANSLATION;
+    const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE;
     return {
       total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   if (tabId === 3) {
@@ -621,10 +621,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const commissionNetto = finFix + finPct * bruttoBase;
     const vatBase = carPln + inspection + transport + excise + commissionNetto;
     const vat = vatBase * VAT;
-    const total = vatBase + vat + TO_FEE + DOC_TRANSLATION;
+    const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", ""), row(t.transport, transport, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}`), row(t.vat, vat, "", `23% × ${money(vatBase)}`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", ""), row(t.transport, transport, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}`), row(t.vat, vat, "", `23% × ${money(vatBase)}`), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   const carPln = car * useRate;
@@ -634,10 +634,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const exciseBrutto = excise * 1.23;
   const commissionNetto = finFix + finPct * carPln;
   const commissionBrutto = commissionNetto * 1.23;
-  const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE + DOC_TRANSLATION;
+  const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE;
   return {
     total,
-    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`), row(t.to, TO_FEE, "", "", false, true)]
   };
 }
 function printCalculation({
@@ -651,14 +651,18 @@ function printCalculation({
   const roundedTotal = roundedCurrencyValue(total, "PLN");
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
-  const rowsHtml = rows.map(item => `
-        <tr class="${item.highlight ? "vat" : ""}">
+  const rowsHtml = rows.map((item, index) => `
+        <tr class="${item.highlight ? "vat" : ""} ${index === 0 ? "mainRow" : ""}">
           <td>
             <strong>${item.label}</strong>
             ${item.sub ? `<small>${item.sub}</small>` : ""}
           </td>
           <td>
-            <div class="amount">${item.valuePrefix ? `<em>${item.valuePrefix}</em>` : ""} ${item.exact ? moneyExact(item.value) : money(item.value)} ${item.tag ? `<span>${item.tag}</span>` : ""}</div>
+            <div class="amount">
+              <em class="${item.valuePrefix ? "" : "isEmpty"}">${item.valuePrefix || "0 EUR ="}</em>
+              <b>${item.exact ? moneyExact(item.value) : money(item.value)}</b>
+              ${item.tag ? `<span>${item.tag}</span>` : ""}
+            </div>
           </td>
         </tr>`).join("");
   const notesHtml = tab.notes[lang].map(note => `<p>${note}</p>`).join("");
@@ -681,7 +685,6 @@ function printCalculation({
     .printLogo{display:block;width:250px;height:auto}
     .titleBox{text-align:right;padding-top:4px}
     h1{margin:0;color:#005B82;font-size:30px;line-height:1;font-weight:800}
-    h2{margin:7px 0 0;color:#64748b;font-size:17px;font-weight:800}
     .accentGrid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
     .accent{min-height:8px;border-radius:999px;background:#005B82}
     .accent:nth-child(2){background:#dbe4ee}
@@ -689,12 +692,17 @@ function printCalculation({
     table{position:relative;z-index:1;width:100%;border-collapse:separate;border-spacing:0 7px;margin-top:4px}
     td{background:#fff;border-top:1px solid #dbe4ee;border-bottom:1px solid #dbe4ee;padding:11px 14px;vertical-align:middle}
     td:first-child{border-left:1px solid #dbe4ee;border-radius:8px 0 0 8px}
-    td:last-child{border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;font-weight:800;white-space:nowrap}
+    td:last-child{width:320px;border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;font-weight:800;white-space:nowrap}
     strong{font-size:15px}
     small{display:block;color:#64748b;margin-top:3px;font-size:11px}
     span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
-    .amount{display:flex;justify-content:flex-end;align-items:center;gap:7px}
-    .amount em{font-style:normal;color:#64748b;font-weight:800}
+    .amount{display:grid;grid-template-columns:92px max-content auto;justify-content:end;align-items:center;column-gap:4px}
+    .amount em{font-style:normal;color:#64748b;font-weight:800;text-align:right}
+    .amount em.isEmpty{visibility:hidden}
+    .amount b{font-size:17px}
+    .mainRow td{padding-top:14px;padding-bottom:14px;border-color:#cbd8e6;background:#f8fbfd}
+    .mainRow strong{font-size:18px;color:#005B82}
+    .mainRow .amount b{font-size:21px;color:#005B82}
     .vat td{background:#fff}
     .total{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;align-items:center;gap:22px;margin-top:18px;padding:22px 24px;border:3px solid #005B82;border-radius:14px;background:#f8fbfd;color:#005B82}
     .totalLabel{font-size:22px;font-weight:900;text-align:left}
@@ -715,8 +723,7 @@ function printCalculation({
         <img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" />
       </a>
       <div class="titleBox">
-        <h1>${c.results}</h1>
-        <h2>${tab.name[lang]}</h2>
+        <h1>${c.results} — ${tab.name[lang]}</h1>
       </div>
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
@@ -971,11 +978,11 @@ function App() {
     ref: resultsRef
   }, /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
-  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results), /*#__PURE__*/React.createElement("strong", null, tab.name[lang])), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", tab.name[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rows"
-  }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
+  }, calc.rows.map((item, index) => /*#__PURE__*/React.createElement("div", {
     key: `${item.label}-${item.value}-${item.tag}`,
-    className: `resultRow ${item.highlight ? "vatRow" : ""}`
+    className: `resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     className: "rowLabel"
   }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {

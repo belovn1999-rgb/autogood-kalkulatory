@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Tools</title>
-    <link rel="stylesheet" href="./src/tools.css?v=manager-badge" />
+    <link rel="stylesheet" href="./src/tools.css?v=walutomat-rates" />
   </head>
   <body>
     <main class="toolsShell">
@@ -14,6 +14,14 @@
           <span>Tools</span>
         </a>
         <div class="toolsHeaderActions">
+          <section class="homeRatesPanel" aria-label="Kursy walut">
+            <div class="homeRatesRows" data-home-rates>
+              <span>EUR - PLN</span><b>—</b>
+              <span>SEK - PLN</span><b>—</b>
+              <span>DKK - PLN</span><b>—</b>
+            </div>
+            <small data-home-rates-source>źródło: Walutomat</small>
+          </section>
           <span class="userBadge">пользователь: Менеджер по продаже</span>
           <a class="repoLink" href="https://github.com/belovn1999-rgb/autogood-kalkulatory">GitHub</a>
         </div>
@@ -70,5 +78,6 @@
         </div>
       </section>
     </main>
+    <script src="./src/home.js?v=1"></script>
   </body>
 </html>
