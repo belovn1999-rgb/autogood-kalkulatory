@@ -51,10 +51,16 @@ the default system path.
 
 Render deployment:
 
-1. Create a new Blueprint from this repository.
-2. Use `render.yaml` from the repository root.
-3. Wait until `/api/health` returns `ok: true`.
-4. Open the deployed service URL, for example:
+1. Open Render Blueprint creation:
+
+```text
+https://dashboard.render.com/blueprints/new?repo=https://github.com/belovn1999-rgb/autogood-kalkulatory
+```
+
+2. Create a new Blueprint from this repository.
+3. Use `render.yaml` from the repository root.
+4. Wait until `/api/health` returns `ok: true`.
+5. Open the deployed service URL, for example:
 
 ```text
 https://YOUR-RENDER-SERVICE.onrender.com/pdf.html
