@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import json
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,13 +14,24 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 
-ALLOWED_ORIGINS = {
+DEFAULT_ALLOWED_ORIGINS = {
     "http://127.0.0.1:8899",
+    "http://127.0.0.1:8787",
     "http://127.0.0.1:8765",
     "http://localhost:8899",
+    "http://localhost:8787",
     "http://localhost:8765",
     "https://belovn1999-rgb.github.io",
 }
+
+
+def allowed_origins() -> set[str]:
+    configured = {
+        origin.strip()
+        for origin in os.environ.get("ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    }
+    return DEFAULT_ALLOWED_ORIGINS | configured
 
 
 def find_soffice() -> str | None:
@@ -84,7 +96,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def add_cors_headers(self) -> None:
         origin = self.headers.get("origin")
-        if origin in ALLOWED_ORIGINS:
+        allowed = allowed_origins()
+        if "*" in allowed:
+            self.send_header("Access-Control-Allow-Origin", "*")
+        elif origin in allowed:
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -97,6 +112,23 @@ class Handler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self) -> None:
         self.send_response(HTTPStatus.NO_CONTENT)
         self.end_headers()
+
+    def do_GET(self) -> None:
+        if self.path.split("?", 1)[0] != "/api/health":
+            super().do_GET()
+            return
+
+        payload = {
+            "ok": bool(find_soffice()),
+            "service": "AUTOGOOD DOCX to PDF converter",
+            "soffice": bool(find_soffice()),
+        }
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(HTTPStatus.OK if payload["ok"] else HTTPStatus.SERVICE_UNAVAILABLE)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_POST(self) -> None:
         if self.path.split("?", 1)[0] != "/api/convert-docx-to-pdf":

@@ -956,7 +956,11 @@ async function generatePdfBlob() {
 }
 
 async function convertDocxBlobToPdf(docxBlob, filename) {
-  const endpoint = window.AUTOGOOD_PDF_CONVERTER_URL || defaultPdfConverterUrl;
+  const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
+  const endpoint = configuredEndpoint || defaultPdfConverterUrl;
+  if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
+    throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
+  }
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: autogood-pdf-converter
+    runtime: docker
+    dockerfilePath: ./converter/Dockerfile
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://belovn1999-rgb.github.io
