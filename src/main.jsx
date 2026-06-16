@@ -508,8 +508,8 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
         row(t.transport, transPln, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
         row(t.to, TO_FEE, "", "", false, true),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
       ],
     };
   }
@@ -554,8 +554,8 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
         row(t.transport, transport, "+VAT 23%", ""),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}`),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
         row(t.to, TO_FEE, "", "", false, true),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
       ],
     };
   }
