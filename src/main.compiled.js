@@ -358,6 +358,9 @@ function percentLabel(value) {
   if (value === 0) return "0%";
   return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
 }
+function rateLabel(value) {
+  return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(3);
+}
 function inputCurrencyLabel(value, currency = "EUR") {
   return `${new Intl.NumberFormat("pl-PL", {
     minimumFractionDigits: 0,
@@ -400,7 +403,7 @@ function RateInput({
   const currentRate = n(value) || DEFAULT_RATE;
   const stepRate = delta => {
     const nextRate = Math.max(0, currentRate + delta);
-    onChange(nextRate.toFixed(2));
+    onChange(rateLabel(nextRate));
   };
   return /*#__PURE__*/React.createElement("label", {
     className: "field rateField"
@@ -411,17 +414,17 @@ function RateInput({
     type: "text",
     value: value,
     onChange: event => onChange(event.target.value),
-    placeholder: "4.26"
+    placeholder: "4.265"
   }), /*#__PURE__*/React.createElement("div", {
     className: "rateButtons"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": "Zwi\u0119ksz kurs",
-    onClick: () => stepRate(0.01)
+    onClick: () => stepRate(0.001)
   }, "+"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": "Zmniejsz kurs",
-    onClick: () => stepRate(-0.01)
+    onClick: () => stepRate(-0.001)
   }, "\u2212")), /*#__PURE__*/React.createElement("b", null, "PLN")));
 }
 function formatRate(value, digits = 4) {
@@ -719,7 +722,7 @@ function printCalculation({
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div></div>
-    <div class="rate">${c.rateLine}: 1 EUR = ${rate.toFixed(2)} PLN</div>
+    <div class="rate">${c.rateLine}: 1 EUR = ${rateLabel(rate)} PLN</div>
     <div class="notes">${notesHtml}</div>
     <div class="footerMark">AG</div>
   </main>
@@ -773,7 +776,7 @@ function App() {
       setRatesStatus("ready");
       const nextRate = Number(data?.rates?.EUR_PLN?.value);
       if (Number.isFinite(nextRate) && nextRate > 0 && !rateTouchedRef.current) {
-        setRate(nextRate.toFixed(2));
+        setRate(rateLabel(nextRate));
       }
     }).catch(() => {
       if (!isMounted) return;
@@ -987,7 +990,7 @@ function App() {
     className: "totalValue"
   }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")"))), /*#__PURE__*/React.createElement("p", {
     className: "rateNote"
-  }, c.rateLine, ": 1 EUR = ", (n(rate) || DEFAULT_RATE).toFixed(2), " PLN"), /*#__PURE__*/React.createElement("footer", {
+  }, c.rateLine, ": 1 EUR = ", rateLabel(n(rate) || DEFAULT_RATE), " PLN"), /*#__PURE__*/React.createElement("footer", {
     className: "footnotes"
   }, tab.notes[lang].map(note => /*#__PURE__*/React.createElement("p", {
     key: note

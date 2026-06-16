@@ -265,6 +265,10 @@ function percentLabel(value) {
   return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
 }
 
+function rateLabel(value) {
+  return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(3);
+}
+
 function inputCurrencyLabel(value, currency = "EUR") {
   return `${new Intl.NumberFormat("pl-PL", {
     minimumFractionDigits: 0,
@@ -305,7 +309,7 @@ function RateInput({ label, value, onChange }) {
   const currentRate = n(value) || DEFAULT_RATE;
   const stepRate = (delta) => {
     const nextRate = Math.max(0, currentRate + delta);
-    onChange(nextRate.toFixed(2));
+    onChange(rateLabel(nextRate));
   };
 
   return (
@@ -317,11 +321,11 @@ function RateInput({ label, value, onChange }) {
           type="text"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="4.26"
+          placeholder="4.265"
         />
         <div className="rateButtons">
-          <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.01)}>+</button>
-          <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.01)}>−</button>
+          <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.001)}>+</button>
+          <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.001)}>−</button>
         </div>
         <b>PLN</b>
       </div>
@@ -661,7 +665,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div></div>
-    <div class="rate">${c.rateLine}: 1 EUR = ${rate.toFixed(2)} PLN</div>
+    <div class="rate">${c.rateLine}: 1 EUR = ${rateLabel(rate)} PLN</div>
     <div class="notes">${notesHtml}</div>
     <div class="footerMark">AG</div>
   </main>
@@ -720,7 +724,7 @@ function App() {
         setRatesStatus("ready");
         const nextRate = Number(data?.rates?.EUR_PLN?.value);
         if (Number.isFinite(nextRate) && nextRate > 0 && !rateTouchedRef.current) {
-          setRate(nextRate.toFixed(2));
+          setRate(rateLabel(nextRate));
         }
       })
       .catch(() => {
@@ -942,7 +946,7 @@ function App() {
             </div>
           </div>
 
-          <p className="rateNote">{c.rateLine}: 1 EUR = {(n(rate) || DEFAULT_RATE).toFixed(2)} PLN</p>
+          <p className="rateNote">{c.rateLine}: 1 EUR = {rateLabel(n(rate) || DEFAULT_RATE)} PLN</p>
 
           <footer className="footnotes">
             {tab.notes[lang].map((note) => (
