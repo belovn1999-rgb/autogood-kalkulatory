@@ -11,3 +11,7 @@ services:
         value: 0.0.0.0
       - key: ALLOWED_ORIGINS
         value: https://belovn1999-rgb.github.io
+      - key: MAX_UPLOAD_BYTES
+        value: 15728640
+      - key: CONVERSION_TIMEOUT_SECONDS
+        value: 120

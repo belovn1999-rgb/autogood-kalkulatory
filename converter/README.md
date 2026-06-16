@@ -35,6 +35,20 @@ docker build -f converter/Dockerfile -t autogood-pdf-converter .
 docker run --rm -p 8787:8787 autogood-pdf-converter
 ```
 
+Configuration:
+
+```text
+HOST=0.0.0.0
+PORT=8787
+ALLOWED_ORIGINS=https://belovn1999-rgb.github.io
+MAX_UPLOAD_BYTES=15728640
+CONVERSION_TIMEOUT_SECONDS=120
+SOFFICE_PATH=/custom/path/to/soffice
+```
+
+`SOFFICE_PATH` is optional. Use it only when LibreOffice is installed outside
+the default system path.
+
 Render deployment:
 
 1. Create a new Blueprint from this repository.

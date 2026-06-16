@@ -6,13 +6,17 @@ import shutil
 import subprocess
 import tempfile
 import json
+import zipfile
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SERVER_VERSION = "AUTOGOODConverter/1.1"
+DEFAULT_MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+DEFAULT_CONVERSION_TIMEOUT_SECONDS = 120
 
 DEFAULT_ALLOWED_ORIGINS = {
     "http://127.0.0.1:8899",
@@ -47,6 +51,36 @@ def find_soffice() -> str | None:
     return None
 
 
+def max_upload_bytes() -> int:
+    try:
+        return int(os.environ.get("MAX_UPLOAD_BYTES", str(DEFAULT_MAX_UPLOAD_BYTES)))
+    except ValueError:
+        return DEFAULT_MAX_UPLOAD_BYTES
+
+
+def conversion_timeout_seconds() -> int:
+    try:
+        return int(os.environ.get("CONVERSION_TIMEOUT_SECONDS", str(DEFAULT_CONVERSION_TIMEOUT_SECONDS)))
+    except ValueError:
+        return DEFAULT_CONVERSION_TIMEOUT_SECONDS
+
+
+def is_probable_docx(path: Path) -> bool:
+    if not zipfile.is_zipfile(path):
+        return False
+    with zipfile.ZipFile(path) as archive:
+        names = set(archive.namelist())
+    return "[Content_Types].xml" in names and "word/document.xml" in names
+
+
+def sanitize_download_filename(value: str | None) -> str:
+    filename = unquote(value or "Umowa_Zamowienia_Pojazdu.pdf")
+    filename = Path(filename).name.replace("\x00", "").replace('"', "").replace("\\", "").replace(".docx", ".pdf")
+    if not filename.lower().endswith(".pdf"):
+        filename = f"{filename}.pdf"
+    return filename or "Umowa_Zamowienia_Pojazdu.pdf"
+
+
 def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
     soffice = find_soffice()
     if not soffice:
@@ -57,23 +91,26 @@ def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
     generated = pdf_path.with_name(f"{docx_path.stem}.pdf")
     generated.unlink(missing_ok=True)
 
-    result = subprocess.run(
-        [
-            soffice,
-            f"-env:UserInstallation=file://{profile}",
-            "--headless",
-            "--norestore",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            str(pdf_path.parent),
-            str(docx_path),
-        ],
-        text=True,
-        capture_output=True,
-        timeout=120,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            [
+                soffice,
+                f"-env:UserInstallation=file://{profile}",
+                "--headless",
+                "--norestore",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                str(pdf_path.parent),
+                str(docx_path),
+            ],
+            text=True,
+            capture_output=True,
+            timeout=conversion_timeout_seconds(),
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"LibreOffice conversion timed out after {conversion_timeout_seconds()} seconds.") from exc
 
     if result.returncode != 0:
         details = " ".join((result.stderr or result.stdout or "unknown error").split())
@@ -83,10 +120,12 @@ def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
         raise RuntimeError(f"LibreOffice did not create PDF: {details}")
     if generated != pdf_path:
         generated.replace(pdf_path)
+    if not pdf_path.read_bytes().startswith(b"%PDF-"):
+        raise RuntimeError("LibreOffice output is not a valid PDF file.")
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "AUTOGOODConverter/1.0"
+    server_version = SERVER_VERSION
 
     def translate_path(self, path: str) -> str:
         clean = unquote(path.split("?", 1)[0]).lstrip("/")
@@ -122,11 +161,15 @@ class Handler(SimpleHTTPRequestHandler):
             "ok": bool(find_soffice()),
             "service": "AUTOGOOD DOCX to PDF converter",
             "soffice": bool(find_soffice()),
+            "version": SERVER_VERSION,
+            "max_upload_bytes": max_upload_bytes(),
+            "conversion_timeout_seconds": conversion_timeout_seconds(),
         }
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(HTTPStatus.OK if payload["ok"] else HTTPStatus.SERVICE_UNAVAILABLE)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
 
@@ -139,7 +182,7 @@ class Handler(SimpleHTTPRequestHandler):
         if length <= 0:
             self.send_error(HTTPStatus.BAD_REQUEST, "Missing DOCX body")
             return
-        if length > 15 * 1024 * 1024:
+        if length > max_upload_bytes():
             self.send_error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "DOCX is too large")
             return
 
@@ -151,27 +194,29 @@ class Handler(SimpleHTTPRequestHandler):
             docx_path.write_bytes(body)
 
             try:
+                if not is_probable_docx(docx_path):
+                    raise ValueError("Request body is not a valid DOCX file.")
                 convert_docx_to_pdf(docx_path, pdf_path)
                 pdf = pdf_path.read_bytes()
             except Exception as exc:
                 message = f"PDF conversion failed: {exc}"
                 encoded = message.encode("utf-8")
-                self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+                status = HTTPStatus.BAD_REQUEST if isinstance(exc, ValueError) else HTTPStatus.INTERNAL_SERVER_ERROR
+                self.send_response(status)
                 self.send_header("Content-Type", "text/plain; charset=utf-8")
                 self.send_header("Content-Length", str(len(encoded)))
                 self.end_headers()
                 self.wfile.write(encoded)
                 return
 
-        filename = self.headers.get("X-Filename") or "Umowa_Zamowienia_Pojazdu.pdf"
-        filename = Path(filename).name.replace(".docx", ".pdf")
-        if not filename.lower().endswith(".pdf"):
-            filename = f"{filename}.pdf"
+        filename = sanitize_download_filename(self.headers.get("X-Filename"))
+        ascii_filename = filename.encode("ascii", "ignore").decode("ascii") or "Umowa_Zamowienia_Pojazdu.pdf"
 
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "application/pdf")
-        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Disposition", f"attachment; filename=\"{ascii_filename}\"; filename*=UTF-8''{quote(filename, safe='')}")
         self.send_header("Content-Length", str(len(pdf)))
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(pdf)
 
