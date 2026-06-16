@@ -1022,6 +1022,9 @@ async function convertDocxBlobToPdf(docxBlob, filename) {
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
+    if (response.status === 404 && /onrender\.com/i.test(endpoint)) {
+      throw new Error("Backend Render dla konwertera PDF nie jest jeszcze wdrożony pod wskazanym adresem.");
+    }
     throw new Error(message || "Konwerter PDF nie jest dostępny.");
   }
 
