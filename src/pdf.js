@@ -116,7 +116,7 @@ function setRadio(name, value) {
 }
 
 function setCheckedValues(name, values) {
-  const selected = new Set(values || []);
+  const selected = new Set(asArray(values));
   document.querySelectorAll(`input[name="${name}"]`).forEach((node) => {
     node.checked = selected.has(node.value);
   });
@@ -131,6 +131,25 @@ function setFuel(values) {
 
 function fuelValues() {
   return [...document.querySelectorAll("[data-fuel]:checked")].map((node) => node.dataset.fuel);
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return value ? [value] : [];
+}
+
+function uniqueValues(values) {
+  return [...new Set(asArray(values))];
+}
+
+function bodyTypes(body) {
+  return uniqueValues(body?.types || body?.type);
+}
+
+function bodyLabel(body) {
+  const types = bodyTypes(body);
+  const labels = types.map((type) => (type === "inne" && body?.other ? body.other : type)).filter(Boolean);
+  return labels.join(", ");
 }
 
 function normalizeSpace(value) {
@@ -166,15 +185,21 @@ function cleanupChoice(value) {
 }
 
 function parseBody(value) {
-  const raw = cleanupChoice(value);
+  const raw = normalizeSpace(value);
   const lower = raw.toLowerCase();
+  const types = [];
   for (const body of ["sedan", "kombi", "coupe"]) {
-    if (new RegExp(`\\b${body}\\b`).test(lower)) return { type: body, other: "" };
+    if (new RegExp(`\\b${body}\\b`).test(lower)) types.push(body);
   }
+  const otherFallback = raw.match(/\b(suv|camper|hatchback|liftback|van|minivan|cabrio|kabriolet|crossover)\b/i)?.[0] || "";
   const other = raw.match(/inne\s*:\s*(.+)/i)?.[1];
-  if (other) return { type: "inne", other: normalizeSpace(other) };
-  if (raw) return { type: "inne", other: raw };
-  return { type: "", other: "" };
+  if (other || otherFallback) types.push("inne");
+  if (!types.length && raw) types.push("inne");
+  return {
+    type: types[0] || "",
+    types: uniqueValues(types),
+    other: other ? normalizeSpace(other) : otherFallback || (types.includes("inne") && !["sedan", "kombi", "coupe", "inne"].includes(lower) ? raw : ""),
+  };
 }
 
 function bodyFallback(value) {
@@ -193,11 +218,11 @@ function parseFuel(value) {
 }
 
 function parseGearbox(value) {
-  const lower = cleanupChoice(value).toLowerCase();
-  if (lower.includes("automat")) return "automatyczna";
-  if (lower.includes("auto")) return "automatyczna";
-  if (lower.includes("manual")) return "manualna";
-  return "";
+  const lower = normalizeSpace(value).toLowerCase();
+  const selected = [];
+  if (/\bautomat|automatycz/.test(lower)) selected.push("automatyczna");
+  if (/\bmanual|manualn/.test(lower)) selected.push("manualna");
+  return uniqueValues(selected);
 }
 
 function linesFromText(text) {
@@ -576,8 +601,8 @@ function applyParsed(data) {
   $("advanceCurrency").value = data.budget?.advance_currency || $("advanceCurrency").value;
   $("vehicleMakeModel").value = data.vehicle?.make_model || $("vehicleMakeModel").value;
   if (data.vehicle?.fuel) setFuel(data.vehicle.fuel);
-  if (data.vehicle?.gearbox) setRadio("gearbox", data.vehicle.gearbox);
-  if (data.vehicle?.body?.type) setRadio("bodyType", data.vehicle.body.type);
+  if (data.vehicle?.gearbox) setCheckedValues("gearbox", data.vehicle.gearbox);
+  if (data.vehicle?.body) setCheckedValues("bodyType", bodyTypes(data.vehicle.body));
   $("bodyOther").value = data.vehicle?.body?.other || $("bodyOther").value;
   $("firstRegistration").value = data.vehicle?.first_registration || $("firstRegistration").value;
   $("mileageTo").value = data.vehicle?.mileage_to || $("mileageTo").value;
@@ -616,12 +641,13 @@ function collectData() {
     vehicle: {
       make_model: $("vehicleMakeModel").value.trim(),
       fuel: fuelValues(),
-      gearbox: checkedRadio("gearbox"),
+      gearbox: checkedValues("gearbox"),
       euro_standard: checkedRadio("euroStandard"),
       first_registration: $("firstRegistration").value.trim(),
       mileage_to: $("mileageTo").value.trim(),
       body: {
-        type: checkedRadio("bodyType"),
+        type: checkedValues("bodyType")[0] || "",
+        types: checkedValues("bodyType"),
         other: $("bodyOther").value.trim(),
       },
       allow_collision_without_longitudinals: $("allowCollision").checked,
@@ -640,9 +666,9 @@ function checkedKeys(data) {
   if (subjects.has("financing")) checks.add("subject_financing");
   if (data.agreement.client_indicated_vehicle) checks.add("subject_client_indicated_vehicle");
   for (const fuel of data.vehicle.fuel || []) checks.add(`fuel_${fuel}`);
-  if (data.vehicle.gearbox) checks.add(`gearbox_${data.vehicle.gearbox}`);
+  for (const gearbox of asArray(data.vehicle.gearbox)) checks.add(`gearbox_${gearbox}`);
   if (data.vehicle.euro_standard) checks.add(`euro_${data.vehicle.euro_standard}`);
-  if (data.vehicle.body.type) checks.add(`body_${data.vehicle.body.type}`);
+  for (const type of bodyTypes(data.vehicle.body)) checks.add(`body_${type}`);
   if (data.vehicle.allow_collision_without_longitudinals) checks.add("allow_collision");
   return checks;
 }
@@ -806,7 +832,7 @@ async function generateDocx() {
 
   const idValue = data.client.type === "company" ? data.client.nip : data.client.pesel;
   const docValue = data.client.type === "company" ? "" : data.client.document;
-  const bodyOther = data.vehicle.body.type === "inne" && data.vehicle.body.other ? ` ${data.vehicle.body.other}` : "";
+  const bodyOther = bodyTypes(data.vehicle.body).includes("inne") && data.vehicle.body.other ? ` ${data.vehicle.body.other}` : "";
 
   setParagraphText(all(root, W, "p")[0], polishDateLine(data.contract.date), { size: 28 });
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
@@ -934,11 +960,11 @@ async function generatePdfBlob() {
   section("KRYTERIA POSZUKIWAŃ I ZAKUPU");
   line("Marka i model", data.vehicle.make_model);
   line("Paliwo", data.vehicle.fuel.join(", "));
-  line("Skrzynia biegów", data.vehicle.gearbox);
+  line("Skrzynia biegów", asArray(data.vehicle.gearbox).join(", "));
   line("Norma euro", data.vehicle.euro_standard);
   line("Wiek", data.vehicle.first_registration);
   line("Przebieg do", data.vehicle.mileage_to);
-  line("Nadwozie", data.vehicle.body.type === "inne" ? data.vehicle.body.other : data.vehicle.body.type);
+  line("Nadwozie", bodyLabel(data.vehicle.body));
   box("dopuszczalne auto po kolizjach, ale bez uszkodzenia podłużnic", data.vehicle.allow_collision_without_longitudinals);
   line("Dodatkowe wymagane cechy/wyposażenie", data.vehicle.required_equipment);
   line("Dodatkowe oczekiwane cechy/wyposażenie", data.vehicle.expected_equipment);
