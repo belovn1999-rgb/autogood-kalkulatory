@@ -284,38 +284,40 @@ button {
   overflow: hidden;
 }
 
-.results::before,
-.results::after {
+.results::before {
   content: "";
   position: absolute;
+  inset: 10px -38px 8px auto;
+  width: min(760px, 86%);
   pointer-events: none;
-}
-
-.results::before {
-  inset: 8px 10px auto auto;
-  width: min(370px, 46%);
-  height: 210px;
-  opacity: 0.16;
-  background:
-    radial-gradient(circle at 20% 78%, transparent 0 17px, #005b82 18px 20px, transparent 21px),
-    radial-gradient(circle at 75% 78%, transparent 0 17px, #005b82 18px 20px, transparent 21px),
-    linear-gradient(0deg, transparent 71%, #005b82 72% 74%, transparent 75%),
-    radial-gradient(ellipse 135px 52px at 50% 66%, transparent 57%, #005b82 58% 60%, transparent 61%),
-    linear-gradient(24deg, transparent 39%, #005b82 40% 41%, transparent 42%),
-    linear-gradient(156deg, transparent 42%, #005b82 43% 44%, transparent 45%);
+  background: #005b82;
+  opacity: 0.045;
+  transform: scaleX(1.22);
+  transform-origin: right center;
+  clip-path: polygon(
+    2% 84%, 19% 17%, 31% 17%, 49% 84%, 36% 84%, 32% 67%,
+    18% 67%, 14% 84%,
+    23% 54%, 29% 54%, 26% 37%,
+    51% 17%, 92% 17%, 92% 30%, 63% 30%, 63% 46%,
+    90% 46%, 90% 58%, 63% 58%, 63% 72%, 94% 72%, 94% 84%,
+    51% 84%, 51% 17%
+  );
 }
 
 .results::after {
-  right: -44px;
-  bottom: 88px;
-  width: 380px;
-  height: 170px;
-  opacity: 0.18;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 22px, rgba(0, 91, 130, 0.34) 22px 24px, transparent 24px 46px),
-    radial-gradient(ellipse 330px 112px at 54% 102%, transparent 61%, rgba(0, 91, 130, 0.42) 61.5% 62.5%, transparent 63%),
-    linear-gradient(118deg, transparent 0 45%, rgba(0, 91, 130, 0.36) 45.2% 46%, transparent 46.2% 100%);
-  transform: rotate(-2deg);
+  content: "AG";
+  position: absolute;
+  right: -34px;
+  bottom: 0;
+  color: #005b82;
+  opacity: 0.028;
+  font-size: clamp(210px, 30vw, 390px);
+  line-height: 0.82;
+  font-weight: 900;
+  letter-spacing: -18px;
+  pointer-events: none;
+  transform: scaleX(1.18);
+  transform-origin: right bottom;
 }
 
 .card h2 {
