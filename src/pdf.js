@@ -812,6 +812,27 @@ function paragraph(cell, index) {
   return directChildren(cell, W, "p")[index];
 }
 
+function setCheckboxGlyph(textEl, checked) {
+  textEl.textContent = checked ? "☑" : "☐";
+  const run = textEl.parentNode;
+  if (!run || run.namespaceURI !== W || run.localName !== "r") return;
+  let rPr = directChildren(run, W, "rPr")[0];
+  if (!rPr) {
+    rPr = wEl(run.ownerDocument, "rPr");
+    run.insertBefore(rPr, run.firstChild);
+  }
+  for (const fontEl of directChildren(rPr, W, "rFonts")) fontEl.remove();
+  rPr.insertBefore(
+    wEl(run.ownerDocument, "rFonts", {
+      ascii: "DejaVu Sans",
+      hAnsi: "DejaVu Sans",
+      cs: "DejaVu Sans",
+      eastAsia: "DejaVu Sans",
+    }),
+    rPr.firstChild
+  );
+}
+
 function insertContractReference(root, data) {
   const body = directChildren(root, W, "body")[0];
   if (!body) return;
@@ -835,8 +856,8 @@ function setDocxCheckboxes(root, data) {
   controls.forEach((sdt, index) => {
     const checked = checkedNumbers.has(index + 1);
     for (const checkedEl of all(sdt, W14, "checked")) checkedEl.setAttributeNS(W14, "w14:val", checked ? "1" : "0");
-    const textEl = all(sdt, W, "t").find((node) => ["¨", "þ", "☐", "☒"].includes(node.textContent || ""));
-    if (textEl) textEl.textContent = checked ? "þ" : "¨";
+    const textEl = all(sdt, W, "t").find((node) => ["¨", "þ", "☐", "☒", "☑"].includes(node.textContent || ""));
+    if (textEl) setCheckboxGlyph(textEl, checked);
   });
 }
 
