@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
-const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260616-2";
+const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260616-3";
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
