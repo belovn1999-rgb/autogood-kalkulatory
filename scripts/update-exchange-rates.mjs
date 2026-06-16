@@ -47,11 +47,13 @@ async function loadWalutomatRates() {
 
   const html = await response.text();
   const eurPlnSell = extractSellRate(html, "EUR_PLN");
+  const eurSekSell = extractSellRate(html, "EUR_SEK");
+  const eurDkkSell = extractSellRate(html, "EUR_DKK");
 
   return {
     EUR_PLN: rounded(eurPlnSell + EUR_PLN_MARGIN, 4),
-    SEK_PLN: rounded(extractSellRate(html, "SEK_PLN"), 4),
-    DKK_PLN: rounded(extractSellRate(html, "DKK_PLN"), 4),
+    SEK_EUR: rounded(1 / eurSekSell, 4),
+    DKK_EUR: rounded(1 / eurDkkSell, 4),
   };
 }
 
@@ -74,15 +76,15 @@ const data = {
       value: rates.EUR_PLN,
       unit: "PLN",
     },
-    SEK_PLN: {
-      label: "SEK - PLN",
-      value: rates.SEK_PLN,
-      unit: "PLN",
+    SEK_EUR: {
+      label: "SEK - EUR",
+      value: rates.SEK_EUR,
+      unit: "EUR",
     },
-    DKK_PLN: {
-      label: "DKK - PLN",
-      value: rates.DKK_PLN,
-      unit: "PLN",
+    DKK_EUR: {
+      label: "DKK - EUR",
+      value: rates.DKK_EUR,
+      unit: "EUR",
     },
   },
 };
@@ -92,5 +94,5 @@ await writeFile(OUTPUT_PATH, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 
 console.log(`Updated exchange rates from ${data.source}`);
 console.log(`${data.rates.EUR_PLN.label}: ${data.rates.EUR_PLN.value} ${data.rates.EUR_PLN.unit}`);
-console.log(`${data.rates.SEK_PLN.label}: ${data.rates.SEK_PLN.value} ${data.rates.SEK_PLN.unit}`);
-console.log(`${data.rates.DKK_PLN.label}: ${data.rates.DKK_PLN.value} ${data.rates.DKK_PLN.unit}`);
+console.log(`${data.rates.SEK_EUR.label}: ${data.rates.SEK_EUR.value} ${data.rates.SEK_EUR.unit}`);
+console.log(`${data.rates.DKK_EUR.label}: ${data.rates.DKK_EUR.value} ${data.rates.DKK_EUR.unit}`);

@@ -67,9 +67,25 @@ button {
 }
 
 .appShell {
+  position: relative;
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 42px;
+}
+
+.appShell::before {
+  content: "";
+  position: fixed;
+  inset: 86px 0 auto;
+  z-index: -1;
+  height: 520px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 500px 150px at 82% 20%, transparent 62%, rgba(0, 91, 130, 0.075) 62.5%, transparent 63.2%),
+    radial-gradient(ellipse 380px 115px at 78% 20%, transparent 63%, rgba(0, 91, 130, 0.055) 63.6%, transparent 64.4%),
+    linear-gradient(128deg, transparent 0 43%, rgba(0, 91, 130, 0.045) 43.2% 43.6%, transparent 43.8% 49%, rgba(0, 91, 130, 0.035) 49.2% 49.7%, transparent 50%),
+    repeating-linear-gradient(128deg, transparent 0 46px, rgba(0, 91, 130, 0.05) 46px 58px, transparent 58px 110px);
+  opacity: 0.75;
 }
 
 .topbar {
@@ -573,7 +589,7 @@ select {
 
 .totalBox {
   display: grid;
-  grid-template-columns: 390px 390px;
+  grid-template-columns: 410px 370px;
   justify-content: start;
   gap: 18px;
   align-items: center;

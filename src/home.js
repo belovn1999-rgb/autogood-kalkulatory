@@ -18,7 +18,7 @@
       return response.json();
     })
     .then((data) => {
-      const keys = ["EUR_PLN", "SEK_PLN", "DKK_PLN"];
+      const keys = ["EUR_PLN", "SEK_EUR", "DKK_EUR"];
       rowsNode.innerHTML = keys
         .map((key) => {
           const item = data.rates?.[key];
