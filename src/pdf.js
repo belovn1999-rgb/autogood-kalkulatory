@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
-const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260616-1";
+const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260616-2";
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
@@ -99,6 +99,11 @@ function contractNumber(dateValue, sequence) {
 function polishDateLine(dateValue) {
   const date = parseDate(dateValue);
   return `Łomianki, ${date.getDate()} ${polishMonths[date.getMonth() + 1]} ${date.getFullYear()} roku`;
+}
+
+function contractReferenceName(data) {
+  const number = contractNumber(data.contract.date, data.contract.sequence).replace(/\//g, "_");
+  return `Umowa_sprowadzenia_pojazdu_AG_${number}`;
 }
 
 function checkedRadio(name) {
@@ -807,6 +812,22 @@ function paragraph(cell, index) {
   return directChildren(cell, W, "p")[index];
 }
 
+function insertContractReference(root, data) {
+  const body = directChildren(root, W, "body")[0];
+  if (!body) return;
+  const firstTable = directChildren(body, W, "tbl")[0];
+  if (!firstTable) return;
+
+  const doc = root.ownerDocument;
+  const p = wEl(doc, "p");
+  const pPr = wEl(doc, "pPr");
+  pPr.append(wEl(doc, "spacing", { before: "0", after: "20", line: "180", lineRule: "auto" }));
+  pPr.append(wEl(doc, "jc", { val: "left" }));
+  p.append(pPr);
+  p.append(makeRun(doc, contractReferenceName(data), { size: 15, bold: false }));
+  body.insertBefore(p, firstTable);
+}
+
 function setDocxCheckboxes(root, data) {
   const selected = checkedKeys(data);
   const checkedNumbers = new Set([...selected].map((key) => checkboxIndex[key]).filter(Boolean));
@@ -836,6 +857,7 @@ async function generateDocx() {
 
   setParagraphText(all(root, W, "p")[0], polishDateLine(data.contract.date), { size: 28 });
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
+  insertContractReference(root, data);
   setParagraphLabelValue(paragraph(rows[2][0], 1), "Imię i Nazwisko/Nazwa:", data.client.name);
   setParagraphText(paragraph(rows[3][0], 2), data.client.address);
   setParagraphText(paragraph(rows[4][0], 2), idValue);
@@ -935,7 +957,9 @@ async function generatePdfBlob() {
   text(polishDateLine(data.contract.date), pageWidth - margin, y, 12, { align: "right" });
   y += 10;
   text(`UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, pageWidth / 2, y, 15, { align: "center" });
-  y += 9;
+  y += 4.5;
+  text(contractReferenceName(data), margin, y, 7.5);
+  y += 6.5;
 
   section("ZLECENIODAWCA");
   line("Imię i Nazwisko/Nazwa", data.client.name);
