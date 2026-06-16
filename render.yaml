@@ -2,6 +2,7 @@ services:
   - type: web
     name: autogood-pdf-converter
     runtime: docker
+    plan: free
     region: frankfurt
     dockerContext: .
     dockerfilePath: ./converter/Dockerfile
