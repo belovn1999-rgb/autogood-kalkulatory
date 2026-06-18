@@ -177,7 +177,7 @@ textarea {
 .paste-panel {
   position: sticky;
   top: 90px;
-  align-self: start;
+  align-self: stretch;
   margin-top: 46px;
   padding: 14px;
 }
@@ -380,6 +380,7 @@ input[type="radio"] {
 
   .paste-panel {
     position: static;
+    align-self: auto;
     margin-top: 0;
   }
 
