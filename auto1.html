@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Auto1</title>
-    <link rel="stylesheet" href="./src/tools.css?v=auctions-tabs" />
+    <link rel="stylesheet" href="./src/tools.css?v=auto1-pdf-20260618" />
+    <link rel="stylesheet" href="./src/auto1.css?v=20260618-1" />
   </head>
   <body>
     <main class="workspaceShell">
@@ -20,15 +21,54 @@
         </nav>
       </header>
 
-      <section class="workspaceHero">
+      <section class="workspaceHero auto1Hero">
         <p class="eyebrow">AUTOGOOD auction workspace</p>
-        <h1>Auto1</h1>
-        <p>Чистая страница для будущей программы Auto1.</p>
+        <h1>Auto1 PDF dla klienta</h1>
+        <p>Wrzuć raport z AUTO1, usuń dane aukcyjne i pobierz gotowy PDF do wysłania klientowi.</p>
       </section>
 
-      <section class="emptyWorkspace" aria-label="Auto1 workspace">
-        <p>Сюда загрузим программу Auto1 из отдельного чата.</p>
+      <section class="auto1Tool" aria-label="Auto1 PDF cleaner">
+        <div class="auto1Drop">
+          <div>
+            <span class="toolBadge">PDF</span>
+            <h2>Raport AUTO1</h2>
+            <p>
+              Program usuwa voucher, export advantage, stock number, delivery/pickup,
+              licznik zdjęć, footer prawny AUTO1 i techniczne paski po prawej stronie.
+            </p>
+          </div>
+          <label class="auto1FilePicker">
+            <input id="auto1File" type="file" accept="application/pdf,.pdf" />
+            <span>Wybierz PDF</span>
+          </label>
+          <div id="auto1FileName" class="auto1FileName">Nie wybrano pliku</div>
+        </div>
+
+        <div class="auto1Actions">
+          <button id="auto1Run" type="button" disabled>Przygotuj PDF klienta</button>
+          <a id="auto1Download" href="#" hidden>Pobierz gotowy PDF</a>
+          <div class="auto1Progress">
+            <span>Postęp</span>
+            <strong id="auto1Progress">0/0</strong>
+          </div>
+        </div>
+
+        <div id="auto1Status" class="auto1Status" data-tone="idle">Wybierz raport AUTO1 w PDF.</div>
+        <div id="auto1Summary" class="auto1Summary" aria-live="polite"></div>
+
+        <aside class="auto1Notice">
+          <strong>Kontrola przed wysyłką</strong>
+          <span>
+            GitHub Pages działa bez backendu, dlatego ten wariant tworzy PDF jako obrazy stron.
+            To bezpieczne dla danych wewnętrznych, ale po pobraniu sprawdź wizualnie pierwszą
+            stronę, damage summary i zdjęcia.
+          </span>
+        </aside>
       </section>
     </main>
+
+    <script src="./vendor/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="./src/auto1.js?v=20260618-1"></script>
   </body>
 </html>

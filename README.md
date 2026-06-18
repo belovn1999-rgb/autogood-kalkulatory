@@ -80,6 +80,12 @@ Dokumenty transakcji:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/documents.html
 ```
 
+Auto1 PDF dla klienta:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html
+```
+
 ## Uruchomienie
 
 W folderze projektu uruchom:
@@ -122,3 +128,4 @@ Po zmianach uruchom:
 - karta transakcji z klientem, autem, statusem, zadaniami i finansami.
 - szablony wiadomosci do klienta z podstawieniem danych z Deal Desk.
 - generator dokumentow roboczych z danych Deal Desk.
+- narzedzie Auto1 do czyszczenia raportow aukcyjnych PDF przed wysylka do klienta.
