@@ -282,6 +282,8 @@ button {
 .results {
   position: relative;
   overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .results::before {
@@ -512,11 +514,11 @@ select {
 
 .resultRow {
   display: grid;
-  grid-template-columns: 360px 360px;
+  grid-template-columns: 340px 264px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 766px;
+  width: 650px;
   max-width: 100%;
   min-height: 44px;
   padding: 7px 14px;
@@ -615,11 +617,11 @@ select {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 440px 340px;
+  grid-template-columns: 455px 259px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 826px;
+  width: 760px;
   max-width: 100%;
   margin-top: 16px;
   border-radius: 12px;
@@ -663,7 +665,7 @@ select {
 .rateNote {
   position: relative;
   z-index: 1;
-  width: 826px;
+  width: 760px;
   max-width: 100%;
   margin: 10px 0 0;
   padding: 0 14px;
@@ -676,6 +678,8 @@ select {
 .footnotes {
   position: relative;
   z-index: 1;
+  width: 760px;
+  max-width: 100%;
   margin-top: 18px;
   padding-top: 12px;
   border-top: 1px dashed #94a3b8;
