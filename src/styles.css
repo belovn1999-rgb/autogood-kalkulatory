@@ -68,7 +68,7 @@ button {
 
 .appShell {
   position: relative;
-  width: min(1180px, calc(100% - 32px));
+  width: min(1018px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 42px;
 }
@@ -270,7 +270,9 @@ button {
 
 .grid {
   display: grid;
-  grid-template-columns: 310px minmax(0, 1fr);
+  grid-template-columns: 310px max-content;
+  width: fit-content;
+  max-width: 100%;
   gap: 18px;
   align-items: start;
 }
@@ -282,6 +284,7 @@ button {
 .results {
   position: relative;
   overflow: hidden;
+  justify-self: start;
   width: fit-content;
   max-width: 100%;
 }
@@ -617,11 +620,11 @@ select {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 455px 259px;
+  grid-template-columns: 340px 264px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 760px;
+  width: 650px;
   max-width: 100%;
   margin-top: 16px;
   border-radius: 12px;
@@ -665,7 +668,7 @@ select {
 .rateNote {
   position: relative;
   z-index: 1;
-  width: 760px;
+  width: 650px;
   max-width: 100%;
   margin: 10px 0 0;
   padding: 0 14px;
@@ -678,7 +681,7 @@ select {
 .footnotes {
   position: relative;
   z-index: 1;
-  width: 760px;
+  width: 650px;
   max-width: 100%;
   margin-top: 18px;
   padding-top: 12px;
