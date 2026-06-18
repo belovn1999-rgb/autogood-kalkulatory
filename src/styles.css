@@ -512,11 +512,11 @@ select {
 
 .resultRow {
   display: grid;
-  grid-template-columns: 500px 280px;
+  grid-template-columns: 360px 360px;
   justify-content: start;
   gap: 18px;
   align-items: center;
-  width: 826px;
+  width: 766px;
   max-width: 100%;
   min-height: 44px;
   padding: 7px 14px;
@@ -615,7 +615,7 @@ select {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 410px 370px;
+  grid-template-columns: 440px 340px;
   justify-content: start;
   gap: 18px;
   align-items: center;

@@ -246,6 +246,18 @@ function isPostalCityLine(line) {
   return /^\d{2}-\d{3}\s+[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}$/u.test(stripKnownNoise(line));
 }
 
+const polishCityPattern =
+  /\b(?:Warszawa|Krak[oó]w|Ł[oó]d[zź]|Lodz|Wrocław|Wroclaw|Pozna[nń]|Gda[nń]sk|Szczecin|Bydgoszcz|Lublin|Białystok|Bialystok|Katowice|Gdynia|Częstochowa|Czestochowa|Radom|Toru[nń]|Torun|Sosnowiec|Kielce|Rzesz[oó]w|Gliwice|Zabrze|Olsztyn|Bielsko(?:-| )Biała|Bielsko(?:-| )Biala|Bytom|Zielona G[oó]ra|Rybnik|Ruda Śląska|Ruda Slaska|Opole|Tychy|Gorz[oó]w Wielkopolski|Elbląg|Elblag|Płock|Plock|Wałbrzych|Walbrzych|Włocławek|Wloclawek|Tarn[oó]w|Chorz[oó]w|Koszalin|Kalisz|Legnica|Grudziądz|Grudziadz|Słupsk|Slupsk|Jaworzno|Jastrzębie(?:-| )Zdr[oó]j|Jastrzebie(?:-| )Zdroj|Nowy Sącz|Nowy Sacz|Jelenia G[oó]ra|Siedlce|Mysłowice|Myslowice|Piła|Pila|Konin|Piotrk[oó]w Trybunalski|Inowrocław|Inowroclaw|Lubin|Ostr[oó]w Wielkopolski)\b/i;
+
+function isPolishAddressLine(line) {
+  const clean = stripKnownNoise(line);
+  if (!clean || isClientDataMarkerLine(clean)) return false;
+  if (!polishCityPattern.test(clean)) return false;
+  if (/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/.test(clean)) return false;
+  if (/\b(?:PESEL|NIP|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b/i.test(clean)) return false;
+  return /\d{2}-\d{3}|\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\b|\b\d+[A-Z]?(?:[/-]\d+[A-Z]?)?\b|,/.test(clean);
+}
+
 function isClientDataMarkerLine(line) {
   return /^(?:PESEL|NIP|DO|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b/i.test(line);
 }
@@ -319,6 +331,10 @@ function formatMoneyValue(amount, currency) {
 
 function addressFallback(text) {
   const lines = linesFromText(text);
+  for (const line of lines) {
+    if (isPolishAddressLine(line)) return line;
+  }
+
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     if (!isAddressStreetLine(line)) continue;
@@ -332,6 +348,8 @@ function addressFallback(text) {
     /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
   if (postalAddress) return stripKnownNoise(postalAddress[0]);
+  const cityAddressLine = lines.find((line) => isPolishAddressLine(line));
+  if (cityAddressLine) return stripKnownNoise(cityAddressLine);
   const pattern =
     /\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja|улица|adres)\s+.*?(?=\s+(?:PESEL|NIP|Dokument|Dow[oó]d|Paszport|Karta pobytu|Telefon|Tel|Email|E-mail|Auto|Pojazd|Marka|Model|Budżet|Budzet|Zaliczka)\b|$)/i;
   return stripKnownNoise(text.match(pattern)?.[0] || "");
@@ -430,8 +448,23 @@ function parseClientType(text, { pesel = "", nip = "" } = {}) {
 function parseName(text, isCompany) {
   const lines = linesFromText(text);
   const compact = normalizeSpace(text);
+  const clientLine = lines.find((line) => /^(?:Klient|Client|Клиент)\b/i.test(line));
+  if (clientLine) {
+    const candidate = stripKnownNoise(clientLine.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    if (candidate && !isPolishAddressLine(candidate) && !isAddressStreetLine(candidate) && !isPostalCityLine(candidate) && !isClientDataMarkerLine(candidate)) {
+      return candidate;
+    }
+  }
+
   const labeled = extractLabeled(compact, labels.client);
-  if (labeled) return stripKnownNoise(labeled);
+  if (labeled) {
+    const cleanLabeled = stripKnownNoise(labeled);
+    if (!isCompany) {
+      const personName = cleanLabeled.match(/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
+      if (personName) return stripKnownNoise(personName);
+    }
+    return cleanLabeled;
+  }
   if (isCompany) {
     const company = compact.match(/\b[A-Z0-9ĄĆĘŁŃÓŚŹŻ][A-Z0-9ĄĆĘŁŃÓŚŹŻ .&-]{2,}?(?:JDG|sp\.?\s*z\.?\s*o\.?o\.?|spółka|spolka|s\.a\.)\b/i)?.[0];
     if (company) return stripKnownNoise(company);
@@ -439,7 +472,7 @@ function parseName(text, isCompany) {
 
   const firstNameLine = lines.find((line) => {
     const candidate = stripKnownNoise(line.replace(/\b(?:Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
-    if (!candidate || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
+    if (!candidate || isPolishAddressLine(candidate) || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
     if (/@|\+48|\d{2}-\d{3}|\b\d{10,11}\b/.test(candidate)) return false;
     const words = candidate.match(/[\p{L}'-]+/gu) || [];
     return words.length >= 2 && words.length <= 4;
