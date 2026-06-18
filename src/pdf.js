@@ -101,11 +101,6 @@ function polishDateLine(dateValue) {
   return `Łomianki, ${date.getDate()} ${polishMonths[date.getMonth() + 1]} ${date.getFullYear()} roku`;
 }
 
-function contractReferenceName(data) {
-  const number = contractNumber(data.contract.date, data.contract.sequence).replace(/\//g, "_");
-  return `Umowa_sprowadzenia_pojazdu_AG_${number}`;
-}
-
 function checkedRadio(name) {
   return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
 }
@@ -519,6 +514,10 @@ function filenameFor(data, extension) {
   return `Umowa_Zamówienia_Pojazdu_${slug || "AUTO"}.${extension}`;
 }
 
+function updateDocumentFileName() {
+  $("documentFileName").textContent = filenameFor(collectData(), "pdf");
+}
+
 function syncClientTypeRules() {
   const isCompany = checkedRadio("clientType") === "company";
   $("clientEntrepreneur").checked = isCompany;
@@ -647,6 +646,7 @@ function applyParsed(data) {
   $("requiredEquipment").value = data.vehicle?.required_equipment || $("requiredEquipment").value;
   $("expectedEquipment").value = data.vehicle?.expected_equipment || $("expectedEquipment").value;
   syncClientTypeRules();
+  updateDocumentFileName();
 }
 
 function collectData() {
@@ -866,22 +866,6 @@ function setCheckboxGlyph(textEl, checked) {
   );
 }
 
-function insertContractReference(root, data) {
-  const body = directChildren(root, W, "body")[0];
-  if (!body) return;
-  const firstTable = directChildren(body, W, "tbl")[0];
-  if (!firstTable) return;
-
-  const doc = root.ownerDocument;
-  const p = wEl(doc, "p");
-  const pPr = wEl(doc, "pPr");
-  pPr.append(wEl(doc, "spacing", { before: "0", after: "20", line: "180", lineRule: "auto" }));
-  pPr.append(wEl(doc, "jc", { val: "left" }));
-  p.append(pPr);
-  p.append(makeRun(doc, contractReferenceName(data), { size: 15, bold: false }));
-  body.insertBefore(p, firstTable);
-}
-
 function setDocxCheckboxes(root, data) {
   const selected = checkedKeys(data);
   const checkedNumbers = new Set([...selected].map((key) => checkboxIndex[key]).filter(Boolean));
@@ -911,7 +895,6 @@ async function generateDocx() {
 
   setParagraphText(all(root, W, "p")[0], polishDateLine(data.contract.date), { size: 28 });
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
-  insertContractReference(root, data);
   setParagraphLabelValue(paragraph(rows[2][0], 1), "Imię i Nazwisko/Nazwa:", data.client.name);
   setParagraphText(paragraph(rows[3][0], 2), data.client.address);
   setParagraphText(paragraph(rows[4][0], 2), idValue);
@@ -1011,9 +994,7 @@ async function generatePdfBlob() {
   text(polishDateLine(data.contract.date), pageWidth - margin, y, 12, { align: "right" });
   y += 10;
   text(`UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, pageWidth / 2, y, 15, { align: "center" });
-  y += 4.5;
-  text(contractReferenceName(data), margin, y, 7.5);
-  y += 6.5;
+  y += 9;
 
   section("ZLECENIODAWCA");
   line("Imię i Nazwisko/Nazwa", data.client.name);
@@ -1139,14 +1120,17 @@ function resetForm() {
   setCheckedValues("subject", ["purchase_by_autogood"]);
   $("clientEntrepreneur").checked = false;
   syncClientTypeRules();
+  updateDocumentFileName();
   setStatus("");
 }
 
 $("contractDate").value = todayISO();
+updateDocumentFileName();
 $("parseBtn").addEventListener("click", parseRawText);
 $("printBtn").addEventListener("click", generatePdf);
 $("generateBtn").addEventListener("click", generateContract);
 $("resetBtn").addEventListener("click", resetForm);
 document.querySelectorAll('input[name="clientType"]').forEach((node) => node.addEventListener("change", syncClientTypeRules));
+$("vehicleMakeModel").addEventListener("input", updateDocumentFileName);
 
 syncClientTypeRules();

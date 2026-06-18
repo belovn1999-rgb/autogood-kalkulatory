@@ -211,6 +211,14 @@ textarea {
   gap: 18px;
 }
 
+.document-file-name {
+  grid-column: 1 / -1;
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
 .contract-card {
   overflow: hidden;
 }
