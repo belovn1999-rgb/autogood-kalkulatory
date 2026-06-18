@@ -620,7 +620,7 @@ select {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 340px 264px;
+  grid-template-columns: 310px 294px;
   justify-content: start;
   gap: 18px;
   align-items: center;
