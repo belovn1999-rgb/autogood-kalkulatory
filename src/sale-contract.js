@@ -227,6 +227,7 @@ function applyDefaultChecklistValues() {
 function applyDefaultFieldValues() {
   setField("contractDate", todayISO());
   setField("contractPlace", "seller");
+  setField("saleCurrency", "PLN");
   setField("generalWear", "przecietne");
 }
 
@@ -269,12 +270,28 @@ function valueOrFallback(value) {
   return String(value || "").trim() || "Nie wskazano";
 }
 
+function formatGrossAmount(value, currency = "PLN") {
+  const raw = normalizeSpace(value);
+  if (!raw || raw === "-") return raw;
+  const normalizedCurrency = currency === "EUR" ? "EUR" : "PLN";
+  const withoutGross = raw.replace(/\b(?:PLN|EUR)\b/gi, "").replace(/\bbrutto\b/gi, "").trim();
+  if (!/\d/.test(withoutGross)) return raw;
+  return `${withoutGross} ${normalizedCurrency} brutto`;
+}
+
+function formatDiscountBenefit(value, currency) {
+  const raw = normalizeSpace(value);
+  if (!raw || raw === "-") return raw || "-";
+  if (!/\d/.test(raw)) return raw;
+  return formatGrossAmount(raw, currency);
+}
+
 function updateSummary() {
   const data = collectSaleContract();
   document.querySelector("#saleSummaryBuyer").textContent = valueOrFallback(data.buyerName);
   document.querySelector("#saleSummaryVehicle").textContent = valueOrFallback(data.vehicleMakeModel);
   document.querySelector("#saleSummaryVin").textContent = valueOrFallback(data.vehicleVin);
-  document.querySelector("#saleSummaryPrice").textContent = valueOrFallback(data.salePrice);
+  document.querySelector("#saleSummaryPrice").textContent = valueOrFallback(formatGrossAmount(data.salePrice, data.saleCurrency));
 }
 
 function normalizeSpace(value) {
@@ -311,7 +328,10 @@ function parseSaleData() {
   setField("vehicleMakeModel", labeledValue(text, ["Marka i model", "Auto", "Pojazd", "Samochód"]));
   setField("vehicleVin", vin ? vin[0].toUpperCase() : labeledValue(text, ["VIN"]));
   setField("vehicleMileage", labeledValue(text, ["Przebieg", "Stan licznika"]));
-  setField("salePrice", labeledValue(text, ["Cena", "Cena sprzedaży", "Kwota"]));
+  const parsedPrice = labeledValue(text, ["Cena", "Cena sprzedaży", "Kwota"]);
+  setField("salePrice", parsedPrice.replace(/\b(?:PLN|EUR)\b/gi, "").replace(/\bbrutto\b/gi, "").trim());
+  if (/\bEUR\b/i.test(parsedPrice)) setField("saleCurrency", "EUR");
+  if (/\bPLN\b/i.test(parsedPrice)) setField("saleCurrency", "PLN");
   setField("firstRegistration", labeledValue(text, ["Pierwsza rejestracja", "Rok pierwszej rejestracji"]));
   setField("lastTechnicalInspection", labeledValue(text, ["Badanie techniczne", "Data ostatniego badania technicznego"]));
   updateSummary();
@@ -737,9 +757,9 @@ function fillDocx(root, data) {
   setCheckboxControl(controls[4], data.buyerProfessional === "nie");
   setTextControl(controls[5], data.vehicleMakeModel);
   setTextControl(controls[6], vinMileage || data.vehicleVin || data.vehicleMileage);
-  setTextControl(controls[7], data.salePrice);
+  setTextControl(controls[7], formatGrossAmount(data.salePrice, data.saleCurrency));
   setControlAlignment(controls[7], "center", "center");
-  setTextControl(controls[8], data.discountBenefit || "-");
+  setTextControl(controls[8], formatDiscountBenefit(data.discountBenefit, data.saleCurrency));
   setTextControl(controls[23], data.notes);
 
   fillBuyerBlock(root, data);

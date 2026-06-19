@@ -120,13 +120,22 @@
 
           <div class="dealPanel">
             <h2>Cena</h2>
-            <label>
-              Cena sprzedaży
-              <input name="salePrice" type="text" placeholder="np. 124 700 PLN brutto" />
-            </label>
+            <div class="dealFieldsTwo">
+              <label>
+                Cena sprzedaży
+                <input name="salePrice" type="text" placeholder="np. 124 700" />
+              </label>
+              <label>
+                Waluta
+                <select name="saleCurrency">
+                  <option value="PLN" selected>PLN</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </label>
+            </div>
             <label>
               Zniżka lub dodatkowa korzyść po negocjacjach
-              <textarea name="discountBenefit" placeholder="Wpisz kwotę, opis korzyści albo '-' jeśli nie było."></textarea>
+              <textarea name="discountBenefit" placeholder="Wpisz kwotę rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
             </label>
           </div>
 
@@ -232,6 +241,6 @@
     </main>
 
     <script src="./vendor/jszip.min.js"></script>
-    <script src="./src/sale-contract.js?v=20260613-10"></script>
+    <script src="./src/sale-contract.js?v=20260619-1"></script>
   </body>
 </html>
