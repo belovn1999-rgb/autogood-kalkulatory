@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 
 const WALUTOMAT_URL = "https://www.walutomat.pl/kursy-walut/";
+const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
 const OUTPUT_PATH = new URL("../data/exchange-rates.json", import.meta.url);
 const EUR_PLN_MARGIN = 0.02;
 
@@ -9,46 +10,57 @@ function rounded(value, digits) {
   return Math.round(value * factor) / factor;
 }
 
-function decimal(value) {
-  return Number(String(value).replace(/\s/g, "").replace(",", "."));
-}
-
-function stripTags(value) {
-  return String(value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function extractSellRate(html, key) {
-  const rowPattern = new RegExp(
-    `<a[^>]+data-rate="${key}"[\\s\\S]*?<\\/a>`,
-    "i"
-  );
-  const row = html.match(rowPattern)?.[0];
-  if (!row) throw new Error(`Missing ${key} row on Walutomat page`);
-
-  const values = [...row.matchAll(/data-rate-value>([\s\S]*?)<\/span>/gi)].map((match) => stripTags(match[1]));
-  if (values.length < 2) throw new Error(`Missing sell value for ${key}`);
-
-  const value = decimal(values[1].split(" ")[0]);
-  if (!Number.isFinite(value) || value <= 0) throw new Error(`Invalid sell value for ${key}: ${values[1]}`);
+function numberFromOffer(offer, pair) {
+  const value = Number(offer?.price);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Invalid Walutomat price for ${pair}`);
+  }
   return value;
 }
 
-async function loadWalutomatRates() {
-  const response = await fetch(WALUTOMAT_URL, {
+async function loadBestOffer(pair) {
+  const url = new URL(WALUTOMAT_API_URL);
+  url.searchParams.set("currencyPair", pair);
+
+  const response = await fetch(url, {
     headers: {
-      Accept: "text/html",
+      Accept: "application/json",
       "User-Agent": "AUTOGOOD tools exchange-rate updater",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Walutomat returned ${response.status}`);
+    throw new Error(`Walutomat API returned ${response.status} for ${pair}`);
   }
 
-  const html = await response.text();
-  const eurPlnSell = extractSellRate(html, "EUR_PLN");
-  const eurSekSell = extractSellRate(html, "EUR_SEK");
-  const eurDkkSell = extractSellRate(html, "EUR_DKK");
+  const data = await response.json();
+  if (!data?.success || data?.result?.currencyPair !== pair) {
+    throw new Error(`Walutomat API returned invalid response for ${pair}`);
+  }
+
+  return data.result;
+}
+
+function bestSellRate(offers, pair) {
+  const ask = offers?.asks?.[0];
+  if (ask) return numberFromOffer(ask, pair);
+
+  const bid = offers?.bids?.[0];
+  if (bid) return numberFromOffer(bid, pair);
+
+  throw new Error(`Walutomat API returned no offers for ${pair}`);
+}
+
+async function loadWalutomatRates() {
+  const [eurPlnOffers, eurSekOffers, eurDkkOffers] = await Promise.all([
+    loadBestOffer("EURPLN"),
+    loadBestOffer("EURSEK"),
+    loadBestOffer("EURDKK"),
+  ]);
+
+  const eurPlnSell = bestSellRate(eurPlnOffers, "EURPLN");
+  const eurSekSell = bestSellRate(eurSekOffers, "EURSEK");
+  const eurDkkSell = bestSellRate(eurDkkOffers, "EURDKK");
 
   return {
     EUR_PLN: rounded(eurPlnSell + EUR_PLN_MARGIN, 4),
@@ -63,7 +75,7 @@ const today = new Date().toISOString().slice(0, 10);
 const data = {
   source: "Walutomat - kurs sprzedaży",
   sourceUrl: WALUTOMAT_URL,
-  providerApiUrl: WALUTOMAT_URL,
+  providerApiUrl: WALUTOMAT_API_URL,
   updatedAt: new Date().toISOString(),
   effectiveDate: today,
   margin: {

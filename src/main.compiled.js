@@ -12,7 +12,9 @@ const DOC_TRANSLATION = 250;
 const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
+const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
 const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
+const EUR_PLN_MARGIN = 0.02;
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -448,6 +450,71 @@ function formatRate(value, digits = 4) {
     maximumFractionDigits: digits
   }).format(Number(value));
 }
+function bestOfferRate(offers, pair) {
+  const offer = offers?.asks?.[0] || offers?.bids?.[0];
+  const value = Number(offer?.price);
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`Invalid Walutomat rate for ${pair}`);
+  return value;
+}
+async function loadWalutomatOffer(pair) {
+  const url = new URL(WALUTOMAT_API_URL);
+  url.searchParams.set("currencyPair", pair);
+  const response = await fetch(url, {
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`Walutomat API returned ${response.status}`);
+  const data = await response.json();
+  if (!data?.success || data?.result?.currencyPair !== pair) throw new Error(`Invalid Walutomat response for ${pair}`);
+  return data.result;
+}
+async function loadLiveExchangeRates() {
+  const [eurPlnOffers, eurSekOffers, eurDkkOffers] = await Promise.all([loadWalutomatOffer("EURPLN"), loadWalutomatOffer("EURSEK"), loadWalutomatOffer("EURDKK")]);
+  const eurPln = bestOfferRate(eurPlnOffers, "EURPLN");
+  const eurSek = bestOfferRate(eurSekOffers, "EURSEK");
+  const eurDkk = bestOfferRate(eurDkkOffers, "EURDKK");
+  const timestamps = [eurPlnOffers.ts, eurSekOffers.ts, eurDkkOffers.ts].filter(Boolean).sort();
+  const updatedAt = timestamps[timestamps.length - 1] || new Date().toISOString();
+  return {
+    source: "Walutomat API - kurs sprzedaży",
+    sourceUrl: "https://www.walutomat.pl/kursy-walut/",
+    providerApiUrl: WALUTOMAT_API_URL,
+    updatedAt,
+    effectiveDate: updatedAt.slice(0, 10),
+    margin: {
+      EUR_PLN: EUR_PLN_MARGIN,
+      note: "Do kursu sprzedaży EUR/PLN z Walutomat doliczono 0.02 PLN."
+    },
+    rates: {
+      EUR_PLN: {
+        label: "EUR - PLN",
+        value: Math.round((eurPln + EUR_PLN_MARGIN) * 10000) / 10000,
+        unit: "PLN"
+      },
+      SEK_EUR: {
+        label: "SEK - EUR",
+        value: Math.round(1 / eurSek * 10000) / 10000,
+        unit: "EUR"
+      },
+      DKK_EUR: {
+        label: "DKK - EUR",
+        value: Math.round(1 / eurDkk * 10000) / 10000,
+        unit: "EUR"
+      }
+    }
+  };
+}
+async function loadExchangeRates() {
+  try {
+    return await loadLiveExchangeRates();
+  } catch (liveError) {
+    const today = new Date().toISOString().slice(0, 10);
+    const response = await fetch(`${RATES_URL}?date=${today}`, {
+      cache: "no-store"
+    });
+    if (!response.ok) throw liveError;
+    return response.json();
+  }
+}
 function ExchangeRatesPanel({
   data,
   status,
@@ -790,13 +857,7 @@ function App() {
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   useEffect(() => {
     let isMounted = true;
-    const today = new Date().toISOString().slice(0, 10);
-    fetch(`${RATES_URL}?date=${today}`, {
-      cache: "no-store"
-    }).then(response => {
-      if (!response.ok) throw new Error("Rates file not available");
-      return response.json();
-    }).then(data => {
+    loadExchangeRates().then(data => {
       if (!isMounted) return;
       setMarketRates(data);
       setRatesStatus("ready");
