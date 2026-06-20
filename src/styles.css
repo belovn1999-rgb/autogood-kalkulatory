@@ -636,7 +636,7 @@ select {
 
 .totalBox span {
   display: block;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   opacity: 0.9;
 }
@@ -667,7 +667,7 @@ select {
 
 .totalRate {
   grid-column: 1 / -1;
-  padding-right: 4px;
+  padding-right: 22px;
   color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
   font-style: italic;
