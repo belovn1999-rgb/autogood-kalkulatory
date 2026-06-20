@@ -187,11 +187,7 @@ const tabs = [{
       ru: "Скидка"
     },
     currency: "PLN"
-  }],
-  notes: {
-    pl: ["* Bezpośrednia płatność za pojazd", "** Oddajemy 70% uzyskanego rabatu od sprzedawcy"],
-    ru: ["* Прямая оплата за автомобиль", "** Возвращаем 70% полученной скидки"]
-  }
+  }]
 }, {
   id: 1,
   name: {
@@ -223,11 +219,7 @@ const tabs = [{
       ru: "Транспорт на автовозе netto"
     },
     currency: "PLN"
-  }],
-  notes: {
-    pl: ["* Sprzedaż na Fakturę VAT 23%", "** Opłata w walucie PLN lub EUR"],
-    ru: ["* Продажа по Faktura VAT 23%", "** Оплата в PLN или EUR"]
-  }
+  }]
 }, {
   id: 2,
   name: {
@@ -259,11 +251,7 @@ const tabs = [{
       ru: "Транспорт на автовозе netto"
     },
     currency: "PLN"
-  }],
-  notes: {
-    pl: ["* Sprzedaż na Fakturę VAT Marża", "** Opłata w walucie PLN lub EUR"],
-    ru: ["* Продажа по Faktura VAT Marża", "** Оплата в PLN или EUR"]
-  }
+  }]
 }, {
   id: 3,
   name: {
@@ -302,11 +290,7 @@ const tabs = [{
       ru: "Скидка"
     },
     currency: "PLN"
-  }],
-  notes: {
-    pl: ["* Sprzedaż na Fakturę VAT 23%", "** Oddajemy 70% uzyskanego rabatu od sprzedawcy", "*** Wpłacamy kaucję w wys. zagranicznego VAT-u", "**** Opłata w walucie PLN lub EUR"],
-    ru: ["* Продажа по Faktura VAT 23%", "** Возвращаем 70% полученной скидки", "*** Вносим депозит в размере иностранного VAT", "**** Оплата в PLN или EUR"]
-  }
+  }]
 }, {
   id: 4,
   name: {
@@ -345,37 +329,40 @@ const tabs = [{
       ru: "Скидка"
     },
     currency: "PLN"
-  }],
-  notes: {
-    pl: ["* Sprzedaż na Fakturę VAT Marża", "** Opłata w walucie PLN lub EUR", "*** Oddajemy 70% uzyskanego rabatu od sprzedawcy"],
-    ru: ["* Продажа по Faktura VAT Marża", "** Оплата в PLN или EUR", "*** Возвращаем 70% полученной скидки от продавца"]
-  }
+  }]
 }];
 const financingNotes = {
   pl: {
-    ownFunds: "Kupujemy pojazd z własnych środków",
     ownFundsDeposit: "Kupujemy pojazd z własnych środków oraz wpłacamy kaucję w wys. zagranicznego VAT-u"
   },
   ru: {
-    ownFunds: "Покупаем автомобиль за собственные средства",
     ownFundsDeposit: "Покупаем автомобиль за собственные средства и вносим депозит в размере иностранного VAT"
   }
 };
-function getTabNotes(tab, lang, financed) {
-  const notes = [...tab.notes[lang]];
-  if (!financed || tab.id === 0) return notes;
-  const prefix = "*".repeat(notes.length + 1);
-  if (tab.id === 3) {
-    const depositText = lang === "pl" ? "Wpłacamy kaucję w wys. zagranicznego VAT-u" : "Вносим депозит в размере иностранного VAT";
-    const replacement = `${lang === "pl" ? "***" : "***"} ${financingNotes[lang].ownFundsDeposit}`;
-    const depositIndex = notes.findIndex(note => note.includes(depositText));
-    if (depositIndex >= 0) {
-      notes[depositIndex] = replacement;
-      return notes;
+function getProcessSteps(tab, lang, financed) {
+  const steps = {
+    0: {
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Bezpośrednia płatność za pojazd do sprzedawcy"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", "Прямая оплата за автомобиль продавцу"]
+    },
+    1: {
+      pl: ["Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
+      ru: ["Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
+    },
+    2: {
+      pl: ["Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
+      ru: ["Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
+    },
+    3: {
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Opłata w walucie PLN lub EUR", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Sprzedaż na Fakturę VAT 23%"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", "Оплата в PLN или EUR", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Продажа по Faktura VAT 23%"]
+    },
+    4: {
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
     }
-  }
-  notes.push(`${prefix} ${financingNotes[lang].ownFunds}`);
-  return notes;
+  };
+  return steps[tab.id]?.[lang] || [];
 }
 function n(value) {
   const parsed = Number(String(value).replace(",", "."));
@@ -636,6 +623,50 @@ function MoneyIcon() {
     d: "M22 40l18-9"
   })));
 }
+function DeliveryCar() {
+  return /*#__PURE__*/React.createElement("svg", {
+    className: "deliveryCarIcon",
+    viewBox: "0 0 86 30",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("g", {
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.4",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M13 21h53c3.8 0 6.8-2.8 6.8-6.2 0-2.7-2-5.2-4.9-6l-10.5-3.1a15 15 0 0 0-4.3-.6H35.8c-3.7 0-7.2 1.4-9.7 3.9l-6.8 6.7H12c-2.6 0-4.8 1.9-4.8 4.2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M30 9h16l5.2 7H23.5L30 9z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M49 9h5.8c1 0 2 .2 2.9.5l7.7 2.3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "24",
+    cy: "22",
+    r: "4.2"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "62",
+    cy: "22",
+    r: "4.2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M2 25h8M75 25h9"
+  })));
+}
+function ProcessFlow({
+  steps
+}) {
+  return /*#__PURE__*/React.createElement("footer", {
+    className: "processFlow",
+    "aria-label": "Informacje"
+  }, steps.map((step, index) => /*#__PURE__*/React.createElement(React.Fragment, {
+    key: `${step}-${index}`
+  }, index > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "processArrow",
+    "aria-hidden": "true"
+  }, "\u203A"), /*#__PURE__*/React.createElement("span", {
+    className: "processStep"
+  }, step))));
+}
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -787,7 +818,8 @@ function printCalculation({
             </div>
           </td>
         </tr>`).join("");
-  const notesHtml = getTabNotes(tab, lang, financed).map(note => `<p>${note}</p>`).join("");
+  const processSteps = getProcessSteps(tab, lang, financed);
+  const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow">›</span>' : ""}<span class="processStep">${step}</span>`).join("");
   const html = `
 <!doctype html>
 <html>
@@ -831,9 +863,13 @@ function printCalculation({
     .total b{display:block;margin:0;color:#005B82;font-size:48px;line-height:1;font-weight:900;letter-spacing:0}
     .totalAmount{color:#005B82;font-size:22px;font-weight:900;text-align:right}
     .totalAmount div{margin-top:4px}
+    .deliveryRoad{position:relative;z-index:1;width:100%;height:30px;margin:8px 0 2px;color:#005B82}
+    .deliveryRoad:before{content:"";position:absolute;left:0;right:0;top:17px;border-top:1px dashed #94a3b8}
+    .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px}
     .rate{text-align:right;font-style:italic;color:#64748b;margin-top:12px;font-size:13px}
-    .notes{position:relative;z-index:1;border-top:1px dashed #94a3b8;margin-top:18px;padding-top:12px;font-style:italic;color:#475569;font-size:13.5px}
-    .notes p{margin:5px 0}
+    .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
+    .processStep{display:inline-flex;align-items:center}
+    .processArrow{color:#005B82;opacity:.48;font-size:18px;font-style:normal;font-weight:900}
     .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}
   </style>
 </head>
@@ -851,8 +887,11 @@ function printCalculation({
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div></div>
+    <div class="deliveryRoad">
+      <svg viewBox="0 0 86 30" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h53c3.8 0 6.8-2.8 6.8-6.2 0-2.7-2-5.2-4.9-6l-10.5-3.1a15 15 0 0 0-4.3-.6H35.8c-3.7 0-7.2 1.4-9.7 3.9l-6.8 6.7H12c-2.6 0-4.8 1.9-4.8 4.2"/><path d="M30 9h16l5.2 7H23.5L30 9z"/><path d="M49 9h5.8c1 0 2 .2 2.9.5l7.7 2.3"/><circle cx="24" cy="22" r="4.2"/><circle cx="62" cy="22" r="4.2"/><path d="M2 25h8M75 25h9"/></g></svg>
+    </div>
     <div class="rate">${c.rateLine}: 1 EUR = ${rateLabel(rate)} PLN</div>
-    <div class="notes">${notesHtml}</div>
+    <div class="processFlow">${processHtml}</div>
     <div class="footerMark">AG</div>
   </main>
   <script>window.onload = function(){ window.print(); };</script>
@@ -891,6 +930,7 @@ function App() {
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
   const calc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
+  const processSteps = getProcessSteps(tab, safeLang, financed);
   useEffect(() => {
     let isMounted = true;
     loadExchangeRates().then(data => {
@@ -1112,13 +1152,14 @@ function App() {
     className: "totalLabel"
   }, /*#__PURE__*/React.createElement("span", null, c.total)), /*#__PURE__*/React.createElement("div", {
     className: "totalValue"
-  }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")"))), /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")"))), /*#__PURE__*/React.createElement("div", {
+    className: "deliveryRoad",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement(DeliveryCar, null)), /*#__PURE__*/React.createElement("p", {
     className: "rateNote"
-  }, c.rateLine, ": 1 EUR = ", rateLabel(n(rate) || DEFAULT_RATE), " PLN"), /*#__PURE__*/React.createElement("footer", {
-    className: "footnotes"
-  }, getTabNotes(tab, lang, financed).map(note => /*#__PURE__*/React.createElement("p", {
-    key: note
-  }, note))))), screenshotStatus && /*#__PURE__*/React.createElement("div", {
+  }, c.rateLine, ": 1 EUR = ", rateLabel(n(rate) || DEFAULT_RATE), " PLN"), /*#__PURE__*/React.createElement(ProcessFlow, {
+    steps: processSteps
+  }))), screenshotStatus && /*#__PURE__*/React.createElement("div", {
     className: `toast ${screenshotStatus}`
   }, screenshotStatus === "ready" && c.screenshotReady, screenshotStatus === "opened" && c.screenshotOpened, screenshotStatus === "error" && c.screenshotError));
 }

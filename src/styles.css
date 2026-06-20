@@ -665,6 +665,36 @@ select {
   justify-content: flex-start;
 }
 
+.deliveryRoad {
+  position: relative;
+  z-index: 1;
+  width: 650px;
+  max-width: 100%;
+  height: 32px;
+  margin: 8px 0 2px;
+  color: #005b82;
+}
+
+.deliveryRoad > span {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 18px;
+  border-top: 1px dashed #94a3b8;
+}
+
+.deliveryCarIcon {
+  position: absolute;
+  right: 54px;
+  top: 1px;
+  width: 86px;
+  height: 30px;
+  color: #005b82;
+  opacity: 0.72;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0 5px;
+}
+
 .rateNote {
   position: relative;
   z-index: 1;
@@ -678,21 +708,37 @@ select {
   text-align: right;
 }
 
-.footnotes {
+.processFlow {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
   width: 650px;
   max-width: 100%;
-  margin-top: 18px;
-  padding-top: 12px;
-  border-top: 1px dashed #94a3b8;
+  margin-top: 14px;
+  border: 1px solid #dbe4ee;
+  border-radius: 9px;
+  background: rgba(248, 251, 253, 0.88);
+  padding: 10px 12px;
   color: #64748b;
   font-size: 12.5px;
   font-style: italic;
 }
 
-.footnotes p {
-  margin: 5px 0;
+.processStep {
+  display: inline-flex;
+  align-items: center;
+}
+
+.processArrow {
+  color: #005b82;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.46;
 }
 
 .errorBox {
