@@ -693,6 +693,7 @@ select {
   opacity: 0.72;
   background: rgba(255, 255, 255, 0.82);
   padding: 0 5px;
+  transform: scaleX(-1);
 }
 
 .rateNote {

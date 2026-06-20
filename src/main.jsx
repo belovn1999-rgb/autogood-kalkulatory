@@ -759,7 +759,7 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     .totalAmount div{margin-top:4px}
     .deliveryRoad{position:relative;z-index:1;width:100%;height:30px;margin:8px 0 2px;color:#005B82}
     .deliveryRoad:before{content:"";position:absolute;left:0;right:0;top:17px;border-top:1px dashed #94a3b8}
-    .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px}
+    .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px;transform:scaleX(-1)}
     .rate{text-align:right;font-style:italic;color:#64748b;margin-top:12px;font-size:13px}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-flex;align-items:center}
