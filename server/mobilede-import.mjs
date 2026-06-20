@@ -126,6 +126,14 @@ function collectRegexMatches(text, patterns) {
   return values;
 }
 
+function firstText(...values) {
+  for (const value of values.flat()) {
+    const text = stripTags(value);
+    if (text) return text;
+  }
+  return "";
+}
+
 function isAccessDenied(html, text = "") {
   return /Zugriff verweigert|Access denied|For security reasons/i.test(`${html}\n${text}`);
 }
@@ -243,6 +251,99 @@ function extractFuel(html, jsonData, text) {
   return "";
 }
 
+function extractTitle(html, jsonData, text) {
+  const candidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/^(name|title|headline|modeldescription|make|model)$/i.test(key) && typeof value !== "object") candidates.push(value);
+    });
+  });
+
+  candidates.push(...collectRegexMatches(html, [
+    /<h1[^>]*>([\s\S]*?)<\/h1>/i,
+    /<title[^>]*>([\s\S]*?)<\/title>/i,
+    /\\"(?:headline|title|name)\\"\s*:\s*\\"([^"\\]{3,140})/gi,
+  ]));
+
+  return firstText(candidates).replace(/\s*\|\s*mobile\.de.*$/i, "");
+}
+
+function extractMileage(html, jsonData, text) {
+  const candidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/mileage|kilometer|kilometre|odometer|laufleistung/i.test(key)) candidates.push(value);
+    });
+  });
+
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\"(?:mileage|mileageInKm|odometer)\\"\s*:\s*\\"?([\d. ]+)/gi,
+    /(?:Kilometerstand|Przebieg|Mileage)[^0-9]{0,80}([\d. ]+)\s*km/i,
+    /([\d. ]+)\s*km\b/i,
+  ]));
+
+  return Math.round(firstFinite(...candidates));
+}
+
+function extractFirstRegistration(html, jsonData, text) {
+  const candidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/firstregistration|firstregistrationdate|ez|zulassung|registration/i.test(key) && typeof value !== "object") candidates.push(value);
+    });
+  });
+
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\"(?:firstRegistration|firstRegistrationDate)\\"\s*:\s*\\"([^"\\]+)/gi,
+    /(?:Erstzulassung|Pierwsza rejestracja|First registration)[^0-9]{0,80}(\d{1,2}\/\d{4}|\d{4})/i,
+  ]));
+
+  return firstText(candidates);
+}
+
+function extractLocation(html, jsonData, text) {
+  const localityCandidates = [];
+  const postalCandidates = [];
+  const streetCandidates = [];
+  const addressCandidates = [];
+  const sellerCandidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (typeof value === "object") return;
+      if (/addresslocality|city|ort|locality/i.test(key)) localityCandidates.push(value);
+      if (/postalcode|zipcode|zip|plz/i.test(key)) postalCandidates.push(value);
+      if (/streetaddress|street|strasse|straße/i.test(key)) streetCandidates.push(value);
+      if (/address/i.test(key)) addressCandidates.push(value);
+      if (/seller|dealer|vendor|anbieter|company|name/i.test(key)) sellerCandidates.push(value);
+    });
+  });
+
+  const combined = `${html}\n${text}`;
+  const postalCityMatches = collectRegexMatches(combined, [
+    /\b(\d{5}\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüßąćęłńóśźżĄĆĘŁŃÓŚŹŻ .'-]{2,60})\b/g,
+  ]);
+  const postalCity = firstText(postalCityMatches);
+  const postalCityMatch = postalCity.match(/^(\d{5})\s+(.+)$/);
+
+  const city = firstText(localityCandidates, postalCityMatch?.[2] || "");
+  const postalCode = firstText(postalCandidates, postalCityMatch?.[1] || "");
+  const street = firstText(streetCandidates);
+  const address = firstText(addressCandidates, [street, postalCode, city].filter(Boolean).join(", "));
+  const sellerName = firstText(sellerCandidates);
+
+  return {
+    sellerName,
+    street,
+    postalCode,
+    city,
+    address,
+  };
+}
+
 function classifyEngine(fuel, displacementCcm) {
   const normalized = String(fuel || "").toLowerCase();
   const ccm = Number(displacementCcm) || 0;
@@ -341,6 +442,10 @@ const server = http.createServer(async (request, response) => {
     const displacementCcm = extractDisplacement(html, jsonData, text);
     const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
+    const title = extractTitle(html, jsonData, text);
+    const mileageKm = extractMileage(html, jsonData, text);
+    const firstRegistration = extractFirstRegistration(html, jsonData, text);
+    const location = extractLocation(html, jsonData, text);
 
     if (!carBruttoEur) throw new Error("Price not found");
 
@@ -350,8 +455,12 @@ const server = http.createServer(async (request, response) => {
       adId: urlInfo.adId,
       importMode: mode,
       carBruttoEur,
+      title,
       fuel,
       displacementCcm,
+      mileageKm,
+      firstRegistration,
+      location,
       engineTypeIndex,
       engineTypeLabel: [
         "EL / PHEV <=2000cm³",
@@ -360,6 +469,14 @@ const server = http.createServer(async (request, response) => {
         "Spalinowy <=2000cm³",
         "Spalinowy >2000cm³",
       ][engineTypeIndex],
+      diagnostics: {
+        hasPrice: Boolean(carBruttoEur),
+        hasFuel: Boolean(fuel),
+        hasDisplacement: Boolean(displacementCcm),
+        hasLocation: Boolean(location.city || location.address),
+        htmlChars: html.length,
+        textChars: text.length,
+      },
     });
   } catch (error) {
     sendJson(response, 502, {

@@ -48,7 +48,7 @@ const copy = {
     mobileImportPlaceholder: "Wklej link ogłoszenia",
     mobileImportButton: "Załaduj dane",
     mobileImportLoading: "Pobieram dane...",
-    mobileImportReady: "Dane podstawione: cena brutto, silnik i akcyza.",
+    mobileImportReady: "Dane podstawione: cena brutto, silnik, akcyza i dane ogłoszenia.",
     mobileImportError: "Nie udało się pobrać danych. Sprawdź link albo backend.",
     mobileImportFound: "Znaleziono",
     errorTitle: "Coś poszło nie tak.",
@@ -95,7 +95,7 @@ const copy = {
     mobileImportPlaceholder: "Вставь ссылку объявления",
     mobileImportButton: "Загрузить данные",
     mobileImportLoading: "Загружаю данные...",
-    mobileImportReady: "Данные подставлены: цена brutto, двигатель и акциз.",
+    mobileImportReady: "Данные подставлены: цена brutto, двигатель, акциз и данные объявления.",
     mobileImportError: "Не удалось загрузить данные. Проверь ссылку или backend.",
     mobileImportFound: "Найдено",
     errorTitle: "Что-то пошло не так.",
@@ -892,10 +892,16 @@ function App() {
       }
 
       const summaryParts = [];
+      if (data?.title) summaryParts.push(data.title);
       if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
       if (data?.fuel) summaryParts.push(data.fuel);
       if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
       if (data?.engineTypeLabel) summaryParts.push(data.engineTypeLabel);
+      if (data?.mileageKm) summaryParts.push(`${data.mileageKm.toLocaleString("pl-PL")} km`);
+      if (data?.firstRegistration) summaryParts.push(data.firstRegistration);
+      if (data?.location?.city || data?.location?.address) {
+        summaryParts.push(data.location.address || data.location.city);
+      }
 
       setMobileDeSummary(summaryParts.join(" • "));
       setMobileDeStatus("ready");

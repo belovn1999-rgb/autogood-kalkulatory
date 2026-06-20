@@ -53,6 +53,18 @@ Domyslny endpoint importu:
 http://127.0.0.1:8788/mobilede/import
 ```
 
+Zakres importu Mobile.de:
+
+```text
+link -> ID ogloszenia -> cena brutto EUR -> paliwo -> pojemnosc -> typ akcyzy
+     -> tytul ogloszenia -> przebieg -> pierwsza rejestracja -> miasto/adres sprzedawcy
+```
+
+Mobile.de czesto blokuje zwykly HTTP request. W takim przypadku backend automatycznie
+przechodzi na tryb przegladarki przez Playwright. Do realnej pracy importu wymagane jest
+uruchomienie backendu po `npm install`; lokalnie na macOS backend moze uzyc systemowego
+Google Chrome.
+
 Na publicznym GitHub Pages backend musi byc wdrozony osobno pod adresem HTTPS i
 podany w `window.AUTOGOOD_MOBILEDE_API_URL`.
 
