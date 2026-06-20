@@ -189,7 +189,7 @@ const tabs = [{
     currency: "PLN"
   }],
   notes: {
-    pl: ["* Bezpośrednia płatność za pojazd", "** Oddajemy 70% uzyskanego rabatu"],
+    pl: ["* Bezpośrednia płatność za pojazd", "** Oddajemy 70% uzyskanego rabatu od sprzedawcy"],
     ru: ["* Прямая оплата за автомобиль", "** Возвращаем 70% полученной скидки"]
   }
 }, {
@@ -304,7 +304,7 @@ const tabs = [{
     currency: "PLN"
   }],
   notes: {
-    pl: ["* Sprzedaż na Fakturę VAT 23%", "** Oddajemy 70% uzyskanego rabatu", "*** Wpłacamy kaucję w wys. zagranicznego VAT-u", "**** Opłata w walucie PLN lub EUR"],
+    pl: ["* Sprzedaż na Fakturę VAT 23%", "** Oddajemy 70% uzyskanego rabatu od sprzedawcy", "*** Wpłacamy kaucję w wys. zagranicznego VAT-u", "**** Opłata w walucie PLN lub EUR"],
     ru: ["* Продажа по Faktura VAT 23%", "** Возвращаем 70% полученной скидки", "*** Вносим депозит в размере иностранного VAT", "**** Оплата в PLN или EUR"]
   }
 }, {
