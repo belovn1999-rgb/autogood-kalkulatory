@@ -511,6 +511,18 @@ function DeliveryCar() {
   );
 }
 
+function ExhaustLines() {
+  return (
+    <svg className="exhaustLines" viewBox="0 0 38 18" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M34 5c-5-3-10-3-15 0" />
+        <path d="M27 10c-6-2-12-1-17 2" />
+        <path d="M18 5c-5-1-9 0-13 3" />
+      </g>
+    </svg>
+  );
+}
+
 function ProcessFlow({ steps }) {
   return (
     <footer className="processFlow" aria-label="Informacje">
@@ -760,7 +772,7 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     .totalRate{grid-column:1/-1;text-align:right;font-style:italic;color:rgba(255,255,255,.82);font-size:13px;padding-right:22px}
     .deliveryRoad{position:relative;z-index:1;width:100%;height:30px;margin:8px 0 2px;color:#005B82}
     .deliveryRoad:before{content:"";position:absolute;left:0;right:0;top:17px;border-top:1px dashed #94a3b8}
-    .exhaustCloud{position:absolute;right:135px;top:9px;width:9px;height:7px;border-radius:999px;background:rgba(100,116,139,.28);box-shadow:-8px 2px 0 rgba(100,116,139,.20),-15px 4px 0 rgba(100,116,139,.14)}
+    .exhaustLines{position:absolute;right:132px;top:6px;width:38px;height:18px;color:#005B82;opacity:.42}
     .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px;transform:scaleX(-1)}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-flex;align-items:center}
@@ -783,7 +795,7 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: 1 EUR = ${rateLabel(rate)} PLN</div></div>
     <div class="deliveryRoad">
-      <span class="exhaustCloud"></span>
+      <svg class="exhaustLines" viewBox="0 0 38 18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M34 5c-5-3-10-3-15 0"/><path d="M27 10c-6-2-12-1-17 2"/><path d="M18 5c-5-1-9 0-13 3"/></g></svg>
       <svg viewBox="0 0 86 30" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h53c3.8 0 6.8-2.8 6.8-6.2 0-2.7-2-5.2-4.9-6l-10.5-3.1a15 15 0 0 0-4.3-.6H35.8c-3.7 0-7.2 1.4-9.7 3.9l-6.8 6.7H12c-2.6 0-4.8 1.9-4.8 4.2"/><path d="M30 9h16l5.2 7H23.5L30 9z"/><path d="M49 9h5.8c1 0 2 .2 2.9.5l7.7 2.3"/><circle cx="24" cy="22" r="4.2"/><circle cx="62" cy="22" r="4.2"/><path d="M2 25h8M75 25h9"/></g></svg>
     </div>
     <div class="processFlow">${processHtml}</div>
@@ -1070,7 +1082,7 @@ function App() {
 
           <div className="deliveryRoad" aria-hidden="true">
             <span />
-            <span className="exhaustCloud" />
+            <ExhaustLines />
             <DeliveryCar />
           </div>
 
