@@ -761,7 +761,7 @@ function App() {
   const [rate, setRate] = useState(DEFAULT_RATE);
   const [marketRates, setMarketRates] = useState(RATES_FALLBACK);
   const [ratesStatus, setRatesStatus] = useState("loading");
-  const [engineIndex, setEngineIndex] = useState(0);
+  const [engineIndex, setEngineIndex] = useState(3);
   const [financed, setFinanced] = useState(false);
   const [values, setValues] = useState({});
   const [mobileDeUrl, setMobileDeUrl] = useState("");
