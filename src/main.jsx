@@ -138,6 +138,7 @@ const tabs = [
       { key: "car", label: { pl: "Cena pojazdu", ru: "Цена автомобиля" }, currency: "EUR" },
       { key: "inspection", label: { pl: "Oględziny specjalisty netto", ru: "Инспекция специалиста netto" }, currency: "PLN" },
       { key: "transport", label: { pl: "Transport na lawecie netto", ru: "Транспорт на автовозе netto" }, currency: "PLN" },
+      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "PLN" },
     ],
     notes: {
       pl: ["* Bezpośrednia płatność za pojazd", "** Oddajemy 70% uzyskanego rabatu"],
@@ -537,8 +538,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const inspectionBrutto = inspection * 1.23;
     const transportBrutto = transport * 1.23;
     const excise = exciseRate * carPln;
-    const commissionNetto = STD_FIX + 0.01 * carPln;
+    const discountCommission = 0.3 * discount;
+    const commissionNetto = STD_FIX + 0.01 * carPln + discountCommission;
     const commissionBrutto = commissionNetto * 1.23;
+    const discountText = discount > 0 ? `; 30% × ${money(discount)}` : "";
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
     return {
       total,
@@ -547,7 +550,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
         row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
         row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`),
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
-        row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`),
+        row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto${discountText}`),
         row(t.to, TO_FEE, "", "", false, true),
         row(t.doc, DOC_TRANSLATION, "", "", false, true),
       ],
