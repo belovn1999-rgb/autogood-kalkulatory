@@ -223,17 +223,47 @@ const tabs = [
     notes: {
       pl: [
         "* Sprzedaż na Fakturę VAT Marża",
-        "** Oddajemy 70% uzyskanego rabatu",
-        "*** Możliwość opłaty w PLN / EUR",
+        "** Opłata w walucie PLN lub EUR",
+        "*** Oddajemy 70% uzyskanego rabatu od sprzedawcy",
       ],
       ru: [
         "* Продажа по Faktura VAT Marża",
-        "** Возвращаем 70% полученной скидки",
-        "*** Возможность оплаты в PLN / EUR",
+        "** Оплата в PLN или EUR",
+        "*** Возвращаем 70% полученной скидки от продавца",
       ],
     },
   },
 ];
+
+const financingNotes = {
+  pl: {
+    ownFunds: "Kupujemy pojazd z własnych środków",
+    ownFundsDeposit: "Kupujemy pojazd z własnych środków oraz wpłacamy kaucję w wys. zagranicznego VAT-u",
+  },
+  ru: {
+    ownFunds: "Покупаем автомобиль за собственные средства",
+    ownFundsDeposit: "Покупаем автомобиль за собственные средства и вносим депозит в размере иностранного VAT",
+  },
+};
+
+function getTabNotes(tab, lang, financed) {
+  const notes = [...tab.notes[lang]];
+  if (!financed || tab.id === 0) return notes;
+
+  const prefix = "*".repeat(notes.length + 1);
+  if (tab.id === 3) {
+    const depositText = lang === "pl" ? "Wpłacamy kaucję w wys. zagranicznego VAT-u" : "Вносим депозит в размере иностранного VAT";
+    const replacement = `${lang === "pl" ? "***" : "***"} ${financingNotes[lang].ownFundsDeposit}`;
+    const depositIndex = notes.findIndex((note) => note.includes(depositText));
+    if (depositIndex >= 0) {
+      notes[depositIndex] = replacement;
+      return notes;
+    }
+  }
+
+  notes.push(`${prefix} ${financingNotes[lang].ownFunds}`);
+  return notes;
+}
 
 function n(value) {
   const parsed = Number(String(value).replace(",", "."));
@@ -652,7 +682,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   };
 }
 
-function printCalculation({ lang, tab, rows, total, rate }) {
+function printCalculation({ lang, tab, rows, total, rate, financed }) {
   const c = copy[lang];
   const roundedTotal = roundedCurrencyValue(total, "PLN");
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
@@ -675,7 +705,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
         </tr>`
     )
     .join("");
-  const notesHtml = tab.notes[lang].map((note) => `<p>${note}</p>`).join("");
+  const notesHtml = getTabNotes(tab, lang, financed).map((note) => `<p>${note}</p>`).join("");
   const html = `
 <!doctype html>
 <html>
@@ -720,7 +750,7 @@ function printCalculation({ lang, tab, rows, total, rate }) {
     .totalAmount{color:#005B82;font-size:22px;font-weight:900;text-align:right}
     .totalAmount div{margin-top:4px}
     .rate{text-align:right;font-style:italic;color:#64748b;margin-top:12px;font-size:13px}
-    .notes{position:relative;z-index:1;border-top:1px dashed #94a3b8;margin-top:18px;padding-top:12px;font-style:italic;color:#475569;font-size:13px}
+    .notes{position:relative;z-index:1;border-top:1px dashed #94a3b8;margin-top:18px;padding-top:12px;font-style:italic;color:#475569;font-size:13.5px}
     .notes p{margin:5px 0}
     .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}
   </style>
@@ -916,7 +946,7 @@ function App() {
             <button className={lang === "pl" ? "active" : ""} onClick={() => setLang("pl")}>PL</button>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RU</button>
           </div>
-          <button className="printBtn" onClick={() => printCalculation({ lang, tab, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE })}>
+          <button className="printBtn" onClick={() => printCalculation({ lang, tab, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed })}>
             {c.print}
           </button>
           <button className="printBtn screenshotBtn" onClick={copyScreenshot}>
@@ -1017,7 +1047,7 @@ function App() {
           <p className="rateNote">{c.rateLine}: 1 EUR = {rateLabel(n(rate) || DEFAULT_RATE)} PLN</p>
 
           <footer className="footnotes">
-            {tab.notes[lang].map((note) => (
+            {getTabNotes(tab, lang, financed).map((note) => (
               <p key={note}>{note}</p>
             ))}
           </footer>
