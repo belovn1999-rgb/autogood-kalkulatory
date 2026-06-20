@@ -622,7 +622,7 @@ select {
   display: grid;
   grid-template-columns: 310px 294px;
   justify-content: start;
-  gap: 18px;
+  gap: 9px 18px;
   align-items: center;
   width: 650px;
   max-width: 100%;
@@ -630,7 +630,7 @@ select {
   border-radius: 12px;
   background: #005b82;
   color: #fff;
-  padding: 18px 14px;
+  padding: 20px 14px 16px;
   text-align: left;
 }
 
@@ -665,6 +665,15 @@ select {
   justify-content: flex-start;
 }
 
+.totalRate {
+  grid-column: 1 / -1;
+  padding-right: 4px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-style: italic;
+  text-align: right;
+}
+
 .deliveryRoad {
   position: relative;
   z-index: 1;
@@ -694,19 +703,6 @@ select {
   background: rgba(255, 255, 255, 0.82);
   padding: 0 5px;
   transform: scaleX(-1);
-}
-
-.rateNote {
-  position: relative;
-  z-index: 1;
-  width: 650px;
-  max-width: 100%;
-  margin: 10px 0 0;
-  padding: 0 14px;
-  color: #64748b;
-  font-size: 13px;
-  font-style: italic;
-  text-align: right;
 }
 
 .processFlow {
