@@ -816,7 +816,7 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     .exhaustLines{position:absolute;right:132px;top:6px;width:38px;height:18px;color:#005B82;opacity:.42}
     .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px;transform:scaleX(-1)}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
-    .processStep{display:inline-flex;align-items:center;white-space:nowrap}
+    .processStep{display:inline-block;white-space:nowrap}
     .processStep strong{color:#102033;font-weight:900}
     .processArrow{color:#005B82;opacity:.52;font-size:18px;font-style:normal;font-weight:900;letter-spacing:.5px;white-space:pre}
     .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}

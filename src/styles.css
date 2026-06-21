@@ -708,8 +708,7 @@ select {
 }
 
 .processStep {
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
   white-space: nowrap;
 }
 
