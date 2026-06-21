@@ -364,7 +364,7 @@ function getProcessSteps(tab, lang, financed) {
   };
   return steps[tab.id]?.[lang] || [];
 }
-const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Płacisz za pojazd", "Вы оплачиваете автомобиль", "Opłacasz całość", "Вы оплачиваете всю сумму", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "Sprzedajemy", "Продаём", "własnych środków", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Płacisz za pojazd", "Вы оплачиваете автомобиль", "Вы оплачиваете всю сумму", "w PLN lub EUR", "PLN lub EUR", "PLN или EUR", "na Fakturę VAT 23%", "Fakturę VAT 23%", "Faktura VAT 23%", "na Fakturę VAT Marża", "Fakturę VAT Marża", "Faktura VAT Marża", "Продаём", "własnych środków", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
 function splitHighlightedText(text) {
   const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const pattern = new RegExp(`(${escaped})`, "gi");
@@ -974,7 +974,7 @@ function printCalculation({
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
-    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: 1 EUR = ${rateLabel(rate)} PLN</div></div>
+    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${rateLabel(rate)} PLN</div></div>
     <div class="deliveryRoad">
       <svg class="roadFlag startFlag" viewBox="0 0 24 32" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 29V5"/><path d="M6 6h12l-2.6 4L18 14H6"/><path d="M6 24h6"/></g></svg>
       <svg class="exhaustLines" viewBox="0 0 38 18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M34 5c-5-3-10-3-15 0"/><path d="M27 10c-6-2-12-1-17 2"/><path d="M18 5c-5-1-9 0-13 3"/></g></svg>
@@ -1229,7 +1229,7 @@ function App() {
     className: "totalValue"
   }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")")), /*#__PURE__*/React.createElement("div", {
     className: "totalRate"
-  }, c.rateLine, ": 1 EUR = ", rateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
+  }, c.rateLine, ": ", rateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
     className: "deliveryRoad",
     "aria-hidden": "true"
   }, /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement(StartFlag, null), /*#__PURE__*/React.createElement(ExhaustLines, null), /*#__PURE__*/React.createElement(DeliveryCar, null), /*#__PURE__*/React.createElement(FinishFlag, null)), /*#__PURE__*/React.createElement(ProcessFlow, {
