@@ -694,7 +694,7 @@ select {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
   width: 650px;
   max-width: 100%;
   margin-top: 14px;
@@ -710,6 +710,7 @@ select {
 .processStep {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .processStep strong {
@@ -725,6 +726,7 @@ select {
   line-height: 1;
   letter-spacing: 0.5px;
   opacity: 0.52;
+  white-space: pre;
 }
 
 .errorBox {
