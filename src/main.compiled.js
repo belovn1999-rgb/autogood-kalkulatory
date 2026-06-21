@@ -768,7 +768,7 @@ class ErrorBoundary extends Component {
 }
 function tagLabel(tag) {
   if (!tag) return null;
-  const label = tag === "+VAT 23%" ? "VAT" : tag;
+  const label = tag === "+VAT 23%" ? "+23%" : tag;
   const className = tag.replace("+", "plus").replace(/\s|%/g, "");
   return /*#__PURE__*/React.createElement("span", {
     className: `tag tag-${className}`
@@ -822,7 +822,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", `${money(transPln * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", `${money(transPln * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   if (tabId === 2) {
@@ -838,7 +838,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE;
     return {
       total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true)]
+      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   if (tabId === 3) {
@@ -854,7 +854,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   const carPln = car * useRate;
@@ -869,7 +869,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE;
   return {
     total,
-    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true)]
+    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true)]
   };
 }
 function printCalculation({
@@ -885,7 +885,7 @@ function printCalculation({
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
   const rowsHtml = rows.map((item, index) => {
-    const displayTag = item.tag === "+VAT 23%" ? "VAT" : item.tag;
+    const displayTag = item.tag === "+VAT 23%" ? "+23%" : item.tag;
     return `
         <tr class="${item.highlight ? "vat" : ""} ${index === 0 ? "mainRow" : ""}">
           <td>
@@ -933,7 +933,7 @@ function printCalculation({
     strong{font-size:15px}
     small{display:block;color:#64748b;margin-top:3px;font-size:11px}
     span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
-    .softVatTag{color:#64748b;background:#f1f5f9;font-size:10px;letter-spacing:.03em}
+    .softVatTag{color:#64748b;background:#f1f5f9;font-size:9px;letter-spacing:.03em}
     .amount{display:grid;grid-template-columns:92px max-content auto;justify-content:end;align-items:center;column-gap:4px}
     .amount em{font-style:normal;color:#64748b;font-weight:800;text-align:right}
     .amount em.isEmpty{visibility:hidden}
