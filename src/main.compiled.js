@@ -374,14 +374,24 @@ function isHighlightedText(part) {
   return processHighlights.some(phrase => phrase.toLowerCase() === String(part).toLowerCase());
 }
 function renderHighlightedText(text) {
-  return splitHighlightedText(text).map((part, index) => isHighlightedText(part) ? /*#__PURE__*/React.createElement("strong", {
-    key: `${part}-${index}`
-  }, part) : /*#__PURE__*/React.createElement(React.Fragment, {
-    key: `${part}-${index}`
-  }, part));
+  const parts = splitHighlightedText(text);
+  return parts.map((part, index) => {
+    const needsSpaceBefore = isHighlightedText(part) && parts[index - 1] && !/\s$/.test(parts[index - 1]);
+    const needsSpaceAfter = isHighlightedText(part) && parts[index + 1] && !/^\s/.test(parts[index + 1]);
+    return isHighlightedText(part) ? /*#__PURE__*/React.createElement(React.Fragment, {
+      key: `${part}-${index}`
+    }, needsSpaceBefore ? " " : "", /*#__PURE__*/React.createElement("strong", null, part), needsSpaceAfter ? " " : "") : /*#__PURE__*/React.createElement(React.Fragment, {
+      key: `${part}-${index}`
+    }, part);
+  });
 }
 function highlightedHtml(text) {
-  return splitHighlightedText(text).map(part => isHighlightedText(part) ? `<strong>${part}</strong>` : part).join("");
+  const parts = splitHighlightedText(text);
+  return parts.map((part, index) => {
+    const needsSpaceBefore = isHighlightedText(part) && parts[index - 1] && !/\s$/.test(parts[index - 1]);
+    const needsSpaceAfter = isHighlightedText(part) && parts[index + 1] && !/^\s/.test(parts[index + 1]);
+    return isHighlightedText(part) ? `${needsSpaceBefore ? " " : ""}<strong>${part}</strong>${needsSpaceAfter ? " " : ""}` : part;
+  }).join("");
 }
 function n(value) {
   const parsed = Number(String(value).replace(",", "."));
