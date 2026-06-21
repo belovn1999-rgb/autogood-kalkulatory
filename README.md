@@ -92,7 +92,7 @@ Dokumenty transakcji:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/documents.html
 ```
 
-Auto1 PDF cleanup / learning pack:
+Auto1 PDF client cleaner:
 
 ```text
 https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html

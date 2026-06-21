@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Auto1</title>
-    <link rel="stylesheet" href="./src/tools.css?v=auto1-learning-20260621" />
-    <link rel="stylesheet" href="./src/auto1.css?v=20260621-learning" />
+    <link rel="stylesheet" href="./src/tools.css?v=auto1-app-20260621" />
+    <link rel="stylesheet" href="./src/auto1.css?v=20260621-app" />
+    <script src="./vendor/jspdf.umd.min.js"></script>
+    <script type="module" src="./src/auto1.js?v=20260621-app"></script>
   </head>
   <body>
     <main class="workspaceShell">
@@ -21,110 +23,64 @@
         </nav>
       </header>
 
-      <section class="workspaceHero auto1Hero">
-        <p class="eyebrow">AUTOGOOD auction workspace</p>
-        <h1>Auto1 PDF cleanup</h1>
-        <p>
-          Ten punkt zastępuje poprzedni automatyczny cleaner. Teraz przechowuje
-          potwierdzone reguły formatowania raportów AUTO1 na podstawie ręcznej
-          demonstracji i porównania PDF raw -> client-ready.
-        </p>
-      </section>
+      <section class="auto1App" aria-label="Auto1 client PDF maker">
+        <div class="auto1Main">
+          <div class="auto1Intro">
+            <p class="eyebrow">AUTO1 client PDF</p>
+            <h1>Przygotuj raport dla klienta</h1>
+            <p>
+              Wgraj surowy raport PDF pobrany z AUTO1. Program oczyści go z
+              elementow aukcyjnych i przygotuje wersje do wyslania klientowi.
+            </p>
+          </div>
 
-      <section class="auto1Panel" aria-label="Auto1 PDF learning status">
-        <div class="auto1StatusCard">
-          <span class="toolBadge">Status</span>
-          <h2>Jeep Compass sample zapisany</h2>
-          <p>
-            Zarejestrowano ręczną pracę w Acrobat Pro DC, porównano surowy i
-            gotowy PDF oraz zapisano reguły, które mają być powtarzane przy
-            kolejnych raportach AUTO1.
-          </p>
+          <label class="auto1Drop" id="dropZone">
+            <input id="pdfInput" type="file" accept="application/pdf,.pdf" />
+            <span class="auto1DropIcon">PDF</span>
+            <strong id="dropTitle">Wybierz albo przeciagnij plik PDF</strong>
+            <small id="fileMeta">Dziala lokalnie w przegladarce. Plik nie jest wysylany na serwer.</small>
+          </label>
+
+          <div class="auto1Actions">
+            <button class="primaryButton" id="processButton" type="button" disabled>
+              Oczyść i pobierz PDF
+            </button>
+            <a class="secondaryButton isDisabled" id="downloadButton" download>
+              Pobierz gotowy PDF
+            </a>
+          </div>
+
+          <div class="auto1Progress" aria-live="polite">
+            <div class="auto1ProgressBar">
+              <span id="progressBar"></span>
+            </div>
+            <p id="statusText">Czekam na plik AUTO1.</p>
+          </div>
         </div>
-        <dl class="auto1Facts">
-          <div>
-            <dt>Raw PDF</dt>
-            <dd>13 stron</dd>
-          </div>
-          <div>
-            <dt>Client PDF</dt>
-            <dd>12 stron</dd>
-          </div>
-          <div>
-            <dt>Recording</dt>
-            <dd>126 zrzutów ekranu</dd>
-          </div>
-          <div>
-            <dt>Primary app</dt>
-            <dd>Acrobat Pro DC</dd>
-          </div>
-        </dl>
-      </section>
 
-      <section class="auto1Grid" aria-label="Auto1 confirmed rules">
-        <article>
-          <h2>Usuwać zawsze</h2>
+        <aside class="auto1Side" aria-label="Auto1 cleanup rules">
+          <h2>Automatycznie usuwane</h2>
           <ul>
-            <li>voucher / Save cash</li>
-            <li>stock number i numery wewnętrzne aukcji</li>
-            <li>In high demand / watchlist messages</li>
-            <li>delivery, pickup, logistics, prices and timing</li>
-            <li>video overlays, progress bars and timestamps</li>
-            <li>Total Pictures counters and gallery system notes</li>
-            <li>legal/footer-only Auto1 page</li>
+            <li>voucher, Save cash, Export advantage</li>
+            <li>stock number i wewnetrzne numery aukcji</li>
+            <li>watchlist, high demand i podobne komunikaty</li>
+            <li>delivery, pickup, logistics, ceny i terminy odbioru</li>
+            <li>video overlay, pasek postepu i czas odtwarzacza</li>
+            <li>Total Pictures i techniczne komunikaty galerii</li>
+            <li>puste strony prawne / stopki AUTO1</li>
           </ul>
-        </article>
-
-        <article>
-          <h2>Zostawiać dla klienta</h2>
-          <ul>
-            <li>vehicle title and main photos</li>
-            <li>technical specification table</li>
-            <li>test drive information</li>
-            <li>vehicle condition and paint map</li>
-            <li>damage summary and damage table</li>
-            <li>equipment, service details, technical inspection</li>
-            <li>VIN/equipment data section</li>
-          </ul>
-        </article>
-
-        <article>
-          <h2>Format docelowy</h2>
-          <ul>
-            <li>czysty raport bez elementów aukcyjnych</li>
-            <li>bez pustych stron prawnych</li>
-            <li>bez widocznych elementów odtwarzacza wideo</li>
-            <li>bez pasków/artefaktów UI po prawej stronie</li>
-            <li>z zachowanymi zdjęciami i sekcjami technicznymi</li>
-            <li>po edycji zawsze render + kontrola wizualna</li>
-          </ul>
-        </article>
-      </section>
-
-      <section class="auto1Docs" aria-label="Auto1 repository package">
-        <div>
-          <span class="toolBadge">Repo package</span>
-          <h2>Materiały zapisane w repozytorium</h2>
-          <p>
-            Pliki PDF i obrazy porównawcze zostają lokalnie. Do GitHub trafiły
-            potwierdzone zasady i notatki techniczne, żeby nie publikować danych
-            z raportów aukcyjnych.
-          </p>
-        </div>
-        <div class="auto1DocLinks">
           <a href="./docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md">
-            Confirmed change log
+            Zobacz reguly z przykladu Jeep
           </a>
-          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/format-learning-note.md">
-            Format learning note
-          </a>
-          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/recording-summary.md">
-            Recording summary
-          </a>
-          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/README.md">
-            Learning pack README
-          </a>
+        </aside>
+      </section>
+
+      <section class="auto1Preview" aria-label="Preview">
+        <div class="auto1PreviewHeader">
+          <h2>Podglad wyniku</h2>
+          <span id="resultMeta">Po obrobce pojawi sie tutaj gotowy PDF.</span>
         </div>
+        <iframe id="resultPreview" title="Auto1 client PDF preview"></iframe>
       </section>
     </main>
   </body>

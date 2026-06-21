@@ -1,34 +1,58 @@
 # Аукционы - Auto1
 
-Эта папка относится к подготовке отчетов AUTO1 к отправке клиенту.
+Эта часть репозитория отвечает за подготовку отчетов AUTO1 к отправке клиенту.
 
-## Текущий статус
+## Что теперь делает вкладка Auto1
 
-Старый автоматический cleaner из первой попытки больше не считается готовым рабочим решением. Правильная база для следующей версии теперь находится в learning pack по Jeep Compass:
+Публичная страница:
 
 ```text
-docs/auto1-pdf-learning/jeep-compass-demo/
+https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html
 ```
 
-## Что подтверждено на Jeep Compass
+Рабочий сценарий:
 
-Сравнены две версии:
+1. Пользователь загружает сырой PDF, напрямую скачанный с AUTO1.
+2. Браузер локально читает и рендерит страницы PDF.
+3. Программа удаляет или закрывает повторяемые аукционные элементы.
+4. Программа собирает новый PDF.
+5. Пользователь скачивает файл `*-client.pdf` и визуально проверяет его перед отправкой клиенту.
 
-- сырой PDF: `Jeep Compass 1.3 T-GDi Longitude FWD.pdf`
-- правильный PDF: `Jeep Compass 1.3 T-GDi Longitude FWD_.pdf`
+Файл не отправляется на сервер. Обработка идет внутри браузера.
 
-Подтвержденные правила:
+## Правила из примера Jeep Compass
+
+Подтвержденные правила из сравнения raw -> client-ready и демонстрации экрана:
 
 - удалить voucher / `Save cash`;
-- удалить `Stock number` и номер `YK15020`;
-- удалить `In high demand` и watchlist-сообщения;
-- удалить видео-оверлей, progress bar и `0:00 / 0:36`;
+- удалить `Export advantage`;
+- удалить `Stock number` и внутренние номера аукциона;
+- удалить `In high demand`, watchlist и похожие системные сообщения;
+- удалить video overlay, progress bar и время плеера;
 - удалить delivery / pickup / logistics / цены / сроки;
 - удалить `Total Pictures` и служебные gallery-сообщения;
 - удалить legal/footer-only страницу AUTO1;
-- сохранить фото, характеристики, damage, equipment, service, inspection и VIN/equipment sections.
+- сохранить фото, характеристики, test drive, damage, equipment, service, inspection и VIN/equipment sections.
 
-## Где читать детали
+## Техническая реализация
+
+Основная браузерная программа:
+
+```text
+auto1.html
+src/auto1.js
+src/auto1.css
+```
+
+`src/auto1.js` использует:
+
+- PDF.js для чтения и рендера загруженного PDF;
+- локальный `vendor/jspdf.umd.min.js` для сборки готового PDF;
+- координатные маски, текстовые правила и удаление legal-страниц.
+
+## Материалы обучения
+
+Детали примера Jeep Compass сохранены здесь:
 
 ```text
 docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md
@@ -36,14 +60,6 @@ docs/auto1-pdf-learning/jeep-compass-demo/format-learning-note.md
 docs/auto1-pdf-learning/jeep-compass-demo/recording-summary.md
 ```
 
-## Следующая правильная версия
+## Важное ограничение
 
-Следующий cleaner/skill нужно строить от подтвержденного change log, а не от старой первой версии. Обязательный workflow:
-
-1. Рендерить сырой PDF в страницы.
-2. Удалять подтвержденные AUTO1/internal artifacts.
-3. Сохранять клиентские sections.
-4. Рендерить результат.
-5. Визуально проверять первую страницу, фото, delivery cleanup, damage summary и финальные footer/legal страницы.
-
-Пока новая автоматизация не протестирована на нескольких отчетах AUTO1, готовый PDF перед отправкой клиенту нужно проверять глазами.
+Это автоматизация для повторяемой структуры отчетов AUTO1. Если AUTO1 сильно поменяет шаблон PDF, правила нужно будет обновить и проверить на новом raw/client-ready примере.

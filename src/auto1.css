@@ -1,133 +1,277 @@
-.auto1Hero {
-  max-width: 980px;
-}
-
-.auto1Panel,
-.auto1Docs {
+.auto1App {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 18px;
   align-items: stretch;
+}
+
+.auto1Main,
+.auto1Side,
+.auto1Preview {
   border: 1px solid #d5e0ea;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
+}
+
+.auto1Main {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.auto1Intro {
+  max-width: 760px;
+}
+
+.auto1Intro h1 {
+  margin: 0;
+  color: #102033;
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.auto1Intro p:last-child {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #526173;
+  font-size: 18px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.auto1Drop {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  min-height: 230px;
+  border: 2px dashed #9db4c7;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 26px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.auto1Drop:hover,
+.auto1Drop.isDragging {
+  border-color: #005b82;
+  background: #eef8fb;
+  transform: translateY(-1px);
+}
+
+.auto1Drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.auto1DropIcon {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 8px;
+  background: #005b82;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.auto1Drop strong {
+  color: #102033;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.auto1Drop small {
+  max-width: 520px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.auto1Actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid #005b82;
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: #005b82;
+  color: #fff;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  background: #007c89;
+  border-color: #007c89;
+}
+
+.primaryButton:disabled {
+  border-color: #cbd5e1;
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: #005b82;
+  text-decoration: none;
+}
+
+.secondaryButton.isDisabled {
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.auto1Progress {
+  display: grid;
+  gap: 8px;
+}
+
+.auto1ProgressBar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.auto1ProgressBar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #005b82;
+  transition: width 180ms ease;
+}
+
+.auto1Progress p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.auto1Side {
+  display: grid;
+  align-content: start;
+  gap: 14px;
   padding: 22px;
 }
 
-.auto1StatusCard,
-.auto1Docs > div:first-child {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-}
-
-.auto1StatusCard h2,
-.auto1Docs h2,
-.auto1Grid h2 {
+.auto1Side h2,
+.auto1Preview h2 {
   margin: 0;
   color: #102033;
   font-size: 24px;
   line-height: 1.18;
 }
 
-.auto1StatusCard p,
-.auto1Docs p {
-  margin: 0;
-  color: #526173;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.auto1Facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
-}
-
-.auto1Facts div {
-  display: grid;
-  gap: 6px;
-  border: 1px solid #dbe4ee;
-  border-radius: 8px;
-  background: #fbfdff;
-  padding: 14px;
-}
-
-.auto1Facts dt {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.auto1Facts dd {
-  margin: 0;
-  color: #005b82;
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.auto1Grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.auto1Grid article {
-  display: grid;
-  align-content: start;
-  gap: 12px;
-  border: 1px solid #d5e0ea;
-  border-radius: 8px;
-  background: #fff;
-  padding: 18px;
-}
-
-.auto1Grid ul {
+.auto1Side ul {
   display: grid;
   gap: 8px;
   margin: 0;
   padding-left: 18px;
   color: #334155;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.42;
 }
 
-.auto1DocLinks {
-  display: grid;
-  gap: 10px;
-}
-
-.auto1DocLinks a {
-  display: block;
-  border: 1px solid #005b82;
+.auto1Side a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid #d5e0ea;
   border-radius: 8px;
-  background: #005b82;
-  color: #fff;
-  padding: 12px 14px;
-  font-size: 14px;
+  background: #f8fbfd;
+  color: #005b82;
+  padding: 10px 12px;
+  font-size: 13px;
   font-weight: 900;
-  text-decoration: none;
+  text-align: center;
 }
 
-.auto1DocLinks a:hover {
-  background: #007c89;
-  border-color: #007c89;
+.auto1Preview {
+  display: grid;
+  gap: 0;
+  margin-top: 18px;
+  overflow: hidden;
+}
+
+.auto1PreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid #d5e0ea;
+  padding: 16px 18px;
+}
+
+.auto1PreviewHeader span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.auto1Preview iframe {
+  width: 100%;
+  height: 680px;
+  border: 0;
+  background: #f8fbfd;
 }
 
 @media (max-width: 900px) {
-  .auto1Panel,
-  .auto1Docs,
-  .auto1Grid {
+  .auto1App {
     grid-template-columns: 1fr;
+  }
+
+  .auto1Preview iframe {
+    height: 560px;
   }
 }
 
 @media (max-width: 560px) {
-  .auto1Facts {
-    grid-template-columns: 1fr;
+  .auto1Main,
+  .auto1Side {
+    padding: 18px;
+  }
+
+  .auto1Actions {
+    display: grid;
+  }
+
+  .auto1PreviewHeader {
+    display: grid;
+  }
+
+  .auto1PreviewHeader span {
+    text-align: left;
   }
 }
