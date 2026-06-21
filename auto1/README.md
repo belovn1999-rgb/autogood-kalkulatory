@@ -1,60 +1,49 @@
-# Аукционы - Авто 1
+# Аукционы - Auto1
 
-Инструмент для подготовки PDF-отчетов AUTO1 к отправке клиенту.
+Эта папка относится к подготовке отчетов AUTO1 к отправке клиенту.
 
-## Что делает
+## Текущий статус
 
-Берет исходный отчет AUTO1 и формирует клиентскую версию:
-
-- удаляет voucher / export advantage;
-- удаляет stock number;
-- удаляет блок `In high demand`;
-- удаляет видео-оверлей `0:00 / 0:16`;
-- удаляет блоки доставки, адреса, сроков и стоимости;
-- удаляет страницу с процессом delivery / pickup;
-- удаляет строку `Total Pictures`;
-- удаляет финальную legal/footer страницу AUTO1;
-- удаляет тонкую техническую полосу справа на страницах;
-- сохраняет основные данные автомобиля, фото, состояние, damage summary, equipment, service и VIN-блок.
-
-## Установка
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-## Использование
-
-```bash
-python3 auto1_pdf_cleaner.py "/path/to/source-auto1.pdf"
-```
-
-По умолчанию готовый файл появится в:
+Старый автоматический cleaner из первой попытки больше не считается готовым рабочим решением. Правильная база для следующей версии теперь находится в learning pack по Jeep Compass:
 
 ```text
-output/pdf/<source-name>-client.pdf
+docs/auto1-pdf-learning/jeep-compass-demo/
 ```
 
-Можно явно указать путь:
+## Что подтверждено на Jeep Compass
 
-```bash
-python3 auto1_pdf_cleaner.py "/path/to/source-auto1.pdf" -o "output/pdf/client-report.pdf"
+Сравнены две версии:
+
+- сырой PDF: `Jeep Compass 1.3 T-GDi Longitude FWD.pdf`
+- правильный PDF: `Jeep Compass 1.3 T-GDi Longitude FWD_.pdf`
+
+Подтвержденные правила:
+
+- удалить voucher / `Save cash`;
+- удалить `Stock number` и номер `YK15020`;
+- удалить `In high demand` и watchlist-сообщения;
+- удалить видео-оверлей, progress bar и `0:00 / 0:36`;
+- удалить delivery / pickup / logistics / цены / сроки;
+- удалить `Total Pictures` и служебные gallery-сообщения;
+- удалить legal/footer-only страницу AUTO1;
+- сохранить фото, характеристики, damage, equipment, service, inspection и VIN/equipment sections.
+
+## Где читать детали
+
+```text
+docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md
+docs/auto1-pdf-learning/jeep-compass-demo/format-learning-note.md
+docs/auto1-pdf-learning/jeep-compass-demo/recording-summary.md
 ```
 
-## Проверка на Peugeot sample
+## Следующая правильная версия
 
-```bash
-python3 tests/validate_peugeot_sample.py "output/pdf/client-report.pdf"
-```
+Следующий cleaner/skill нужно строить от подтвержденного change log, а не от старой первой версии. Обязательный workflow:
 
-## Важные ограничения
+1. Рендерить сырой PDF в страницы.
+2. Удалять подтвержденные AUTO1/internal artifacts.
+3. Сохранять клиентские sections.
+4. Рендерить результат.
+5. Визуально проверять первую страницу, фото, delivery cleanup, damage summary и финальные footer/legal страницы.
 
-Правила настроены под текущий формат отчетов AUTO1, где данные расположены примерно как в проверенных файлах Peugeot 508. Если AUTO1 сильно поменяет верстку, нужно перепроверить результат визуально и обновить координаты очистки.
-
-Перед отправкой клиенту открывай готовый PDF и проверяй:
-
-- нет ли внутренних цен/скидок/stock number;
-- нет ли адресов доставки и сроков логистики;
-- остались ли все важные фото и damage summary;
-- не появилась ли пустая или поврежденная страница.
-
+Пока новая автоматизация не протестирована на нескольких отчетах AUTO1, готовый PDF перед отправкой клиенту нужно проверять глазами.
