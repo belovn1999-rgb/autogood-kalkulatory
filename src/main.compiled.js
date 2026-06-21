@@ -333,9 +333,11 @@ const tabs = [{
 }];
 const financingNotes = {
   pl: {
+    ownFunds: "Kupujemy pojazd z własnych środków",
     ownFundsDeposit: "Kupujemy pojazd z własnych środków oraz wpłacamy kaucję w wys. zagranicznego VAT-u"
   },
   ru: {
+    ownFunds: "Покупаем автомобиль за собственные средства",
     ownFundsDeposit: "Покупаем автомобиль за собственные средства и вносим депозит в размере иностранного VAT"
   }
 };
@@ -346,12 +348,12 @@ function getProcessSteps(tab, lang, financed) {
       ru: ["Возвращаем 70% полученной скидки от продавца", "Прямая оплата за автомобиль продавцу"]
     },
     1: {
-      pl: ["Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
-      ru: ["Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
+      pl: ["Opłata w walucie PLN lub EUR", ...(financed ? [financingNotes.pl.ownFunds] : []), "Sprzedaż na Fakturę VAT 23%"],
+      ru: ["Оплата в PLN или EUR", ...(financed ? [financingNotes.ru.ownFunds] : []), "Продажа по Faktura VAT 23%"]
     },
     2: {
-      pl: ["Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
-      ru: ["Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
+      pl: ["Opłata w walucie PLN lub EUR", ...(financed ? [financingNotes.pl.ownFunds] : []), "Sprzedaż na Fakturę VAT Marża"],
+      ru: ["Оплата в PLN или EUR", ...(financed ? [financingNotes.ru.ownFunds] : []), "Продажа по Faktura VAT Marża"]
     },
     3: {
       pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Opłata w walucie PLN lub EUR", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Sprzedaż na Fakturę VAT 23%"],
@@ -363,6 +365,25 @@ function getProcessSteps(tab, lang, financed) {
     }
   };
   return steps[tab.id]?.[lang] || [];
+}
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Bezpośrednia płatność", "Прямая оплата", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
+function splitHighlightedText(text) {
+  const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const pattern = new RegExp(`(${escaped})`, "gi");
+  return String(text).split(pattern).filter(Boolean);
+}
+function isHighlightedText(part) {
+  return processHighlights.some(phrase => phrase.toLowerCase() === String(part).toLowerCase());
+}
+function renderHighlightedText(text) {
+  return splitHighlightedText(text).map((part, index) => isHighlightedText(part) ? /*#__PURE__*/React.createElement("strong", {
+    key: `${part}-${index}`
+  }, part) : /*#__PURE__*/React.createElement(React.Fragment, {
+    key: `${part}-${index}`
+  }, part));
+}
+function highlightedHtml(text) {
+  return splitHighlightedText(text).map(part => isHighlightedText(part) ? `<strong>${part}</strong>` : part).join("");
 }
 function n(value) {
   const parsed = Number(String(value).replace(",", "."));
@@ -681,9 +702,9 @@ function ProcessFlow({
   }, index > 0 && /*#__PURE__*/React.createElement("span", {
     className: "processArrow",
     "aria-hidden": "true"
-  }, "\u203A"), /*#__PURE__*/React.createElement("span", {
+  }, "\u2192"), /*#__PURE__*/React.createElement("span", {
     className: "processStep"
-  }, step))));
+  }, renderHighlightedText(step)))));
 }
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -837,7 +858,7 @@ function printCalculation({
           </td>
         </tr>`).join("");
   const processSteps = getProcessSteps(tab, lang, financed);
-  const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow">›</span>' : ""}<span class="processStep">${step}</span>`).join("");
+  const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow">→</span>' : ""}<span class="processStep">${highlightedHtml(step)}</span>`).join("");
   const html = `
 <!doctype html>
 <html>
@@ -888,7 +909,8 @@ function printCalculation({
     .deliveryRoad svg{position:absolute;right:56px;top:0;width:86px;height:30px;color:#005B82;opacity:.72;background:#fff;padding:0 5px;transform:scaleX(-1)}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-flex;align-items:center}
-    .processArrow{color:#005B82;opacity:.48;font-size:18px;font-style:normal;font-weight:900}
+    .processStep strong{color:#102033;font-weight:900}
+    .processArrow{color:#005B82;opacity:.52;font-size:18px;font-style:normal;font-weight:900;letter-spacing:.5px}
     .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}
   </style>
 </head>
