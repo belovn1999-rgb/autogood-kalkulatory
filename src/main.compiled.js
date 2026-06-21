@@ -358,8 +358,8 @@ function getProcessSteps(tab, lang, financed) {
       ru: ["Возвращаем 70% полученной скидки от продавца", "Оплата в PLN или EUR", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Продажа по Faktura VAT 23%"]
     },
     4: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", ...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", ...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
     }
   };
   return steps[tab.id]?.[lang] || [];
@@ -571,7 +571,7 @@ function ExchangeRatesPanel({
     className: "ratesTable"
   }, rows.map(item => /*#__PURE__*/React.createElement(React.Fragment, {
     key: item.label
-  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), /*#__PURE__*/React.createElement("small", null, safeData.effectiveDate ? `${c.ratesUpdated}: ${safeData.effectiveDate}. ` : "", c.ratesSource, ": ", safeData.source || "Walutomat"));
+  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), safeData.effectiveDate && /*#__PURE__*/React.createElement("small", null, c.ratesUpdated, ": ", safeData.effectiveDate));
 }
 function MobileDeImport({
   c,
@@ -761,11 +761,11 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const discountCommission = 0.3 * discount;
     const commissionNetto = STD_FIX + 0.01 * carPln + discountCommission;
     const commissionBrutto = commissionNetto * 1.23;
-    const discountText = discount > 0 ? `; 30% × ${money(discount)}` : "";
+    const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
     return {
       total,
-      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(STD_FIX)} + 1% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
     };
   }
   if (tabId === 1) {
@@ -780,7 +780,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transPln, "+VAT 23%", `${money(transPln * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   if (tabId === 2) {
@@ -796,7 +796,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE;
     return {
       total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto`), row(t.to, TO_FEE, "", "", false, true)]
+      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   if (tabId === 3) {
@@ -811,7 +811,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", ""), row(t.transport, transport, "+VAT 23%", ""), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", ""), row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   const carPln = car * useRate;
@@ -822,11 +822,11 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const discountCommission = 0.3 * discount;
   const commissionNetto = finFix + finPct * carPln + discountCommission;
   const commissionBrutto = commissionNetto * 1.23;
-  const discountText = discount > 0 ? `; 30% × ${money(discount)}` : "";
+  const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE;
   return {
     total,
-    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${money(exciseBrutto)} brutto`), row(t.commission, commissionNetto, "+VAT 23%", `${money(commissionBrutto)} brutto${discountText}`), row(t.to, TO_FEE, "", "", false, true)]
+    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true)]
   };
 }
 function printCalculation({
