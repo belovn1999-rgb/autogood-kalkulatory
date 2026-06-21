@@ -342,29 +342,29 @@ const financingNotes = {
 function getProcessSteps(tab, lang, financed) {
   const steps = {
     0: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Bezpośrednia płatność za pojazd do sprzedawcy"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", "Прямая оплата за автомобиль продавцу"]
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Płacisz za pojazd do sprzedawcy"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете автомобиль продавцу"]
     },
     1: {
-      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
-      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
+      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłacasz całość w PLN lub EUR", "Sprzedajemy na Fakturę VAT 23%"],
+      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT 23%"]
     },
     2: {
-      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
-      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
+      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłacasz całość w PLN lub EUR", "Sprzedajemy na Fakturę VAT Marża"],
+      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT Marża"]
     },
     3: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Opłacasz całość w PLN lub EUR", "Sprzedajemy na Fakturę VAT 23%"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT 23%"]
     },
     4: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", ...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", ...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", ...(financed ? [financingNotes.pl.ownFunds] : []), "Opłacasz całość w PLN lub EUR", "Sprzedajemy na Fakturę VAT Marża"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", ...(financed ? [financingNotes.ru.ownFunds] : []), "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT Marża"]
     }
   };
   return steps[tab.id]?.[lang] || [];
 }
-const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Bezpośrednia płatność", "Прямая оплата", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "własnych środków", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Płacisz za pojazd", "Вы оплачиваете автомобиль", "Opłacasz całość", "Вы оплачиваете всю сумму", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "Sprzedajemy", "Продаём", "własnych środków", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
 function splitHighlightedText(text) {
   const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const pattern = new RegExp(`(${escaped})`, "gi");
@@ -768,7 +768,7 @@ class ErrorBoundary extends Component {
 }
 function tagLabel(tag) {
   if (!tag) return null;
-  const label = tag === "+VAT 23%" ? "+23%" : tag;
+  const label = tag === "+VAT 23%" ? "+VAT 23%" : tag;
   const className = tag.replace("+", "plus").replace(/\s|%/g, "");
   return /*#__PURE__*/React.createElement("span", {
     className: `tag tag-${className}`
@@ -885,7 +885,7 @@ function printCalculation({
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
   const rowsHtml = rows.map((item, index) => {
-    const displayTag = item.tag === "+VAT 23%" ? "+23%" : item.tag;
+    const displayTag = item.tag === "+VAT 23%" ? "+VAT 23%" : item.tag;
     return `
         <tr class="${item.highlight ? "vat" : ""} ${index === 0 ? "mainRow" : ""}">
           <td>
@@ -933,7 +933,7 @@ function printCalculation({
     strong{font-size:15px}
     small{display:block;color:#64748b;margin-top:3px;font-size:11px}
     span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
-    .softVatTag{color:#64748b;background:#f1f5f9;font-size:9px;letter-spacing:.03em}
+    .softVatTag{color:#64748b;background:#f1f5f9;font-size:8.5px;letter-spacing:.03em}
     .amount{display:grid;grid-template-columns:92px max-content auto;justify-content:end;align-items:center;column-gap:4px}
     .amount em{font-style:normal;color:#64748b;font-weight:800;text-align:right}
     .amount em.isEmpty{visibility:hidden}
