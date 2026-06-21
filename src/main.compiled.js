@@ -768,10 +768,11 @@ class ErrorBoundary extends Component {
 }
 function tagLabel(tag) {
   if (!tag) return null;
+  const label = tag === "+VAT 23%" ? "VAT" : tag;
   const className = tag.replace("+", "plus").replace(/\s|%/g, "");
   return /*#__PURE__*/React.createElement("span", {
     className: `tag tag-${className}`
-  }, tag);
+  }, label);
 }
 function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "") {
   return {
@@ -883,7 +884,9 @@ function printCalculation({
   const roundedTotal = roundedCurrencyValue(total, "PLN");
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
-  const rowsHtml = rows.map((item, index) => `
+  const rowsHtml = rows.map((item, index) => {
+    const displayTag = item.tag === "+VAT 23%" ? "VAT" : item.tag;
+    return `
         <tr class="${item.highlight ? "vat" : ""} ${index === 0 ? "mainRow" : ""}">
           <td>
             <strong>${item.label}</strong>
@@ -893,10 +896,11 @@ function printCalculation({
             <div class="amount">
               <em class="${item.valuePrefix ? "" : "isEmpty"}">${item.valuePrefix || "0 EUR ="}</em>
               <b>${item.exact ? moneyExact(item.value) : money(item.value)}</b>
-              ${item.tag ? `<span>${item.tag}</span>` : ""}
+              ${displayTag ? `<span class="${item.tag === "+VAT 23%" ? "softVatTag" : ""}">${displayTag}</span>` : ""}
             </div>
           </td>
-        </tr>`).join("");
+        </tr>`;
+  }).join("");
   const processSteps = getProcessSteps(tab, lang, financed);
   const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow"> → </span>' : ""}<span class="processStep">${highlightedHtml(step)}</span>`).join("");
   const html = `
@@ -929,6 +933,7 @@ function printCalculation({
     strong{font-size:15px}
     small{display:block;color:#64748b;margin-top:3px;font-size:11px}
     span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
+    .softVatTag{color:#64748b;background:#f1f5f9;font-size:10px;letter-spacing:.03em}
     .amount{display:grid;grid-template-columns:92px max-content auto;justify-content:end;align-items:center;column-gap:4px}
     .amount em{font-style:normal;color:#64748b;font-weight:800;text-align:right}
     .amount em.isEmpty{visibility:hidden}
