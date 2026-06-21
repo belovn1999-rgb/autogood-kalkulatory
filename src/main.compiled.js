@@ -346,16 +346,16 @@ function getProcessSteps(tab, lang, financed) {
       ru: ["Возвращаем 70% полученной скидки от продавца", "Прямая оплата за автомобиль продавцу"]
     },
     1: {
-      pl: ["Opłata w walucie PLN lub EUR", ...(financed ? [financingNotes.pl.ownFunds] : []), "Sprzedaż na Fakturę VAT 23%"],
-      ru: ["Оплата в PLN или EUR", ...(financed ? [financingNotes.ru.ownFunds] : []), "Продажа по Faktura VAT 23%"]
+      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
+      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
     },
     2: {
-      pl: ["Opłata w walucie PLN lub EUR", ...(financed ? [financingNotes.pl.ownFunds] : []), "Sprzedaż na Fakturę VAT Marża"],
-      ru: ["Оплата в PLN или EUR", ...(financed ? [financingNotes.ru.ownFunds] : []), "Продажа по Faktura VAT Marża"]
+      pl: [...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
+      ru: [...(financed ? [financingNotes.ru.ownFunds] : []), "Оплата в PLN или EUR", "Продажа по Faktura VAT Marża"]
     },
     3: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Opłata w walucie PLN lub EUR", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Sprzedaż na Fakturę VAT 23%"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", "Оплата в PLN или EUR", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Продажа по Faktura VAT 23%"]
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financed ? financingNotes.pl.ownFundsDeposit : "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT 23%"],
+      ru: ["Возвращаем 70% полученной скидки от продавца", financed ? financingNotes.ru.ownFundsDeposit : "Вносим депозит в размере иностранного VAT", "Оплата в PLN или EUR", "Продажа по Faktura VAT 23%"]
     },
     4: {
       pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", ...(financed ? [financingNotes.pl.ownFunds] : []), "Opłata w walucie PLN lub EUR", "Sprzedaż na Fakturę VAT Marża"],
