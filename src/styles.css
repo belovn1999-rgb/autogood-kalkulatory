@@ -20,39 +20,12 @@ button {
   cursor: pointer;
 }
 
-.startup {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.languageCard,
 .card {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(15, 35, 52, 0.08);
 }
 
-.languageCard {
-  width: min(460px, 100%);
-  padding: 34px;
-  text-align: center;
-}
-
-.languageCard h1 {
-  margin: 22px 0;
-  color: #334155;
-  font-size: 24px;
-}
-
-.startupActions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.startupActions button,
 .printBtn {
   border: 0;
   border-radius: 8px;

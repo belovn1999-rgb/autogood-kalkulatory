@@ -23,7 +23,6 @@ const RATES_FALLBACK = {
 
 const copy = {
   pl: {
-    pickLang: "Wybierz język",
     appTitle: "AUTOGOOD Kalkulatory",
     print: "Druk / PDF",
     screenshot: "Kopiuj obraz",
@@ -70,7 +69,6 @@ const copy = {
     },
   },
   ru: {
-    pickLang: "Выберите язык",
     appTitle: "AUTOGOOD Калькуляторы",
     print: "Печать / PDF",
     screenshot: "Скопировать скрин",
@@ -861,7 +859,7 @@ function canvasToBlob(canvas) {
 }
 
 function App() {
-  const [lang, setLang] = useState(null);
+  const [lang, setLang] = useState("pl");
   const [activeTab, setActiveTab] = useState(0);
   const [rate, setRate] = useState(DEFAULT_RATE);
   const [marketRates, setMarketRates] = useState(RATES_FALLBACK);
@@ -994,23 +992,6 @@ function App() {
       setScreenshotStatus("error");
     }
   };
-
-  if (!lang) {
-    return (
-      <main className="startup">
-        <section className="languageCard">
-          <a className="logoLink logoLinkStartup" href="./" aria-label="AUTOGOOD home">
-            <img className="logoMark logoMarkStartup" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          </a>
-          <h1>{copy.pl.pickLang} / {copy.ru.pickLang}</h1>
-          <div className="startupActions">
-            <button onClick={() => setLang("pl")}>PL</button>
-            <button onClick={() => setLang("ru")}>RU</button>
-          </div>
-        </section>
-      </main>
-    );
-  }
 
   return (
     <main className="appShell">

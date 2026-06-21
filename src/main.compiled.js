@@ -39,7 +39,6 @@ const RATES_FALLBACK = {
 };
 const copy = {
   pl: {
-    pickLang: "Wybierz język",
     appTitle: "AUTOGOOD Kalkulatory",
     print: "Druk / PDF",
     screenshot: "Kopiuj obraz",
@@ -86,7 +85,6 @@ const copy = {
     }
   },
   ru: {
-    pickLang: "Выберите язык",
     appTitle: "AUTOGOOD Калькуляторы",
     print: "Печать / PDF",
     screenshot: "Скопировать скрин",
@@ -951,7 +949,7 @@ function canvasToBlob(canvas) {
   });
 }
 function App() {
-  const [lang, setLang] = useState(null);
+  const [lang, setLang] = useState("pl");
   const [activeTab, setActiveTab] = useState(0);
   const [rate, setRate] = useState(DEFAULT_RATE);
   const [marketRates, setMarketRates] = useState(RATES_FALLBACK);
@@ -1068,27 +1066,6 @@ function App() {
       setScreenshotStatus("error");
     }
   };
-  if (!lang) {
-    return /*#__PURE__*/React.createElement("main", {
-      className: "startup"
-    }, /*#__PURE__*/React.createElement("section", {
-      className: "languageCard"
-    }, /*#__PURE__*/React.createElement("a", {
-      className: "logoLink logoLinkStartup",
-      href: "./",
-      "aria-label": "AUTOGOOD home"
-    }, /*#__PURE__*/React.createElement("img", {
-      className: "logoMark logoMarkStartup",
-      src: "./assets/autogood-logo.png",
-      alt: "AUTOGOOD"
-    })), /*#__PURE__*/React.createElement("h1", null, copy.pl.pickLang, " / ", copy.ru.pickLang), /*#__PURE__*/React.createElement("div", {
-      className: "startupActions"
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => setLang("pl")
-    }, "PL"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setLang("ru")
-    }, "RU"))));
-  }
   return /*#__PURE__*/React.createElement("main", {
     className: "appShell"
   }, /*#__PURE__*/React.createElement("header", {
