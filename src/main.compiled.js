@@ -364,7 +364,7 @@ function getProcessSteps(tab, lang, financed) {
   };
   return steps[tab.id]?.[lang] || [];
 }
-const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Bezpośrednia płatność", "Прямая оплата", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Bezpośrednia płatność", "Прямая оплата", "PLN lub EUR", "PLN или EUR", "Fakturę VAT 23%", "Faktura VAT 23%", "Fakturę VAT Marża", "Faktura VAT Marża", "własnych środków", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
 function splitHighlightedText(text) {
   const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const pattern = new RegExp(`(${escaped})`, "gi");
@@ -842,6 +842,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   }
   if (tabId === 3) {
     const carPln = car * useRate;
+    const inspectionBrutto = inspection * 1.23;
     const excise = exciseRate * carPln;
     const bruttoBase = carPln * 1.19;
     const discountCommission = 0.3 * discount;
@@ -852,7 +853,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = vatBase + vat + TO_FEE;
     return {
       total,
-      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", ""), row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
+      rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   const carPln = car * useRate;

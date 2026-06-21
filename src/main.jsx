@@ -253,6 +253,7 @@ const processHighlights = [
   "Faktura VAT 23%",
   "Fakturę VAT Marża",
   "Faktura VAT Marża",
+  "własnych środków",
   "Wpłacamy kaucję",
   "wpłacamy kaucję",
   "Вносим депозит",
@@ -717,6 +718,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
 
   if (tabId === 3) {
     const carPln = car * useRate;
+    const inspectionBrutto = inspection * 1.23;
     const excise = exciseRate * carPln;
     const bruttoBase = carPln * 1.19;
     const discountCommission = 0.3 * discount;
@@ -729,7 +731,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
       total,
       rows: [
         row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
-        row(t.inspection, inspection, "+VAT 23%", ""),
+        row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
         row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`),
         row(t.excise, excise, "+VAT 23%", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
         row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(bruttoBase)}${discountText}`),
