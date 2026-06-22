@@ -47,6 +47,9 @@ const copy = {
     screenshotReady: "Obraz skopiowany.",
     screenshotOpened: "Obraz otwarty w nowej karcie.",
     screenshotError: "Nie udało się skopiować obrazu.",
+    saveCalculation: "Zapisz kalkulację",
+    saveCalculationReady: "Kalkulacja zapisana.",
+    saveCalculationEmpty: "Najpierw wpisz dane kalkulacji.",
     exchange: "Kurs EUR/PLN",
     engine: "Typ silnika",
     commissionType: "Rodzaj prowizji",
@@ -96,6 +99,9 @@ const copy = {
     screenshotReady: "Скрин скопирован.",
     screenshotOpened: "Скрин открыт в новой вкладке.",
     screenshotError: "Не удалось скопировать скрин.",
+    saveCalculation: "Сохранить расчёт",
+    saveCalculationReady: "Расчёт сохранён.",
+    saveCalculationEmpty: "Сначала внеси данные расчёта.",
     exchange: "Курс EUR/PLN",
     engine: "Тип двигателя",
     commissionType: "Тип комиссии",
@@ -1084,7 +1090,6 @@ function App() {
   const [history, setHistory] = useState(() => readHistory());
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(false);
-  const historyRestoringRef = useRef(false);
   const safeLang = lang || "pl";
   const c = copy[safeLang];
   const tab = tabs[activeTab];
@@ -1111,30 +1116,6 @@ function App() {
       isMounted = false;
     };
   }, []);
-  useEffect(() => {
-    if (historyRestoringRef.current || !hasCalculationInput(values)) return undefined;
-    const timeout = window.setTimeout(() => {
-      const item = {
-        id: `${Date.now()}-${activeTab}`,
-        savedAt: new Date().toISOString(),
-        lang: safeLang,
-        activeTab,
-        rate: rateLabel(n(rate) || DEFAULT_RATE),
-        engineIndex,
-        financed: activeTab > 0 && financed,
-        values: normalizeHistoryValues(values),
-        total: calc.total,
-        title: tab.name[safeLang]
-      };
-      const signature = historySignature(item);
-      setHistory(current => {
-        const next = [item, ...current.filter(saved => historySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
-        writeHistory(next);
-        return next;
-      });
-    }, 700);
-    return () => window.clearTimeout(timeout);
-  }, [activeTab, calc.total, engineIndex, financed, rate, safeLang, tab.name, values]);
   const switchTab = id => {
     setActiveTab(id);
     setValues({});
@@ -1148,9 +1129,33 @@ function App() {
     rateTouchedRef.current = true;
     setRate(value);
   };
+  const saveCalculation = () => {
+    if (!hasCalculationInput(values)) {
+      setScreenshotStatus("saveEmpty");
+      return;
+    }
+    const item = {
+      id: `${Date.now()}-${activeTab}`,
+      savedAt: new Date().toISOString(),
+      lang: safeLang,
+      activeTab,
+      rate: rateLabel(n(rate) || DEFAULT_RATE),
+      engineIndex,
+      financed: activeTab > 0 && financed,
+      values: normalizeHistoryValues(values),
+      total: calc.total,
+      title: tab.name[safeLang]
+    };
+    const signature = historySignature(item);
+    setHistory(current => {
+      const next = [item, ...current.filter(saved => historySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
+      writeHistory(next);
+      return next;
+    });
+    setScreenshotStatus("saved");
+  };
   const restoreHistoryItem = item => {
     const nextTab = tabs[item.activeTab] ? item.activeTab : 0;
-    historyRestoringRef.current = true;
     setLang(item.lang === "ru" ? "ru" : "pl");
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
@@ -1161,9 +1166,6 @@ function App() {
     setMobileDeUrl("");
     setMobileDeStatus("");
     setMobileDeSummary("");
-    window.setTimeout(() => {
-      historyRestoringRef.current = false;
-    }, 800);
   };
   const loadMobileDeData = async () => {
     const sourceUrl = mobileDeUrl.trim();
@@ -1273,7 +1275,10 @@ function App() {
   }, c.print), /*#__PURE__*/React.createElement("button", {
     className: "printBtn screenshotBtn",
     onClick: copyScreenshot
-  }, c.screenshot))), /*#__PURE__*/React.createElement("nav", {
+  }, c.screenshot), /*#__PURE__*/React.createElement("button", {
+    className: "printBtn saveBtn",
+    onClick: saveCalculation
+  }, c.saveCalculation))), /*#__PURE__*/React.createElement("nav", {
     className: "tabs",
     "aria-label": "Calculators"
   }, tabs.map(item => /*#__PURE__*/React.createElement("button", {
@@ -1353,6 +1358,6 @@ function App() {
     onRestore: restoreHistoryItem
   })), screenshotStatus && /*#__PURE__*/React.createElement("div", {
     className: `toast ${screenshotStatus}`
-  }, screenshotStatus === "ready" && c.screenshotReady, screenshotStatus === "opened" && c.screenshotOpened, screenshotStatus === "error" && c.screenshotError));
+  }, screenshotStatus === "ready" && c.screenshotReady, screenshotStatus === "opened" && c.screenshotOpened, screenshotStatus === "error" && c.screenshotError, screenshotStatus === "saved" && c.saveCalculationReady, screenshotStatus === "saveEmpty" && c.saveCalculationEmpty));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(App, null)));

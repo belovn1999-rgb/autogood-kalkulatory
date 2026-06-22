@@ -39,6 +39,10 @@ button {
   background: #102033;
 }
 
+.saveBtn {
+  background: #0f766e;
+}
+
 .appShell {
   position: relative;
   width: min(1320px, calc(100% - 32px));
@@ -841,6 +845,14 @@ select {
 }
 
 .toast.error {
+  background: #c2410c;
+}
+
+.toast.saved {
+  background: #0f766e;
+}
+
+.toast.saveEmpty {
   background: #c2410c;
 }
 
