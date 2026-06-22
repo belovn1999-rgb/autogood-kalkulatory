@@ -10,6 +10,8 @@ const RATES_URL = "./data/exchange-rates.json";
 const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
 const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
 const EUR_PLN_MARGIN = 0.02;
+const HISTORY_KEY = "autogood-calculation-history";
+const HISTORY_LIMIT = 5;
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -43,6 +45,9 @@ const copy = {
     ratesSource: "źródło",
     ratesUpdated: "aktualizacja",
     ratesLoading: "Ładowanie kursów",
+    historyTitle: "Historia zmian",
+    historyEmpty: "Tutaj pojawi się 5 ostatnich kalkulacji.",
+    historyRestore: "Przywróć kalkulację",
     mobileImportTitle: "Link Mobile.de",
     mobileImportPlaceholder: "Wklej link ogłoszenia",
     mobileImportButton: "Załaduj dane",
@@ -89,6 +94,9 @@ const copy = {
     ratesSource: "источник",
     ratesUpdated: "обновлено",
     ratesLoading: "Загрузка курсов",
+    historyTitle: "История изменений",
+    historyEmpty: "Здесь появятся 5 последних расчётов.",
+    historyRestore: "Вернуть расчёт",
     mobileImportTitle: "Ссылка Mobile.de",
     mobileImportPlaceholder: "Вставь ссылку объявления",
     mobileImportButton: "Загрузить данные",
@@ -317,6 +325,55 @@ function moneyExact(value, currency = "PLN") {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(Number.isFinite(value) ? value : 0);
+}
+
+function formatHistoryDate(value, lang) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function readHistory() {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(HISTORY_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.slice(0, HISTORY_LIMIT) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeHistory(items) {
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+  } catch (error) {
+    // The calculator still works if the browser blocks local storage.
+  }
+}
+
+function normalizeHistoryValues(values) {
+  return Object.fromEntries(
+    Object.entries(values || {}).filter(([, value]) => String(value ?? "").trim() !== "")
+  );
+}
+
+function hasCalculationInput(values) {
+  return Object.values(values || {}).some((value) => n(value) > 0);
+}
+
+function historySignature(item) {
+  return JSON.stringify({
+    activeTab: item.activeTab,
+    rate: item.rate,
+    engineIndex: item.engineIndex,
+    financed: item.financed,
+    values: item.values || {},
+  });
 }
 
 function percentLabel(value) {
@@ -602,6 +659,33 @@ function ProcessFlow({ steps }) {
         </React.Fragment>
       ))}
     </footer>
+  );
+}
+
+function HistoryPanel({ c, history, lang, onRestore }) {
+  return (
+    <aside className="card historyPanel">
+      <h2>{c.historyTitle}</h2>
+      {history.length === 0 ? (
+        <p className="historyEmpty">{c.historyEmpty}</p>
+      ) : (
+        <div className="historyList">
+          {history.map((item) => (
+            <button
+              key={item.id}
+              className="historyItem"
+              type="button"
+              title={c.historyRestore}
+              onClick={() => onRestore(item)}
+            >
+              <strong>{item.title}</strong>
+              <span>{formatHistoryDate(item.savedAt, lang)} · {item.financed ? c.financing : c.standard}</span>
+              <em>{money(item.total)}</em>
+            </button>
+          ))}
+        </div>
+      )}
+    </aside>
   );
 }
 
@@ -909,8 +993,10 @@ function App() {
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
+  const [history, setHistory] = useState(() => readHistory());
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(false);
+  const historyRestoringRef = useRef(false);
 
   const safeLang = lang || "pl";
   const c = copy[safeLang];
@@ -946,6 +1032,34 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (historyRestoringRef.current || !hasCalculationInput(values)) return undefined;
+
+    const timeout = window.setTimeout(() => {
+      const item = {
+        id: `${Date.now()}-${activeTab}`,
+        savedAt: new Date().toISOString(),
+        lang: safeLang,
+        activeTab,
+        rate: rateLabel(n(rate) || DEFAULT_RATE),
+        engineIndex,
+        financed: activeTab > 0 && financed,
+        values: normalizeHistoryValues(values),
+        total: calc.total,
+        title: tab.name[safeLang],
+      };
+      const signature = historySignature(item);
+
+      setHistory((current) => {
+        const next = [item, ...current.filter((saved) => historySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
+        writeHistory(next);
+        return next;
+      });
+    }, 700);
+
+    return () => window.clearTimeout(timeout);
+  }, [activeTab, calc.total, engineIndex, financed, rate, safeLang, tab.name, values]);
+
   const switchTab = (id) => {
     setActiveTab(id);
     setValues({});
@@ -956,6 +1070,24 @@ function App() {
   const setManualRate = (value) => {
     rateTouchedRef.current = true;
     setRate(value);
+  };
+
+  const restoreHistoryItem = (item) => {
+    const nextTab = tabs[item.activeTab] ? item.activeTab : 0;
+    historyRestoringRef.current = true;
+    setLang(item.lang === "ru" ? "ru" : "pl");
+    setActiveTab(nextTab);
+    setValues(item.values && typeof item.values === "object" ? item.values : {});
+    setRate(item.rate || DEFAULT_RATE);
+    rateTouchedRef.current = true;
+    setEngineIndex(Number.isInteger(item.engineIndex) && engineTypes[item.engineIndex] ? item.engineIndex : 3);
+    setFinanced(nextTab > 0 && Boolean(item.financed));
+    setMobileDeUrl("");
+    setMobileDeStatus("");
+    setMobileDeSummary("");
+    window.setTimeout(() => {
+      historyRestoringRef.current = false;
+    }, 800);
   };
 
   const loadMobileDeData = async () => {
@@ -1153,6 +1285,8 @@ function App() {
 
           <ProcessFlow steps={processSteps} />
         </section>
+
+        <HistoryPanel c={c} history={history} lang={safeLang} onRestore={restoreHistoryItem} />
       </section>
       {screenshotStatus && (
         <div className={`toast ${screenshotStatus}`}>

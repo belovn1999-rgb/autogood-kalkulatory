@@ -41,7 +41,7 @@ button {
 
 .appShell {
   position: relative;
-  width: min(1018px, calc(100% - 32px));
+  width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 42px;
 }
@@ -243,7 +243,7 @@ button {
 
 .grid {
   display: grid;
-  grid-template-columns: 310px max-content;
+  grid-template-columns: 310px max-content 200px;
   width: fit-content;
   max-width: 100%;
   gap: 18px;
@@ -750,6 +750,73 @@ select {
   white-space: pre;
 }
 
+.historyPanel {
+  position: sticky;
+  top: 16px;
+  width: 200px;
+  padding: 16px;
+}
+
+.historyPanel h2 {
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.historyEmpty {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.historyList {
+  display: grid;
+  gap: 8px;
+}
+
+.historyItem {
+  width: 100%;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  color: #102033;
+  padding: 10px;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.historyItem:hover {
+  border-color: #005b82;
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.historyItem strong,
+.historyItem span,
+.historyItem em {
+  display: block;
+}
+
+.historyItem strong {
+  color: #005b82;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.historyItem span {
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.historyItem em {
+  margin-top: 7px;
+  font-style: normal;
+  font-size: 17px;
+  font-weight: 900;
+}
+
 .errorBox {
   margin: 40px auto;
   max-width: 520px;
@@ -777,6 +844,23 @@ select {
   background: #c2410c;
 }
 
+@media (max-width: 1270px) {
+  .grid {
+    grid-template-columns: 310px max-content;
+  }
+
+  .historyPanel {
+    position: static;
+    grid-column: 2;
+    width: 690px;
+    max-width: 100%;
+  }
+
+  .historyList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 860px) {
   .grid,
   .tabs {
@@ -800,6 +884,15 @@ select {
 
   .topbar {
     display: grid;
+  }
+
+  .historyPanel {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .historyList {
+    grid-template-columns: 1fr;
   }
 
   .headerActions,
