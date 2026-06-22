@@ -878,6 +878,51 @@ function setDocxCheckboxes(root, data) {
   });
 }
 
+function paragraphText(p) {
+  return all(p, W, "t")
+    .map((node) => node.textContent || "")
+    .join("")
+    .trim();
+}
+
+function ensureParagraphProperties(p) {
+  let pPr = directChildren(p, W, "pPr")[0];
+  if (!pPr) {
+    pPr = wEl(p.ownerDocument, "pPr");
+    p.insertBefore(pPr, p.firstChild);
+  }
+  return pPr;
+}
+
+function compactAppendixLayout(root) {
+  const body = directChildren(root, W, "body")[0];
+  if (!body) return;
+  const children = directChildren(body, W, "p");
+  const startIndex = children.findIndex((p) => paragraphText(p) === "ZAŁĄCZNIK DO UMOWY ZAMÓWIENIA POJAZDU");
+  if (startIndex < 0) return;
+
+  for (const p of children.slice(startIndex)) {
+    const pPr = ensureParagraphProperties(p);
+    let spacing = directChildren(pPr, W, "spacing")[0];
+    if (!spacing) {
+      spacing = wEl(p.ownerDocument, "spacing");
+      pPr.append(spacing);
+    }
+    for (const attr of ["before", "after", "beforeAutospacing", "afterAutospacing"]) spacing.removeAttributeNS(W, attr);
+    spacing.setAttributeNS(W, "w:before", "0");
+    spacing.setAttributeNS(W, "w:after", "0");
+    spacing.setAttributeNS(W, "w:line", "120");
+    spacing.setAttributeNS(W, "w:lineRule", "exact");
+
+    let snapToGrid = directChildren(pPr, W, "snapToGrid")[0];
+    if (!snapToGrid) {
+      snapToGrid = wEl(p.ownerDocument, "snapToGrid");
+      pPr.append(snapToGrid);
+    }
+    snapToGrid.setAttributeNS(W, "w:val", "0");
+  }
+}
+
 async function generateDocx() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
   const data = collectData();
@@ -912,6 +957,7 @@ async function generateDocx() {
   setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment);
   setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment);
   setDocxCheckboxes(root, data);
+  compactAppendixLayout(root);
 
   const serialized = new XMLSerializer().serializeToString(xml);
   zip.file("word/document.xml", serialized);
