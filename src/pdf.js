@@ -5,6 +5,8 @@ const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_t
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
+const contractHistoryKey = "autogood-order-contract-history-v1";
+const contractHistoryLimit = 3;
 
 let currentDownloadUrl = null;
 
@@ -516,6 +518,121 @@ function filenameFor(data, extension) {
 
 function updateDocumentFileName() {
   $("documentFileName").textContent = filenameFor(collectData(), "pdf");
+}
+
+function readContractHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(contractHistoryKey) || "[]");
+    return Array.isArray(parsed) ? parsed.slice(0, contractHistoryLimit) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeContractHistory(items) {
+  localStorage.setItem(contractHistoryKey, JSON.stringify(items.slice(0, contractHistoryLimit)));
+}
+
+function collectFormSnapshot() {
+  const ids = {};
+  document.querySelectorAll("input[id], textarea[id], select[id]").forEach((node) => {
+    ids[node.id] = node.type === "checkbox" || node.type === "radio" ? node.checked : node.value;
+  });
+
+  const radios = {};
+  document.querySelectorAll('input[type="radio"][name]').forEach((node) => {
+    if (node.checked) radios[node.name] = node.value;
+  });
+
+  const checkboxGroups = {};
+  document.querySelectorAll('input[type="checkbox"][name]').forEach((node) => {
+    if (!checkboxGroups[node.name]) checkboxGroups[node.name] = [];
+    if (node.checked) checkboxGroups[node.name].push(node.value);
+  });
+
+  return {
+    ids,
+    radios,
+    checkboxGroups,
+    fuel: fuelValues(),
+  };
+}
+
+function applyFormSnapshot(snapshot) {
+  resetForm();
+  for (const [id, value] of Object.entries(snapshot.ids || {})) {
+    const node = $(id);
+    if (!node) continue;
+    if (node.type === "checkbox" || node.type === "radio") node.checked = Boolean(value);
+    else node.value = value || "";
+  }
+  for (const [name, value] of Object.entries(snapshot.radios || {})) setRadio(name, value);
+  for (const [name, values] of Object.entries(snapshot.checkboxGroups || {})) setCheckedValues(name, values);
+  setFuel(snapshot.fuel || []);
+  syncClientTypeRules();
+  updateDocumentFileName();
+}
+
+function historyTitle(entry) {
+  const ids = entry.snapshot?.ids || {};
+  const client = normalizeSpace(ids.clientName || "Bez klienta");
+  const vehicle = normalizeSpace(ids.vehicleMakeModel || "AUTO");
+  return `${client} · ${vehicle}`;
+}
+
+function historyMeta(entry) {
+  const ids = entry.snapshot?.ids || {};
+  const date = ids.contractDate || todayISO();
+  const sequence = ids.sequence || 1;
+  const created = entry.savedAt ? new Date(entry.savedAt) : null;
+  const savedLabel = created && !Number.isNaN(created.getTime()) ? created.toLocaleDateString("pl-PL") : "";
+  return `Umowa ${contractNumber(date, sequence)}${savedLabel ? ` · zapisano ${savedLabel}` : ""}`;
+}
+
+function renderContractHistory() {
+  const list = $("contractHistoryList");
+  list.innerHTML = "";
+  const history = readContractHistory();
+  if (!history.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-empty";
+    empty.textContent = "Brak zapisanych danych.";
+    list.append(empty);
+    return;
+  }
+
+  history.forEach((entry, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-item";
+    button.dataset.index = String(index);
+
+    const title = document.createElement("strong");
+    title.textContent = historyTitle(entry);
+    const meta = document.createElement("span");
+    meta.textContent = historyMeta(entry);
+    button.append(title, meta);
+    button.addEventListener("click", () => {
+      applyFormSnapshot(entry.snapshot || {});
+      setStatus("Dane z historii wczytane.");
+    });
+    list.append(button);
+  });
+}
+
+function saveCurrentContractData() {
+  const snapshot = collectFormSnapshot();
+  const title = historyTitle({ snapshot });
+  const history = readContractHistory().filter((entry) => JSON.stringify(entry.snapshot) !== JSON.stringify(snapshot));
+  history.unshift({
+    id: `${Date.now()}`,
+    savedAt: new Date().toISOString(),
+    title,
+    snapshot,
+  });
+  writeContractHistory(history);
+  renderContractHistory();
+  setStatus("Dane zapisane w historii.");
 }
 
 function syncClientTypeRules() {
@@ -1172,10 +1289,12 @@ function resetForm() {
 
 $("contractDate").value = todayISO();
 updateDocumentFileName();
+renderContractHistory();
 $("parseBtn").addEventListener("click", parseRawText);
 $("printBtn").addEventListener("click", generatePdf);
 $("generateBtn").addEventListener("click", generateContract);
 $("resetBtn").addEventListener("click", resetForm);
+$("saveDataBtn").addEventListener("click", saveCurrentContractData);
 document.querySelectorAll('input[name="clientType"]').forEach((node) => node.addEventListener("change", syncClientTypeRules));
 $("vehicleMakeModel").addEventListener("input", updateDocumentFileName);
 

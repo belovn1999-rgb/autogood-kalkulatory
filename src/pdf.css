@@ -177,6 +177,8 @@ textarea {
 .paste-panel {
   position: sticky;
   top: 90px;
+  display: flex;
+  flex-direction: column;
   align-self: stretch;
   margin-top: 46px;
   padding: 14px;
@@ -191,12 +193,70 @@ textarea {
 
 #rawClient {
   width: 100%;
-  min-height: 500px;
+  min-height: 250px;
   resize: vertical;
   border: 1px solid #b9c9d9;
   border-radius: 6px;
   padding: 11px;
   line-height: 1.35;
+}
+
+.save-data-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.contract-history {
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.history-title {
+  margin-bottom: 8px;
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.history-empty {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.history-item {
+  width: 100%;
+  border: 1px solid #b9c9d9;
+  border-radius: 6px;
+  padding: 8px 9px;
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-item strong,
+.history-item span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item strong {
+  color: var(--brand-dark);
+  font-size: 13px;
+}
+
+.history-item span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .status {
@@ -380,6 +440,7 @@ input[type="radio"] {
 
   .paste-panel {
     position: static;
+    display: block;
     align-self: auto;
     margin-top: 0;
   }
