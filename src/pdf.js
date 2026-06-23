@@ -1028,7 +1028,7 @@ function compactAppendixLayout(root) {
     for (const attr of ["before", "after", "beforeAutospacing", "afterAutospacing"]) spacing.removeAttributeNS(W, attr);
     spacing.setAttributeNS(W, "w:before", "0");
     spacing.setAttributeNS(W, "w:after", "0");
-    spacing.setAttributeNS(W, "w:line", "120");
+    spacing.setAttributeNS(W, "w:line", "155");
     spacing.setAttributeNS(W, "w:lineRule", "exact");
 
     let snapToGrid = directChildren(pPr, W, "snapToGrid")[0];
