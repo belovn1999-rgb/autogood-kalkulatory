@@ -8,7 +8,7 @@ const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const contractHistoryKey = "autogood-order-contract-history-v1";
 const contractHistoryLimit = 3;
 
-let currentDownloadUrl = null;
+let currentDownloadUrls = [];
 
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
@@ -484,27 +484,41 @@ function parseName(text, isCompany) {
 }
 
 function setStatus(text) {
-  if (currentDownloadUrl) {
-    URL.revokeObjectURL(currentDownloadUrl);
-    currentDownloadUrl = null;
-  }
+  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+  currentDownloadUrls = [];
   statusEl.innerHTML = "";
   statusEl.textContent = text;
 }
 
-function showDownload(blob, filename, readyText) {
-  if (currentDownloadUrl) URL.revokeObjectURL(currentDownloadUrl);
-  currentDownloadUrl = URL.createObjectURL(blob);
+function showDownloads(items) {
+  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+  currentDownloadUrls = [];
   statusEl.innerHTML = "";
 
-  const label = document.createElement("span");
-  label.textContent = `${readyText} `;
-  const link = document.createElement("a");
-  link.href = currentDownloadUrl;
-  link.download = filename;
-  link.textContent = filename;
-  statusEl.append(label, link);
-  link.click();
+  const list = document.createElement("div");
+  list.className = "download-list";
+  items.forEach(({ blob, filename, readyText, autoDownload = false }) => {
+    const url = URL.createObjectURL(blob);
+    currentDownloadUrls.push(url);
+
+    const row = document.createElement("div");
+    row.className = "download-row";
+    const label = document.createElement("span");
+    label.textContent = `${readyText} `;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.textContent = filename;
+    row.append(label, link);
+    list.append(row);
+
+    if (autoDownload) link.click();
+  });
+  statusEl.append(list);
+}
+
+function showDownload(blob, filename, readyText, options = {}) {
+  showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
 }
 
 function filenameFor(data, extension) {
@@ -1243,7 +1257,7 @@ async function generateContract() {
   try {
     setStatus("Przygotowuję DOCX...");
     const blob = await generateDocx();
-    showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.");
+    showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.", { autoDownload: false });
   } catch (error) {
     setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
   }
@@ -1255,8 +1269,11 @@ async function generatePdf() {
     const data = collectData();
     const docxBlob = await generateDocx();
     setStatus("Konwertuję DOCX do PDF...");
-    const blob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
-    showDownload(blob, filenameFor(data, "pdf"), "PDF gotowy.");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
+    showDownloads([
+      { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
+      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
+    ]);
   } catch (error) {
     const message = String(error.message || error);
     const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
