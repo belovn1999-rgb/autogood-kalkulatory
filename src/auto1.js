@@ -43,17 +43,6 @@ const cleanupMatchers = [
   /0:00\s*\/\s*\d+:\d+/i,
 ];
 
-const textOnlyMatchers = [
-  /save cash/i,
-  /export advantage/i,
-  /stock number/i,
-  /in high demand/i,
-  /watchlist/i,
-  /merchants?.*interested/i,
-  /total pictures/i,
-  /0:00\s*\/\s*\d+:\d+/i,
-];
-
 function setStatus(message, progress = null) {
   statusText.textContent = message;
   if (progress !== null) {
@@ -137,6 +126,19 @@ function hasPictureCounter(text) {
   return /total pictures/i.test(text);
 }
 
+function isFixedPriceCover(text, pageNumber) {
+  return pageNumber === 1 && /€\s*\d|your bid includes a net auction fee|stock number/i.test(text);
+}
+
+function isFixedPriceReport(pageTexts) {
+  return pageTexts.some((text, index) => isFixedPriceCover(text, index + 1));
+}
+
+function isProcessPage(text) {
+  return /delivery or pick up process will/i.test(text)
+    || (/payment of invoices/i.test(text) && /self\s*-\s*pickup/i.test(text));
+}
+
 function shouldDropPage(text) {
   const legalHits = [
     /copyright/i,
@@ -145,7 +147,179 @@ function shouldDropPage(text) {
     /imprint/i,
   ].filter((pattern) => pattern.test(text)).length;
 
-  return legalHits >= 3;
+  return legalHits >= 3 || isProcessPage(text);
+}
+
+function drawBaseText(ctx, canvas, text, x, y, options = {}) {
+  const sx = canvas.width / BASE_WIDTH;
+  const sy = canvas.height / BASE_HEIGHT;
+  const size = (options.size || 8) * sy;
+  const weight = options.bold ? "700" : "400";
+
+  ctx.save();
+  ctx.fillStyle = options.color || "#111";
+  ctx.font = `${weight} ${size}px Arial, sans-serif`;
+  ctx.textAlign = options.align || "left";
+  ctx.textBaseline = "top";
+  ctx.fillText(text, x * sx, y * sy);
+  ctx.restore();
+}
+
+function drawBaseLine(ctx, canvas, x0, y0, x1, y1, color) {
+  const sx = canvas.width / BASE_WIDTH;
+  const sy = canvas.height / BASE_HEIGHT;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, 1.2 * sy);
+  ctx.beginPath();
+  ctx.moveTo(x0 * sx, y0 * sy);
+  ctx.lineTo(x1 * sx, y1 * sy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function scrubBlueUiPixels(ctx, canvas, rect) {
+  const box = rectToCanvas(rect, canvas);
+  const x = Math.max(0, Math.floor(box.x));
+  const y = Math.max(0, Math.floor(box.y));
+  const w = Math.min(canvas.width - x, Math.ceil(box.w));
+  const h = Math.min(canvas.height - y, Math.ceil(box.h));
+  if (w <= 0 || h <= 0) return;
+
+  const image = ctx.getImageData(x, y, w, h);
+  const data = image.data;
+  for (let index = 0; index < data.length; index += 4) {
+    const r = data[index];
+    const g = data[index + 1];
+    const b = data[index + 2];
+    if (b > 145 && g > 80 && r < 130 && b > r + 45) {
+      data[index] = 255;
+      data[index + 1] = 255;
+      data[index + 2] = 255;
+    }
+  }
+  ctx.putImageData(image, x, y);
+}
+
+function pageLines(text) {
+  return text.split("\n").map((line) => normalizeText(line)).filter(Boolean);
+}
+
+function cleanLabel(value) {
+  return normalizeText(value).replace(/:$/, "").toLowerCase();
+}
+
+function coverValueFrom(lines, index) {
+  let cursor = index + 1;
+  while (lines[cursor] === ":") cursor += 1;
+  if (!lines[cursor]) return "";
+
+  let value = lines[cursor];
+  const next = lines[cursor + 1] || "";
+  if (/^\(.+\)$/.test(next)) value = `${value} ${next}`;
+  if (/^g\/km$/i.test(next)) value = `${value}${next}`;
+  return value;
+}
+
+function valueAfter(lines, label) {
+  const target = cleanLabel(label);
+  const index = lines.findIndex((line) => cleanLabel(line) === target);
+  if (index === -1) return "";
+  return coverValueFrom(lines, index);
+}
+
+function valueAfterSequence(lines, sequence) {
+  const target = sequence.map(cleanLabel);
+  for (let index = 0; index <= lines.length - sequence.length; index += 1) {
+    const matches = target.every((part, offset) => cleanLabel(lines[index + offset]) === part);
+    if (matches) return coverValueFrom(lines, index + sequence.length - 1);
+  }
+  return "";
+}
+
+function fixedCoverTitle(lines) {
+  const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location/i;
+  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line)) || "AUTO1 vehicle report";
+}
+
+function fixedCoverFields(text) {
+  const lines = pageLines(text);
+  const priorDamage = valueAfterSequence(lines, ["Prior damage / Accident", "according to previous", "owner"]);
+  const countryLast = valueAfterSequence(lines, ["Country of last", "registration"]);
+
+  return {
+    title: fixedCoverTitle(lines),
+    fields: [
+      { label: ["Build year:"], value: valueAfter(lines, "Build year:") },
+      { label: ["First registration:"], value: valueAfter(lines, "First registration:") },
+      { label: ["Odometer reading:"], value: valueAfter(lines, "Odometer reading:") },
+      { label: ["Fuel type:"], value: valueAfter(lines, "Fuel type:") },
+      { label: ["Horsepower:"], value: valueAfter(lines, "Horsepower:") },
+      { label: ["Cylinder capacity:"], value: valueAfter(lines, "Cylinder capacity:") },
+      { label: ["Gear box:"], value: valueAfter(lines, "Gear box:") },
+      { label: ["Inspection expires:"], value: valueAfter(lines, "Inspection expires:") },
+      { label: ["Body type:"], value: valueAfter(lines, "Body type:") },
+      { label: ["Total number of owners:"], value: valueAfter(lines, "Total number of owners:") },
+      { label: ["Keys:"], value: valueAfter(lines, "Keys:") },
+      { label: ["Prior damage / Accident", "according to previous", "owner"], value: priorDamage },
+      { label: ["Country of origin:"], value: valueAfter(lines, "Country of origin:") },
+      { label: ["Country of last", "registration:"], value: countryLast },
+      { label: ["Environmental class:"], value: valueAfter(lines, "Environmental class:") },
+      { label: ["COC papers:"], value: valueAfter(lines, "COC papers:") },
+      { label: ["Seats:"], value: valueAfter(lines, "Seats:") },
+      { label: ["Color:"], value: valueAfter(lines, "Color:") },
+      { label: ["Upholstery:"], value: valueAfter(lines, "Upholstery:") },
+      { label: ["Door count:"], value: valueAfter(lines, "Door count:") },
+      { label: ["CO2 Emissions:"], value: valueAfter(lines, "CO2 Emissions:") },
+    ].filter((field) => field.value),
+    location: valueAfter(lines, "Car location"),
+  };
+}
+
+function rebuildFixedPriceCover(ctx, canvas, text) {
+  const cover = fixedCoverFields(text);
+  fillRect(ctx, canvas, [246, 42, 594, 832]);
+  fillRect(ctx, canvas, [452, 0, 594, 74]);
+  drawBaseLine(ctx, canvas, 15, 64, 584, 64, "#f26b21");
+  drawBaseText(ctx, canvas, cover.title, 424, 70, { size: 15, bold: true, align: "center" });
+  drawBaseLine(ctx, canvas, 257, 126, 560, 126, "#9fc1e8");
+
+  const yPositions = [
+    161,
+    184,
+    207,
+    230,
+    253,
+    276,
+    299,
+    322,
+    345,
+    368,
+    391,
+    414,
+    498,
+    521,
+    566,
+    589,
+    612,
+    635,
+    658,
+    681,
+    704,
+  ];
+
+  cover.fields.forEach((field, index) => {
+    const y = yPositions[index];
+    if (y === undefined) return;
+    field.label.forEach((line, offset) => {
+      drawBaseText(ctx, canvas, line, 256, y + offset * 17, { size: 8.7, bold: true });
+    });
+    drawBaseText(ctx, canvas, field.value, 416, y, { size: 8.7 });
+  });
+
+  drawBaseText(ctx, canvas, "Car location", 256, 746, { size: 8.7, bold: true });
+  if (cover.location) drawBaseText(ctx, canvas, cover.location, 256, 768, { size: 8.7 });
 }
 
 function maskTextItems(pdfjsLib, ctx, viewport, textContent, pageText) {
@@ -190,7 +364,7 @@ function maskTextItems(pdfjsLib, ctx, viewport, textContent, pageText) {
   });
 }
 
-function applyStructuralMasks(ctx, canvas, text, pageNumber) {
+function applyStructuralMasks(ctx, canvas, text, pageNumber, fixedPriceReport) {
   fillRect(ctx, canvas, [584, 12, 594, 832]);
   fillRect(ctx, canvas, pageNumber === 1 ? [552, 150, 594, 832] : [552, 12, 594, 832]);
 
@@ -199,13 +373,19 @@ function applyStructuralMasks(ctx, canvas, text, pageNumber) {
   }
 
   if (hasVideoOverlay(text)) {
-    fillRect(ctx, canvas, [36, 96, 246, 268]);
-    fillRect(ctx, canvas, [184, 0, 560, 132]);
+    if (fixedPriceReport && !hasDeliveryBlock(text)) {
+      fillRect(ctx, canvas, [20, 8, 170, 100]);
+      scrubBlueUiPixels(ctx, canvas, [100, 232, 250, 286]);
+    } else {
+      fillRect(ctx, canvas, [36, 96, 246, 268]);
+      fillRect(ctx, canvas, [184, 0, 560, 132]);
+    }
   }
 
   if (hasDeliveryBlock(text)) {
-    fillRect(ctx, canvas, [36, 232, 560, 832]);
-    fillRect(ctx, canvas, [132, 426, 236, 507]);
+    fillRect(ctx, canvas, fixedPriceReport ? [36, 470, 560, 832] : [36, 232, 560, 832]);
+    if (!fixedPriceReport) fillRect(ctx, canvas, [132, 426, 236, 507]);
+    if (fixedPriceReport) fillRect(ctx, canvas, [510, 0, 594, 95]);
   }
 
   if (hasPictureCounter(text)) {
@@ -244,6 +424,7 @@ async function processPdf() {
   const data = new Uint8Array(await selectedFile.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data }).promise;
   const pageTexts = await readPageTexts(pdf);
+  const fixedPriceReport = isFixedPriceReport(pageTexts);
   const { jsPDF } = window.jspdf;
 
   let output = null;
@@ -272,7 +453,10 @@ async function processPdf() {
 
     const textContent = await page.getTextContent();
     maskTextItems(pdfjsLib, ctx, viewport, textContent, text);
-    applyStructuralMasks(ctx, canvas, text, pageNumber);
+    applyStructuralMasks(ctx, canvas, text, pageNumber, fixedPriceReport);
+    if (isFixedPriceCover(text, pageNumber)) {
+      rebuildFixedPriceCover(ctx, canvas, text);
+    }
 
     const width = pageBox.width;
     const height = pageBox.height;

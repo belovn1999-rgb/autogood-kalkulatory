@@ -20,6 +20,11 @@ https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html
 
 Файл не отправляется на сервер. Обработка идет внутри браузера.
 
+## Поддерживаемые типы отчетов
+
+1. Auction report - отчет с аукционными элементами вроде `Save cash`, `Export advantage`, watchlist/high demand и video overlay.
+2. Fixed-price report - отчет с конкретной ценой, например `€11,151`, блоком `Your bid includes a net auction fee`, `Stock number`, delivery/pickup страницами и legal footer.
+
 ## Правила из примера Jeep Compass
 
 Подтвержденные правила из сравнения raw -> client-ready и демонстрации экрана:
@@ -27,9 +32,11 @@ https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html
 - удалить voucher / `Save cash`;
 - удалить `Export advantage`;
 - удалить `Stock number` и внутренние номера аукциона;
+- удалить fixed-price блок цены, auction fee / VAT текст и stock number на первой странице;
 - удалить `In high demand`, watchlist и похожие системные сообщения;
 - удалить video overlay, progress bar и время плеера;
 - удалить delivery / pickup / logistics / цены / сроки;
+- удалить отдельную страницу `Delivery or pick up process will start after`;
 - удалить `Total Pictures` и служебные gallery-сообщения;
 - удалить legal/footer-only страницу AUTO1;
 - сохранить фото, характеристики, test drive, damage, equipment, service, inspection и VIN/equipment sections.
