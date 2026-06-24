@@ -44,6 +44,7 @@ function stripTags(value) {
 function parseNumber(value) {
   let text = String(value ?? "")
     .replace(/\\u00a0/g, " ")
+    .replace(/[\u00a0\u202f]/g, " ")
     .replace(/[^\d., -]/g, "")
     .replace(/\s+/g, "")
     .trim();
@@ -188,6 +189,7 @@ function cleanTitleCandidate(value) {
   return stripTags(value)
     .replace(/\s+f(?:ü|u)r\s+€[\d., ]+.*$/i, "")
     .replace(/\s+for\s+€[\d., ]+.*$/i, "")
+    .replace(/\s+dla\s+[\d.,\s\u00a0\u202f]+€.*$/i, "")
     .replace(/\s+\|\s*mobile\.de.*$/i, "")
     .trim();
 }
@@ -202,6 +204,17 @@ function isPlausibleVehicleTitle(value) {
 
 function isAccessDenied(html, text = "") {
   return /Zugriff verweigert|Access denied|For security reasons/i.test(`${html}\n${text}`);
+}
+
+function isPlausibleListingPage(html, text = "") {
+  const combined = `${html}\n${text}`;
+  const hasPrice = /€|EUR/i.test(combined);
+  const hasMileage = /Mileage|Przebieg|Kilometerstand/i.test(combined);
+  const hasFuel = /Fuel|Paliwo|Kraftstoff/i.test(combined);
+  const hasRegistration = /First registration|Pierwsza rejestracja|Erstzulassung/i.test(combined);
+  const hasBodyOrEngine = /Category|Kategoria|Kategorie|Cubic Capacity|Pojemność|Hubraum/i.test(combined);
+
+  return hasPrice && hasMileage && hasFuel && hasRegistration && hasBodyOrEngine;
 }
 
 function normalizeMobileDeUrl(sourceUrl) {
@@ -236,6 +249,10 @@ function normalizeMobileDeUrl(sourceUrl) {
 function extractPrice(html, jsonData, text = "") {
   const candidates = [];
 
+  candidates.push(...collectRegexMatches(html, [
+    /<title[^>]*>[\s\S]*?(?:dla|for|f(?:ü|u)r)\s+€?\s*([\d.,\s\u00a0\u202f]+)\s*€/i,
+  ]));
+
   jsonData.forEach((item) => {
     walk(item, (key, value, parent) => {
       const lower = key.toLowerCase();
@@ -260,13 +277,13 @@ function extractPrice(html, jsonData, text = "") {
   ]));
 
   candidates.push(...collectRegexMatches(html, [
-    /\\?"consumerPriceGross\\?"\s*:\s*\\?"?([\d., ]+)/gi,
-    /\\?"dealerPriceGross\\?"\s*:\s*\\?"?([\d., ]+)/gi,
-    /\\?"grossPrice\\?"\s*:\s*\\?"?([\d., ]+)/gi,
-    /\\?"grossListPrice\\?"\s*:\s*\\?"?([\d., ]+)/gi,
-    /\\?"price\\?"\s*:\s*\\?"?([\d., ]+)/gi,
-    /€\s*([\d. ]+)/gi,
-    /([\d. ]+)\s*€/gi,
+    /\\?"consumerPriceGross\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"dealerPriceGross\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"grossPrice\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"grossListPrice\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"price\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /€\s*([\d.,\s\u00a0\u202f]+)/gi,
+    /([\d.,\s\u00a0\u202f]+)\s*€/gi,
   ]));
 
   return firstFinite(...candidates);
@@ -301,6 +318,17 @@ function extractDisplacement(html, jsonData, text) {
   return Math.round(firstFinite(...candidates));
 }
 
+function normalizeFuel(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (!normalized) return "";
+  if (normalized.includes("plug-in")) return "Plug-in-Hybrid";
+  if (normalized.includes("diesel")) return "Diesel";
+  if (normalized.includes("benzin") || normalized.includes("benzyn")) return "Benzin";
+  if (normalized.includes("hybrid") || normalized.includes("hybryd")) return "Hybrid";
+  if (normalized.includes("elect") || normalized.includes("elektro") || normalized.includes("elektry")) return "Elektro";
+  return "";
+}
+
 function extractFuel(html, jsonData, text) {
   const candidates = [];
 
@@ -326,14 +354,10 @@ function extractFuel(html, jsonData, text) {
   ]));
 
   const joined = candidates.map(String).join(" ").trim();
-  const lowerText = `${joined} ${text}`.toLowerCase();
-  if (lowerText.includes("plug-in")) return "Plug-in-Hybrid";
-  if (lowerText.includes("elektro") || lowerText.includes("elektry")) return "Elektro";
-  if (lowerText.includes("hybrid") || lowerText.includes("hybryd")) return "Hybrid";
-  if (lowerText.includes("diesel")) return "Diesel";
-  if (lowerText.includes("benzin") || lowerText.includes("benzyn")) return "Benzin";
+  const normalizedCandidate = normalizeFuel(joined);
+  if (normalizedCandidate) return normalizedCandidate;
   if (joined) return joined;
-  return "";
+  return normalizeFuel(text);
 }
 
 function extractTitle(html, jsonData, text) {
@@ -807,7 +831,7 @@ function readChromeDevToolsTarget(target) {
           const html = String(payload.html || "");
           const text = String(payload.text || "");
 
-          if (!isAccessDenied(html, text) && (html.length > 1000 || text.length > 1000)) {
+          if (!isAccessDenied(html, text) && isPlausibleListingPage(html, text)) {
             cleanup();
             resolve({ html, text, mode: "user_chrome_cdp" });
             return;
@@ -817,7 +841,7 @@ function readChromeDevToolsTarget(target) {
         }
 
         cleanup();
-        reject(new Error("Chrome DevTools returned Access denied or an empty page."));
+        reject(new Error("Chrome DevTools returned Access denied or an incomplete listing page."));
       } catch (error) {
         cleanup();
         reject(error);
@@ -880,19 +904,20 @@ async function fetchListingWithChromeDevTools(url, adId = "") {
     && adId
     && String(target.url || "").includes(adId)
   ));
-  const target = existingTarget || await openChromeDevToolsTarget(url);
 
+  if (existingTarget) {
+    try {
+      return await readChromeDevToolsTarget(existingTarget);
+    } catch {
+      // Existing tabs can be stale or partially restored; open a fresh one below.
+    }
+  }
+
+  const target = await openChromeDevToolsTarget(url);
   return readChromeDevToolsTarget(target);
 }
 
 async function loadListing(urlInfo) {
-  const html = await fetchListing(urlInfo.requestUrl, urlInfo.originalUrl);
-  const text = stripTags(html);
-
-  if (!isAccessDenied(html, text)) {
-    return { html, text, mode: "http" };
-  }
-
   try {
     return await fetchListingWithChromeDevTools(urlInfo.requestUrl, urlInfo.adId);
   } catch (devToolsError) {
@@ -903,7 +928,14 @@ async function loadListing(urlInfo) {
         return await fetchListingWithUserChrome(urlInfo.requestUrl, urlInfo.adId);
       } catch {
         try {
-          return await fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
+          const browserListing = await fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
+          if (!isAccessDenied(browserListing.html, browserListing.text)) return browserListing;
+
+          const html = await fetchListing(urlInfo.requestUrl, urlInfo.originalUrl);
+          const text = stripTags(html);
+          if (!isAccessDenied(html, text)) return { html, text, mode: "http" };
+
+          throw new Error("Mobile.de returned Access denied");
         } catch {
           throw devToolsError;
         }
