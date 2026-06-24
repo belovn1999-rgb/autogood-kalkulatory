@@ -3,7 +3,7 @@ const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/
 
 const BASE_WIDTH = 594.96;
 const BASE_HEIGHT = 841.92;
-const RENDER_SCALE = 2.25;
+const MASK_COLOR = [1, 1, 1];
 
 const input = document.querySelector("#pdfInput");
 const dropZone = document.querySelector("#dropZone");
@@ -88,22 +88,11 @@ async function loadPdfJs() {
   return pdfjsPromise;
 }
 
-function rectToCanvas(rect, canvas) {
-  const [x0, y0, x1, y1] = rect;
-  return {
-    x: (x0 / BASE_WIDTH) * canvas.width,
-    y: (y0 / BASE_HEIGHT) * canvas.height,
-    w: ((x1 - x0) / BASE_WIDTH) * canvas.width,
-    h: ((y1 - y0) / BASE_HEIGHT) * canvas.height,
-  };
-}
-
-function fillRect(ctx, canvas, rect, color = "#fff") {
-  const box = rectToCanvas(rect, canvas);
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.restore();
+function ensurePdfLib() {
+  if (!window.PDFLib?.PDFDocument) {
+    throw new Error("Edytor PDF nie zostal zaladowany.");
+  }
+  return window.PDFLib;
 }
 
 function buildText(textContent) {
@@ -148,58 +137,6 @@ function shouldDropPage(text) {
   ].filter((pattern) => pattern.test(text)).length;
 
   return legalHits >= 3 || isProcessPage(text);
-}
-
-function drawBaseText(ctx, canvas, text, x, y, options = {}) {
-  const sx = canvas.width / BASE_WIDTH;
-  const sy = canvas.height / BASE_HEIGHT;
-  const size = (options.size || 8) * sy;
-  const weight = options.bold ? "700" : "400";
-
-  ctx.save();
-  ctx.fillStyle = options.color || "#111";
-  ctx.font = `${weight} ${size}px Arial, sans-serif`;
-  ctx.textAlign = options.align || "left";
-  ctx.textBaseline = "top";
-  ctx.fillText(text, x * sx, y * sy);
-  ctx.restore();
-}
-
-function drawBaseLine(ctx, canvas, x0, y0, x1, y1, color) {
-  const sx = canvas.width / BASE_WIDTH;
-  const sy = canvas.height / BASE_HEIGHT;
-
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, 1.2 * sy);
-  ctx.beginPath();
-  ctx.moveTo(x0 * sx, y0 * sy);
-  ctx.lineTo(x1 * sx, y1 * sy);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function scrubBlueUiPixels(ctx, canvas, rect) {
-  const box = rectToCanvas(rect, canvas);
-  const x = Math.max(0, Math.floor(box.x));
-  const y = Math.max(0, Math.floor(box.y));
-  const w = Math.min(canvas.width - x, Math.ceil(box.w));
-  const h = Math.min(canvas.height - y, Math.ceil(box.h));
-  if (w <= 0 || h <= 0) return;
-
-  const image = ctx.getImageData(x, y, w, h);
-  const data = image.data;
-  for (let index = 0; index < data.length; index += 4) {
-    const r = data[index];
-    const g = data[index + 1];
-    const b = data[index + 2];
-    if (b > 145 && g > 80 && r < 130 && b > r + 45) {
-      data[index] = 255;
-      data[index + 1] = 255;
-      data[index + 2] = 255;
-    }
-  }
-  ctx.putImageData(image, x, y);
 }
 
 function pageLines(text) {
@@ -277,13 +214,88 @@ function fixedCoverFields(text) {
   };
 }
 
-function rebuildFixedPriceCover(ctx, canvas, text) {
+function rgb(pdfLib, r, g, b) {
+  return pdfLib.rgb(r, g, b);
+}
+
+function pageRect(page) {
+  return { width: page.getWidth(), height: page.getHeight() };
+}
+
+function scaledBox(page, rect) {
+  const [x0, y0, x1, y1] = rect;
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
+
+  return {
+    x: x0 * sx,
+    y: height - y1 * sy,
+    width: (x1 - x0) * sx,
+    height: (y1 - y0) * sy,
+  };
+}
+
+function drawMask(pdfLib, page, rect) {
+  page.drawRectangle({
+    ...scaledBox(page, rect),
+    color: rgb(pdfLib, ...MASK_COLOR),
+    borderWidth: 0,
+  });
+}
+
+function drawPdfText(pdfLib, page, text, x, topY, options = {}) {
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
+  const size = (options.size || 8) * sy;
+
+  page.drawText(text, {
+    x: x * sx,
+    y: height - topY * sy - size,
+    size,
+    font: options.font,
+    color: options.color || rgb(pdfLib, 0.06, 0.06, 0.06),
+  });
+}
+
+function drawPdfLine(pdfLib, page, x0, topY0, x1, topY1, color) {
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
+
+  page.drawLine({
+    start: { x: x0 * sx, y: height - topY0 * sy },
+    end: { x: x1 * sx, y: height - topY1 * sy },
+    thickness: Math.max(0.8, 1.2 * sy),
+    color,
+  });
+}
+
+function drawCenteredText(pdfLib, page, text, centerX, topY, options = {}) {
+  const font = options.font;
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
+  const size = (options.size || 8) * sy;
+  const textWidth = font.widthOfTextAtSize(text, size);
+
+  page.drawText(text, {
+    x: centerX * sx - textWidth / 2,
+    y: height - topY * sy - size,
+    size,
+    font,
+    color: options.color || rgb(pdfLib, 0.06, 0.06, 0.06),
+  });
+}
+
+function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
   const cover = fixedCoverFields(text);
-  fillRect(ctx, canvas, [246, 42, 594, 832]);
-  fillRect(ctx, canvas, [452, 0, 594, 74]);
-  drawBaseLine(ctx, canvas, 15, 64, 584, 64, "#f26b21");
-  drawBaseText(ctx, canvas, cover.title, 424, 70, { size: 15, bold: true, align: "center" });
-  drawBaseLine(ctx, canvas, 257, 126, 560, 126, "#9fc1e8");
+  drawMask(pdfLib, page, [246, 42, 594, 832]);
+  drawMask(pdfLib, page, [452, 0, 594, 74]);
+  drawPdfLine(pdfLib, page, 15, 64, 584, 64, rgb(pdfLib, 0.95, 0.42, 0.13));
+  drawCenteredText(pdfLib, page, cover.title, 424, 70, { size: 15, font: fonts.bold });
+  drawPdfLine(pdfLib, page, 257, 126, 560, 126, rgb(pdfLib, 0.62, 0.76, 0.91));
 
   const yPositions = [
     161,
@@ -313,83 +325,81 @@ function rebuildFixedPriceCover(ctx, canvas, text) {
     const y = yPositions[index];
     if (y === undefined) return;
     field.label.forEach((line, offset) => {
-      drawBaseText(ctx, canvas, line, 256, y + offset * 17, { size: 8.7, bold: true });
+      drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
     });
-    drawBaseText(ctx, canvas, field.value, 416, y, { size: 8.7 });
+    drawPdfText(pdfLib, page, field.value, 416, y, { size: 8.7, font: fonts.regular });
   });
 
-  drawBaseText(ctx, canvas, "Car location", 256, 746, { size: 8.7, bold: true });
-  if (cover.location) drawBaseText(ctx, canvas, cover.location, 256, 768, { size: 8.7 });
+  drawPdfText(pdfLib, page, "Car location", 256, 746, { size: 8.7, font: fonts.bold });
+  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, 768, { size: 8.7, font: fonts.regular });
 }
 
-function maskTextItems(pdfjsLib, ctx, viewport, textContent, pageText) {
-  const util = pdfjsLib.Util;
+function drawTextMasks(pdfLib, page, textContent, pageText) {
   const isDeliveryPage = hasDeliveryBlock(pageText);
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
 
   textContent.items.forEach((item) => {
     const str = normalizeText(item.str);
     const isDeliveryAddressText = isDeliveryPage && /kolejowa|lomianki|łomianki|change|address|location|pl$/i.test(str);
     if (!str || (!hasAny(str, cleanupMatchers) && !isDeliveryAddressText)) return;
 
-    const matrix = util.transform(viewport.transform, item.transform);
-    const fontHeight = Math.max(
-      Math.abs(matrix[3]),
-      Math.abs(item.height || 0) * RENDER_SCALE,
-      9 * RENDER_SCALE,
-    );
-    const width = Math.max((item.width || str.length * 5) * RENDER_SCALE, 20 * RENDER_SCALE);
-    const pad = 3 * RENDER_SCALE;
+    const rawX = item.transform?.[4] ?? 0;
+    const rawY = item.transform?.[5] ?? 0;
+    const rawWidth = item.width || str.length * 5;
+    const rawHeight = Math.max(Math.abs(item.height || 0), 9);
+    const pad = 3;
     let extraRight = 0;
     let extraLeft = 0;
     let extraTop = 0;
     let extraBottom = 0;
 
-    if (/stock number/i.test(str)) extraRight = 150 * RENDER_SCALE;
+    if (/stock number/i.test(str)) extraRight = 150;
     if (/save cash|export advantage|in high demand|watchlist/i.test(str)) {
-      extraLeft = 10 * RENDER_SCALE;
-      extraRight = 90 * RENDER_SCALE;
-      extraTop = 4 * RENDER_SCALE;
-      extraBottom = 4 * RENDER_SCALE;
+      extraLeft = 10;
+      extraRight = 90;
+      extraTop = 4;
+      extraBottom = 4;
     }
 
-    ctx.save();
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(
-      matrix[4] - pad - extraLeft,
-      matrix[5] - fontHeight - pad - extraTop,
-      width + pad * 2 + extraLeft + extraRight,
-      fontHeight + pad * 2 + extraTop + extraBottom,
-    );
-    ctx.restore();
+    page.drawRectangle({
+      x: (rawX - pad - extraLeft) * sx,
+      y: (rawY - pad - extraBottom) * sy,
+      width: (rawWidth + pad * 2 + extraLeft + extraRight) * sx,
+      height: (rawHeight + pad * 2 + extraTop + extraBottom) * sy,
+      color: rgb(pdfLib, ...MASK_COLOR),
+      borderWidth: 0,
+    });
   });
 }
 
-function applyStructuralMasks(ctx, canvas, text, pageNumber, fixedPriceReport) {
-  fillRect(ctx, canvas, [584, 12, 594, 832]);
-  fillRect(ctx, canvas, pageNumber === 1 ? [552, 150, 594, 832] : [552, 12, 594, 832]);
+function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) {
+  drawMask(pdfLib, page, [584, 12, 594, 832]);
+  drawMask(pdfLib, page, pageNumber === 1 ? [552, 150, 594, 832] : [552, 12, 594, 832]);
 
   if (pageNumber === 1 && /save cash|export advantage|stock number|in high demand|watchlist/i.test(text)) {
-    fillRect(ctx, canvas, [246, 8, 584, 59]);
+    drawMask(pdfLib, page, [246, 8, 584, 59]);
   }
 
   if (hasVideoOverlay(text)) {
     if (fixedPriceReport && !hasDeliveryBlock(text)) {
-      fillRect(ctx, canvas, [20, 8, 170, 100]);
-      scrubBlueUiPixels(ctx, canvas, [100, 232, 250, 286]);
+      drawMask(pdfLib, page, [20, 8, 170, 100]);
+      drawMask(pdfLib, page, [104, 232, 188, 268]);
     } else {
-      fillRect(ctx, canvas, [36, 96, 246, 268]);
-      fillRect(ctx, canvas, [184, 0, 560, 132]);
+      drawMask(pdfLib, page, [36, 96, 246, 268]);
+      drawMask(pdfLib, page, [184, 0, 560, 132]);
     }
   }
 
   if (hasDeliveryBlock(text)) {
-    fillRect(ctx, canvas, fixedPriceReport ? [36, 470, 560, 832] : [36, 232, 560, 832]);
-    if (!fixedPriceReport) fillRect(ctx, canvas, [132, 426, 236, 507]);
-    if (fixedPriceReport) fillRect(ctx, canvas, [510, 0, 594, 95]);
+    drawMask(pdfLib, page, fixedPriceReport ? [36, 470, 560, 832] : [36, 232, 560, 832]);
+    if (!fixedPriceReport) drawMask(pdfLib, page, [132, 426, 236, 507]);
+    if (fixedPriceReport) drawMask(pdfLib, page, [510, 0, 594, 95]);
   }
 
   if (hasPictureCounter(text)) {
-    fillRect(ctx, canvas, [36, 440, 560, 464]);
+    drawMask(pdfLib, page, [36, 440, 560, 464]);
   }
 }
 
@@ -398,94 +408,75 @@ function outputName(fileName) {
   return `${stem}-client.pdf`;
 }
 
-async function readPageTexts(pdf) {
-  const texts = [];
+async function readPageData(pdf) {
+  const pages = [];
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     const page = await pdf.getPage(pageNumber);
     const textContent = await page.getTextContent();
-    texts.push(buildText(textContent));
-    setStatus(`Czytam raport AUTO1: strona ${pageNumber}/${pdf.numPages}`, (pageNumber / pdf.numPages) * 20);
+    pages.push({
+      text: buildText(textContent),
+      textContent,
+    });
+    setStatus(`Czytam raport AUTO1: strona ${pageNumber}/${pdf.numPages}`, (pageNumber / pdf.numPages) * 25);
   }
-  return texts;
+  return pages;
 }
 
 async function processPdf() {
   if (!selectedFile) return;
-  if (!window.jspdf?.jsPDF) {
-    throw new Error("Generator PDF nie zostal zaladowany.");
-  }
 
   resetResult();
   processButton.disabled = true;
   downloadButton.classList.add("isDisabled");
   setStatus("Laduje silnik PDF...", 5);
 
+  const pdfLib = ensurePdfLib();
   const pdfjsLib = await loadPdfJs();
-  const data = new Uint8Array(await selectedFile.arrayBuffer());
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
-  const pageTexts = await readPageTexts(pdf);
+  const bytes = await selectedFile.arrayBuffer();
+  const pdfJsData = new Uint8Array(bytes.slice(0));
+  const sourcePdf = await pdfjsLib.getDocument({ data: pdfJsData }).promise;
+  const pageData = await readPageData(sourcePdf);
+  const pageTexts = pageData.map((page) => page.text);
   const fixedPriceReport = isFixedPriceReport(pageTexts);
-  const { jsPDF } = window.jspdf;
 
-  let output = null;
-  let outputPages = 0;
-  let droppedPages = 0;
+  setStatus("Edytuje oryginalny PDF...", 35);
+  const pdfDoc = await pdfLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+  const fonts = {
+    regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
+    bold: await pdfDoc.embedFont(pdfLib.StandardFonts.HelveticaBold),
+  };
+  const pages = pdfDoc.getPages();
+  const dropIndexes = [];
 
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    const text = pageTexts[pageNumber - 1];
-    if (shouldDropPage(text)) {
-      droppedPages += 1;
-      setStatus(`Usuwam strone prawna AUTO1: ${pageNumber}/${pdf.numPages}`, 20 + (pageNumber / pdf.numPages) * 65);
-      continue;
+  pages.forEach((page, index) => {
+    const pageNumber = index + 1;
+    const data = pageData[index];
+    if (!data) return;
+
+    if (shouldDropPage(data.text)) {
+      dropIndexes.push(index);
+      return;
     }
 
-    const page = await pdf.getPage(pageNumber);
-    const pageBox = page.getViewport({ scale: 1 });
-    const viewport = page.getViewport({ scale: RENDER_SCALE });
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.ceil(viewport.width);
-    canvas.height = Math.ceil(viewport.height);
-
-    const ctx = canvas.getContext("2d", { alpha: false });
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvasContext: ctx, viewport }).promise;
-
-    const textContent = await page.getTextContent();
-    maskTextItems(pdfjsLib, ctx, viewport, textContent, text);
-    applyStructuralMasks(ctx, canvas, text, pageNumber, fixedPriceReport);
-    if (isFixedPriceCover(text, pageNumber)) {
-      rebuildFixedPriceCover(ctx, canvas, text);
+    drawTextMasks(pdfLib, page, data.textContent, data.text);
+    applyStructuralMasks(pdfLib, page, data.text, pageNumber, fixedPriceReport);
+    if (isFixedPriceCover(data.text, pageNumber)) {
+      rebuildFixedPriceCover(pdfLib, page, data.text, fonts);
     }
+  });
 
-    const width = pageBox.width;
-    const height = pageBox.height;
-    const orientation = width > height ? "l" : "p";
-    const image = canvas.toDataURL("image/jpeg", 0.93);
+  [...dropIndexes].reverse().forEach((index) => pdfDoc.removePage(index));
 
-    if (!output) {
-      output = new jsPDF({ unit: "pt", format: [width, height], orientation, compress: true });
-    } else {
-      output.addPage([width, height], orientation);
-    }
-    output.addImage(image, "JPEG", 0, 0, width, height, undefined, "FAST");
-    outputPages += 1;
-    setStatus(`Czyszcze i skladam PDF: strona ${pageNumber}/${pdf.numPages}`, 20 + (pageNumber / pdf.numPages) * 65);
-  }
-
-  if (!output || outputPages === 0) {
-    throw new Error("Nie udalo sie zbudowac PDF. Wszystkie strony zostaly odrzucone.");
-  }
-
-  setStatus("Tworze plik do pobrania...", 92);
-  const blob = output.output("blob");
+  setStatus("Zapisuje edytowalny PDF...", 90);
+  const outputBytes = await pdfDoc.save({ useObjectStreams: false });
+  const blob = new Blob([outputBytes], { type: "application/pdf" });
   resultUrl = URL.createObjectURL(blob);
   downloadButton.href = resultUrl;
   downloadButton.download = outputName(selectedFile.name);
   downloadButton.classList.remove("isDisabled");
   resultPreview.src = resultUrl;
-  resultMeta.textContent = `${outputPages} stron gotowych, usunieto ${droppedPages} stron.`;
-  setStatus("Gotowe. Pobierz klientowski PDF i sprawdz wizualnie przed wysylka.", 100);
+  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${dropIndexes.length} stron.`;
+  setStatus("Gotowe. PDF zachowuje oryginalne strony i edytowalne poprawki.", 100);
 }
 
 input.addEventListener("change", () => {

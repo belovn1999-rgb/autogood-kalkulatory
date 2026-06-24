@@ -6,8 +6,8 @@
     <title>AUTOGOOD Auto1</title>
     <link rel="stylesheet" href="./src/tools.css?v=auto1-app-20260621" />
     <link rel="stylesheet" href="./src/auto1.css?v=20260621-app" />
-    <script src="./vendor/jspdf.umd.min.js"></script>
-    <script type="module" src="./src/auto1.js?v=20260621-app"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module" src="./src/auto1.js?v=20260624-editable"></script>
   </head>
   <body>
     <main class="workspaceShell">
@@ -30,7 +30,7 @@
             <h1>Przygotuj raport dla klienta</h1>
             <p>
               Wgraj surowy raport PDF pobrany z AUTO1. Program oczyści go z
-              elementow aukcyjnych i przygotuje wersje do wyslania klientowi.
+              elementow aukcyjnych i zapisze z powrotem jako edytowalny PDF.
             </p>
           </div>
 
@@ -38,7 +38,7 @@
             <input id="pdfInput" type="file" accept="application/pdf,.pdf" />
             <span class="auto1DropIcon">PDF</span>
             <strong id="dropTitle">Wybierz albo przeciagnij plik PDF</strong>
-            <small id="fileMeta">Dziala lokalnie w przegladarce. Plik nie jest wysylany na serwer.</small>
+            <small id="fileMeta">Dziala lokalnie w przegladarce. Plik nie jest wysylany na serwer i nie jest zamieniany w obraz.</small>
           </label>
 
           <div class="auto1Actions">
