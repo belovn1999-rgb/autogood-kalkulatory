@@ -1325,7 +1325,11 @@ function App() {
   }))), /*#__PURE__*/React.createElement("section", {
     className: "card results",
     ref: resultsRef
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("img", {
+    className: "resultCornerLogo",
+    src: "./assets/ag-opt.svg",
+    alt: "AUTOGOOD"
+  }), /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
   }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", tab.name[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rows"

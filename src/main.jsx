@@ -1248,6 +1248,8 @@ function App() {
         </aside>
 
         <section className="card results" ref={resultsRef}>
+          <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
+
           <div className="resultsTitle">
             <h2><MoneyIcon />{c.results} — {tab.name[lang]}</h2>
           </div>
