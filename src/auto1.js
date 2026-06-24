@@ -244,6 +244,12 @@ function drawMask(pdfLib, page, rect) {
   });
 }
 
+function drawPageChromeMasks(pdfLib, page, pageNumber) {
+  if (pageNumber === 1) return;
+  drawMask(pdfLib, page, [0, 0, 28, 832]);
+  drawMask(pdfLib, page, [0, 808, 594, 832]);
+}
+
 function drawPdfText(pdfLib, page, text, x, topY, options = {}) {
   const { width, height } = pageRect(page);
   const sx = width / BASE_WIDTH;
@@ -294,44 +300,21 @@ function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
   drawMask(pdfLib, page, [246, 42, 594, 832]);
   drawMask(pdfLib, page, [452, 0, 594, 74]);
   drawPdfLine(pdfLib, page, 15, 64, 584, 64, rgb(pdfLib, 0.95, 0.42, 0.13));
-  drawCenteredText(pdfLib, page, cover.title, 424, 70, { size: 15, font: fonts.bold });
-  drawPdfLine(pdfLib, page, 257, 126, 560, 126, rgb(pdfLib, 0.62, 0.76, 0.91));
+  drawCenteredText(pdfLib, page, cover.title, 424, 30, { size: 15, font: fonts.bold });
+  drawPdfLine(pdfLib, page, 257, 78, 560, 78, rgb(pdfLib, 0.62, 0.76, 0.91));
 
-  const yPositions = [
-    161,
-    184,
-    207,
-    230,
-    253,
-    276,
-    299,
-    322,
-    345,
-    368,
-    391,
-    414,
-    498,
-    521,
-    566,
-    589,
-    612,
-    635,
-    658,
-    681,
-    704,
-  ];
-
-  cover.fields.forEach((field, index) => {
-    const y = yPositions[index];
-    if (y === undefined) return;
+  let y = 112;
+  cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
       drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
     });
     drawPdfText(pdfLib, page, field.value, 416, y, { size: 8.7, font: fonts.regular });
+    y += Math.max(field.label.length, 1) * 17 + 8;
   });
 
-  drawPdfText(pdfLib, page, "Car location", 256, 746, { size: 8.7, font: fonts.bold });
-  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, 768, { size: 8.7, font: fonts.regular });
+  y += 10;
+  drawPdfText(pdfLib, page, "Car location", 256, y, { size: 8.7, font: fonts.bold });
+  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, y + 22, { size: 8.7, font: fonts.regular });
 }
 
 function drawTextMasks(pdfLib, page, textContent, pageText) {
@@ -375,6 +358,7 @@ function drawTextMasks(pdfLib, page, textContent, pageText) {
 }
 
 function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) {
+  drawPageChromeMasks(pdfLib, page, pageNumber);
   drawMask(pdfLib, page, [584, 12, 594, 832]);
   drawMask(pdfLib, page, pageNumber === 1 ? [552, 150, 594, 832] : [552, 12, 594, 832]);
 
@@ -384,8 +368,8 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
 
   if (hasVideoOverlay(text)) {
     if (fixedPriceReport && !hasDeliveryBlock(text)) {
-      drawMask(pdfLib, page, [20, 8, 170, 100]);
-      drawMask(pdfLib, page, [104, 232, 188, 268]);
+      drawMask(pdfLib, page, [132, 258, 138, 286]);
+      drawMask(pdfLib, page, [148, 258, 154, 286]);
     } else {
       drawMask(pdfLib, page, [36, 96, 246, 268]);
       drawMask(pdfLib, page, [184, 0, 560, 132]);
@@ -399,7 +383,8 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
   }
 
   if (hasPictureCounter(text)) {
-    drawMask(pdfLib, page, [36, 440, 560, 464]);
+    drawMask(pdfLib, page, [548, 360, 594, 640]);
+    drawMask(pdfLib, page, [36, 570, 560, 602]);
   }
 }
 
