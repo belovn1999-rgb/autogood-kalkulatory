@@ -57,8 +57,14 @@ Zakres importu Mobile.de:
 
 ```text
 link -> ID ogloszenia -> cena brutto EUR -> paliwo -> pojemnosc -> typ akcyzy
-     -> tytul ogloszenia -> przebieg -> pierwsza rejestracja -> miasto/adres sprzedawcy
+     -> tytul ogloszenia -> typ nadwozia -> przebieg -> pierwsza rejestracja
+     -> miasto/adres sprzedawcy -> transport netto PLN, jesli pasuje regula taryfowa
 ```
+
+Tymczasowa regula testowa:
+
+- `Van/Minibus` z regionu `DE-17xxx` -> `3400 PLN netto` transportu.
+- Regula jest demonstracyjna. Docelowo trzeba zastapic ja tabela regionow i stawek.
 
 Mobile.de czesto blokuje zwykly HTTP request. W takim przypadku backend automatycznie
 przechodzi na tryb przegladarki przez Playwright. Do realnej pracy importu wymagane jest

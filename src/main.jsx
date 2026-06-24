@@ -1106,10 +1106,15 @@ function App() {
       }
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
+      const transportNettoPln = Number(data?.transportNettoPln);
       const nextEngineIndex = Number(data?.engineTypeIndex);
 
       if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
         setField("car", String(Math.round(carBruttoEur)));
+      }
+
+      if (Number.isFinite(transportNettoPln) && transportNettoPln > 0) {
+        setField("transport", String(Math.round(transportNettoPln)));
       }
 
       if (Number.isInteger(nextEngineIndex) && engineTypes[nextEngineIndex]) {
@@ -1120,8 +1125,12 @@ function App() {
       if (data?.title) summaryParts.push(data.title);
       if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
       if (data?.fuel) summaryParts.push(data.fuel);
+      if (data?.bodyType) summaryParts.push(data.bodyType);
       if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
       if (data?.engineTypeLabel) summaryParts.push(data.engineTypeLabel);
+      if (Number.isFinite(transportNettoPln) && transportNettoPln > 0) {
+        summaryParts.push(`${formatPlainAmount(transportNettoPln, "PLN")} transport netto`);
+      }
       if (data?.mileageKm) summaryParts.push(`${data.mileageKm.toLocaleString("pl-PL")} km`);
       if (data?.firstRegistration) summaryParts.push(data.firstRegistration);
       if (data?.location?.city || data?.location?.address) {

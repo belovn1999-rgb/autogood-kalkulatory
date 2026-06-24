@@ -9,6 +9,7 @@ const SYSTEM_CHROME_PATHS = [
 ].filter(Boolean);
 
 const MOBILEDE_CANONICAL_ORIGIN = "https://suchen.mobile.de";
+const DEMO_BUS_TRANSPORT_NETTO_PLN = 3400;
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -134,6 +135,22 @@ function firstText(...values) {
   return "";
 }
 
+function cleanTitleCandidate(value) {
+  return stripTags(value)
+    .replace(/\s+f(?:ü|u)r\s+€[\d., ]+.*$/i, "")
+    .replace(/\s+for\s+€[\d., ]+.*$/i, "")
+    .replace(/\s+\|\s*mobile\.de.*$/i, "")
+    .trim();
+}
+
+function isPlausibleVehicleTitle(value) {
+  const text = cleanTitleCandidate(value);
+  if (!text || text.length < 3 || text.length > 160) return false;
+  if (/^(price|imprint|privacy|cookie|technical data|vehicle condition|dealer|seller)$/i.test(text)) return false;
+  if (/imprint|additional information|privacy policy|cookie/i.test(text)) return false;
+  return /[A-Za-zÀ-ž]/.test(text);
+}
+
 function isAccessDenied(html, text = "") {
   return /Zugriff verweigert|Access denied|For security reasons/i.test(`${html}\n${text}`);
 }
@@ -160,12 +177,9 @@ function normalizeMobileDeUrl(sourceUrl) {
     };
   }
 
-  const canonical = new URL("/fahrzeuge/details.html", MOBILEDE_CANONICAL_ORIGIN);
-  canonical.searchParams.set("id", id);
-
   return {
     originalUrl: sourceUrl,
-    requestUrl: canonical.toString(),
+    requestUrl: parsed.toString(),
     adId: id,
   };
 }
@@ -252,21 +266,55 @@ function extractFuel(html, jsonData, text) {
 }
 
 function extractTitle(html, jsonData, text) {
+  const headingCandidates = collectRegexMatches(html, [
+    /<h1[^>]*>([\s\S]*?)<\/h1>/gi,
+    /<h2[^>]*>([\s\S]*?)<\/h2>/gi,
+  ]);
+  const documentTitleCandidates = collectRegexMatches(html, [
+    /<title[^>]*>([\s\S]*?)<\/title>/gi,
+  ]);
+  const textLineCandidates = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 40);
+  const jsonCandidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/^(name|title|headline|modeldescription|make|model)$/i.test(key) && typeof value !== "object") jsonCandidates.push(value);
+    });
+  });
+
+  const escapedJsonCandidates = collectRegexMatches(html, [
+    /\\"(?:headline|title|name)\\"\s*:\s*\\"([^"\\]{3,140})/gi,
+  ]);
+
+  const candidates = [
+    ...headingCandidates,
+    ...documentTitleCandidates,
+    ...textLineCandidates,
+    ...jsonCandidates,
+    ...escapedJsonCandidates,
+  ];
+
+  return cleanTitleCandidate(candidates.find(isPlausibleVehicleTitle) || firstText(candidates));
+}
+
+function extractBodyType(html, jsonData, text) {
   const candidates = [];
 
   jsonData.forEach((item) => {
     walk(item, (key, value) => {
-      if (/^(name|title|headline|modeldescription|make|model)$/i.test(key) && typeof value !== "object") candidates.push(value);
+      if (/category|bodytype|vehiclebody/i.test(key) && typeof value !== "object") candidates.push(value);
     });
   });
 
-  candidates.push(...collectRegexMatches(html, [
-    /<h1[^>]*>([\s\S]*?)<\/h1>/i,
-    /<title[^>]*>([\s\S]*?)<\/title>/i,
-    /\\"(?:headline|title|name)\\"\s*:\s*\\"([^"\\]{3,140})/gi,
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /(?:Kategorie|Kategoria|Category)[^A-Za-zÀ-ž0-9]{0,80}([A-Za-zÀ-ž/ -]+)/i,
   ]));
 
-  return firstText(candidates).replace(/\s*\|\s*mobile\.de.*$/i, "");
+  return firstText(candidates);
 }
 
 function extractMileage(html, jsonData, text) {
@@ -358,6 +406,25 @@ function classifyEngine(fuel, displacementCcm) {
   return isOver2000 ? 4 : 3;
 }
 
+function estimateTransportNettoPln(bodyType, location) {
+  const normalizedBody = String(bodyType || "").toLowerCase();
+  const postalCode = String(location?.postalCode || "");
+  const isBus = /van|minibus|bus/.test(normalizedBody);
+  const isDemoRegion = /^17/.test(postalCode);
+
+  if (isBus && isDemoRegion) {
+    return {
+      amount: DEMO_BUS_TRANSPORT_NETTO_PLN,
+      currency: "PLN",
+      netto: true,
+      rule: "demo_bus_de_17xxx",
+      note: "Temporary demo tariff: Van/Minibus from DE-17xxx region."
+    };
+  }
+
+  return null;
+}
+
 async function fetchListing(url, originalUrl = url) {
   const response = await fetch(url, {
     headers: {
@@ -387,6 +454,9 @@ async function fetchListingWithBrowser(url, originalUrl = url) {
   const executablePath = SYSTEM_CHROME_PATHS.find((path) => path && existsSync(path));
   const browser = await chromium.launch({
     headless: !process.env.MOBILEDE_SHOW_BROWSER,
+    args: [
+      "--disable-blink-features=AutomationControlled",
+    ],
     ...(executablePath ? { executablePath } : {}),
   });
 
@@ -394,6 +464,9 @@ async function fetchListingWithBrowser(url, originalUrl = url) {
     const page = await browser.newPage({
       locale: "de-DE",
       userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    });
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "webdriver", { get: () => undefined });
     });
     await page.setExtraHTTPHeaders({ referer: originalUrl });
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
@@ -443,9 +516,11 @@ const server = http.createServer(async (request, response) => {
     const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
     const title = extractTitle(html, jsonData, text);
+    const bodyType = extractBodyType(html, jsonData, text);
     const mileageKm = extractMileage(html, jsonData, text);
     const firstRegistration = extractFirstRegistration(html, jsonData, text);
     const location = extractLocation(html, jsonData, text);
+    const transportEstimate = estimateTransportNettoPln(bodyType, location);
 
     if (!carBruttoEur) throw new Error("Price not found");
 
@@ -456,11 +531,14 @@ const server = http.createServer(async (request, response) => {
       importMode: mode,
       carBruttoEur,
       title,
+      bodyType,
       fuel,
       displacementCcm,
       mileageKm,
       firstRegistration,
       location,
+      transportNettoPln: transportEstimate?.amount || null,
+      transportEstimate,
       engineTypeIndex,
       engineTypeLabel: [
         "EL / PHEV <=2000cm³",
