@@ -13,7 +13,27 @@ const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
 const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
-const MOBILEDE_API_URL = window.AUTOGOOD_MOBILEDE_API_URL || "http://127.0.0.1:8788/mobilede/import";
+const MOBILEDE_API_STORAGE_KEY = "autogood-mobilede-api-url";
+const DEFAULT_MOBILEDE_API_URL = "http://127.0.0.1:8788/mobilede/import";
+const readMobileDeApiUrl = () => {
+  const configuredUrl = window.AUTOGOOD_MOBILEDE_API_URL;
+  const params = new URLSearchParams(window.location.search);
+  const queryUrl = params.get("mobiledeApi");
+  if (queryUrl) {
+    try {
+      window.localStorage.setItem(MOBILEDE_API_STORAGE_KEY, queryUrl);
+    } catch {
+      // Local storage can be unavailable in private browser modes.
+    }
+    return queryUrl;
+  }
+  try {
+    return configuredUrl || window.localStorage.getItem(MOBILEDE_API_STORAGE_KEY) || DEFAULT_MOBILEDE_API_URL;
+  } catch {
+    return configuredUrl || DEFAULT_MOBILEDE_API_URL;
+  }
+};
+const MOBILEDE_API_URL = readMobileDeApiUrl();
 const EUR_PLN_MARGIN = 0.02;
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;

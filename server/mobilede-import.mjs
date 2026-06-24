@@ -1,12 +1,20 @@
 import http from "node:http";
 import { existsSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 const PORT = Number(process.env.PORT || 8788);
+const execFileAsync = promisify(execFile);
+const USER_HOME = process.env.HOME || "";
 const SYSTEM_CHROME_PATHS = [
   process.env.MOBILEDE_CHROME_PATH,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
 ].filter(Boolean);
+const MOBILEDE_CDP_URL = process.env.MOBILEDE_CDP_URL || "http://127.0.0.1:9333";
+const MOBILEDE_CDP_PORT = new URL(MOBILEDE_CDP_URL).port || "9333";
+const MOBILEDE_CDP_PROFILE = process.env.MOBILEDE_CDP_PROFILE
+  || `${USER_HOME}/Library/Application Support/AUTOGOOD/mobilede-chrome-profile`;
 
 const MOBILEDE_CANONICAL_ORIGIN = "https://suchen.mobile.de";
 const DEMO_BUS_TRANSPORT_NETTO_PLN = 3400;
@@ -17,6 +25,7 @@ function sendJson(response, status, payload) {
     "access-control-allow-origin": "*",
     "access-control-allow-methods": "GET, OPTIONS",
     "access-control-allow-headers": "content-type",
+    "access-control-allow-private-network": "true",
   });
   response.end(JSON.stringify(payload, null, 2));
 }
@@ -49,12 +58,15 @@ function parseNumber(value) {
       ? text.replace(/\./g, "").replace(",", ".")
       : text.replace(/,/g, "");
   } else if (hasComma) {
-    text = text.replace(",", ".");
+    const parts = text.split(",");
+    text = parts.at(-1)?.length === 3
+      ? parts.join("")
+      : text.replace(",", ".");
   } else if (hasDot) {
-    const [head, tail] = text.split(".");
-    if (tail?.length === 3 && head.length <= 3) {
-      text = `${head}${tail}`;
-    }
+    const parts = text.split(".");
+    text = parts.at(-1)?.length === 3
+      ? parts.join("")
+      : text;
   }
 
   const number = Number(text);
@@ -120,10 +132,35 @@ function readJsonBlocks(html) {
 function collectRegexMatches(text, patterns) {
   const values = [];
   patterns.forEach((pattern) => {
-    for (const match of text.matchAll(pattern)) {
+    const regex = pattern.global
+      ? pattern
+      : new RegExp(pattern.source, `${pattern.flags}g`);
+    for (const match of text.matchAll(regex)) {
       if (match?.[1]) values.push(match[1]);
     }
   });
+  return values;
+}
+
+function collectTextValuesAfterLabels(text, labels) {
+  const lines = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const values = [];
+
+  lines.forEach((line, index) => {
+    if (!labels.some((label) => label.test(line))) return;
+
+    for (let offset = 1; offset <= 3; offset += 1) {
+      const candidate = lines[index + offset];
+      if (candidate) {
+        values.push(candidate);
+        break;
+      }
+    }
+  });
+
   return values;
 }
 
@@ -133,6 +170,18 @@ function firstText(...values) {
     if (text) return text;
   }
   return "";
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function cleanTitleCandidate(value) {
@@ -184,7 +233,7 @@ function normalizeMobileDeUrl(sourceUrl) {
   };
 }
 
-function extractPrice(html, jsonData) {
+function extractPrice(html, jsonData, text = "") {
   const candidates = [];
 
   jsonData.forEach((item) => {
@@ -200,6 +249,15 @@ function extractPrice(html, jsonData) {
       if (lower === "amount" && /eur/i.test(String(parent?.currency || parent?.priceCurrency || ""))) candidates.push(value);
     });
   });
+
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^price$/i,
+    /^preis$/i,
+    /^cena$/i,
+    /^price\s+gross$/i,
+    /^bruttopreis$/i,
+    /^gross price$/i,
+  ]));
 
   candidates.push(...collectRegexMatches(html, [
     /\\?"consumerPriceGross\\?"\s*:\s*\\?"?([\d., ]+)/gi,
@@ -223,6 +281,13 @@ function extractDisplacement(html, jsonData, text) {
     });
   });
 
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^cubic capacity$/i,
+    /^displacement$/i,
+    /^hubraum$/i,
+    /^pojemno(?:ść|sc)$/i,
+  ]));
+
   candidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\?"displacementCcm\\?"\s*:\s*\\?"?([\d. ]+)/gi,
     /\\?"cubicCapacity\\?"\s*:\s*\\?"?([\d. ]+)/gi,
@@ -245,6 +310,13 @@ function extractFuel(html, jsonData, text) {
     });
   });
 
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^fuel$/i,
+    /^kraftstoff(?:art)?$/i,
+    /^paliwo$/i,
+    /^rodzaj paliwa$/i,
+  ]));
+
   candidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\?"fuel\\?"\s*:\s*\\?"([^"\\]+)/gi,
     /\\?"fuelType\\?"\s*:\s*\\?"([^"\\]+)/gi,
@@ -254,14 +326,13 @@ function extractFuel(html, jsonData, text) {
   ]));
 
   const joined = candidates.map(String).join(" ").trim();
-  if (joined) return joined;
-
-  const lowerText = text.toLowerCase();
+  const lowerText = `${joined} ${text}`.toLowerCase();
   if (lowerText.includes("plug-in")) return "Plug-in-Hybrid";
   if (lowerText.includes("elektro") || lowerText.includes("elektry")) return "Elektro";
   if (lowerText.includes("hybrid") || lowerText.includes("hybryd")) return "Hybrid";
   if (lowerText.includes("diesel")) return "Diesel";
   if (lowerText.includes("benzin") || lowerText.includes("benzyn")) return "Benzin";
+  if (joined) return joined;
   return "";
 }
 
@@ -310,6 +381,13 @@ function extractBodyType(html, jsonData, text) {
     });
   });
 
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^category$/i,
+    /^body type$/i,
+    /^kategorie$/i,
+    /^kategoria$/i,
+  ]));
+
   candidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /(?:Kategorie|Kategoria|Category)[^A-Za-zÀ-ž0-9]{0,80}([A-Za-zÀ-ž/ -]+)/i,
   ]));
@@ -325,6 +403,12 @@ function extractMileage(html, jsonData, text) {
       if (/mileage|kilometer|kilometre|odometer|laufleistung/i.test(key)) candidates.push(value);
     });
   });
+
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^mileage$/i,
+    /^kilometerstand$/i,
+    /^przebieg$/i,
+  ]));
 
   candidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\"(?:mileage|mileageInKm|odometer)\\"\s*:\s*\\"?([\d. ]+)/gi,
@@ -343,6 +427,12 @@ function extractFirstRegistration(html, jsonData, text) {
       if (/firstregistration|firstregistrationdate|ez|zulassung|registration/i.test(key) && typeof value !== "object") candidates.push(value);
     });
   });
+
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^first registration$/i,
+    /^erstzulassung$/i,
+    /^pierwsza rejestracja$/i,
+  ]));
 
   candidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\"(?:firstRegistration|firstRegistrationDate)\\"\s*:\s*\\"([^"\\]+)/gi,
@@ -480,6 +570,321 @@ async function fetchListingWithBrowser(url, originalUrl = url) {
   }
 }
 
+async function fetchListingWithUserChrome(url, adId = "") {
+  if (process.platform !== "darwin") {
+    throw new Error("User Chrome fallback is available only on macOS.");
+  }
+
+  const script = `
+on run argv
+  set targetUrl to item 1 of argv
+  set targetAdId to item 2 of argv
+  tell application "Google Chrome"
+    activate
+    if (count of windows) = 0 then make new window
+
+    set pageJson to ""
+    if targetAdId is not "" then
+      repeat with candidateWindow in windows
+        set tabCounter to 1
+        repeat with candidateTab in tabs of candidateWindow
+          if (URL of candidateTab contains targetAdId) then
+            set index of candidateWindow to 1
+            set active tab index of candidateWindow to tabCounter
+            delay 1
+            try
+              set candidateJson to execute active tab of front window javascript "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})"
+              if candidateJson does not contain "Access denied" and candidateJson does not contain "Zugriff verweigert" and length of candidateJson > 1000 then
+                set pageJson to candidateJson
+                exit repeat
+              end if
+            end try
+          end if
+          set tabCounter to tabCounter + 1
+        end repeat
+        if pageJson is not "" then exit repeat
+      end repeat
+    end if
+
+    if pageJson is "" then
+      tell front window
+        set newTab to make new tab at end of tabs with properties {URL:targetUrl}
+        set active tab index to (count of tabs)
+      end tell
+
+      repeat with attempt from 1 to 15
+        delay 1
+        try
+          set pageJson to execute active tab of front window javascript "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})"
+          if pageJson does not contain "Access denied" and pageJson does not contain "Zugriff verweigert" and length of pageJson > 1000 then exit repeat
+        end try
+      end repeat
+    end if
+
+    return pageJson
+  end tell
+end run
+`;
+
+  const { stdout } = await execFileAsync("osascript", ["-e", script, url, adId], {
+    maxBuffer: 25 * 1024 * 1024,
+    timeout: 45000,
+  });
+  const payload = JSON.parse(stdout.trim() || "{}");
+  const html = String(payload.html || "");
+  const text = String(payload.text || "");
+
+  if (!html && !text) {
+    throw new Error("Could not read listing from user Chrome.");
+  }
+
+  return { html, text, mode: "user_chrome" };
+}
+
+async function fetchListingWithUserChromeClipboard(url, adId = "") {
+  if (process.platform !== "darwin") {
+    throw new Error("User Chrome clipboard fallback is available only on macOS.");
+  }
+
+  const script = `
+on run argv
+  set targetUrl to item 1 of argv
+  set targetAdId to item 2 of argv
+  set outputSeparator to ASCII character 30
+  set savedClipboard to missing value
+  set pageText to ""
+  set currentUrl to ""
+  set currentTitle to ""
+
+  try
+    set savedClipboard to the clipboard
+  end try
+
+  tell application "Google Chrome"
+    activate
+    if (count of windows) = 0 then make new window
+
+    set tabFound to false
+    if targetAdId is not "" then
+      repeat with candidateWindow in windows
+        set tabCounter to 1
+        repeat with candidateTab in tabs of candidateWindow
+          if (URL of candidateTab contains targetAdId) then
+            set index of candidateWindow to 1
+            set active tab index of candidateWindow to tabCounter
+            set tabFound to true
+            exit repeat
+          end if
+          set tabCounter to tabCounter + 1
+        end repeat
+        if tabFound then exit repeat
+      end repeat
+    end if
+
+    if tabFound is false then
+      tell front window
+        make new tab at end of tabs with properties {URL:targetUrl}
+        set active tab index to (count of tabs)
+      end tell
+    end if
+  end tell
+
+  repeat with attempt from 1 to 15
+    delay 1
+    tell application "Google Chrome"
+      set currentUrl to URL of active tab of front window
+      set currentTitle to title of active tab of front window
+    end tell
+    tell application "System Events"
+      keystroke "a" using command down
+      delay 0.15
+      keystroke "c" using command down
+    end tell
+    delay 0.35
+    try
+      set pageText to the clipboard as text
+      if pageText does not contain "Access denied" and pageText does not contain "Zugriff verweigert" and length of pageText > 1000 then exit repeat
+    end try
+  end repeat
+
+  try
+    if savedClipboard is not missing value then set the clipboard to savedClipboard
+  end try
+
+  return currentUrl & outputSeparator & currentTitle & outputSeparator & pageText
+end run
+`;
+
+  const { stdout } = await execFileAsync("osascript", ["-e", script, url, adId], {
+    maxBuffer: 25 * 1024 * 1024,
+    timeout: 45000,
+  });
+  const [pageUrl = "", title = "", ...textParts] = stdout.split("\u001e");
+  const text = textParts.join("\u001e").trim();
+  const cleanTitle = title.trim();
+  const html = `<title>${escapeHtml(cleanTitle)}</title>\n${escapeHtml(text)}`;
+
+  if (!text || text.length < 1000) {
+    throw new Error("Could not copy listing text from user Chrome.");
+  }
+
+  return {
+    html,
+    text,
+    mode: "user_chrome_clipboard",
+    finalUrl: pageUrl.trim(),
+  };
+}
+
+async function openChromeDevToolsTarget(url) {
+  const baseUrl = MOBILEDE_CDP_URL;
+  const endpoint = `${baseUrl.replace(/\/$/, "")}/json/new?${encodeURIComponent(url)}`;
+  let response = await fetch(endpoint, { method: "PUT" });
+
+  if (!response.ok) {
+    response = await fetch(endpoint);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Chrome DevTools could not open listing tab: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+function readChromeDevToolsTarget(target) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(target.webSocketDebuggerUrl);
+    const pending = new Map();
+    let commandId = 0;
+
+    const cleanup = () => {
+      pending.clear();
+      socket.close();
+    };
+
+    const send = (method, params = {}) => new Promise((commandResolve, commandReject) => {
+      commandId += 1;
+      pending.set(commandId, { resolve: commandResolve, reject: commandReject });
+      socket.send(JSON.stringify({ id: commandId, method, params }));
+    });
+
+    socket.addEventListener("message", (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (!message.id || !pending.has(message.id)) return;
+        const handler = pending.get(message.id);
+        pending.delete(message.id);
+        if (message.error) {
+          handler.reject(new Error(message.error.message || "Chrome DevTools command failed"));
+        } else {
+          handler.resolve(message.result || {});
+        }
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    });
+
+    socket.addEventListener("error", () => {
+      cleanup();
+      reject(new Error("Chrome DevTools websocket failed."));
+    });
+
+    socket.addEventListener("open", async () => {
+      try {
+        await send("Runtime.enable");
+        await send("Page.bringToFront");
+
+        for (let attempt = 1; attempt <= 15; attempt += 1) {
+          const result = await send("Runtime.evaluate", {
+            expression: "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})",
+            returnByValue: true,
+            awaitPromise: true,
+          });
+          const value = result?.result?.value || "{}";
+          const payload = JSON.parse(value);
+          const html = String(payload.html || "");
+          const text = String(payload.text || "");
+
+          if (!isAccessDenied(html, text) && (html.length > 1000 || text.length > 1000)) {
+            cleanup();
+            resolve({ html, text, mode: "user_chrome_cdp" });
+            return;
+          }
+
+          await delay(1000);
+        }
+
+        cleanup();
+        reject(new Error("Chrome DevTools returned Access denied or an empty page."));
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    });
+  });
+}
+
+async function waitForChromeDevTools() {
+  for (let attempt = 1; attempt <= 20; attempt += 1) {
+    try {
+      const response = await fetch(`${MOBILEDE_CDP_URL.replace(/\/$/, "")}/json/version`);
+      if (response.ok) return;
+    } catch {
+      // Chrome is still starting.
+    }
+    await delay(500);
+  }
+
+  throw new Error(`Chrome DevTools is not available at ${MOBILEDE_CDP_URL}.`);
+}
+
+async function startChromeDevTools(url) {
+  if (process.platform !== "darwin") return;
+
+  await execFileAsync("open", [
+    "-na",
+    "Google Chrome",
+    "--args",
+    `--user-data-dir=${MOBILEDE_CDP_PROFILE}`,
+    `--remote-debugging-port=${MOBILEDE_CDP_PORT}`,
+    "--no-first-run",
+    "--no-default-browser-check",
+    url,
+  ], {
+    timeout: 10000,
+  });
+  await waitForChromeDevTools();
+}
+
+async function fetchListingWithChromeDevTools(url, adId = "") {
+  const baseUrl = MOBILEDE_CDP_URL;
+  let targetsResponse;
+
+  try {
+    targetsResponse = await fetch(`${baseUrl.replace(/\/$/, "")}/json`);
+  } catch {
+    await startChromeDevTools(url);
+    targetsResponse = await fetch(`${baseUrl.replace(/\/$/, "")}/json`);
+  }
+
+  if (!targetsResponse.ok) {
+    throw new Error(`Chrome DevTools is not available: ${targetsResponse.status}`);
+  }
+
+  const targets = await targetsResponse.json();
+  const existingTarget = targets.find((target) => (
+    target.type === "page"
+    && target.webSocketDebuggerUrl
+    && adId
+    && String(target.url || "").includes(adId)
+  ));
+  const target = existingTarget || await openChromeDevToolsTarget(url);
+
+  return readChromeDevToolsTarget(target);
+}
+
 async function loadListing(urlInfo) {
   const html = await fetchListing(urlInfo.requestUrl, urlInfo.originalUrl);
   const text = stripTags(html);
@@ -488,7 +893,23 @@ async function loadListing(urlInfo) {
     return { html, text, mode: "http" };
   }
 
-  return fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
+  try {
+    return await fetchListingWithChromeDevTools(urlInfo.requestUrl, urlInfo.adId);
+  } catch (devToolsError) {
+    try {
+      return await fetchListingWithUserChromeClipboard(urlInfo.requestUrl, urlInfo.adId);
+    } catch {
+      try {
+        return await fetchListingWithUserChrome(urlInfo.requestUrl, urlInfo.adId);
+      } catch {
+        try {
+          return await fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
+        } catch {
+          throw devToolsError;
+        }
+      }
+    }
+  }
 }
 
 const server = http.createServer(async (request, response) => {
@@ -511,7 +932,7 @@ const server = http.createServer(async (request, response) => {
     if (isAccessDenied(html, text)) throw new Error("Mobile.de returned Access denied");
 
     const jsonData = [...readJsonLd(html), ...readJsonBlocks(html)];
-    const carBruttoEur = extractPrice(html, jsonData);
+    const carBruttoEur = extractPrice(html, jsonData, text);
     const displacementCcm = extractDisplacement(html, jsonData, text);
     const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
