@@ -14,7 +14,7 @@ const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
 const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
 const MOBILEDE_API_STORAGE_KEY = "autogood-mobilede-api-url";
-const DEFAULT_MOBILEDE_API_URL = "http://127.0.0.1:8788/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://adams-led-geographical-practitioner.trycloudflare.com/mobilede/import";
 const readMobileDeApiUrl = () => {
   const configuredUrl = window.AUTOGOOD_MOBILEDE_API_URL;
   const params = new URLSearchParams(window.location.search);
