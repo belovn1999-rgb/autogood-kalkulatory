@@ -34,6 +34,8 @@ const MOBILEDE_API_URL = readMobileDeApiUrl();
 const EUR_PLN_MARGIN = 0.02;
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
+const ROAD_SEDAN_SRC = "./assets/road-sedan.png";
+const ROAD_FINISH_SRC = "./assets/road-finish-icon.png";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -625,6 +627,14 @@ function MoneyIcon() {
   );
 }
 
+function RoadSedan() {
+  return <img className="roadSedanIcon" src={ROAD_SEDAN_SRC} alt="" aria-hidden="true" />;
+}
+
+function RoadFinish() {
+  return <img className="roadFinishIcon" src={ROAD_FINISH_SRC} alt="" aria-hidden="true" />;
+}
+
 function ProcessFlow({ steps }) {
   return (
     <footer className="processFlow" aria-label="Informacje">
@@ -907,6 +917,8 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     .totalRate{grid-column:1/-1;text-align:right;font-style:italic;color:rgba(255,255,255,.82);font-size:13px;padding-right:22px}
     .deliveryRoad{position:relative;z-index:1;width:100%;height:30px;margin:8px 0 2px;color:#005B82}
     .deliveryRoad:before{content:"";position:absolute;left:16px;right:16px;top:17px;border-top:1px dashed #94a3b8}
+    .roadSedanIcon{position:absolute;right:56px;top:1px;width:82px;height:30px;object-fit:contain;opacity:.72}
+    .roadFinishIcon{position:absolute;right:4px;top:4px;width:24px;height:24px;object-fit:contain;opacity:.62}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-block;white-space:nowrap}
     .processStep strong{color:#102033;font-weight:900}
@@ -928,7 +940,10 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${rateLabel(rate)} PLN</div></div>
-    <div class="deliveryRoad"></div>
+    <div class="deliveryRoad">
+      <img class="roadSedanIcon" src="${ROAD_SEDAN_SRC}" alt="" aria-hidden="true" />
+      <img class="roadFinishIcon" src="${ROAD_FINISH_SRC}" alt="" aria-hidden="true" />
+    </div>
     <div class="processFlow">${processHtml}</div>
     <div class="footerMark">AG</div>
   </main>
@@ -1273,6 +1288,8 @@ function App() {
 
           <div className="deliveryRoad" aria-hidden="true">
             <span />
+            <RoadSedan />
+            <RoadFinish />
           </div>
 
           <ProcessFlow steps={processSteps} />

@@ -684,6 +684,26 @@ select {
   border-top: 1px dashed #94a3b8;
 }
 
+.roadSedanIcon {
+  position: absolute;
+  right: 56px;
+  top: 1px;
+  width: 82px;
+  height: 30px;
+  object-fit: contain;
+  opacity: 0.72;
+}
+
+.roadFinishIcon {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.62;
+}
+
 .processFlow {
   position: relative;
   z-index: 1;
