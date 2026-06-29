@@ -692,6 +692,7 @@ select {
   height: 18px;
   color: #005b82;
   opacity: 0.42;
+  object-fit: contain;
 }
 
 .deliveryCarIcon {
@@ -704,7 +705,7 @@ select {
   opacity: 0.72;
   background: rgba(255, 255, 255, 0.82);
   padding: 0 5px;
-  transform: scaleX(-1);
+  object-fit: contain;
 }
 
 .roadFlag {
@@ -716,6 +717,7 @@ select {
   opacity: 0.58;
   background: rgba(255, 255, 255, 0.82);
   padding: 0 3px;
+  object-fit: contain;
 }
 
 .startFlag {
