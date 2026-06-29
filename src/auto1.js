@@ -40,6 +40,8 @@ const cleanupMatchers = [
   /payment of invoices/i,
   /free parking/i,
   /total pictures/i,
+  /no images were taken/i,
+  /minimum severity threshold/i,
   /0:00\s*\/\s*\d+:\d+/i,
 ];
 
@@ -115,6 +117,14 @@ function hasPictureCounter(text) {
   return /total pictures/i.test(text);
 }
 
+function hasDamageTable(text) {
+  return /damages/i.test(text)
+    && /panel/i.test(text)
+    && /damage/i.test(text)
+    && /severity/i.test(text)
+    && /quantity/i.test(text);
+}
+
 function isFixedPriceCover(text, pageNumber) {
   return pageNumber === 1 && /€\s*\d|your bid includes a net auction fee|stock number/i.test(text);
 }
@@ -176,8 +186,23 @@ function valueAfterSequence(lines, sequence) {
 }
 
 function fixedCoverTitle(lines) {
+  const brandPattern = /^(abarth|alfa romeo|audi|bmw|chevrolet|citroen|citroën|dacia|fiat|ford|honda|hyundai|jaguar|jeep|kia|land rover|lexus|mazda|mercedes-benz|mercedes|mini|mitsubishi|nissan|opel|peugeot|porsche|renault|seat|skoda|škoda|subaru|suzuki|tesla|toyota|volkswagen|vw|volvo)\b/i;
+  const labelPattern = /^(build year|first registration|license plate|odometer reading|fuel type|horsepower|cylinder capacity|gear box|inspection expires|body type|total number of owners|keys|prior damage|according to previous|owner|country of origin|country of last|registration|environmental class|coc papers|seats|color|upholstery|door count|co2 emissions|car location|stock number|your bid includes|vat rate|€)/i;
+  const locationPattern = /^[A-Z]{2},\s+/;
+
+  const brandIndex = lines.findIndex((line) => brandPattern.test(line));
+  if (brandIndex !== -1) {
+    const titleLines = [];
+    for (let index = brandIndex; index < Math.min(lines.length, brandIndex + 3); index += 1) {
+      const line = normalizeText(lines[index]);
+      if (!line || labelPattern.test(line) || locationPattern.test(line)) break;
+      titleLines.push(line);
+    }
+    if (titleLines.length) return normalizeText(titleLines.join(" "));
+  }
+
   const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location/i;
-  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line)) || "AUTO1 vehicle report";
+  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line)) || "AUTO1 vehicle report";
 }
 
 function fixedCoverFields(text) {
@@ -295,15 +320,65 @@ function drawCenteredText(pdfLib, page, text, centerX, topY, options = {}) {
   });
 }
 
+function wrapTextForWidth(font, text, size, maxWidth) {
+  const words = normalizeText(text).split(" ").filter(Boolean);
+  const lines = [];
+  let current = "";
+
+  words.forEach((word) => {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && font.widthOfTextAtSize(candidate, size) > maxWidth) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  });
+
+  if (current) lines.push(current);
+  return lines.length ? lines : [normalizeText(text)];
+}
+
+function drawCenteredMultilineText(pdfLib, page, text, centerX, topY, options = {}) {
+  const font = options.font;
+  const { width, height } = pageRect(page);
+  const sx = width / BASE_WIDTH;
+  const sy = height / BASE_HEIGHT;
+  const size = (options.size || 8) * sy;
+  const maxWidth = (options.maxWidth || 300) * sx;
+  const lineHeight = (options.lineHeight || 20) * sy;
+  const lines = wrapTextForWidth(font, text, size, maxWidth);
+
+  lines.forEach((line, index) => {
+    const textWidth = font.widthOfTextAtSize(line, size);
+    page.drawText(line, {
+      x: centerX * sx - textWidth / 2,
+      y: height - topY * sy - size - index * lineHeight,
+      size,
+      font,
+      color: options.color || rgb(pdfLib, 0.06, 0.06, 0.06),
+    });
+  });
+
+  return lines.length;
+}
+
 function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
   const cover = fixedCoverFields(text);
   drawMask(pdfLib, page, [246, 42, 594, 832]);
   drawMask(pdfLib, page, [452, 0, 594, 74]);
-  drawPdfLine(pdfLib, page, 15, 64, 584, 64, rgb(pdfLib, 0.95, 0.42, 0.13));
-  drawCenteredText(pdfLib, page, cover.title, 424, 30, { size: 15, font: fonts.bold });
-  drawPdfLine(pdfLib, page, 257, 78, 560, 78, rgb(pdfLib, 0.62, 0.76, 0.91));
+  drawMask(pdfLib, page, [0, 40, 594, 72]);
+  drawPdfLine(pdfLib, page, 15, 48, 584, 48, rgb(pdfLib, 0.95, 0.42, 0.13));
+  const titleLines = drawCenteredMultilineText(pdfLib, page, cover.title, 424, 58, {
+    size: 17,
+    lineHeight: 25,
+    maxWidth: 325,
+    font: fonts.bold,
+  });
+  const blueLineY = 58 + titleLines * 25 + 18;
+  drawPdfLine(pdfLib, page, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
-  let y = 112;
+  let y = blueLineY + 42;
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
       drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
@@ -376,6 +451,10 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
     }
   }
 
+  if (fixedPriceReport && pageNumber === 2 && !normalizeText(text)) {
+    drawMask(pdfLib, page, [36, 8, 160, 102]);
+  }
+
   if (hasDeliveryBlock(text)) {
     drawMask(pdfLib, page, fixedPriceReport ? [36, 470, 560, 832] : [36, 232, 560, 832]);
     if (!fixedPriceReport) drawMask(pdfLib, page, [132, 426, 236, 507]);
@@ -385,6 +464,14 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
   if (hasPictureCounter(text)) {
     drawMask(pdfLib, page, [548, 360, 594, 640]);
     drawMask(pdfLib, page, [36, 570, 560, 602]);
+  }
+
+  if (hasDamageTable(text)) {
+    drawMask(pdfLib, page, [36, 516, 560, 520]);
+    drawMask(pdfLib, page, [36, 573, 560, 578]);
+    drawMask(pdfLib, page, [36, 602, 560, 616]);
+    drawMask(pdfLib, page, [36, 516, 40, 578]);
+    drawMask(pdfLib, page, [556, 516, 560, 578]);
   }
 }
 
