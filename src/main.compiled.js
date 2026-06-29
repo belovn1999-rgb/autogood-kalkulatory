@@ -973,9 +973,9 @@ function printCalculation({
     .totalAmount{color:#fff;font-size:22px;font-weight:900;text-align:right}
     .totalAmount div{margin-top:4px}
     .totalRate{grid-column:1/-1;text-align:right;font-style:italic;color:rgba(255,255,255,.82);font-size:13px;padding-right:22px}
-    .deliveryRoad{position:relative;z-index:1;width:100%;height:30px;margin:8px 0 2px;color:#005B82}
+    .deliveryRoad{position:relative;z-index:1;width:100%;height:46px;margin:8px 0 2px;color:#005B82}
     .deliveryRoad:before{content:"";position:absolute;left:16px;right:16px;top:17px;border-top:1px dashed #94a3b8}
-    .roadSedanIcon{position:absolute;right:56px;top:1px;width:82px;height:30px;object-fit:contain;opacity:.72}
+    .roadSedanIcon{position:absolute;right:48px;top:-4px;width:123px;height:45px;object-fit:contain;opacity:.72}
     .roadFinishIcon{position:absolute;right:4px;top:4px;width:24px;height:24px;object-fit:contain;opacity:.62}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-block;white-space:nowrap}
