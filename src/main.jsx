@@ -31,7 +31,6 @@ const readMobileDeApiUrl = () => {
   }
 };
 const MOBILEDE_API_URL = readMobileDeApiUrl();
-const EUR_PLN_MARGIN = 0.02;
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
 const RATES_FALLBACK = {
@@ -40,8 +39,6 @@ const RATES_FALLBACK = {
   effectiveDate: "",
   rates: {
     EUR_PLN: { label: "EUR - PLN", value: DEFAULT_RATE, unit: "PLN" },
-    SEK_EUR: { label: "SEK - EUR", value: 0, unit: "EUR" },
-    DKK_EUR: { label: "DKK - EUR", value: 0, unit: "EUR" },
   },
 };
 
@@ -451,7 +448,7 @@ function percentLabel(value) {
 }
 
 function rateLabel(value) {
-  return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(3);
+  return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(4);
 }
 
 function inputCurrencyLabel(value, currency = "EUR") {
@@ -544,17 +541,10 @@ async function loadWalutomatOffer(pair) {
 }
 
 async function loadLiveExchangeRates() {
-  const [eurPlnOffers, eurSekOffers, eurDkkOffers] = await Promise.all([
-    loadWalutomatOffer("EURPLN"),
-    loadWalutomatOffer("EURSEK"),
-    loadWalutomatOffer("EURDKK"),
-  ]);
+  const eurPlnOffers = await loadWalutomatOffer("EURPLN");
 
   const eurPln = bestOfferRate(eurPlnOffers, "EURPLN");
-  const eurSek = bestOfferRate(eurSekOffers, "EURSEK");
-  const eurDkk = bestOfferRate(eurDkkOffers, "EURDKK");
-  const timestamps = [eurPlnOffers.ts, eurSekOffers.ts, eurDkkOffers.ts].filter(Boolean).sort();
-  const updatedAt = timestamps[timestamps.length - 1] || new Date().toISOString();
+  const updatedAt = eurPlnOffers.ts || new Date().toISOString();
 
   return {
     source: "Walutomat API - kurs sprzedaży",
@@ -562,14 +552,8 @@ async function loadLiveExchangeRates() {
     providerApiUrl: WALUTOMAT_API_URL,
     updatedAt,
     effectiveDate: updatedAt.slice(0, 10),
-    margin: {
-      EUR_PLN: EUR_PLN_MARGIN,
-      note: "Do kursu sprzedaży EUR/PLN z Walutomat doliczono 0.02 PLN.",
-    },
     rates: {
-      EUR_PLN: { label: "EUR - PLN", value: Math.round((eurPln + EUR_PLN_MARGIN) * 10000) / 10000, unit: "PLN" },
-      SEK_EUR: { label: "SEK - EUR", value: Math.round((1 / eurSek) * 10000) / 10000, unit: "EUR" },
-      DKK_EUR: { label: "DKK - EUR", value: Math.round((1 / eurDkk) * 10000) / 10000, unit: "EUR" },
+      EUR_PLN: { label: "EUR - PLN", value: Math.round(eurPln * 10000) / 10000, unit: "PLN" },
     },
   };
 }
@@ -588,7 +572,7 @@ async function loadExchangeRates() {
 function ExchangeRatesPanel({ data, status, lang }) {
   const c = copy[lang];
   const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN", "SEK_EUR", "DKK_EUR"]
+  const rows = ["EUR_PLN"]
     .map((key) => safeData.rates?.[key])
     .filter(Boolean);
 

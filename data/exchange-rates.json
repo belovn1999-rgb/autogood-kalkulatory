@@ -2,27 +2,13 @@
   "source": "Walutomat - kurs sprzedaży",
   "sourceUrl": "https://www.walutomat.pl/kursy-walut/",
   "providerApiUrl": "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers",
-  "updatedAt": "2026-06-21T11:27:01.513Z",
-  "effectiveDate": "2026-06-21",
-  "margin": {
-    "EUR_PLN": 0.02,
-    "note": "Do kursu sprzedaży EUR/PLN z Walutomat doliczono 0.02 PLN."
-  },
+  "updatedAt": "2026-06-30T07:48:07.630Z",
+  "effectiveDate": "2026-06-30",
   "rates": {
     "EUR_PLN": {
       "label": "EUR - PLN",
-      "value": 4.2779,
+      "value": 4.2911,
       "unit": "PLN"
-    },
-    "SEK_EUR": {
-      "label": "SEK - EUR",
-      "value": 0.0894,
-      "unit": "EUR"
-    },
-    "DKK_EUR": {
-      "label": "DKK - EUR",
-      "value": 0.1344,
-      "unit": "EUR"
     }
   }
 }

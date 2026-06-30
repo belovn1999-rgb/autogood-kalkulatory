@@ -4,7 +4,6 @@
   if (!rowsNode) return;
 
   const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
-  const EUR_PLN_MARGIN = 0.02;
   const RATES_URL = "./data/exchange-rates.json";
 
   const formatRate = (value) => {
@@ -34,24 +33,15 @@
   };
 
   const loadLiveRates = async () => {
-    const [eurPlnOffers, eurSekOffers, eurDkkOffers] = await Promise.all([
-      loadWalutomatOffer("EURPLN"),
-      loadWalutomatOffer("EURSEK"),
-      loadWalutomatOffer("EURDKK"),
-    ]);
+    const eurPlnOffers = await loadWalutomatOffer("EURPLN");
     const eurPln = bestOfferRate(eurPlnOffers, "EURPLN");
-    const eurSek = bestOfferRate(eurSekOffers, "EURSEK");
-    const eurDkk = bestOfferRate(eurDkkOffers, "EURDKK");
-    const timestamps = [eurPlnOffers.ts, eurSekOffers.ts, eurDkkOffers.ts].filter(Boolean).sort();
-    const updatedAt = timestamps[timestamps.length - 1] || new Date().toISOString();
+    const updatedAt = eurPlnOffers.ts || new Date().toISOString();
 
     return {
       source: "Walutomat API - kurs sprzedaży",
       effectiveDate: updatedAt.slice(0, 10),
       rates: {
-        EUR_PLN: { label: "EUR - PLN", value: Math.round((eurPln + EUR_PLN_MARGIN) * 10000) / 10000, unit: "PLN" },
-        SEK_EUR: { label: "SEK - EUR", value: Math.round((1 / eurSek) * 10000) / 10000, unit: "EUR" },
-        DKK_EUR: { label: "DKK - EUR", value: Math.round((1 / eurDkk) * 10000) / 10000, unit: "EUR" },
+        EUR_PLN: { label: "EUR - PLN", value: Math.round(eurPln * 10000) / 10000, unit: "PLN" },
       },
     };
   };
@@ -69,7 +59,7 @@
 
   loadRates()
     .then((data) => {
-      const keys = ["EUR_PLN", "SEK_EUR", "DKK_EUR"];
+      const keys = ["EUR_PLN"];
       rowsNode.innerHTML = keys
         .map((key) => {
           const item = data.rates?.[key];
