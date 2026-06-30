@@ -42,7 +42,6 @@ const cleanupMatchers = [
   /total pictures/i,
   /no images were taken/i,
   /minimum severity threshold/i,
-  /0:00\s*\/\s*\d+:\d+/i,
 ];
 
 function setStatus(message, progress = null) {
@@ -113,6 +112,10 @@ function hasVideoOverlay(text) {
   return /0:00\s*\/\s*\d+:\d+|0:00\s*\//i.test(text);
 }
 
+function isVideoControlText(text) {
+  return /(?:^|\s)\d+:\d+\s*\/\s*\d+:\d+(?:\s|$)|(?:^|\s)0:00(?:\s|$)/i.test(text);
+}
+
 function hasPictureCounter(text) {
   return /total pictures/i.test(text);
 }
@@ -135,6 +138,8 @@ function isFixedPriceReport(pageTexts) {
 
 function isProcessPage(text) {
   return /delivery or pick up process will/i.test(text)
+    || /delivery time is shown in working days/i.test(text)
+    || /enjoy free parking/i.test(text)
     || (/payment of invoices/i.test(text) && /self\s*-\s*pickup/i.test(text));
 }
 
@@ -195,14 +200,14 @@ function fixedCoverTitle(lines) {
     const titleLines = [];
     for (let index = brandIndex; index < Math.min(lines.length, brandIndex + 3); index += 1) {
       const line = normalizeText(lines[index]);
-      if (!line || labelPattern.test(line) || locationPattern.test(line)) break;
+      if (!line || labelPattern.test(line) || locationPattern.test(line) || isVideoControlText(line)) break;
       titleLines.push(line);
     }
     if (titleLines.length) return normalizeText(titleLines.join(" "));
   }
 
   const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location/i;
-  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line)) || "AUTO1 vehicle report";
+  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line) && !isVideoControlText(line)) || "AUTO1 vehicle report";
 }
 
 function fixedCoverFields(text) {
@@ -269,10 +274,25 @@ function drawMask(pdfLib, page, rect) {
   });
 }
 
+function removePageAnnotations(pdfLib, page) {
+  if (!pdfLib.PDFName || !page.node?.delete) return;
+  page.node.delete(pdfLib.PDFName.of("Annots"));
+}
+
+function removeDocumentForms(pdfLib, pdfDoc) {
+  if (!pdfLib.PDFName || !pdfDoc.catalog?.delete) return;
+  pdfDoc.catalog.delete(pdfLib.PDFName.of("AcroForm"));
+}
+
 function drawPageChromeMasks(pdfLib, page, pageNumber) {
   if (pageNumber === 1) return;
   drawMask(pdfLib, page, [0, 0, 28, 832]);
   drawMask(pdfLib, page, [0, 808, 594, 832]);
+}
+
+function drawCoverVideoPlaceholderMasks(pdfLib, page) {
+  drawMask(pdfLib, page, [115, 430, 260, 535]);
+  drawMask(pdfLib, page, [158, 430, 275, 545]);
 }
 
 function drawPdfText(pdfLib, page, text, x, topY, options = {}) {
@@ -441,6 +461,10 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
     drawMask(pdfLib, page, [246, 8, 584, 59]);
   }
 
+  if (pageNumber === 1 && hasVideoOverlay(text)) {
+    drawCoverVideoPlaceholderMasks(pdfLib, page);
+  }
+
   if (hasVideoOverlay(text)) {
     if (fixedPriceReport && !hasDeliveryBlock(text)) {
       drawMask(pdfLib, page, [132, 258, 138, 286]);
@@ -467,9 +491,24 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
   }
 
   if (hasDamageTable(text)) {
+    drawMask(pdfLib, page, [36, 12, 168, 40]);
+    drawMask(pdfLib, page, [36, 438, 560, 442]);
+    drawMask(pdfLib, page, [36, 470, 560, 474]);
+    drawMask(pdfLib, page, [36, 410, 560, 414]);
+    drawMask(pdfLib, page, [36, 430, 560, 434]);
+    drawMask(pdfLib, page, [36, 410, 40, 434]);
+    drawMask(pdfLib, page, [556, 410, 560, 434]);
+    drawMask(pdfLib, page, [36, 512, 560, 516]);
     drawMask(pdfLib, page, [36, 516, 560, 520]);
+    drawMask(pdfLib, page, [36, 528, 560, 540]);
+    drawMask(pdfLib, page, [36, 538, 560, 542]);
+    drawMask(pdfLib, page, [36, 512, 40, 542]);
+    drawMask(pdfLib, page, [556, 512, 560, 542]);
     drawMask(pdfLib, page, [36, 573, 560, 578]);
+    drawMask(pdfLib, page, [36, 582, 560, 596]);
     drawMask(pdfLib, page, [36, 602, 560, 616]);
+    drawMask(pdfLib, page, [36, 624, 560, 646]);
+    drawMask(pdfLib, page, [36, 655, 560, 675]);
     drawMask(pdfLib, page, [36, 516, 40, 578]);
     drawMask(pdfLib, page, [556, 516, 560, 578]);
   }
@@ -513,6 +552,7 @@ async function processPdf() {
 
   setStatus("Edytuje oryginalny PDF...", 35);
   const pdfDoc = await pdfLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+  removeDocumentForms(pdfLib, pdfDoc);
   const fonts = {
     regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
     bold: await pdfDoc.embedFont(pdfLib.StandardFonts.HelveticaBold),
@@ -530,6 +570,7 @@ async function processPdf() {
       return;
     }
 
+    removePageAnnotations(pdfLib, page);
     drawTextMasks(pdfLib, page, data.textContent, data.text);
     applyStructuralMasks(pdfLib, page, data.text, pageNumber, fixedPriceReport);
     if (isFixedPriceCover(data.text, pageNumber)) {
