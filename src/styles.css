@@ -757,8 +757,8 @@ select {
   z-index: 1;
   width: 650px;
   max-width: 100%;
-  height: 46px;
-  margin: 8px 0 2px;
+  height: 28px;
+  margin: 5px 0 0;
   color: #005b82;
 }
 
@@ -766,7 +766,7 @@ select {
   position: absolute;
   left: 16px;
   right: 16px;
-  top: 18px;
+  top: 13px;
   border-top: 1px dashed #94a3b8;
 }
 
@@ -779,7 +779,7 @@ select {
   gap: 6px;
   width: 650px;
   max-width: 100%;
-  margin-top: 14px;
+  margin-top: 4px;
   border: 1px solid #dbe4ee;
   border-radius: 9px;
   background: rgba(248, 251, 253, 0.88);
