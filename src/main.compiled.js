@@ -371,6 +371,15 @@ const tabs = [{
     currency: "PLN"
   }]
 }];
+function calculatorName(tab, lang, financed) {
+  if (financed && tab?.id === 1) {
+    return lang === "ru" ? "Аукцион Лизинг VAT 23%" : "Aukcja Leasing VAT 23%";
+  }
+  if (financed && tab?.id === 3) {
+    return lang === "ru" ? "Дилер Лизинг VAT 23%" : "Dealer Leasing VAT 23%";
+  }
+  return tab?.name?.[lang] || "";
+}
 const financingNotes = {
   pl: {
     ownFunds: "Kupujemy pojazd z własnych środków",
@@ -945,12 +954,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
 function printCalculation({
   lang,
   tab,
+  title,
   rows,
   total,
   rate,
   financed
 }) {
   const c = copy[lang];
+  const calculationTitle = title || calculatorName(tab, lang, financed);
   const roundedTotal = roundedCurrencyValue(total, "PLN");
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
@@ -1035,7 +1046,7 @@ function printCalculation({
         <img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" />
       </a>
       <div class="titleBox">
-        <h1>${c.results} — ${tab.name[lang]}</h1>
+        <h1>${c.results} — ${calculationTitle}</h1>
       </div>
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
@@ -1100,6 +1111,7 @@ function App() {
   const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
   const calc = useMemo(() => applyManualOverrides(baseCalc, manualOverrides, activeTab), [baseCalc, manualOverrides, activeTab]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
+  const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const processSteps = getProcessSteps(tab, safeLang, financed);
   useEffect(() => {
     let isMounted = true;
@@ -1181,7 +1193,7 @@ function App() {
       values: normalizeHistoryValues(values),
       manualOverrides,
       total: calc.total,
-      title: tab.name[safeLang]
+      title: activeTabName
     };
     const signature = historySignature(item);
     setHistory(current => {
@@ -1318,8 +1330,9 @@ function App() {
   }, "RU")), /*#__PURE__*/React.createElement("button", {
     className: "printBtn",
     onClick: () => printCalculation({
-      lang,
+      lang: safeLang,
       tab,
+      title: activeTabName,
       rows: calc.rows,
       total: calc.total,
       rate: n(rate) || DEFAULT_RATE,
@@ -1338,7 +1351,7 @@ function App() {
     key: item.id,
     className: item.id === activeTab ? "active" : "",
     onClick: () => switchTab(item.id)
-  }, /*#__PURE__*/React.createElement("span", null, item.id), item.name[lang]))), /*#__PURE__*/React.createElement("section", {
+  }, /*#__PURE__*/React.createElement("span", null, item.id), calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement("section", {
     className: "grid"
   }, /*#__PURE__*/React.createElement("aside", {
     className: "card sidebar"
@@ -1401,7 +1414,7 @@ function App() {
     alt: "AUTOGOOD"
   }), /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
-  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", tab.name[lang])), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", activeTabName)), /*#__PURE__*/React.createElement("div", {
     className: "rows"
   }, calc.rows.map((item, index) => {
     const overrideKey = rowOverrideKey(activeTab, index);

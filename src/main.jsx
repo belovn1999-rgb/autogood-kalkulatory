@@ -233,6 +233,18 @@ const tabs = [
   },
 ];
 
+function calculatorName(tab, lang, financed) {
+  if (financed && tab?.id === 1) {
+    return lang === "ru" ? "Аукцион Лизинг VAT 23%" : "Aukcja Leasing VAT 23%";
+  }
+
+  if (financed && tab?.id === 3) {
+    return lang === "ru" ? "Дилер Лизинг VAT 23%" : "Dealer Leasing VAT 23%";
+  }
+
+  return tab?.name?.[lang] || "";
+}
+
 const financingNotes = {
   pl: {
     ownFunds: "Kupujemy pojazd z własnych środków",
@@ -897,8 +909,9 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   };
 }
 
-function printCalculation({ lang, tab, rows, total, rate, financed }) {
+function printCalculation({ lang, tab, title, rows, total, rate, financed }) {
   const c = copy[lang];
+  const calculationTitle = title || calculatorName(tab, lang, financed);
   const roundedTotal = roundedCurrencyValue(total, "PLN");
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
@@ -989,7 +1002,7 @@ function printCalculation({ lang, tab, rows, total, rate, financed }) {
         <img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" />
       </a>
       <div class="titleBox">
-        <h1>${c.results} — ${tab.name[lang]}</h1>
+        <h1>${c.results} — ${calculationTitle}</h1>
       </div>
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
@@ -1060,6 +1073,7 @@ function App() {
     [baseCalc, manualOverrides, activeTab]
   );
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
+  const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const processSteps = getProcessSteps(tab, safeLang, financed);
 
   useEffect(() => {
@@ -1144,7 +1158,7 @@ function App() {
       values: normalizeHistoryValues(values),
       manualOverrides,
       total: calc.total,
-      title: tab.name[safeLang],
+      title: activeTabName,
     };
     const signature = historySignature(item);
 
@@ -1273,7 +1287,7 @@ function App() {
             <button className={lang === "pl" ? "active" : ""} onClick={() => setLang("pl")}>PL</button>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RU</button>
           </div>
-          <button className="printBtn" onClick={() => printCalculation({ lang, tab, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed })}>
+          <button className="printBtn" onClick={() => printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed })}>
             {c.print}
           </button>
           <button className="printBtn screenshotBtn" onClick={copyScreenshot}>
@@ -1289,7 +1303,7 @@ function App() {
         {tabs.map((item) => (
           <button key={item.id} className={item.id === activeTab ? "active" : ""} onClick={() => switchTab(item.id)}>
             <span>{item.id}</span>
-            {item.name[lang]}
+            {calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)}
           </button>
         ))}
       </nav>
@@ -1368,7 +1382,7 @@ function App() {
           <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
 
           <div className="resultsTitle">
-            <h2><MoneyIcon />{c.results} — {tab.name[lang]}</h2>
+            <h2><MoneyIcon />{c.results} — {activeTabName}</h2>
           </div>
 
           <div className="rows">
