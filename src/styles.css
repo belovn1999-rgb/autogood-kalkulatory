@@ -573,6 +573,31 @@ select {
   text-align: left;
 }
 
+.editableAmount {
+  cursor: text;
+}
+
+.inlineAmountInput {
+  width: 92px;
+  min-width: 92px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #102033;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: left;
+  box-shadow: none;
+  padding: 0;
+}
+
+.resultRow.isPrimary .inlineAmountInput {
+  color: #005b82;
+  font-size: 20px;
+}
+
 .tag {
   border-radius: 999px;
   padding: 3px 6px;
@@ -682,26 +707,6 @@ select {
   right: 16px;
   top: 18px;
   border-top: 1px dashed #94a3b8;
-}
-
-.roadSedanIcon {
-  position: absolute;
-  right: 48px;
-  top: -4px;
-  width: 123px;
-  height: 45px;
-  object-fit: contain;
-  opacity: 0.72;
-}
-
-.roadFinishIcon {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  opacity: 0.62;
 }
 
 .processFlow {

@@ -37,8 +37,6 @@ const MOBILEDE_API_URL = readMobileDeApiUrl();
 const EUR_PLN_MARGIN = 0.02;
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
-const ROAD_SEDAN_SRC = "./assets/road-sedan.png";
-const ROAD_FINISH_SRC = "./assets/road-finish-icon.png";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -420,7 +418,7 @@ function highlightedHtml(text) {
   return splitHighlightedText(text).map(part => isHighlightedText(part) ? `<strong>${part}</strong>` : part).join("");
 }
 function n(value) {
-  const parsed = Number(String(value).replace(",", "."));
+  const parsed = Number(String(value).replace(/\s/g, "").replace(",", "."));
   return Number.isFinite(parsed) ? parsed : 0;
 }
 function roundedCurrencyValue(value, currency = "PLN") {
@@ -444,6 +442,43 @@ function moneyExact(value, currency = "PLN") {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(Number.isFinite(value) ? value : 0);
+}
+function rowContribution(item) {
+  const value = Number(item?.totalValue);
+  return Number.isFinite(value) ? value : n(item?.value);
+}
+function rowOverrideKey(tabId, index) {
+  return `${tabId}:${index}`;
+}
+function rowEditValue(item) {
+  return String(Math.round(item.exact ? n(item.value) : roundedCurrencyValue(n(item.value), "PLN")));
+}
+function applyManualOverrides(calc, overrides, tabId) {
+  let hasOverrides = false;
+  const rows = calc.rows.map((item, index) => {
+    const key = rowOverrideKey(tabId, index);
+    if (!Object.prototype.hasOwnProperty.call(overrides, key)) {
+      return {
+        ...item,
+        totalValue: rowContribution(item)
+      };
+    }
+    hasOverrides = true;
+    const manualValue = n(overrides[key]);
+    const multiplier = Number(item.manualMultiplier);
+    const safeMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1;
+    return {
+      ...item,
+      value: manualValue,
+      totalValue: manualValue * safeMultiplier,
+      manualText: overrides[key]
+    };
+  });
+  return {
+    ...calc,
+    rows,
+    total: hasOverrides ? rows.reduce((sum, item) => sum + rowContribution(item), 0) : calc.total
+  };
 }
 function formatHistoryDate(value, lang) {
   const date = new Date(value);
@@ -483,7 +518,8 @@ function historySignature(item) {
     rate: item.rate,
     engineIndex: item.engineIndex,
     financed: item.financed,
-    values: item.values || {}
+    values: item.values || {},
+    manualOverrides: item.manualOverrides || {}
   });
 }
 function percentLabel(value) {
@@ -719,22 +755,6 @@ function MoneyIcon() {
     d: "M22 40l18-9"
   })));
 }
-function RoadSedan() {
-  return /*#__PURE__*/React.createElement("img", {
-    className: "roadSedanIcon",
-    src: ROAD_SEDAN_SRC,
-    alt: "",
-    "aria-hidden": "true"
-  });
-}
-function RoadFinish() {
-  return /*#__PURE__*/React.createElement("img", {
-    className: "roadFinishIcon",
-    src: ROAD_FINISH_SRC,
-    alt: "",
-    "aria-hidden": "true"
-  });
-}
 function ProcessFlow({
   steps
 }) {
@@ -799,7 +819,7 @@ function tagLabel(tag) {
     className: `tag tag-${className}`
   }, label);
 }
-function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "") {
+function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1) {
   return {
     label,
     value,
@@ -807,7 +827,9 @@ function row(label, value, tag, sub, highlight = false, exact = false, valuePref
     sub,
     highlight,
     exact,
-    valuePrefix
+    valuePrefix,
+    totalValue,
+    manualMultiplier
   };
 }
 function calculate(tabId, values, rate, exciseRate, financed, lang) {
@@ -832,7 +854,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
     return {
       total,
-      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(STD_FIX)} + 1% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(STD_FIX)} + 1% × ${money(carPln)}${discountText}`, false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
     };
   }
   if (tabId === 1) {
@@ -863,7 +885,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const total = carPln + feePln + transBrutto + exciseBrutto + commissionBrutto + TO_FEE;
     return {
       total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`), row(t.to, TO_FEE, "", "", false, true)]
+      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", "", false, false, conversionPrefix(fee)), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`, false, false, "", transBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(base)}`, false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true)]
     };
   }
   if (tabId === 3) {
@@ -894,7 +916,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE;
   return {
     total,
-    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`), row(t.to, TO_FEE, "", "", false, true)]
+    rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`, false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true)]
   };
 }
 function printCalculation({
@@ -975,8 +997,6 @@ function printCalculation({
     .totalRate{grid-column:1/-1;text-align:right;font-style:italic;color:rgba(255,255,255,.82);font-size:13px;padding-right:22px}
     .deliveryRoad{position:relative;z-index:1;width:100%;height:46px;margin:8px 0 2px;color:#005B82}
     .deliveryRoad:before{content:"";position:absolute;left:16px;right:16px;top:17px;border-top:1px dashed #94a3b8}
-    .roadSedanIcon{position:absolute;right:48px;top:-4px;width:123px;height:45px;object-fit:contain;opacity:.72}
-    .roadFinishIcon{position:absolute;right:4px;top:4px;width:24px;height:24px;object-fit:contain;opacity:.62}
     .processFlow{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;gap:6px;border:1px solid #dbe4ee;border-radius:9px;margin-top:14px;padding:10px 12px;background:#f8fbfd;color:#475569;font-size:13.5px;font-style:italic}
     .processStep{display:inline-block;white-space:nowrap}
     .processStep strong{color:#102033;font-weight:900}
@@ -998,10 +1018,7 @@ function printCalculation({
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
     <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${rateLabel(rate)} PLN</div></div>
-    <div class="deliveryRoad">
-      <img class="roadSedanIcon" src="${ROAD_SEDAN_SRC}" alt="" aria-hidden="true" />
-      <img class="roadFinishIcon" src="${ROAD_FINISH_SRC}" alt="" aria-hidden="true" />
-    </div>
+    <div class="deliveryRoad"></div>
     <div class="processFlow">${processHtml}</div>
     <div class="footerMark">AG</div>
   </main>
@@ -1049,13 +1066,16 @@ function App() {
   const [mobileDeSummary, setMobileDeSummary] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
   const [history, setHistory] = useState(() => readHistory());
+  const [manualOverrides, setManualOverrides] = useState({});
+  const [editingOverride, setEditingOverride] = useState("");
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(false);
   const safeLang = lang || "pl";
   const c = copy[safeLang];
   const tab = tabs[activeTab];
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
-  const calc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
+  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
+  const calc = useMemo(() => applyManualOverrides(baseCalc, manualOverrides, activeTab), [baseCalc, manualOverrides, activeTab]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const processSteps = getProcessSteps(tab, safeLang, financed);
   useEffect(() => {
@@ -1081,14 +1101,46 @@ function App() {
     setActiveTab(id);
     setValues({});
     setFinanced(false);
+    setManualOverrides({});
+    setEditingOverride("");
   };
-  const setField = (key, value) => setValues(current => ({
-    ...current,
-    [key]: value
-  }));
+  const clearManualOverrides = () => {
+    setManualOverrides({});
+    setEditingOverride("");
+  };
+  const setField = (key, value) => {
+    clearManualOverrides();
+    setValues(current => ({
+      ...current,
+      [key]: value
+    }));
+  };
   const setManualRate = value => {
     rateTouchedRef.current = true;
+    clearManualOverrides();
     setRate(value);
+  };
+  const setManualOverride = (key, value) => {
+    setManualOverrides(current => {
+      if (String(value).trim() === "") {
+        const next = {
+          ...current
+        };
+        delete next[key];
+        return next;
+      }
+      return {
+        ...current,
+        [key]: value
+      };
+    });
+  };
+  const startManualOverride = (key, item) => {
+    setManualOverrides(current => Object.prototype.hasOwnProperty.call(current, key) ? current : {
+      ...current,
+      [key]: rowEditValue(item)
+    });
+    setEditingOverride(key);
   };
   const saveCalculation = () => {
     if (!hasCalculationInput(values)) {
@@ -1104,6 +1156,7 @@ function App() {
       engineIndex,
       financed: activeTab > 0 && financed,
       values: normalizeHistoryValues(values),
+      manualOverrides,
       total: calc.total,
       title: tab.name[safeLang]
     };
@@ -1120,6 +1173,8 @@ function App() {
     setLang(item.lang === "ru" ? "ru" : "pl");
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
+    setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
+    setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
     setEngineIndex(Number.isInteger(item.engineIndex) && engineTypes[item.engineIndex] ? item.engineIndex : 3);
@@ -1275,7 +1330,10 @@ function App() {
     className: "field"
   }, /*#__PURE__*/React.createElement("span", null, c.engine), /*#__PURE__*/React.createElement("select", {
     value: engineIndex,
-    onChange: event => setEngineIndex(Number(event.target.value))
+    onChange: event => {
+      clearManualOverrides();
+      setEngineIndex(Number(event.target.value));
+    }
   }, engineTypes.map((engine, index) => /*#__PURE__*/React.createElement("option", {
     key: engine.label,
     value: index
@@ -1285,10 +1343,16 @@ function App() {
     className: "segmented full"
   }, /*#__PURE__*/React.createElement("button", {
     className: !financed ? "active" : "",
-    onClick: () => setFinanced(false)
+    onClick: () => {
+      clearManualOverrides();
+      setFinanced(false);
+    }
   }, c.standard), /*#__PURE__*/React.createElement("button", {
     className: financed ? "active" : "",
-    onClick: () => setFinanced(true)
+    onClick: () => {
+      clearManualOverrides();
+      setFinanced(true);
+    }
   }, c.financing))), /*#__PURE__*/React.createElement("div", {
     className: "divider"
   }), tab.fields.map(field => /*#__PURE__*/React.createElement(NumInput, {
@@ -1308,16 +1372,44 @@ function App() {
     className: "resultsTitle"
   }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", tab.name[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rows"
-  }, calc.rows.map((item, index) => /*#__PURE__*/React.createElement("div", {
-    key: `${item.label}-${item.value}-${item.tag}`,
-    className: `resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    className: "rowLabel"
-  }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {
-    className: "rowValue"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: `valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`
-  }, item.valuePrefix), /*#__PURE__*/React.createElement("strong", null, item.exact ? moneyExact(item.value) : money(item.value)), tagLabel(item.tag))))), /*#__PURE__*/React.createElement("div", {
+  }, calc.rows.map((item, index) => {
+    const overrideKey = rowOverrideKey(activeTab, index);
+    const isEditing = editingOverride === overrideKey;
+    return /*#__PURE__*/React.createElement("div", {
+      key: `${item.label}-${index}`,
+      className: `resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+      className: "rowLabel"
+    }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {
+      className: "rowValue"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`
+    }, item.valuePrefix), isEditing ? /*#__PURE__*/React.createElement("input", {
+      className: "inlineAmountInput",
+      autoFocus: true,
+      inputMode: "decimal",
+      type: "text",
+      value: manualOverrides[overrideKey] ?? rowEditValue(item),
+      onChange: event => setManualOverride(overrideKey, event.target.value),
+      onBlur: () => setEditingOverride(""),
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === "Escape") {
+          event.currentTarget.blur();
+        }
+      }
+    }) : /*#__PURE__*/React.createElement("strong", {
+      className: "editableAmount",
+      role: "button",
+      tabIndex: 0,
+      onClick: () => startManualOverride(overrideKey, item),
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          startManualOverride(overrideKey, item);
+        }
+      }
+    }, item.exact ? moneyExact(item.value) : money(item.value)), tagLabel(item.tag)));
+  })), /*#__PURE__*/React.createElement("div", {
     className: "totalBox"
   }, /*#__PURE__*/React.createElement("div", {
     className: "totalLabel"
@@ -1328,7 +1420,7 @@ function App() {
   }, c.rateLine, ": ", rateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
     className: "deliveryRoad",
     "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("span", null), /*#__PURE__*/React.createElement(RoadSedan, null), /*#__PURE__*/React.createElement(RoadFinish, null)), /*#__PURE__*/React.createElement(ProcessFlow, {
+  }, /*#__PURE__*/React.createElement("span", null)), /*#__PURE__*/React.createElement(ProcessFlow, {
     steps: processSteps
   })), /*#__PURE__*/React.createElement(HistoryPanel, {
     c: c,
