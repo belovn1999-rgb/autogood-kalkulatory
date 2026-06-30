@@ -33,6 +33,7 @@ const readMobileDeApiUrl = () => {
 const MOBILEDE_API_URL = readMobileDeApiUrl();
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
+const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -1377,7 +1378,10 @@ function App() {
 
               return (
                 <div key={`${item.label}-${index}`} className={`resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`}>
-                  <div>
+                  <span className={`resultMarker ${index === 0 ? "isCar" : "isPlus"}`} aria-hidden="true">
+                    {index === 0 ? <img src={RESULT_CAR_ICON_SRC} alt="" /> : "+"}
+                  </span>
+                  <div className="rowText">
                     <span className="rowLabel">{item.label}</span>
                     {item.sub && <small>{item.sub}</small>}
                   </div>
@@ -1422,6 +1426,7 @@ function App() {
           </div>
 
           <div className="totalBox">
+            <span className="totalMarker" aria-hidden="true">=</span>
             <div className="totalLabel">
               <span>{c.total}</span>
             </div>

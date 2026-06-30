@@ -532,9 +532,9 @@ select {
 
 .resultRow {
   display: grid;
-  grid-template-columns: 340px 264px;
+  grid-template-columns: 22px 310px 264px;
   justify-content: start;
-  gap: 18px;
+  gap: 8px 18px;
   align-items: center;
   width: 650px;
   max-width: 100%;
@@ -543,6 +543,30 @@ select {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #fff;
+}
+
+.resultMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  color: #64748b;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.resultMarker.isCar img {
+  display: block;
+  width: 22px;
+  height: 13px;
+  object-fit: contain;
+  opacity: 0.88;
+}
+
+.resultMarker.isPlus {
+  color: #475569;
+  font-size: 15px;
 }
 
 .resultRow small {
@@ -663,7 +687,7 @@ select {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 310px 294px;
+  grid-template-columns: 22px 270px 294px;
   justify-content: start;
   gap: 9px 18px;
   align-items: center;
@@ -675,6 +699,17 @@ select {
   color: #fff;
   padding: 20px 14px 16px;
   text-align: left;
+}
+
+.totalMarker {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  line-height: 1;
 }
 
 .totalBox span {
@@ -945,6 +980,23 @@ select {
     grid-template-columns: auto auto auto;
     white-space: normal;
     min-width: 0;
+  }
+
+  .resultRow {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .rowValue {
+    grid-column: 2;
+  }
+
+  .totalBox {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .totalValue,
+  .totalRate {
+    grid-column: 2;
   }
 
   .valuePrefix {

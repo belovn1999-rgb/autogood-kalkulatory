@@ -36,6 +36,7 @@ const readMobileDeApiUrl = () => {
 const MOBILEDE_API_URL = readMobileDeApiUrl();
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
+const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -1408,7 +1409,15 @@ function App() {
     return /*#__PURE__*/React.createElement("div", {
       key: `${item.label}-${index}`,
       className: `resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`
-    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `resultMarker ${index === 0 ? "isCar" : "isPlus"}`,
+      "aria-hidden": "true"
+    }, index === 0 ? /*#__PURE__*/React.createElement("img", {
+      src: RESULT_CAR_ICON_SRC,
+      alt: ""
+    }) : "+"), /*#__PURE__*/React.createElement("div", {
+      className: "rowText"
+    }, /*#__PURE__*/React.createElement("span", {
       className: "rowLabel"
     }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {
       className: "rowValue"
@@ -1441,7 +1450,10 @@ function App() {
     }, item.exact ? moneyExact(item.value) : money(item.value)), tagLabel(item.tag)));
   })), /*#__PURE__*/React.createElement("div", {
     className: "totalBox"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totalMarker",
+    "aria-hidden": "true"
+  }, "="), /*#__PURE__*/React.createElement("div", {
     className: "totalLabel"
   }, /*#__PURE__*/React.createElement("span", null, c.total)), /*#__PURE__*/React.createElement("div", {
     className: "totalValue"
