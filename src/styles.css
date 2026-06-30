@@ -558,8 +558,8 @@ select {
 
 .resultMarker.isCar img {
   display: block;
-  width: 22px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   opacity: 0.88;
 }

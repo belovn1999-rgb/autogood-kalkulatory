@@ -36,7 +36,7 @@ const readMobileDeApiUrl = () => {
 const MOBILEDE_API_URL = readMobileDeApiUrl();
 const HISTORY_KEY = "autogood-calculation-history";
 const HISTORY_LIMIT = 5;
-const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png";
+const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png?v=2";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
