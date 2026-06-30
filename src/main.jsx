@@ -470,6 +470,16 @@ function rateLabel(value) {
   return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(4);
 }
 
+function calculationRateLabel(value) {
+  const safeValue = Number.isFinite(value) ? value : DEFAULT_RATE;
+  return (Math.round((safeValue + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
+function rateWithCalculationMargin(value) {
+  const safeValue = Number.isFinite(value) ? value : DEFAULT_RATE;
+  return Math.round((safeValue + 0.02) * 100) / 100;
+}
+
 function inputCurrencyLabel(value, currency = "EUR") {
   return `${new Intl.NumberFormat("pl-PL", {
     minimumFractionDigits: 0,
@@ -537,7 +547,7 @@ function RateInput({ label, value, onChange }) {
   const currentRate = n(value) || DEFAULT_RATE;
   const stepRate = (delta) => {
     const nextRate = Math.max(0, currentRate + delta);
-    onChange(rateLabel(nextRate));
+    onChange(calculationRateLabel(nextRate));
   };
 
   return (
@@ -552,8 +562,8 @@ function RateInput({ label, value, onChange }) {
           placeholder="4.265"
         />
         <div className="rateButtons">
-          <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.001)}>+</button>
-          <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.001)}>−</button>
+          <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.01)}>+</button>
+          <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.01)}>−</button>
         </div>
         <b>PLN</b>
       </div>
@@ -1007,7 +1017,7 @@ function printCalculation({ lang, tab, title, rows, total, rate, financed }) {
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
-    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${rateLabel(rate)} PLN</div></div>
+    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${calculationRateLabel(rate)} PLN</div></div>
     <div class="deliveryRoad"></div>
     <div class="processFlow">${processHtml}</div>
     <div class="footerMark">AG</div>
@@ -1085,7 +1095,7 @@ function App() {
         setRatesStatus("ready");
         const nextRate = Number(data?.rates?.EUR_PLN?.value);
         if (Number.isFinite(nextRate) && nextRate > 0 && !rateTouchedRef.current) {
-          setRate(rateLabel(nextRate));
+          setRate(calculationRateLabel(rateWithCalculationMargin(nextRate)));
         }
       })
       .catch(() => {
@@ -1152,7 +1162,7 @@ function App() {
       savedAt: new Date().toISOString(),
       lang: safeLang,
       activeTab,
-      rate: rateLabel(n(rate) || DEFAULT_RATE),
+      rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
       engineIndex,
       financed: activeTab > 0 && financed,
       values: normalizeHistoryValues(values),
@@ -1448,7 +1458,7 @@ function App() {
               <strong>{money(calc.total)}</strong>
               <em>({money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR")})</em>
             </div>
-            <div className="totalRate">{c.rateLine}: {rateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
+            <div className="totalRate">{c.rateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
           </div>
 
           <div className="deliveryRoad" aria-hidden="true">

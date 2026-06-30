@@ -548,6 +548,14 @@ function percentLabel(value) {
 function rateLabel(value) {
   return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(4);
 }
+function calculationRateLabel(value) {
+  const safeValue = Number.isFinite(value) ? value : DEFAULT_RATE;
+  return (Math.round((safeValue + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+function rateWithCalculationMargin(value) {
+  const safeValue = Number.isFinite(value) ? value : DEFAULT_RATE;
+  return Math.round((safeValue + 0.02) * 100) / 100;
+}
 function inputCurrencyLabel(value, currency = "EUR") {
   return `${new Intl.NumberFormat("pl-PL", {
     minimumFractionDigits: 0,
@@ -616,7 +624,7 @@ function RateInput({
   const currentRate = n(value) || DEFAULT_RATE;
   const stepRate = delta => {
     const nextRate = Math.max(0, currentRate + delta);
-    onChange(rateLabel(nextRate));
+    onChange(calculationRateLabel(nextRate));
   };
   return /*#__PURE__*/React.createElement("label", {
     className: "field rateField"
@@ -633,11 +641,11 @@ function RateInput({
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": "Zwi\u0119ksz kurs",
-    onClick: () => stepRate(0.001)
+    onClick: () => stepRate(0.01)
   }, "+"), /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": "Zmniejsz kurs",
-    onClick: () => stepRate(-0.001)
+    onClick: () => stepRate(-0.01)
   }, "\u2212")), /*#__PURE__*/React.createElement("b", null, "PLN")));
 }
 function formatRate(value, digits = 4) {
@@ -1051,7 +1059,7 @@ function printCalculation({
     </header>
     <div class="accentGrid"><div class="accent"></div><div class="accent"></div><div class="accent"></div></div>
     <table>${rowsHtml}</table>
-    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${rateLabel(rate)} PLN</div></div>
+    <div class="total"><div class="totalLabel">${c.total}</div><div class="totalAmount"><b>${money(total)}</b><div>${money(roundedTotal / rate, "EUR")}</div></div><div class="totalRate">${c.rateLine}: ${calculationRateLabel(rate)} PLN</div></div>
     <div class="deliveryRoad"></div>
     <div class="processFlow">${processHtml}</div>
     <div class="footerMark">AG</div>
@@ -1121,7 +1129,7 @@ function App() {
       setRatesStatus("ready");
       const nextRate = Number(data?.rates?.EUR_PLN?.value);
       if (Number.isFinite(nextRate) && nextRate > 0 && !rateTouchedRef.current) {
-        setRate(rateLabel(nextRate));
+        setRate(calculationRateLabel(rateWithCalculationMargin(nextRate)));
       }
     }).catch(() => {
       if (!isMounted) return;
@@ -1187,7 +1195,7 @@ function App() {
       savedAt: new Date().toISOString(),
       lang: safeLang,
       activeTab,
-      rate: rateLabel(n(rate) || DEFAULT_RATE),
+      rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
       engineIndex,
       financed: activeTab > 0 && financed,
       values: normalizeHistoryValues(values),
@@ -1472,7 +1480,7 @@ function App() {
     className: "totalValue"
   }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")")), /*#__PURE__*/React.createElement("div", {
     className: "totalRate"
-  }, c.rateLine, ": ", rateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
+  }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
     className: "deliveryRoad",
     "aria-hidden": "true"
   }, /*#__PURE__*/React.createElement("span", null)), /*#__PURE__*/React.createElement(ProcessFlow, {
