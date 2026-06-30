@@ -339,6 +339,32 @@ button {
   font-size: 12px;
 }
 
+.optionalAmountField {
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 10px;
+}
+
+.optionalAmountField .inputWrap {
+  margin-top: 9px;
+}
+
+.optionalAmountLabel {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0 !important;
+  color: #475569;
+  line-height: 1.25;
+}
+
+.optionalAmountLabel input {
+  width: 16px;
+  height: 16px;
+  accent-color: #005b82;
+}
+
 .mobileImport {
   margin-bottom: 16px;
   padding-bottom: 16px;
