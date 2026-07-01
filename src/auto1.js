@@ -192,7 +192,7 @@ function valueAfterSequence(lines, sequence) {
 
 function fixedCoverTitle(lines) {
   const brandPattern = /^(abarth|alfa romeo|audi|bmw|chevrolet|citroen|citroën|dacia|fiat|ford|honda|hyundai|jaguar|jeep|kia|land rover|lexus|mazda|mercedes-benz|mercedes|mini|mitsubishi|nissan|opel|peugeot|porsche|renault|seat|skoda|škoda|subaru|suzuki|tesla|toyota|volkswagen|vw|volvo)\b/i;
-  const labelPattern = /^(build year|first registration|license plate|odometer reading|fuel type|horsepower|cylinder capacity|gear box|inspection expires|body type|total number of owners|keys|prior damage|according to previous|owner|country of origin|country of last|registration|environmental class|coc papers|seats|color|upholstery|door count|co2 emissions|car location|stock number|your bid includes|vat rate|€)/i;
+  const labelPattern = /^(build year|first registration|license plate|odometer reading|fuel type|horsepower|cylinder capacity|gear box|inspection expires|body type|total number of owners|keys|prior damage|according to previous|owner|country of origin|country of last|registration|environmental class|coc papers|seats|color|upholstery|door count|co2 emissions|car location|stock number|your bid includes|vat rate|in high demand|merchants?|minimum bid|purchase now|€)/i;
   const locationPattern = /^[A-Z]{2},\s+/;
 
   const brandIndex = lines.findIndex((line) => brandPattern.test(line));
@@ -206,7 +206,7 @@ function fixedCoverTitle(lines) {
     if (titleLines.length) return normalizeText(titleLines.join(" "));
   }
 
-  const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location/i;
+  const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location|in high demand|merchants?.*watchlist|minimum bid|purchase now/i;
   return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line) && !isVideoControlText(line)) || "AUTO1 vehicle report";
 }
 
@@ -288,11 +288,6 @@ function drawPageChromeMasks(pdfLib, page, pageNumber) {
   if (pageNumber === 1) return;
   drawMask(pdfLib, page, [0, 0, 28, 832]);
   drawMask(pdfLib, page, [0, 808, 594, 832]);
-}
-
-function drawCoverVideoPlaceholderMasks(pdfLib, page) {
-  drawMask(pdfLib, page, [115, 430, 260, 535]);
-  drawMask(pdfLib, page, [158, 430, 275, 545]);
 }
 
 function drawPdfText(pdfLib, page, text, x, topY, options = {}) {
@@ -398,7 +393,7 @@ function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
   const blueLineY = 58 + titleLines * 25 + 18;
   drawPdfLine(pdfLib, page, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
-  let y = blueLineY + 42;
+  let y = blueLineY + 26;
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
       drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
@@ -407,9 +402,9 @@ function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
     y += Math.max(field.label.length, 1) * 17 + 8;
   });
 
-  y += 10;
-  drawPdfText(pdfLib, page, "Car location", 256, y, { size: 8.7, font: fonts.bold });
-  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, y + 22, { size: 8.7, font: fonts.regular });
+  const locationY = Math.min(Math.max(y + 10, 704), 760);
+  drawPdfText(pdfLib, page, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
+  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
 }
 
 function drawTextMasks(pdfLib, page, textContent, pageText) {
@@ -461,22 +456,11 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
     drawMask(pdfLib, page, [246, 8, 584, 59]);
   }
 
-  if (pageNumber === 1 && hasVideoOverlay(text)) {
-    drawCoverVideoPlaceholderMasks(pdfLib, page);
-  }
-
   if (hasVideoOverlay(text)) {
-    if (fixedPriceReport && !hasDeliveryBlock(text)) {
-      drawMask(pdfLib, page, [132, 258, 138, 286]);
-      drawMask(pdfLib, page, [148, 258, 154, 286]);
-    } else {
+    if (!fixedPriceReport) {
       drawMask(pdfLib, page, [36, 96, 246, 268]);
       drawMask(pdfLib, page, [184, 0, 560, 132]);
     }
-  }
-
-  if (fixedPriceReport && pageNumber === 2 && !normalizeText(text)) {
-    drawMask(pdfLib, page, [36, 8, 160, 102]);
   }
 
   if (hasDeliveryBlock(text)) {
@@ -485,32 +469,9 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
     if (fixedPriceReport) drawMask(pdfLib, page, [510, 0, 594, 95]);
   }
 
-  if (hasPictureCounter(text)) {
+  if (hasPictureCounter(text) && !hasDamageTable(text)) {
     drawMask(pdfLib, page, [548, 360, 594, 640]);
     drawMask(pdfLib, page, [36, 570, 560, 602]);
-  }
-
-  if (hasDamageTable(text)) {
-    drawMask(pdfLib, page, [36, 12, 168, 40]);
-    drawMask(pdfLib, page, [36, 438, 560, 442]);
-    drawMask(pdfLib, page, [36, 470, 560, 474]);
-    drawMask(pdfLib, page, [36, 410, 560, 414]);
-    drawMask(pdfLib, page, [36, 430, 560, 434]);
-    drawMask(pdfLib, page, [36, 410, 40, 434]);
-    drawMask(pdfLib, page, [556, 410, 560, 434]);
-    drawMask(pdfLib, page, [36, 512, 560, 516]);
-    drawMask(pdfLib, page, [36, 516, 560, 520]);
-    drawMask(pdfLib, page, [36, 528, 560, 540]);
-    drawMask(pdfLib, page, [36, 538, 560, 542]);
-    drawMask(pdfLib, page, [36, 512, 40, 542]);
-    drawMask(pdfLib, page, [556, 512, 560, 542]);
-    drawMask(pdfLib, page, [36, 573, 560, 578]);
-    drawMask(pdfLib, page, [36, 582, 560, 596]);
-    drawMask(pdfLib, page, [36, 602, 560, 616]);
-    drawMask(pdfLib, page, [36, 624, 560, 646]);
-    drawMask(pdfLib, page, [36, 655, 560, 675]);
-    drawMask(pdfLib, page, [36, 516, 40, 578]);
-    drawMask(pdfLib, page, [556, 516, 560, 578]);
   }
 }
 
