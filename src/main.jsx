@@ -245,6 +245,11 @@ function calculatorName(tab, lang, financed) {
   return tab?.name?.[lang] || "";
 }
 
+const directSellerPayment = {
+  pl: "Płacisz za pojazd do sprzedawcy w EUR",
+  ru: "Вы платите за автомобиль продавцу в EUR",
+};
+
 const financingNotes = {
   pl: {
     ownFunds: "Kupujemy pojazd z własnych środków",
@@ -258,11 +263,11 @@ const financingNotes = {
   },
 };
 
-function getProcessSteps(tab, lang, financed) {
+function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
   const steps = {
     0: {
-      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Płacisz za pojazd do sprzedawcy"],
-      ru: ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете автомобиль продавцу"],
+      pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl],
+      ru: ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru],
     },
     1: {
       pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, "Sprzedajemy na Fakturę VAT 23%"] : ["Opłacasz całość w PLN lub EUR", "Sprzedajemy na Fakturę VAT 23%"],
@@ -289,6 +294,35 @@ function getProcessSteps(tab, lang, financed) {
         : ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT Marża"],
     },
   };
+
+  if (hasGermanCommission && tab.id === 3) {
+    return lang === "ru"
+      ? (
+        financed
+          ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, directSellerPayment.ru]
+          : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", directSellerPayment.ru]
+      )
+      : (
+        financed
+          ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, directSellerPayment.pl]
+          : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", directSellerPayment.pl]
+      );
+  }
+
+  if (hasGermanCommission && tab.id === 4) {
+    return lang === "ru"
+      ? (
+        financed
+          ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, directSellerPayment.ru]
+          : ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru]
+      )
+      : (
+        financed
+          ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, directSellerPayment.pl]
+          : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl]
+      );
+  }
+
   return steps[tab.id]?.[lang] || [];
 }
 
@@ -297,6 +331,9 @@ const processHighlights = [
   "70% полученной скидки",
   "Płacisz za pojazd",
   "Вы оплачиваете автомобиль",
+  "Вы платите за автомобиль",
+  "do sprzedawcy w EUR",
+  "продавцу в EUR",
   "Вы оплачиваете всю сумму",
   "w PLN lub EUR",
   "PLN lub EUR",
@@ -919,7 +956,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   };
 }
 
-function printCalculation({ lang, tab, title, rows, total, rate, financed }) {
+function printCalculation({ lang, tab, title, rows, total, rate, financed, hasGermanCommission }) {
   const c = copy[lang];
   const calculationTitle = title || calculatorName(tab, lang, financed);
   const roundedTotal = roundedCurrencyValue(total, "PLN");
@@ -946,7 +983,7 @@ function printCalculation({ lang, tab, title, rows, total, rate, financed }) {
       }
     )
     .join("");
-  const processSteps = getProcessSteps(tab, lang, financed);
+  const processSteps = getProcessSteps(tab, lang, financed, hasGermanCommission);
   const processHtml = processSteps
     .map((step, index) => `${index > 0 ? '<span class="processArrow"> → </span>' : ""}<span class="processStep">${highlightedHtml(step)}</span>`)
     .join("");
@@ -1084,7 +1121,8 @@ function App() {
   );
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
-  const processSteps = getProcessSteps(tab, safeLang, financed);
+  const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
+  const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission);
 
   useEffect(() => {
     let isMounted = true;
@@ -1297,7 +1335,7 @@ function App() {
             <button className={lang === "pl" ? "active" : ""} onClick={() => setLang("pl")}>PL</button>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RU</button>
           </div>
-          <button className="printBtn" onClick={() => printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed })}>
+          <button className="printBtn" onClick={() => printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed, hasGermanCommission })}>
             {c.print}
           </button>
           <button className="printBtn screenshotBtn" onClick={copyScreenshot}>
