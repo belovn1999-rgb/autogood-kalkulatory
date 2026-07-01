@@ -180,6 +180,7 @@ textarea {
   display: flex;
   flex-direction: column;
   align-self: stretch;
+  min-width: 0;
   margin-top: 46px;
   padding: 14px;
 }
@@ -208,6 +209,8 @@ textarea {
 
 .contract-history {
   margin-top: auto;
+  min-width: 0;
+  max-width: 100%;
   padding-top: 14px;
 }
 
@@ -221,6 +224,8 @@ textarea {
 .history-list {
   display: grid;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .history-empty {
@@ -231,6 +236,8 @@ textarea {
 
 .history-item {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid #b9c9d9;
   border-radius: 6px;
   padding: 8px 9px;
