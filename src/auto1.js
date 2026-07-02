@@ -230,7 +230,40 @@ function eraseCanvasPdfRect(canvas, viewport, rect) {
   );
 }
 
+function eraseBlueUiPixels(canvas, viewport) {
+  const scaleX = canvas.width / viewport.width;
+  const scaleY = canvas.height / viewport.height;
+  const context = canvas.getContext("2d");
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < canvas.height; y += 1) {
+    const pdfY = viewport.height - y / scaleY;
+    if (pdfY < 295 || pdfY > 535) continue;
+    for (let x = 0; x < canvas.width; x += 1) {
+      const pdfX = x / scaleX;
+      if (pdfX < 80 || pdfX > 190) continue;
+      const offset = (y * canvas.width + x) * 4;
+      const red = image.data[offset];
+      const green = image.data[offset + 1];
+      const blue = image.data[offset + 2];
+      if (blue > 120 && green > 70 && red < 120 && blue - red > 40) {
+        image.data[offset] = 255;
+        image.data[offset + 1] = 255;
+        image.data[offset + 2] = 255;
+      }
+    }
+  }
+
+  context.putImageData(image, 0, 0);
+}
+
 function cleanRenderedCanvas(canvas, viewport, textContent, pageText) {
+  eraseCanvasPdfRect(canvas, viewport, [552, 0, 43, viewport.height]);
+  eraseCanvasPdfRect(canvas, viewport, [0, 0, 24, viewport.height]);
+  eraseCanvasPdfRect(canvas, viewport, [126, 322, 12, 92]);
+  eraseCanvasPdfRect(canvas, viewport, [125, 295, 10, 45]);
+  eraseBlueUiPixels(canvas, viewport);
+
   textContent.items.forEach((item) => {
     const str = normalizeText(item.str);
     if (!isVideoControlText(str) && !hasAny(str, cleanupMatchers)) return;
@@ -238,8 +271,12 @@ function cleanRenderedCanvas(canvas, viewport, textContent, pageText) {
     const rawX = item.transform?.[4] ?? 0;
     const rawY = item.transform?.[5] ?? 0;
     const rawWidth = item.width || str.length * 5;
-    eraseCanvasPdfRect(canvas, viewport, [rawX - 35, rawY - 35, Math.max(rawWidth + 70, 125), 82]);
+    eraseCanvasPdfRect(canvas, viewport, [rawX - 45, rawY - 42, Math.max(rawWidth + 95, 150), 96]);
   });
+
+  if (/0:00\s*\/\s*\d+:\d+|0:00\s*\//i.test(pageText)) {
+    eraseCanvasPdfRect(canvas, viewport, [120, 500, 170, 95]);
+  }
 
   if (hasDamageTable(pageText)) {
     const rowAnchor = textContent.items.find((item) => /warning light|hood|door|rim|bumper|fender|body/i.test(normalizeText(item.str)));
@@ -256,9 +293,9 @@ function cleanRenderedCanvas(canvas, viewport, textContent, pageText) {
 
 async function drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, pageData) {
   const viewport = sourcePage.getViewport({ scale: 1 });
-  const canvas = await renderPageToCanvas(sourcePage, 1.15);
+  const canvas = await renderPageToCanvas(sourcePage, 1.8);
   cleanRenderedCanvas(canvas, viewport, pageData.textContent, pageData.text);
-  const image = await pdfDoc.embedJpg(canvasJpegBytes(canvas, 0.82));
+  const image = await pdfDoc.embedJpg(canvasJpegBytes(canvas, 0.94));
   targetPage.drawImage(image, {
     x: 0,
     y: 0,
@@ -268,10 +305,8 @@ async function drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, pag
 }
 
 async function drawCleanCoverMedia(pdfDoc, sourcePage, targetPage, pageData) {
-  const viewport = sourcePage.getViewport({ scale: 1 });
-  const renderScale = 1.15;
+  const renderScale = 1.8;
   const canvas = await renderPageToCanvas(sourcePage, renderScale);
-  cleanRenderedCanvas(canvas, viewport, pageData.textContent, pageData.text);
 
   const cropWidth = Math.ceil(245 * renderScale);
   const cropTop = Math.ceil(72 * renderScale);
@@ -280,7 +315,7 @@ async function drawCleanCoverMedia(pdfDoc, sourcePage, targetPage, pageData) {
   crop.height = canvas.height - cropTop;
   crop.getContext("2d").drawImage(canvas, 0, cropTop, cropWidth, crop.height, 0, 0, cropWidth, crop.height);
 
-  const image = await pdfDoc.embedJpg(canvasJpegBytes(crop, 0.84));
+  const image = await pdfDoc.embedJpg(canvasJpegBytes(crop, 0.94));
   targetPage.drawImage(image, {
     x: 0,
     y: 0,
@@ -570,11 +605,9 @@ async function drawCleanFixedPriceCover(pdfLib, pdfDoc, targetPage, sourcePage, 
   drawPdfLine(pdfLib, targetPage, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
   let y = blueLineY + 26;
-  if (vin) {
-    drawPdfText(pdfLib, targetPage, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
-    drawPdfText(pdfLib, targetPage, vin, 416, y, { size: 8.7, font: fonts.regular });
-    y += 25;
-  }
+  drawPdfText(pdfLib, targetPage, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
+  if (vin) drawPdfText(pdfLib, targetPage, vin, 416, y, { size: 8.7, font: fonts.regular });
+  y += 25;
 
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
