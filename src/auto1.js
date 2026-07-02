@@ -4,7 +4,6 @@ const TESSERACT_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesserac
 
 const BASE_WIDTH = 594.96;
 const BASE_HEIGHT = 841.92;
-const MASK_COLOR = [1, 1, 1];
 
 const input = document.querySelector("#pdfInput");
 const dropZone = document.querySelector("#dropZone");
@@ -19,6 +18,7 @@ const resultPreview = document.querySelector("#resultPreview");
 
 let selectedFile = null;
 let resultUrl = null;
+let resultFileName = "";
 let pdfjsPromise = null;
 let tesseractPromise = null;
 
@@ -71,6 +71,7 @@ function setFile(file) {
 function resetResult() {
   if (resultUrl) URL.revokeObjectURL(resultUrl);
   resultUrl = null;
+  resultFileName = "";
   downloadButton.removeAttribute("href");
   downloadButton.classList.add("isDisabled");
   resultPreview.removeAttribute("src");
@@ -133,14 +134,6 @@ async function loadTesseract() {
 
 function hasAny(text, patterns) {
   return patterns.some((pattern) => pattern.test(text));
-}
-
-function hasDeliveryBlock(text) {
-  return /delivery to my address|delivery to closest pickup|pickup at car location|self\s*-\s*pickup|delivery by truck|delivering|buy from|change address|change location|logistikzentrum|payment of invoices|free parking/i.test(text);
-}
-
-function hasVideoOverlay(text) {
-  return /0:00\s*\/\s*\d+:\d+|0:00\s*\//i.test(text);
 }
 
 function isVideoControlText(text) {
@@ -209,6 +202,93 @@ async function renderPageToCanvas(page, scale = 2) {
   return canvas;
 }
 
+function dataUrlBytes(dataUrl) {
+  const base64 = dataUrl.split(",")[1] || "";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function canvasJpegBytes(canvas, quality = 0.9) {
+  return dataUrlBytes(canvas.toDataURL("image/jpeg", quality));
+}
+
+function eraseCanvasPdfRect(canvas, viewport, rect) {
+  const [x, y, width, height] = rect;
+  const scaleX = canvas.width / viewport.width;
+  const scaleY = canvas.height / viewport.height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(
+    x * scaleX,
+    (viewport.height - y - height) * scaleY,
+    width * scaleX,
+    height * scaleY,
+  );
+}
+
+function cleanRenderedCanvas(canvas, viewport, textContent, pageText) {
+  textContent.items.forEach((item) => {
+    const str = normalizeText(item.str);
+    if (!isVideoControlText(str) && !hasAny(str, cleanupMatchers)) return;
+
+    const rawX = item.transform?.[4] ?? 0;
+    const rawY = item.transform?.[5] ?? 0;
+    const rawWidth = item.width || str.length * 5;
+    eraseCanvasPdfRect(canvas, viewport, [rawX - 35, rawY - 35, Math.max(rawWidth + 70, 125), 82]);
+  });
+
+  if (hasDamageTable(pageText)) {
+    const rowAnchor = textContent.items.find((item) => /warning light|hood|door|rim|bumper|fender|body/i.test(normalizeText(item.str)));
+    if (rowAnchor) {
+      const rowY = rowAnchor.transform?.[5] ?? 0;
+      eraseCanvasPdfRect(canvas, viewport, [36, rowY + 12, 524, 4]);
+      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 36, 524, 22]);
+      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 50, 524, 14]);
+      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 36, 6, 57]);
+      eraseCanvasPdfRect(canvas, viewport, [554, rowY - 36, 6, 57]);
+    }
+  }
+}
+
+async function drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, pageData) {
+  const viewport = sourcePage.getViewport({ scale: 1 });
+  const canvas = await renderPageToCanvas(sourcePage, 1.15);
+  cleanRenderedCanvas(canvas, viewport, pageData.textContent, pageData.text);
+  const image = await pdfDoc.embedJpg(canvasJpegBytes(canvas, 0.82));
+  targetPage.drawImage(image, {
+    x: 0,
+    y: 0,
+    width: targetPage.getWidth(),
+    height: targetPage.getHeight(),
+  });
+}
+
+async function drawCleanCoverMedia(pdfDoc, sourcePage, targetPage, pageData) {
+  const viewport = sourcePage.getViewport({ scale: 1 });
+  const renderScale = 1.15;
+  const canvas = await renderPageToCanvas(sourcePage, renderScale);
+  cleanRenderedCanvas(canvas, viewport, pageData.textContent, pageData.text);
+
+  const cropWidth = Math.ceil(245 * renderScale);
+  const cropTop = Math.ceil(72 * renderScale);
+  const crop = document.createElement("canvas");
+  crop.width = cropWidth;
+  crop.height = canvas.height - cropTop;
+  crop.getContext("2d").drawImage(canvas, 0, cropTop, cropWidth, crop.height, 0, 0, cropWidth, crop.height);
+
+  const image = await pdfDoc.embedJpg(canvasJpegBytes(crop, 0.84));
+  targetPage.drawImage(image, {
+    x: 0,
+    y: 0,
+    width: 245,
+    height: targetPage.getHeight() - 72,
+  });
+}
+
 function vinOcrPageIndexes(pageTexts) {
   const indexes = new Set();
   pageTexts.forEach((text, index) => {
@@ -251,10 +331,6 @@ async function findVinWithOcr(sourcePdf, pageTexts) {
 
 function isFixedPriceCover(text, pageNumber) {
   return pageNumber === 1 && /€\s*\d|your bid includes a net auction fee|stock number/i.test(text);
-}
-
-function isFixedPriceReport(pageTexts) {
-  return pageTexts.some((text, index) => isFixedPriceCover(text, index + 1));
 }
 
 function isProcessPage(text) {
@@ -324,11 +400,28 @@ function fixedCoverTitle(lines) {
       if (!line || labelPattern.test(line) || locationPattern.test(line) || isVideoControlText(line)) break;
       titleLines.push(line);
     }
-    if (titleLines.length) return normalizeText(titleLines.join(" "));
+    if (titleLines.length) return dedupeRepeatedText(normalizeText(titleLines.join(" ")));
   }
 
   const rejected = /€|stock number|your bid includes|vat rate|build year|first registration|odometer|fuel type|horsepower|car location|in high demand|merchants?.*watchlist|minimum bid|purchase now/i;
-  return [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line) && !isVideoControlText(line)) || "AUTO1 vehicle report";
+  const fallback = [...lines].reverse().find((line) => line.length > 8 && !rejected.test(line) && !locationPattern.test(line) && !isVideoControlText(line)) || "AUTO1 vehicle report";
+  return dedupeRepeatedText(fallback);
+}
+
+function dedupeRepeatedText(text) {
+  const words = normalizeText(text).split(" ").filter(Boolean);
+  for (let size = 1; size <= Math.floor(words.length / 2); size += 1) {
+    const first = words.slice(0, size).join(" ");
+    const second = words.slice(size, size * 2).join(" ");
+    if (first && first === second) return first;
+  }
+  if (words.length % 2 === 0) {
+    const middle = words.length / 2;
+    const first = words.slice(0, middle).join(" ");
+    const second = words.slice(middle).join(" ");
+    if (first === second) return first;
+  }
+  return normalizeText(text);
 }
 
 function fixedCoverFields(text) {
@@ -371,60 +464,6 @@ function rgb(pdfLib, r, g, b) {
 
 function pageRect(page) {
   return { width: page.getWidth(), height: page.getHeight() };
-}
-
-function scaledBox(page, rect) {
-  const [x0, y0, x1, y1] = rect;
-  const { width, height } = pageRect(page);
-  const sx = width / BASE_WIDTH;
-  const sy = height / BASE_HEIGHT;
-
-  return {
-    x: x0 * sx,
-    y: height - y1 * sy,
-    width: (x1 - x0) * sx,
-    height: (y1 - y0) * sy,
-  };
-}
-
-function drawMask(pdfLib, page, rect) {
-  page.drawRectangle({
-    ...scaledBox(page, rect),
-    color: rgb(pdfLib, ...MASK_COLOR),
-    borderWidth: 0,
-  });
-}
-
-function drawPdfSpaceMask(pdfLib, page, rect) {
-  const [x, y, width, height] = rect;
-  const pageSize = pageRect(page);
-  const sx = pageSize.width / BASE_WIDTH;
-  const sy = pageSize.height / BASE_HEIGHT;
-
-  page.drawRectangle({
-    x: x * sx,
-    y: y * sy,
-    width: width * sx,
-    height: height * sy,
-    color: rgb(pdfLib, ...MASK_COLOR),
-    borderWidth: 0,
-  });
-}
-
-function removePageAnnotations(pdfLib, page) {
-  if (!pdfLib.PDFName || !page.node?.delete) return;
-  page.node.delete(pdfLib.PDFName.of("Annots"));
-}
-
-function removeDocumentForms(pdfLib, pdfDoc) {
-  if (!pdfLib.PDFName || !pdfDoc.catalog?.delete) return;
-  pdfDoc.catalog.delete(pdfLib.PDFName.of("AcroForm"));
-}
-
-function drawPageChromeMasks(pdfLib, page, pageNumber) {
-  if (pageNumber === 1) return;
-  drawMask(pdfLib, page, [0, 0, 28, 832]);
-  drawMask(pdfLib, page, [0, 808, 594, 832]);
 }
 
 function drawPdfText(pdfLib, page, text, x, topY, options = {}) {
@@ -515,136 +554,71 @@ function drawCenteredMultilineText(pdfLib, page, text, centerX, topY, options = 
   return lines.length;
 }
 
-function rebuildFixedPriceCover(pdfLib, page, text, fonts, vin = "") {
+async function drawCleanFixedPriceCover(pdfLib, pdfDoc, targetPage, sourcePage, pageData, fonts, vin = "") {
+  const text = pageData.text;
   const cover = fixedCoverFields(text);
-  drawMask(pdfLib, page, [246, 42, 594, 832]);
-  drawMask(pdfLib, page, [452, 0, 594, 74]);
-  drawMask(pdfLib, page, [0, 40, 594, 72]);
-  drawPdfLine(pdfLib, page, 15, 48, 584, 48, rgb(pdfLib, 0.95, 0.42, 0.13));
-  const titleLines = drawCenteredMultilineText(pdfLib, page, cover.title, 424, 58, {
+  await drawCleanCoverMedia(pdfDoc, sourcePage, targetPage, pageData);
+
+  drawPdfLine(pdfLib, targetPage, 15, 48, 584, 48, rgb(pdfLib, 0.95, 0.42, 0.13));
+  const titleLines = drawCenteredMultilineText(pdfLib, targetPage, cover.title, 424, 58, {
     size: 17,
     lineHeight: 25,
     maxWidth: 325,
     font: fonts.bold,
   });
   const blueLineY = 58 + titleLines * 25 + 18;
-  drawPdfLine(pdfLib, page, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
+  drawPdfLine(pdfLib, targetPage, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
   let y = blueLineY + 26;
   if (vin) {
-    drawPdfText(pdfLib, page, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
-    drawPdfText(pdfLib, page, vin, 416, y, { size: 8.7, font: fonts.regular });
+    drawPdfText(pdfLib, targetPage, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
+    drawPdfText(pdfLib, targetPage, vin, 416, y, { size: 8.7, font: fonts.regular });
     y += 25;
   }
 
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
-      drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
+      drawPdfText(pdfLib, targetPage, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
     });
-    drawPdfText(pdfLib, page, field.value, 416, y, { size: 8.7, font: fonts.regular });
+    drawPdfText(pdfLib, targetPage, field.value, 416, y, { size: 8.7, font: fonts.regular });
     y += Math.max(field.label.length, 1) * 17 + 8;
   });
 
   const locationY = Math.min(Math.max(y + 10, 704), 760);
-  drawPdfText(pdfLib, page, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
-  if (cover.location) drawPdfText(pdfLib, page, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
+  drawPdfText(pdfLib, targetPage, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
+  if (cover.location) drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
 }
 
-function drawTextMasks(pdfLib, page, textContent, pageText) {
-  const isDeliveryPage = hasDeliveryBlock(pageText);
-  const { width, height } = pageRect(page);
-  const sx = width / BASE_WIDTH;
-  const sy = height / BASE_HEIGHT;
+async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData, vin) {
+  const pdfDoc = await pdfLib.PDFDocument.create();
+  const fonts = {
+    regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
+    bold: await pdfDoc.embedFont(pdfLib.StandardFonts.HelveticaBold),
+  };
+  let removedPages = 0;
 
-  textContent.items.forEach((item) => {
-    const str = normalizeText(item.str);
-    const isDeliveryAddressText = isDeliveryPage && /kolejowa|lomianki|łomianki|change|address|location|pl$/i.test(str);
-    if (!str || (!hasAny(str, cleanupMatchers) && !isDeliveryAddressText)) return;
-
-    const rawX = item.transform?.[4] ?? 0;
-    const rawY = item.transform?.[5] ?? 0;
-    const rawWidth = item.width || str.length * 5;
-    const rawHeight = Math.max(Math.abs(item.height || 0), 9);
-    const pad = 3;
-    let extraRight = 0;
-    let extraLeft = 0;
-    let extraTop = 0;
-    let extraBottom = 0;
-
-    if (/stock number/i.test(str)) extraRight = 150;
-    if (/save cash|export advantage|in high demand|watchlist/i.test(str)) {
-      extraLeft = 10;
-      extraRight = 90;
-      extraTop = 4;
-      extraBottom = 4;
+  for (let index = 0; index < pageData.length; index += 1) {
+    const pageNumber = index + 1;
+    const data = pageData[index];
+    if (shouldDropPage(data.text)) {
+      removedPages += 1;
+      continue;
     }
 
-    page.drawRectangle({
-      x: (rawX - pad - extraLeft) * sx,
-      y: (rawY - pad - extraBottom) * sy,
-      width: (rawWidth + pad * 2 + extraLeft + extraRight) * sx,
-      height: (rawHeight + pad * 2 + extraTop + extraBottom) * sy,
-      color: rgb(pdfLib, ...MASK_COLOR),
-      borderWidth: 0,
-    });
-  });
-}
+    const sourcePage = await sourcePdf.getPage(pageNumber);
+    const viewport = sourcePage.getViewport({ scale: 1 });
+    const targetPage = pdfDoc.addPage([viewport.width, viewport.height]);
 
-function drawVideoControlMasks(pdfLib, page, textContent) {
-  textContent.items.forEach((item) => {
-    const str = normalizeText(item.str);
-    if (!isVideoControlText(str)) return;
+    setStatus(`Buduje czysty PDF: strona ${pageNumber}/${pageData.length}`, 35 + (pageNumber / pageData.length) * 55);
 
-    const rawX = item.transform?.[4] ?? 0;
-    const rawY = item.transform?.[5] ?? 0;
-    const rawWidth = item.width || 70;
-    drawPdfSpaceMask(pdfLib, page, [rawX - 38, rawY - 36, Math.max(rawWidth + 66, 118), 82]);
-  });
-}
-
-function drawDamageTableChromeMasks(pdfLib, page, textContent, pageText) {
-  if (!hasDamageTable(pageText)) return;
-
-  const rowAnchor = textContent.items.find((item) => /warning light|hood|door|rim|bumper|fender|body/i.test(normalizeText(item.str)));
-  if (!rowAnchor) return;
-
-  const rowY = rowAnchor.transform?.[5] ?? 0;
-  const x = 36;
-  const width = 524;
-  drawPdfSpaceMask(pdfLib, page, [x, rowY + 12, width, 4]);
-  drawPdfSpaceMask(pdfLib, page, [x, rowY - 36, width, 22]);
-  drawPdfSpaceMask(pdfLib, page, [x, rowY - 50, width, 14]);
-  drawPdfSpaceMask(pdfLib, page, [x, rowY - 36, 6, 57]);
-  drawPdfSpaceMask(pdfLib, page, [x + width - 6, rowY - 36, 6, 57]);
-  drawPdfSpaceMask(pdfLib, page, [x + width - 25, rowY - 24, 26, 30]);
-}
-
-function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) {
-  drawPageChromeMasks(pdfLib, page, pageNumber);
-  drawMask(pdfLib, page, [584, 12, 594, 832]);
-  drawMask(pdfLib, page, pageNumber === 1 ? [552, 150, 594, 832] : [552, 12, 594, 832]);
-
-  if (pageNumber === 1 && /save cash|export advantage|stock number|in high demand|watchlist/i.test(text)) {
-    drawMask(pdfLib, page, [246, 8, 584, 59]);
-  }
-
-  if (hasVideoOverlay(text)) {
-    if (!fixedPriceReport) {
-      drawMask(pdfLib, page, [36, 96, 246, 268]);
-      drawMask(pdfLib, page, [184, 0, 560, 132]);
+    if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
+      await drawCleanFixedPriceCover(pdfLib, pdfDoc, targetPage, sourcePage, data, fonts, vin);
+    } else {
+      await drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, data);
     }
   }
 
-  if (hasDeliveryBlock(text)) {
-    drawMask(pdfLib, page, fixedPriceReport ? [36, 470, 560, 832] : [36, 232, 560, 832]);
-    if (!fixedPriceReport) drawMask(pdfLib, page, [132, 426, 236, 507]);
-    if (fixedPriceReport) drawMask(pdfLib, page, [510, 0, 594, 95]);
-  }
-
-  if (hasPictureCounter(text) && !hasDamageTable(text)) {
-    drawMask(pdfLib, page, [548, 360, 594, 640]);
-    drawMask(pdfLib, page, [36, 570, 560, 602]);
-  }
+  return { pdfDoc, removedPages };
 }
 
 function outputName(fileName) {
@@ -680,51 +654,22 @@ async function processPdf() {
   const sourcePdf = await pdfjsLib.getDocument({ data: pdfJsData }).promise;
   const pageData = await readPageData(sourcePdf);
   const pageTexts = pageData.map((page) => page.text);
-  const fixedPriceReport = isFixedPriceReport(pageTexts);
   const vin = await findVinWithOcr(sourcePdf, pageTexts);
 
-  setStatus("Edytuje oryginalny PDF...", 35);
-  const pdfDoc = await pdfLib.PDFDocument.load(bytes, { ignoreEncryption: true });
-  removeDocumentForms(pdfLib, pdfDoc);
-  const fonts = {
-    regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
-    bold: await pdfDoc.embedFont(pdfLib.StandardFonts.HelveticaBold),
-  };
-  const pages = pdfDoc.getPages();
-  const dropIndexes = [];
+  setStatus("Buduje czysty PDF bez maskowania...", 35);
+  const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData, vin);
 
-  pages.forEach((page, index) => {
-    const pageNumber = index + 1;
-    const data = pageData[index];
-    if (!data) return;
-
-    if (shouldDropPage(data.text)) {
-      dropIndexes.push(index);
-      return;
-    }
-
-    removePageAnnotations(pdfLib, page);
-    drawTextMasks(pdfLib, page, data.textContent, data.text);
-    drawVideoControlMasks(pdfLib, page, data.textContent);
-    drawDamageTableChromeMasks(pdfLib, page, data.textContent, data.text);
-    applyStructuralMasks(pdfLib, page, data.text, pageNumber, fixedPriceReport);
-    if (isFixedPriceCover(data.text, pageNumber)) {
-      rebuildFixedPriceCover(pdfLib, page, data.text, fonts, vin);
-    }
-  });
-
-  [...dropIndexes].reverse().forEach((index) => pdfDoc.removePage(index));
-
-  setStatus("Zapisuje edytowalny PDF...", 90);
+  setStatus("Zapisuje czysty PDF...", 90);
   const outputBytes = await pdfDoc.save({ useObjectStreams: false });
   const blob = new Blob([outputBytes], { type: "application/pdf" });
   resultUrl = URL.createObjectURL(blob);
+  resultFileName = outputName(selectedFile.name);
   downloadButton.href = resultUrl;
-  downloadButton.download = outputName(selectedFile.name);
+  downloadButton.download = resultFileName;
   downloadButton.classList.remove("isDisabled");
   resultPreview.src = resultUrl;
-  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${dropIndexes.length} stron.`;
-  setStatus("Gotowe. PDF zachowuje oryginalne strony i edytowalne poprawki.", 100);
+  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${removedPages} stron.`;
+  setStatus("Gotowe. PDF przebudowany bez bialych masek.", 100);
 }
 
 input.addEventListener("change", () => {
@@ -755,4 +700,16 @@ processButton.addEventListener("click", async () => {
   } finally {
     processButton.disabled = !selectedFile;
   }
+});
+
+downloadButton.addEventListener("click", (event) => {
+  if (!resultUrl || downloadButton.classList.contains("isDisabled")) return;
+  event.preventDefault();
+
+  const link = document.createElement("a");
+  link.href = resultUrl;
+  link.download = resultFileName || outputName(selectedFile?.name || "auto1-report.pdf");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 });
