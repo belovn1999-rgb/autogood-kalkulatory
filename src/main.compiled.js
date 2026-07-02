@@ -321,7 +321,7 @@ const tabs = [{
       pl: "Rabat",
       ru: "Скидка"
     },
-    currency: "PLN"
+    currency: "EUR"
   }]
 }, {
   id: 4,
@@ -368,7 +368,7 @@ const tabs = [{
       pl: "Rabat",
       ru: "Скидка"
     },
-    currency: "PLN"
+    currency: "EUR"
   }]
 }];
 function calculatorName(tab, lang, financed) {
@@ -941,9 +941,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const inspectionBrutto = inspection * 1.23;
     const excise = exciseRate * carPln;
     const bruttoBase = carPln * 1.19;
-    const discountCommission = 0.3 * discount;
+    const discountPln = discount * useRate;
+    const discountCommission = 0.3 * discountPln;
     const commissionNetto = finFix + finPct * bruttoBase + discountCommission;
-    const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
+    const discountText = discount > 0 ? ` + 30% × ${inputCurrencyLabel(discount)} = ${money(discountCommission)}` : "";
     const vatBase = carPln + inspection + transport + excise + commissionNetto;
     const vat = vatBase * VAT;
     const total = vatBase + vat + TO_FEE + germanCommissionPln;
@@ -958,10 +959,11 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const transportBrutto = transport * 1.23;
   const excise = exciseRate * carPln;
   const exciseBrutto = excise * 1.23;
-  const discountCommission = 0.3 * discount;
+  const discountPln = discount * useRate;
+  const discountCommission = 0.3 * discountPln;
   const commissionNetto = finFix + finPct * carPln + discountCommission;
   const commissionBrutto = commissionNetto * 1.23;
-  const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
+  const discountText = discount > 0 ? ` + 30% × ${inputCurrencyLabel(discount)} = ${money(discountCommission)}` : "";
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE + germanCommissionPln;
   const rows = [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "+VAT 23%", `${money(finFix)} + ${(finPct * 100).toFixed(0)}% × ${money(carPln)}${discountText}`, false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true)];
   return {

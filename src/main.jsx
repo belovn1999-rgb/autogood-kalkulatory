@@ -213,7 +213,7 @@ const tabs = [
       { key: "inspection", label: { pl: "Oględziny specjalisty netto", ru: "Инспекция специалиста netto" }, currency: "PLN" },
       { key: "transport", label: { pl: "Transport na lawecie netto", ru: "Транспорт на автовозе netto" }, currency: "PLN" },
       { key: "germanCommission", label: { pl: "Prowizja firmy niemieckiej", ru: "Комиссия немецкой фирмы" }, currency: "EUR", optional: true },
-      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "PLN" },
+      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "EUR" },
     ],
   },
   {
@@ -228,7 +228,7 @@ const tabs = [
       { key: "inspection", label: { pl: "Oględziny specjalisty netto", ru: "Инспекция специалиста netto" }, currency: "PLN" },
       { key: "transport", label: { pl: "Transport na lawecie netto", ru: "Транспорт на автовозе netto" }, currency: "PLN" },
       { key: "germanCommission", label: { pl: "Prowizja firmy niemieckiej", ru: "Комиссия немецкой фирмы" }, currency: "EUR", optional: true },
-      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "PLN" },
+      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "EUR" },
     ],
   },
 ];
@@ -907,9 +907,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const inspectionBrutto = inspection * 1.23;
     const excise = exciseRate * carPln;
     const bruttoBase = carPln * 1.19;
-    const discountCommission = 0.3 * discount;
+    const discountPln = discount * useRate;
+    const discountCommission = 0.3 * discountPln;
     const commissionNetto = finFix + finPct * bruttoBase + discountCommission;
-    const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
+    const discountText = discount > 0 ? ` + 30% × ${inputCurrencyLabel(discount)} = ${money(discountCommission)}` : "";
     const vatBase = carPln + inspection + transport + excise + commissionNetto;
     const vat = vatBase * VAT;
     const total = vatBase + vat + TO_FEE + germanCommissionPln;
@@ -935,10 +936,11 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const transportBrutto = transport * 1.23;
   const excise = exciseRate * carPln;
   const exciseBrutto = excise * 1.23;
-  const discountCommission = 0.3 * discount;
+  const discountPln = discount * useRate;
+  const discountCommission = 0.3 * discountPln;
   const commissionNetto = finFix + finPct * carPln + discountCommission;
   const commissionBrutto = commissionNetto * 1.23;
-  const discountText = discount > 0 ? ` + 30% × ${money(discount)}` : "";
+  const discountText = discount > 0 ? ` + 30% × ${inputCurrencyLabel(discount)} = ${money(discountCommission)}` : "";
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + TO_FEE + germanCommissionPln;
   const rows = [
     row(t.car, carPln, "", "", false, false, conversionPrefix(car)),
