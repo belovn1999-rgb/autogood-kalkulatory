@@ -1,5 +1,6 @@
 const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+const TESSERACT_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
 
 const BASE_WIDTH = 594.96;
 const BASE_HEIGHT = 841.92;
@@ -19,6 +20,7 @@ const resultPreview = document.querySelector("#resultPreview");
 let selectedFile = null;
 let resultUrl = null;
 let pdfjsPromise = null;
+let tesseractPromise = null;
 
 const cleanupMatchers = [
   /save cash/i,
@@ -100,6 +102,35 @@ function buildText(textContent) {
   return textContent.items.map((item) => normalizeText(item.str)).filter(Boolean).join("\n");
 }
 
+function scriptPromise(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      if (existing.dataset.loaded === "true") resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = () => {
+      script.dataset.loaded = "true";
+      resolve();
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function loadTesseract() {
+  if (!tesseractPromise) {
+    tesseractPromise = scriptPromise(TESSERACT_URL).then(() => window.Tesseract);
+  }
+  return tesseractPromise;
+}
+
 function hasAny(text, patterns) {
   return patterns.some((pattern) => pattern.test(text));
 }
@@ -126,6 +157,96 @@ function hasDamageTable(text) {
     && /damage/i.test(text)
     && /severity/i.test(text)
     && /quantity/i.test(text);
+}
+
+function normalizedVinCandidates(text) {
+  const compact = normalizeText(text).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const candidates = [];
+  for (let index = 0; index <= compact.length - 17; index += 1) {
+    const candidate = compact.slice(index, index + 17);
+    if (isValidVinCandidate(candidate)) {
+      candidates.push(candidate);
+    }
+  }
+  return candidates;
+}
+
+function isValidVinCandidate(candidate) {
+  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(candidate)) return false;
+  if (!/[A-Z]/.test(candidate) || !/\d/.test(candidate)) return false;
+  if (/NUMBER|STOCK|BUILD|YEAR|SPORT|DIESEL|PETROL|WATCH|LINE|THE|PAST|VAT/.test(candidate)) return false;
+  return true;
+}
+
+function findVinInText(texts) {
+  for (const text of texts) {
+    const matches = normalizeText(text).toUpperCase().match(/\b[A-HJ-NPR-Z0-9]{17}\b/g) || [];
+    const candidate = matches.find(isValidVinCandidate);
+    if (candidate) return candidate;
+  }
+  return "";
+}
+
+function findVinInOcrText(text) {
+  const normalized = normalizeText(text).toUpperCase();
+  if (!/VIN|FIN|IDENTIFICATION|FAHRGESTELL|CHASSIS/.test(normalized)) return "";
+
+  const matches = normalized.match(/\b[A-HJ-NPR-Z0-9]{17}\b/g) || [];
+  const direct = matches.find(isValidVinCandidate);
+  if (direct) return direct;
+
+  const [candidate] = normalizedVinCandidates(normalized);
+  return candidate || "";
+}
+
+async function renderPageToCanvas(page, scale = 2) {
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  await page.render({ canvasContext: context, viewport }).promise;
+  return canvas;
+}
+
+function vinOcrPageIndexes(pageTexts) {
+  const indexes = new Set();
+  pageTexts.forEach((text, index) => {
+    if (/service images|documentation of prior damage|car service images|registration document|vehicle registration|identification number|vin/i.test(text)) {
+      indexes.add(index);
+      if (index > 0) indexes.add(index - 1);
+    }
+  });
+  return [...indexes].filter((index) => index >= 0 && index < pageTexts.length).slice(0, 10);
+}
+
+async function findVinWithOcr(sourcePdf, pageTexts) {
+  const textVin = findVinInText(pageTexts);
+  if (textVin) return textVin;
+
+  let tesseract;
+  try {
+    tesseract = await loadTesseract();
+  } catch {
+    return "";
+  }
+  if (!tesseract?.recognize) return "";
+
+  const indexes = vinOcrPageIndexes(pageTexts);
+  for (let position = 0; position < indexes.length; position += 1) {
+    const pageIndex = indexes[position];
+    setStatus(`Szukam VIN OCR: strona ${pageIndex + 1}`, 25 + position);
+    try {
+      const page = await sourcePdf.getPage(pageIndex + 1);
+      const canvas = await renderPageToCanvas(page, 2);
+      const result = await tesseract.recognize(canvas, "eng");
+      const candidate = findVinInOcrText(result?.data?.text || "");
+      if (candidate) return candidate;
+    } catch {
+      // OCR is best-effort; PDF cleanup must keep working if OCR misses a page.
+    }
+  }
+  return "";
 }
 
 function isFixedPriceCover(text, pageNumber) {
@@ -274,6 +395,22 @@ function drawMask(pdfLib, page, rect) {
   });
 }
 
+function drawPdfSpaceMask(pdfLib, page, rect) {
+  const [x, y, width, height] = rect;
+  const pageSize = pageRect(page);
+  const sx = pageSize.width / BASE_WIDTH;
+  const sy = pageSize.height / BASE_HEIGHT;
+
+  page.drawRectangle({
+    x: x * sx,
+    y: y * sy,
+    width: width * sx,
+    height: height * sy,
+    color: rgb(pdfLib, ...MASK_COLOR),
+    borderWidth: 0,
+  });
+}
+
 function removePageAnnotations(pdfLib, page) {
   if (!pdfLib.PDFName || !page.node?.delete) return;
   page.node.delete(pdfLib.PDFName.of("Annots"));
@@ -378,7 +515,7 @@ function drawCenteredMultilineText(pdfLib, page, text, centerX, topY, options = 
   return lines.length;
 }
 
-function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
+function rebuildFixedPriceCover(pdfLib, page, text, fonts, vin = "") {
   const cover = fixedCoverFields(text);
   drawMask(pdfLib, page, [246, 42, 594, 832]);
   drawMask(pdfLib, page, [452, 0, 594, 74]);
@@ -394,6 +531,12 @@ function rebuildFixedPriceCover(pdfLib, page, text, fonts) {
   drawPdfLine(pdfLib, page, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
   let y = blueLineY + 26;
+  if (vin) {
+    drawPdfText(pdfLib, page, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
+    drawPdfText(pdfLib, page, vin, 416, y, { size: 8.7, font: fonts.regular });
+    y += 25;
+  }
+
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
       drawPdfText(pdfLib, page, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
@@ -447,6 +590,35 @@ function drawTextMasks(pdfLib, page, textContent, pageText) {
   });
 }
 
+function drawVideoControlMasks(pdfLib, page, textContent) {
+  textContent.items.forEach((item) => {
+    const str = normalizeText(item.str);
+    if (!isVideoControlText(str)) return;
+
+    const rawX = item.transform?.[4] ?? 0;
+    const rawY = item.transform?.[5] ?? 0;
+    const rawWidth = item.width || 70;
+    drawPdfSpaceMask(pdfLib, page, [rawX - 38, rawY - 36, Math.max(rawWidth + 66, 118), 82]);
+  });
+}
+
+function drawDamageTableChromeMasks(pdfLib, page, textContent, pageText) {
+  if (!hasDamageTable(pageText)) return;
+
+  const rowAnchor = textContent.items.find((item) => /warning light|hood|door|rim|bumper|fender|body/i.test(normalizeText(item.str)));
+  if (!rowAnchor) return;
+
+  const rowY = rowAnchor.transform?.[5] ?? 0;
+  const x = 36;
+  const width = 524;
+  drawPdfSpaceMask(pdfLib, page, [x, rowY + 12, width, 4]);
+  drawPdfSpaceMask(pdfLib, page, [x, rowY - 36, width, 22]);
+  drawPdfSpaceMask(pdfLib, page, [x, rowY - 50, width, 14]);
+  drawPdfSpaceMask(pdfLib, page, [x, rowY - 36, 6, 57]);
+  drawPdfSpaceMask(pdfLib, page, [x + width - 6, rowY - 36, 6, 57]);
+  drawPdfSpaceMask(pdfLib, page, [x + width - 25, rowY - 24, 26, 30]);
+}
+
 function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) {
   drawPageChromeMasks(pdfLib, page, pageNumber);
   drawMask(pdfLib, page, [584, 12, 594, 832]);
@@ -476,8 +648,7 @@ function applyStructuralMasks(pdfLib, page, text, pageNumber, fixedPriceReport) 
 }
 
 function outputName(fileName) {
-  const stem = fileName.replace(/\.pdf$/i, "").trim() || "auto1-report";
-  return `${stem}-client.pdf`;
+  return fileName.replace(/\.pdf$/i, ".pdf").trim() || "auto1-report.pdf";
 }
 
 async function readPageData(pdf) {
@@ -510,6 +681,7 @@ async function processPdf() {
   const pageData = await readPageData(sourcePdf);
   const pageTexts = pageData.map((page) => page.text);
   const fixedPriceReport = isFixedPriceReport(pageTexts);
+  const vin = await findVinWithOcr(sourcePdf, pageTexts);
 
   setStatus("Edytuje oryginalny PDF...", 35);
   const pdfDoc = await pdfLib.PDFDocument.load(bytes, { ignoreEncryption: true });
@@ -533,9 +705,11 @@ async function processPdf() {
 
     removePageAnnotations(pdfLib, page);
     drawTextMasks(pdfLib, page, data.textContent, data.text);
+    drawVideoControlMasks(pdfLib, page, data.textContent);
+    drawDamageTableChromeMasks(pdfLib, page, data.textContent, data.text);
     applyStructuralMasks(pdfLib, page, data.text, pageNumber, fixedPriceReport);
     if (isFixedPriceCover(data.text, pageNumber)) {
-      rebuildFixedPriceCover(pdfLib, page, data.text, fonts);
+      rebuildFixedPriceCover(pdfLib, page, data.text, fonts, vin);
     }
   });
 
