@@ -663,12 +663,14 @@ async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, so
     y += Math.max(field.label.length, 1) * 17 + 8;
   });
 
-  const locationY = Math.min(Math.max(y + 10, 704), 760);
-  drawPdfText(pdfLib, targetPage, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
-  if (cover.location) drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
+  if (cover.location) {
+    const locationY = Math.min(Math.max(y + 10, 704), 760);
+    drawPdfText(pdfLib, targetPage, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
+    drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
+  }
 }
 
-async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData) {
+async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData) {
   const pdfDoc = await pdfLib.PDFDocument.create();
   const fonts = {
     regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
@@ -692,10 +694,10 @@ async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData) {
 
     if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
       await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, data, fonts);
-    } else if (shouldUseSeparatePhotoObjects(data.text, pageNumber)) {
-      await drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, data);
     } else {
-      await drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, data);
+      pdfDoc.removePage(pdfDoc.getPageCount() - 1);
+      const [copiedPage] = await pdfDoc.copyPages(sourcePdfLib, [index]);
+      pdfDoc.addPage(copiedPage);
     }
   }
 
@@ -733,10 +735,11 @@ async function processPdf() {
   const bytes = await selectedFile.arrayBuffer();
   const pdfJsData = new Uint8Array(bytes.slice(0));
   const sourcePdf = await pdfjsLib.getDocument({ data: pdfJsData }).promise;
+  const sourcePdfLib = await pdfLib.PDFDocument.load(bytes);
   const pageData = await readPageData(sourcePdf);
 
   setStatus("Buduje czysty PDF bez maskowania...", 35);
-  const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData);
+  const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData);
 
   setStatus("Zapisuje czysty PDF...", 90);
   const outputBytes = await pdfDoc.save({ useObjectStreams: false });
