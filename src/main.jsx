@@ -329,7 +329,6 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
 const processHighlights = [
   "70% uzyskanego rabatu",
   "70% полученной скидки",
-  "Płacisz za pojazd",
   "Вы оплачиваете автомобиль",
   "Вы платите за автомобиль",
   "do sprzedawcy w EUR",

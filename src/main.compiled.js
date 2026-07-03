@@ -427,7 +427,7 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
   }
   return steps[tab.id]?.[lang] || [];
 }
-const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Płacisz za pojazd", "Вы оплачиваете автомобиль", "Вы платите за автомобиль", "do sprzedawcy w EUR", "продавцу в EUR", "Вы оплачиваете всю сумму", "w PLN lub EUR", "PLN lub EUR", "PLN или EUR", "na Fakturę VAT 23%", "Fakturę VAT 23%", "Faktura VAT 23%", "na Fakturę VAT Marża", "Fakturę VAT Marża", "Faktura VAT Marża", "Продаём", "własnych środków", "Wpłacasz wkład własny", "Вы вносите собственный взнос", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Вы оплачиваете автомобиль", "Вы платите за автомобиль", "do sprzedawcy w EUR", "продавцу в EUR", "Вы оплачиваете всю сумму", "w PLN lub EUR", "PLN lub EUR", "PLN или EUR", "na Fakturę VAT 23%", "Fakturę VAT 23%", "Faktura VAT 23%", "na Fakturę VAT Marża", "Fakturę VAT Marża", "Faktura VAT Marża", "Продаём", "własnych środków", "Wpłacasz wkład własny", "Вы вносите собственный взнос", "Wpłacamy kaucję", "wpłacamy kaucję", "Вносим депозит", "вносим депозит"];
 function splitHighlightedText(text) {
   const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const pattern = new RegExp(`(${escaped})`, "gi");
