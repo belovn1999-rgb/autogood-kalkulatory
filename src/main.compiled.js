@@ -1039,6 +1039,7 @@ function printCalculation({
     strong{font-size:15px}
     small{display:block;color:#64748b;margin-top:3px;font-size:11px}
     span{border-radius:999px;padding:3px 7px;font-size:11px;color:#c2410c;background:#fff7ed;font-weight:800}
+    .amount span{display:inline-flex;align-items:center;justify-self:start;width:max-content;max-width:max-content;line-height:1;white-space:nowrap}
     .softVatTag{color:#64748b;background:#f1f5f9;font-size:8.5px;letter-spacing:.03em}
     .amount{display:grid;grid-template-columns:92px max-content auto;justify-content:end;align-items:center;column-gap:4px}
     .amount em{font-style:normal;color:#64748b;font-weight:800;text-align:right}

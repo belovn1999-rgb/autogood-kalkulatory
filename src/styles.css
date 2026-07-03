@@ -649,12 +649,20 @@ select {
 }
 
 .tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  width: max-content;
+  max-width: max-content;
   border-radius: 999px;
   padding: 3px 6px;
   background: #f8fafc;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1;
   margin-left: 2px;
+  white-space: nowrap;
 }
 
 .tag-brutto {
