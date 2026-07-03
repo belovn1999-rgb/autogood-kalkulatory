@@ -1,6 +1,5 @@
 const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
-const TESSERACT_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
 
 const BASE_WIDTH = 594.96;
 const BASE_HEIGHT = 841.92;
@@ -20,11 +19,6 @@ let selectedFile = null;
 let resultUrl = null;
 let resultFileName = "";
 let pdfjsPromise = null;
-let tesseractPromise = null;
-
-const VIN_MARKER_PATTERN = /VIN|FIN|IDENTIFICATION|IDENTIFIKATION|FAHRGESTELL|CHASSIS|CHASSISNUMMER|TELAIO|NUM[EÉ]RO|VOERTUIG|V[EÉ]HICULE/i;
-const VIN_WHITELIST = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
-const KNOWN_WMI_PATTERN = /^(1C4|5YJ|JHM|JMB|JMZ|JN1|JSA|JT|KNA|KMH|LRW|MA3|NM0|NMT|SB1|SHH|SJN|TMA|TMB|TSM|U5Y|UU1|VF1|VF3|VF7|VR3|VR7|VSK|VSS|W0L|W0V|W1K|W1N|WAU|WBA|WBS|WDB|WDD|WF0|WVW|YV1|ZAC|ZAR|ZFA)/;
 
 const cleanupMatchers = [
   /save cash/i,
@@ -107,35 +101,6 @@ function buildText(textContent) {
   return textContent.items.map((item) => normalizeText(item.str)).filter(Boolean).join("\n");
 }
 
-function scriptPromise(src) {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      existing.addEventListener("load", resolve, { once: true });
-      existing.addEventListener("error", reject, { once: true });
-      if (existing.dataset.loaded === "true") resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.onload = () => {
-      script.dataset.loaded = "true";
-      resolve();
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-async function loadTesseract() {
-  if (!tesseractPromise) {
-    tesseractPromise = scriptPromise(TESSERACT_URL).then(() => window.Tesseract);
-  }
-  return tesseractPromise;
-}
-
 function hasAny(text, patterns) {
   return patterns.some((pattern) => pattern.test(text));
 }
@@ -154,134 +119,6 @@ function hasDamageTable(text) {
     && /damage/i.test(text)
     && /severity/i.test(text)
     && /quantity/i.test(text);
-}
-
-function compactVinText(text, repairOcr = false) {
-  let normalized = normalizeText(text).toUpperCase();
-  if (repairOcr) {
-    normalized = normalized
-      .replace(/[OQ]/g, "0")
-      .replace(/[I|]/g, "1");
-  }
-  return normalized.replace(/[^A-Z0-9]/g, "");
-}
-
-function normalizedVinCandidates(text, options = {}) {
-  const compact = compactVinText(text, options.repairOcr);
-  const candidates = [];
-  for (let index = 0; index <= compact.length - 17; index += 1) {
-    const candidate = normalizeVinCandidate(compact.slice(index, index + 17));
-    if (isValidVinCandidate(candidate)) {
-      candidates.push(candidate);
-    }
-  }
-  return candidates;
-}
-
-function uniqueVinCandidates(candidates) {
-  return [...new Set(candidates)];
-}
-
-function vinCandidateScore(candidate) {
-  let score = 0;
-  const digits = (candidate.match(/\d/g) || []).length;
-  const vowels = (candidate.match(/[AEU]/g) || []).length;
-  score += digits * 2;
-  score -= vowels * 3;
-  if (KNOWN_WMI_PATTERN.test(candidate)) score += 80;
-  if (/^([1-5]|J|K|L|M|N|S|T|V|W|X|Y|Z)/.test(candidate)) score += 30;
-  return score;
-}
-
-function bestVinCandidate(candidates, options = {}) {
-  const valid = uniqueVinCandidates(candidates.map(normalizeVinCandidate).filter(isValidVinCandidate));
-  const brandValid = options.brandPattern
-    ? valid.filter((candidate) => options.brandPattern.test(candidate))
-    : valid;
-  if (!brandValid.length) return "";
-  const ranked = brandValid.sort((left, right) => vinCandidateScore(right) - vinCandidateScore(left));
-  if (!options.allowWeak && vinCandidateScore(ranked[0]) < 70) return "";
-  return ranked[0];
-}
-
-function normalizeVinCandidate(candidate) {
-  let value = candidate.replace(/^UR3/, "VR3");
-  if (/^(VF3|VR3|VF7|VR7)/.test(value)) {
-    const numericTail = value.slice(11)
-      .replace(/[OQDE]/g, "0")
-      .replace(/[IL]/g, "1")
-      .replace(/Z/g, "2")
-      .replace(/S/g, "5")
-      .replace(/B/g, "8");
-    value = `${value.slice(0, 11)}${numericTail}`;
-  }
-  return value;
-}
-
-function isValidVinCandidate(candidate) {
-  if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(candidate)) return false;
-  if (!/[A-Z]/.test(candidate) || !/\d/.test(candidate)) return false;
-  if ((candidate.match(/\d/g) || []).length < 4) return false;
-  if ((candidate.match(/[AEU]/g) || []).length > 4) return false;
-  if (/(.)\1{3,}/.test(candidate)) return false;
-  if ((candidate.match(/1/g) || []).length > 5) return false;
-  if (/NUMBER|STOCK|BUILD|YEAR|SPORT|DIESEL|PETROL|WATCH|LINE|THE|PAST|VAT|LAST|SERV/.test(candidate)) return false;
-  return true;
-}
-
-function brandVinPattern(text) {
-  const normalized = normalizeText(text).toUpperCase();
-  if (/PEUGEOT/.test(normalized)) return /^(VF3|VR3)/;
-  if (/CITRO[ËE]N|DS AUTOMOBILES/.test(normalized)) return /^(VF7|VR7)/;
-  if (/BMW/.test(normalized)) return /^(WBA|WBS)/;
-  if (/MERCEDES/.test(normalized)) return /^(WDB|WDD|W1K|W1N)/;
-  if (/AUDI/.test(normalized)) return /^WAU/;
-  if (/VOLKSWAGEN|VW/.test(normalized)) return /^WVW/;
-  if (/SKODA|ŠKODA/.test(normalized)) return /^TMB/;
-  if (/SEAT/.test(normalized)) return /^VSS/;
-  if (/FORD/.test(normalized)) return /^(WF0|NM0|1FA|1FM)/;
-  if (/OPEL|VAUXHALL/.test(normalized)) return /^(W0L|W0V)/;
-  if (/FIAT/.test(normalized)) return /^ZFA/;
-  if (/ALFA ROMEO/.test(normalized)) return /^ZAR/;
-  if (/RENAULT/.test(normalized)) return /^VF1/;
-  if (/DACIA/.test(normalized)) return /^UU1/;
-  if (/SUZUKI/.test(normalized)) return /^(JSA|TSM|MA3)/;
-  if (/HYUNDAI/.test(normalized)) return /^(TMA|KMH)/;
-  if (/KIA/.test(normalized)) return /^(U5Y|KNA)/;
-  if (/JEEP/.test(normalized)) return /^(1C4|ZAC)/;
-  if (/TOYOTA/.test(normalized)) return /^(JT|SB1|NMT)/;
-  if (/NISSAN/.test(normalized)) return /^(SJN|VSK|JN1)/;
-  if (/HONDA/.test(normalized)) return /^(JHM|SHH)/;
-  if (/MAZDA/.test(normalized)) return /^JMZ/;
-  if (/MITSUBISHI/.test(normalized)) return /^JMB/;
-  if (/VOLVO/.test(normalized)) return /^YV1/;
-  if (/TESLA/.test(normalized)) return /^(5YJ|LRW)/;
-  return null;
-}
-
-function findVinInText(texts, brandPattern = null) {
-  for (const text of texts) {
-    const matches = normalizeText(text).toUpperCase().match(/\b[A-HJ-NPR-Z0-9]{17}\b/g) || [];
-    const candidate = bestVinCandidate(matches, { brandPattern });
-    if (candidate) return candidate;
-  }
-  return "";
-}
-
-function findVinInOcrText(text, options = {}) {
-  const normalized = normalizeText(text).toUpperCase();
-  const matches = normalized.match(/\b[A-HJ-NPR-Z0-9]{17}\b/g) || [];
-  const marked = VIN_MARKER_PATTERN.test(normalized);
-  const direct = bestVinCandidate(matches, { brandPattern: options.brandPattern });
-  if (direct) return direct;
-
-  if (!marked && !options.allowUnmarked) return "";
-
-  const candidates = [
-    ...normalizedVinCandidates(normalized),
-    ...normalizedVinCandidates(normalized, { repairOcr: true }),
-  ];
-  return bestVinCandidate(candidates, { brandPattern: options.brandPattern });
 }
 
 async function renderPageToCanvas(page, scale = 2) {
@@ -414,87 +251,6 @@ function cropRenderedCanvas(canvas, viewport, box, scale) {
   crop.height = Math.max(1, sh);
   crop.getContext("2d").drawImage(canvas, sx, sy, sw, sh, 0, 0, crop.width, crop.height);
   return crop;
-}
-
-function expandPdfBox(box, viewport, padding) {
-  const x = Math.max(0, box.x - padding);
-  const y = Math.max(0, box.y - padding);
-  const right = Math.min(viewport.width, box.x + box.width + padding);
-  const top = Math.min(viewport.height, box.y + box.height + padding);
-  return {
-    x,
-    y,
-    width: Math.max(1, right - x),
-    height: Math.max(1, top - y),
-  };
-}
-
-function cropCanvasRatio(canvas, x, y, width, height) {
-  const sx = Math.max(0, Math.floor(canvas.width * x));
-  const sy = Math.max(0, Math.floor(canvas.height * y));
-  const sw = Math.max(1, Math.min(canvas.width - sx, Math.ceil(canvas.width * width)));
-  const sh = Math.max(1, Math.min(canvas.height - sy, Math.ceil(canvas.height * height)));
-  const crop = document.createElement("canvas");
-  crop.width = sw;
-  crop.height = sh;
-  crop.getContext("2d").drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-  return crop;
-}
-
-function prepareOcrCanvas(canvas, options = {}) {
-  const scale = Math.max(2, Math.ceil(1600 / Math.max(canvas.width, 1)));
-  const prepared = document.createElement("canvas");
-  prepared.width = canvas.width * scale;
-  prepared.height = canvas.height * scale;
-  const context = prepared.getContext("2d", { willReadFrequently: true });
-  context.imageSmoothingEnabled = true;
-  context.drawImage(canvas, 0, 0, prepared.width, prepared.height);
-
-  const image = context.getImageData(0, 0, prepared.width, prepared.height);
-  for (let index = 0; index < image.data.length; index += 4) {
-    const gray = image.data[index] * 0.299 + image.data[index + 1] * 0.587 + image.data[index + 2] * 0.114;
-    let value = Math.max(0, Math.min(255, (gray - 128) * (options.binary ? 3 : 1.8) + 128));
-    if (options.binary) value = value > 145 ? 255 : 0;
-    image.data[index] = value;
-    image.data[index + 1] = value;
-    image.data[index + 2] = value;
-  }
-  context.putImageData(image, 0, 0);
-  return prepared;
-}
-
-function vinOcrCanvasVariants(canvas) {
-  const band = cropCanvasRatio(canvas, 0.02, 0.22, 0.92, 0.42);
-  const upper = cropCanvasRatio(canvas, 0.00, 0.00, 1.00, 0.62);
-  const line = cropCanvasRatio(canvas, 0.02, 0.34, 0.92, 0.28);
-
-  return [
-    prepareOcrCanvas(band, { binary: true }),
-    prepareOcrCanvas(upper, { binary: true }),
-    prepareOcrCanvas(band),
-    prepareOcrCanvas(upper),
-    prepareOcrCanvas(line, { binary: true }),
-    prepareOcrCanvas(canvas),
-  ];
-}
-
-function pageVinRegionCanvases(canvas) {
-  return [
-    cropCanvasRatio(canvas, 0.28, 0.00, 0.68, 0.55),
-    cropCanvasRatio(canvas, 0.00, 0.00, 1.00, 0.55),
-    cropCanvasRatio(canvas, 0.18, 0.00, 0.80, 0.68),
-  ];
-}
-
-async function recognizeVinCanvas(tesseract, canvas, options = {}) {
-  const result = await tesseract.recognize(canvas, "eng", {
-    tessedit_char_whitelist: VIN_WHITELIST,
-    tessedit_pageseg_mode: options.pageSegMode || "6",
-  });
-  return findVinInOcrText(result?.data?.text || "", {
-    allowUnmarked: true,
-    brandPattern: options.brandPattern,
-  });
 }
 
 function eraseCanvasPdfRect(canvas, viewport, rect) {
@@ -648,81 +404,6 @@ async function drawCleanCoverMedia(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetP
       height: box.height,
     });
   }
-}
-
-function vinOcrPageIndexes(pageTexts) {
-  const indexes = new Set();
-  pageTexts.slice(1, 6).forEach((_, offset) => indexes.add(offset + 1));
-  pageTexts.forEach((text, index) => {
-    if (/service images|documentation of prior damage|car service images|registration document|vehicle registration|identification number|vin/i.test(text)) {
-      indexes.add(index);
-      if (index > 0) indexes.add(index - 1);
-    }
-  });
-  return [...indexes].filter((index) => index >= 0 && index < pageTexts.length).slice(0, 10);
-}
-
-async function findVinWithOcr(sourcePdf, pageTexts) {
-  const brandPattern = brandVinPattern(pageTexts[0] || "");
-  const textVin = findVinInText(pageTexts, brandPattern);
-  if (textVin) return textVin;
-
-  let tesseract;
-  try {
-    tesseract = await loadTesseract();
-  } catch {
-    return "";
-  }
-  if (!tesseract?.recognize) return "";
-
-  const indexes = vinOcrPageIndexes(pageTexts);
-  const pdfjsLib = await loadPdfJs();
-  for (let position = 0; position < indexes.length; position += 1) {
-    const pageIndex = indexes[position];
-    setStatus(`Szukam VIN OCR: strona ${pageIndex + 1}`, 25 + position);
-    try {
-      const page = await sourcePdf.getPage(pageIndex + 1);
-      const canvas = await renderPageToCanvas(page, 3);
-      const result = await tesseract.recognize(canvas, "eng");
-      const candidate = findVinInOcrText(result?.data?.text || "", { brandPattern });
-      if (candidate) return candidate;
-
-      const viewport = page.getViewport({ scale: 1 });
-      const renderScale = 5;
-      const detailedCanvas = await renderPageToCanvas(page, renderScale);
-
-      const regionCanvases = pageVinRegionCanvases(detailedCanvas);
-      for (let regionIndex = 0; regionIndex < regionCanvases.length; regionIndex += 1) {
-        setStatus(`Szukam VIN OCR: obszar ${regionIndex + 1}/${regionCanvases.length} na stronie ${pageIndex + 1}`, 28 + position);
-        const variants = vinOcrCanvasVariants(regionCanvases[regionIndex]);
-        for (let variantIndex = 0; variantIndex < variants.length; variantIndex += 1) {
-          const pageSegMode = variantIndex < 2 ? "6" : "7";
-          const regionCandidate = await recognizeVinCanvas(tesseract, variants[variantIndex], { pageSegMode, brandPattern });
-          if (regionCandidate) return regionCandidate;
-        }
-      }
-
-      const placements = (await imagePlacements(pdfjsLib, page))
-        .filter((box) => box.width > 35 && box.height > 25 && box.x < 545 && !isUiImagePlacement(box))
-        .sort((a, b) => (viewport.height - b.y) - (viewport.height - a.y) || a.x - b.x)
-        .slice(0, 6);
-
-      for (let cropIndex = 0; cropIndex < placements.length; cropIndex += 1) {
-        setStatus(`Szukam VIN OCR: foto ${cropIndex + 1}/${placements.length} na stronie ${pageIndex + 1}`, 28 + position);
-        const expanded = expandPdfBox(placements[cropIndex], viewport, 8);
-        const crop = cropRenderedCanvas(detailedCanvas, viewport, expanded, renderScale);
-        const variants = vinOcrCanvasVariants(crop);
-        for (let variantIndex = 0; variantIndex < variants.length; variantIndex += 1) {
-          const pageSegMode = variantIndex === 0 ? "6" : "7";
-          const cropCandidate = await recognizeVinCanvas(tesseract, variants[variantIndex], { pageSegMode, brandPattern });
-          if (cropCandidate) return cropCandidate;
-        }
-      }
-    } catch {
-      // OCR is best-effort; PDF cleanup must keep working if OCR misses a page.
-    }
-  }
-  return "";
 }
 
 function isFixedPriceCover(text, pageNumber) {
@@ -957,7 +638,7 @@ function drawCenteredMultilineText(pdfLib, page, text, centerX, topY, options = 
   return lines.length;
 }
 
-async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, pageData, fonts, vin = "") {
+async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, pageData, fonts) {
   const text = pageData.text;
   const cover = fixedCoverFields(text);
   await drawCleanCoverMedia(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, pageData);
@@ -973,9 +654,6 @@ async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, so
   drawPdfLine(pdfLib, targetPage, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
   let y = blueLineY + 26;
-  drawPdfText(pdfLib, targetPage, "VIN:", 256, y, { size: 8.7, font: fonts.bold });
-  if (vin) drawPdfText(pdfLib, targetPage, vin, 416, y, { size: 8.7, font: fonts.regular });
-  y += 25;
 
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
@@ -990,7 +668,7 @@ async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, so
   if (cover.location) drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
 }
 
-async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData, vin) {
+async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData) {
   const pdfDoc = await pdfLib.PDFDocument.create();
   const fonts = {
     regular: await pdfDoc.embedFont(pdfLib.StandardFonts.Helvetica),
@@ -1013,7 +691,7 @@ async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData, vin) {
     setStatus(`Buduje czysty PDF: strona ${pageNumber}/${pageData.length}`, 35 + (pageNumber / pageData.length) * 55);
 
     if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
-      await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, data, fonts, vin);
+      await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, data, fonts);
     } else if (shouldUseSeparatePhotoObjects(data.text, pageNumber)) {
       await drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, data);
     } else {
@@ -1056,11 +734,9 @@ async function processPdf() {
   const pdfJsData = new Uint8Array(bytes.slice(0));
   const sourcePdf = await pdfjsLib.getDocument({ data: pdfJsData }).promise;
   const pageData = await readPageData(sourcePdf);
-  const pageTexts = pageData.map((page) => page.text);
-  const vin = await findVinWithOcr(sourcePdf, pageTexts);
 
   setStatus("Buduje czysty PDF bez maskowania...", 35);
-  const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData, vin);
+  const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, pageData);
 
   setStatus("Zapisuje czysty PDF...", 90);
   const outputBytes = await pdfDoc.save({ useObjectStreams: false });
