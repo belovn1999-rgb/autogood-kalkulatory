@@ -13,29 +13,18 @@ const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
 const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
-const MOBILEDE_API_STORAGE_KEY = "autogood-mobilede-api-url";
 const DEFAULT_MOBILEDE_API_URL = "https://adams-led-geographical-practitioner.trycloudflare.com/mobilede/import";
 const readMobileDeApiUrl = () => {
   const configuredUrl = window.AUTOGOOD_MOBILEDE_API_URL;
   const params = new URLSearchParams(window.location.search);
   const queryUrl = params.get("mobiledeApi");
-  if (queryUrl) {
-    try {
-      window.localStorage.setItem(MOBILEDE_API_STORAGE_KEY, queryUrl);
-    } catch {
-      // Local storage can be unavailable in private browser modes.
-    }
-    return queryUrl;
-  }
-  try {
-    return configuredUrl || window.localStorage.getItem(MOBILEDE_API_STORAGE_KEY) || DEFAULT_MOBILEDE_API_URL;
-  } catch {
-    return configuredUrl || DEFAULT_MOBILEDE_API_URL;
-  }
+  return configuredUrl || queryUrl || DEFAULT_MOBILEDE_API_URL;
 };
 const MOBILEDE_API_URL = readMobileDeApiUrl();
 const HISTORY_KEY = "autogood-calculation-history";
+const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 5;
+const FINAL_TAB_ID = 5;
 const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png?v=2";
 const RATES_FALLBACK = {
   source: "Walutomat",
@@ -77,6 +66,21 @@ const copy = {
     historyTitle: "Historia zmian",
     historyEmpty: "Tutaj pojawi się 5 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
+    finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
+    finalBalance: "Finalne rozliczenie",
+    finalCurrency: "Waluta rozliczenia",
+    finalFixedCosts: "Stałe pozycje",
+    finalExtras: "Dodatkowe pozycje",
+    finalAddExtra: "Dodaj",
+    finalRemove: "Usuń",
+    finalModePlus: "Do zapłaty",
+    finalModeMinus: "Zapłacone / odjęcie",
+    finalModeOff: "Nie licz",
+    finalPaid: "Już zapłacone / odjęte",
+    finalToPay: "Koszty do rozliczenia",
+    finalDue: "Pozostało do dopłaty",
+    finalOverpaid: "Nadpłata / do zwrotu",
+    finalRateLine: "Kurs EUR/PLN",
     mobileImportTitle: "Link Mobile.de",
     mobileImportPlaceholder: "Wklej link ogłoszenia",
     mobileImportButton: "Załaduj dane",
@@ -130,6 +134,21 @@ const copy = {
     historyTitle: "История изменений",
     historyEmpty: "Здесь появятся 5 последних расчётов.",
     historyRestore: "Вернуть расчёт",
+    finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
+    finalBalance: "Финальный расчёт",
+    finalCurrency: "Валюта расчёта",
+    finalFixedCosts: "Постоянные позиции",
+    finalExtras: "Дополнительные позиции",
+    finalAddExtra: "Добавить",
+    finalRemove: "Удалить",
+    finalModePlus: "К доплате",
+    finalModeMinus: "Оплачено / минус",
+    finalModeOff: "Не считать",
+    finalPaid: "Уже оплачено / минус",
+    finalToPay: "Расходы к расчёту",
+    finalDue: "Осталось доплатить",
+    finalOverpaid: "Переплата / к возврату",
+    finalRateLine: "Курс EUR/PLN",
     mobileImportTitle: "Ссылка Mobile.de",
     mobileImportPlaceholder: "Вставь ссылку объявления",
     mobileImportButton: "Загрузить данные",
@@ -370,6 +389,17 @@ const tabs = [{
     },
     currency: "EUR"
   }]
+}, {
+  id: FINAL_TAB_ID,
+  name: {
+    pl: "Finalne rozliczenie",
+    ru: "Финальный расчёт"
+  },
+  subtitle: {
+    pl: "Bilans dla klienta: co już zapłacono i co zostało do dopłaty.",
+    ru: "Баланс для клиента: что уже оплачено и что осталось доплатить."
+  },
+  fields: []
 }];
 function calculatorName(tab, lang, financed) {
   if (financed && tab?.id === 1) {
@@ -519,18 +549,18 @@ function formatHistoryDate(value, lang) {
     minute: "2-digit"
   }).format(date);
 }
-function readHistory() {
+function readHistory(key = HISTORY_KEY) {
   if (typeof window === "undefined") return [];
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(HISTORY_KEY) || "[]");
+    const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
     return Array.isArray(parsed) ? parsed.slice(0, HISTORY_LIMIT) : [];
   } catch (error) {
     return [];
   }
 }
-function writeHistory(items) {
+function writeHistory(items, key = HISTORY_KEY) {
   try {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(items));
+    window.localStorage.setItem(key, JSON.stringify(items));
   } catch (error) {
     // The calculator still works if the browser blocks local storage.
   }
@@ -580,6 +610,156 @@ function formatPlainAmount(value, currency = "EUR") {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(Number.isFinite(value) ? value : 0)} ${currency}`;
+}
+const finalFixedTemplates = [{
+  key: "inspection",
+  label: {
+    pl: "Oględziny",
+    ru: "Осмотр"
+  },
+  mode: "plus"
+}, {
+  key: "delivery",
+  label: {
+    pl: "Dostawa",
+    ru: "Доставка"
+  },
+  mode: "plus"
+}, {
+  key: "translation",
+  label: {
+    pl: "Tłumaczenie dokumentów",
+    ru: "Перевод документов"
+  },
+  mode: "plus",
+  defaultPln: DOC_TRANSLATION
+}, {
+  key: "technical",
+  label: {
+    pl: "Przegląd techniczny",
+    ru: "Техосмотр"
+  },
+  mode: "plus",
+  defaultPln: TO_FEE
+}, {
+  key: "commission",
+  label: {
+    pl: "Prowizja AUTOGOOD",
+    ru: "Комиссия AUTOGOOD"
+  },
+  mode: "plus"
+}, {
+  key: "deposit",
+  label: {
+    pl: "Depozyt",
+    ru: "Депозит"
+  },
+  mode: "minus"
+}];
+const finalExtraTemplates = [{
+  key: "dealerDiscount30",
+  label: {
+    pl: "30% rabatu dealera",
+    ru: "30% скидки дилера"
+  },
+  mode: "minus"
+}, {
+  key: "detailing",
+  label: {
+    pl: "Detailing",
+    ru: "Дитейлинг"
+  },
+  mode: "plus"
+}, {
+  key: "painting",
+  label: {
+    pl: "Lakierowanie",
+    ru: "Покраска"
+  },
+  mode: "plus"
+}, {
+  key: "service",
+  label: {
+    pl: "Serwis",
+    ru: "Сервис"
+  },
+  mode: "plus"
+}, {
+  key: "registration",
+  label: {
+    pl: "Rejestracja",
+    ru: "Регистрация"
+  },
+  mode: "plus"
+}, {
+  key: "deposit2",
+  label: {
+    pl: "Depozyt 2",
+    ru: "Депозит 2"
+  },
+  mode: "minus"
+}];
+function convertFinalAmount(value, fromCurrency, toCurrency, rate) {
+  const amount = n(value);
+  const safeRate = n(rate) || DEFAULT_RATE;
+  if (!amount) return "";
+  if (fromCurrency === toCurrency) return amount;
+  return fromCurrency === "PLN" ? amount / safeRate : amount * safeRate;
+}
+function finalInputValue(value, currency) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return currency === "EUR" ? String(Math.round(value * 100) / 100) : String(Math.round(value));
+}
+function createFinalItem(template, currency, rate) {
+  const converted = template.defaultPln ? convertFinalAmount(template.defaultPln, "PLN", currency, rate) : "";
+  return {
+    key: template.key,
+    label: template.label,
+    group: template.group || "fixed",
+    amount: finalInputValue(converted, currency),
+    mode: template.mode || "plus"
+  };
+}
+function initialFinalItems(currency = "PLN", rate = DEFAULT_RATE) {
+  return finalFixedTemplates.map(template => createFinalItem(template, currency, rate));
+}
+function finalLineSignedValue(item) {
+  if (item.mode === "off") return 0;
+  const amount = n(item.amount);
+  if (!amount) return 0;
+  return item.mode === "minus" ? -amount : amount;
+}
+function calculateFinalBalance(items) {
+  const active = items.filter(item => item.mode !== "off");
+  const positive = active.reduce((sum, item) => {
+    const value = finalLineSignedValue(item);
+    return value > 0 ? sum + value : sum;
+  }, 0);
+  const negative = active.reduce((sum, item) => {
+    const value = finalLineSignedValue(item);
+    return value < 0 ? sum + Math.abs(value) : sum;
+  }, 0);
+  return {
+    rows: active,
+    positive,
+    negative,
+    total: positive - negative
+  };
+}
+function hasFinalInput(items) {
+  return items.some(item => item.mode !== "off" && n(item.amount) > 0);
+}
+function finalHistorySignature(item) {
+  return JSON.stringify({
+    finalCurrency: item.finalCurrency,
+    rate: item.rate,
+    items: item.items || []
+  });
+}
+function finalSignedAmountLabel(item, currency) {
+  const value = Math.abs(n(item.amount));
+  const sign = item.mode === "minus" ? "−" : "+";
+  return `${sign} ${money(value, currency)}`;
 }
 function NumInput({
   label,
@@ -820,13 +1000,14 @@ function HistoryPanel({
   c,
   history,
   lang,
-  onRestore
+  onRestore,
+  emptyText
 }) {
   return /*#__PURE__*/React.createElement("aside", {
     className: "card historyPanel"
   }, /*#__PURE__*/React.createElement("h2", null, c.historyTitle), history.length === 0 ? /*#__PURE__*/React.createElement("p", {
     className: "historyEmpty"
-  }, c.historyEmpty) : /*#__PURE__*/React.createElement("div", {
+  }, emptyText || c.historyEmpty) : /*#__PURE__*/React.createElement("div", {
     className: "historyList"
   }, history.map(item => /*#__PURE__*/React.createElement("button", {
     key: item.id,
@@ -834,7 +1015,169 @@ function HistoryPanel({
     type: "button",
     title: c.historyRestore,
     onClick: () => onRestore(item)
-  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total))))));
+  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.type === "final" ? item.finalCurrency : item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total, item.finalCurrency || "PLN"))))));
+}
+function FinalModeControl({
+  c,
+  value,
+  onChange
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "finalModeControl",
+    "aria-label": c.finalCurrency
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: value === "plus" ? "active plus" : "plus",
+    onClick: () => onChange("plus")
+  }, "+"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: value === "minus" ? "active minus" : "minus",
+    onClick: () => onChange("minus")
+  }, "\u2212"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: value === "off" ? "active off" : "off",
+    onClick: () => onChange("off")
+  }, "\xD7"));
+}
+function FinalItemInput({
+  c,
+  item,
+  lang,
+  currency,
+  onAmountChange,
+  onModeChange,
+  onRemove
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: `finalInputRow mode-${item.mode}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "finalInputLabel"
+  }, /*#__PURE__*/React.createElement("span", null, item.label[lang]), /*#__PURE__*/React.createElement(FinalModeControl, {
+    c: c,
+    value: item.mode,
+    onChange: onModeChange
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "inputWrap"
+  }, /*#__PURE__*/React.createElement("input", {
+    inputMode: "decimal",
+    type: "text",
+    value: item.amount,
+    onChange: event => onAmountChange(event.target.value),
+    placeholder: "0.00",
+    disabled: item.mode === "off"
+  }), /*#__PURE__*/React.createElement("b", null, currency)), onRemove && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "finalRemoveBtn",
+    onClick: onRemove
+  }, c.finalRemove));
+}
+function FinalBalanceInputs({
+  c,
+  lang,
+  currency,
+  items,
+  onCurrencyChange,
+  onAmountChange,
+  onModeChange,
+  onAddExtra,
+  onRemoveExtra
+}) {
+  const fixedItems = items.filter(item => item.group !== "extra");
+  const extraItems = items.filter(item => item.group === "extra");
+  const addedExtraKeys = new Set(extraItems.map(item => item.key));
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "toggleBlock"
+  }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
+    className: "segmented full"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: currency === "PLN" ? "active" : "",
+    onClick: () => onCurrencyChange("PLN")
+  }, "PLN"), /*#__PURE__*/React.createElement("button", {
+    className: currency === "EUR" ? "active" : "",
+    onClick: () => onCurrencyChange("EUR")
+  }, "EUR"))), /*#__PURE__*/React.createElement("div", {
+    className: "finalLegend"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "+"), " ", c.finalModePlus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\u2212"), " ", c.finalModeMinus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\xD7"), " ", c.finalModeOff)), /*#__PURE__*/React.createElement("div", {
+    className: "divider"
+  }), /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
+    className: "finalInputList"
+  }, fixedItems.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
+    key: item.key,
+    c: c,
+    item: item,
+    lang: lang,
+    currency: currency,
+    onAmountChange: value => onAmountChange(item.key, value),
+    onModeChange: mode => onModeChange(item.key, mode)
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "divider"
+  }), /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
+    className: "finalExtraButtons"
+  }, finalExtraTemplates.map(template => /*#__PURE__*/React.createElement("button", {
+    key: template.key,
+    type: "button",
+    disabled: addedExtraKeys.has(template.key),
+    onClick: () => onAddExtra(template)
+  }, c.finalAddExtra, ": ", template.label[lang]))), extraItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "finalInputList finalExtraList"
+  }, extraItems.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
+    key: item.key,
+    c: c,
+    item: item,
+    lang: lang,
+    currency: currency,
+    onAmountChange: value => onAmountChange(item.key, value),
+    onModeChange: mode => onModeChange(item.key, mode),
+    onRemove: () => onRemoveExtra(item.key)
+  }))));
+}
+function FinalBalanceResults({
+  c,
+  lang,
+  currency,
+  rate,
+  calc
+}) {
+  const totalIsNegative = calc.total < 0;
+  const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
+    className: "resultCornerLogo",
+    src: "./assets/ag-opt.svg",
+    alt: "AUTOGOOD"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "resultsTitle"
+  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.finalBalance)), /*#__PURE__*/React.createElement("div", {
+    className: "finalSummary"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, c.finalToPay), /*#__PURE__*/React.createElement("strong", null, money(calc.positive, currency))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, c.finalPaid), /*#__PURE__*/React.createElement("strong", null, money(calc.negative, currency)))), /*#__PURE__*/React.createElement("div", {
+    className: "rows finalRows"
+  }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.key,
+    className: `resultRow finalResultRow mode-${item.mode}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `resultMarker ${item.mode === "minus" ? "isMinus" : "isPlus"}`,
+    "aria-hidden": "true"
+  }, item.mode === "minus" ? "−" : "+"), /*#__PURE__*/React.createElement("div", {
+    className: "rowText"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "rowLabel"
+  }, item.label[lang])), /*#__PURE__*/React.createElement("div", {
+    className: "rowValue finalRowValue"
+  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)))))), /*#__PURE__*/React.createElement("div", {
+    className: `totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "totalMarker",
+    "aria-hidden": "true"
+  }, "="), /*#__PURE__*/React.createElement("div", {
+    className: "totalLabel"
+  }, /*#__PURE__*/React.createElement("span", null, totalLabel)), /*#__PURE__*/React.createElement("div", {
+    className: "totalValue"
+  }, /*#__PURE__*/React.createElement("strong", null, money(Math.abs(calc.total), currency))), /*#__PURE__*/React.createElement("div", {
+    className: "totalRate"
+  }, c.finalRateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")));
 }
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -1092,6 +1435,85 @@ function printCalculation({
   window.open(url, "_blank", "noopener,noreferrer");
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function printFinalBalance({
+  lang,
+  rows,
+  total,
+  positive,
+  negative,
+  currency,
+  rate
+}) {
+  const c = copy[lang];
+  const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
+  const homeUrl = new URL("./", window.location.href).href;
+  const totalIsNegative = total < 0;
+  const rowsHtml = rows.map(item => `
+      <tr class="${item.mode === "minus" ? "minusRow" : ""}">
+        <td><strong>${item.label[lang]}</strong></td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
+      </tr>`).join("");
+  const html = `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title></title>
+  <style>
+    @page{size:auto;margin:0}
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:0;background:#eef3f8;color:#102033;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .page{position:relative;min-height:100vh;padding:28px 34px 32px;background:#fff;overflow:hidden}
+    .page:before{content:"";position:absolute;inset:0 0 auto;height:10px;background:#005B82}
+    header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px;padding-bottom:18px;border-bottom:2px solid #dbe4ee}
+    .printLogo{display:block;width:250px;height:auto}
+    h1{margin:0;color:#005B82;font-size:30px;line-height:1;font-weight:800;text-align:right}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .summary div{border:1px solid #dbe4ee;border-radius:10px;background:#f8fbfd;padding:14px}
+    .summary span{display:block;color:#64748b;font-size:12px;font-weight:800;margin-bottom:6px}
+    .summary strong{color:#005B82;font-size:24px}
+    table{width:100%;border-collapse:separate;border-spacing:0 7px;margin-top:4px}
+    td{background:#fff;border-top:1px solid #dbe4ee;border-bottom:1px solid #dbe4ee;padding:12px 14px;vertical-align:middle}
+    td:first-child{border-left:1px solid #dbe4ee;border-radius:8px 0 0 8px}
+    td:last-child{width:260px;border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;white-space:nowrap}
+    .minusRow td{background:#f8fbfd}
+    .minusRow b{color:#0f766e}
+    .total{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 22px;margin-top:18px;padding:22px 24px 18px;border-radius:14px;background:#005B82;color:#fff}
+    .total.overpaid{background:#0f766e}
+    .totalLabel{font-size:24px;font-weight:900;text-align:left}
+    .total b{display:block;margin:0;color:#fff;font-size:48px;line-height:1;font-weight:900}
+    .totalRate{grid-column:1/-1;text-align:right;font-style:italic;color:rgba(255,255,255,.82);font-size:13px}
+    .footerMark{position:absolute;left:34px;bottom:20px;color:rgba(0,91,130,.12);font-size:78px;font-weight:900;letter-spacing:3px;line-height:1}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <a href="${homeUrl}" target="_blank" rel="noopener"><img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" /></a>
+      <h1>${c.finalBalance}</h1>
+    </header>
+    <div class="summary">
+      <div><span>${c.finalToPay}</span><strong>${money(positive, currency)}</strong></div>
+      <div><span>${c.finalPaid}</span><strong>${money(negative, currency)}</strong></div>
+    </div>
+    <table>${rowsHtml}</table>
+    <div class="total ${totalIsNegative ? "overpaid" : ""}">
+      <div class="totalLabel">${totalIsNegative ? c.finalOverpaid : c.finalDue}</div>
+      <div><b>${money(Math.abs(total), currency)}</b></div>
+      <div class="totalRate">${c.finalRateLine}: ${calculationRateLabel(rate)} PLN</div>
+    </div>
+    <div class="footerMark">AG</div>
+  </main>
+  <script>window.onload = function(){ window.print(); };</script>
+</body>
+</html>`;
+  const blob = new Blob([html], {
+    type: "text/html"
+  });
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 function canvasToBlob(canvas) {
   return new Promise(resolve => {
     canvas.toBlob(blob => resolve(blob), "image/png", 1);
@@ -1126,6 +1548,9 @@ function App() {
   const [mobileDeSummary, setMobileDeSummary] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
   const [history, setHistory] = useState(() => readHistory());
+  const [finalHistory, setFinalHistory] = useState(() => readHistory(FINAL_HISTORY_KEY));
+  const [finalCurrency, setFinalCurrency] = useState("PLN");
+  const [finalItems, setFinalItems] = useState(() => initialFinalItems("PLN", DEFAULT_RATE));
   const [manualOverrides, setManualOverrides] = useState({});
   const [editingOverride, setEditingOverride] = useState("");
   const resultsRef = useRef(null);
@@ -1133,13 +1558,16 @@ function App() {
   const safeLang = lang || "pl";
   const c = copy[safeLang];
   const tab = tabs[activeTab];
+  const isFinalBalance = activeTab === FINAL_TAB_ID;
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
   const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
   const calc = useMemo(() => applyManualOverrides(baseCalc, manualOverrides, activeTab), [baseCalc, manualOverrides, activeTab]);
+  const finalCalc = useMemo(() => calculateFinalBalance(finalItems), [finalItems]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
   const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission);
+  const visibleHistory = isFinalBalance ? finalHistory : history;
   useEffect(() => {
     let isMounted = true;
     loadExchangeRates().then(data => {
@@ -1182,6 +1610,42 @@ function App() {
     clearManualOverrides();
     setRate(value);
   };
+  const switchFinalCurrency = currency => {
+    if (currency === finalCurrency) return;
+    const safeRate = n(rate) || DEFAULT_RATE;
+    setFinalItems(current => current.map(item => {
+      const converted = convertFinalAmount(item.amount, finalCurrency, currency, safeRate);
+      return {
+        ...item,
+        amount: finalInputValue(converted, currency)
+      };
+    }));
+    setFinalCurrency(currency);
+  };
+  const setFinalAmount = (key, amount) => {
+    setFinalItems(current => current.map(item => item.key === key ? {
+      ...item,
+      amount
+    } : item));
+  };
+  const setFinalMode = (key, mode) => {
+    setFinalItems(current => current.map(item => item.key === key ? {
+      ...item,
+      mode
+    } : item));
+  };
+  const addFinalExtra = template => {
+    setFinalItems(current => current.some(item => item.key === template.key) ? current : [...current, {
+      ...createFinalItem({
+        ...template,
+        group: "extra"
+      }, finalCurrency, n(rate) || DEFAULT_RATE),
+      group: "extra"
+    }]);
+  };
+  const removeFinalExtra = key => {
+    setFinalItems(current => current.filter(item => item.key !== key));
+  };
   const setManualOverride = (key, value) => {
     setManualOverrides(current => {
       if (String(value).trim() === "") {
@@ -1205,6 +1669,31 @@ function App() {
     setEditingOverride(key);
   };
   const saveCalculation = () => {
+    if (isFinalBalance) {
+      if (!hasFinalInput(finalItems)) {
+        setScreenshotStatus("saveEmpty");
+        return;
+      }
+      const item = {
+        id: `${Date.now()}-final`,
+        type: "final",
+        savedAt: new Date().toISOString(),
+        lang: safeLang,
+        finalCurrency,
+        rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
+        items: finalItems.filter(line => line.mode !== "off" || n(line.amount) > 0),
+        total: finalCalc.total,
+        title: c.finalBalance
+      };
+      const signature = finalHistorySignature(item);
+      setFinalHistory(current => {
+        const next = [item, ...current.filter(saved => finalHistorySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
+        writeHistory(next, FINAL_HISTORY_KEY);
+        return next;
+      });
+      setScreenshotStatus("saved");
+      return;
+    }
     if (!hasCalculationInput(values)) {
       setScreenshotStatus("saveEmpty");
       return;
@@ -1231,6 +1720,18 @@ function App() {
     setScreenshotStatus("saved");
   };
   const restoreHistoryItem = item => {
+    if (item.type === "final") {
+      setLang(item.lang === "ru" ? "ru" : "pl");
+      setActiveTab(FINAL_TAB_ID);
+      setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
+      setFinalItems(Array.isArray(item.items) && item.items.length ? item.items : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
+      setRate(item.rate || DEFAULT_RATE);
+      rateTouchedRef.current = true;
+      setMobileDeUrl("");
+      setMobileDeStatus("");
+      setMobileDeSummary("");
+      return;
+    }
     const nextTab = tabs[item.activeTab] ? item.activeTab : 0;
     setLang(item.lang === "ru" ? "ru" : "pl");
     setActiveTab(nextTab);
@@ -1356,7 +1857,15 @@ function App() {
     onClick: () => setLang("ru")
   }, "RU")), /*#__PURE__*/React.createElement("button", {
     className: "printBtn",
-    onClick: () => printCalculation({
+    onClick: () => isFinalBalance ? printFinalBalance({
+      lang: safeLang,
+      rows: finalCalc.rows,
+      total: finalCalc.total,
+      positive: finalCalc.positive,
+      negative: finalCalc.negative,
+      currency: finalCurrency,
+      rate: n(rate) || DEFAULT_RATE
+    }) : printCalculation({
       lang: safeLang,
       tab,
       title: activeTabName,
@@ -1383,7 +1892,17 @@ function App() {
     className: "grid"
   }, /*#__PURE__*/React.createElement("aside", {
     className: "card sidebar"
-  }, /*#__PURE__*/React.createElement("h2", null, c.inputs), activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
+  }, /*#__PURE__*/React.createElement("h2", null, c.inputs), isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceInputs, {
+    c: c,
+    lang: safeLang,
+    currency: finalCurrency,
+    items: finalItems,
+    onCurrencyChange: switchFinalCurrency,
+    onAmountChange: setFinalAmount,
+    onModeChange: setFinalMode,
+    onAddExtra: addFinalExtra,
+    onRemoveExtra: removeFinalExtra
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
     c: c,
     url: mobileDeUrl,
     status: mobileDeStatus,
@@ -1433,10 +1952,16 @@ function App() {
     value: values[field.key] || "",
     onChange: value => setField(field.key, value),
     suffix: field.currency
-  }))), /*#__PURE__*/React.createElement("section", {
+  })))), /*#__PURE__*/React.createElement("section", {
     className: "card results",
     ref: resultsRef
-  }, /*#__PURE__*/React.createElement("img", {
+  }, isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceResults, {
+    c: c,
+    lang: safeLang,
+    currency: finalCurrency,
+    rate: n(rate) || DEFAULT_RATE,
+    calc: finalCalc
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
     alt: "AUTOGOOD"
@@ -1505,11 +2030,12 @@ function App() {
     "aria-hidden": "true"
   }, /*#__PURE__*/React.createElement("span", null)), /*#__PURE__*/React.createElement(ProcessFlow, {
     steps: processSteps
-  })), /*#__PURE__*/React.createElement(HistoryPanel, {
+  }))), /*#__PURE__*/React.createElement(HistoryPanel, {
     c: c,
-    history: history,
+    history: visibleHistory,
     lang: safeLang,
-    onRestore: restoreHistoryItem
+    onRestore: restoreHistoryItem,
+    emptyText: isFinalBalance ? c.finalHistoryEmpty : c.historyEmpty
   })), screenshotStatus && /*#__PURE__*/React.createElement("div", {
     className: `toast ${screenshotStatus}`
   }, screenshotStatus === "ready" && c.screenshotReady, screenshotStatus === "opened" && c.screenshotOpened, screenshotStatus === "error" && c.screenshotError, screenshotStatus === "saved" && c.saveCalculationReady, screenshotStatus === "saveEmpty" && c.saveCalculationEmpty));

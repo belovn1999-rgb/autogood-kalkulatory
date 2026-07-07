@@ -203,7 +203,7 @@ button {
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -496,6 +496,153 @@ select {
   background: #dbe4ee;
 }
 
+.sidebarSubhead {
+  margin: 0 0 10px;
+  color: #005b82;
+  font-size: 14px;
+}
+
+.finalLegend {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 10px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.finalLegend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.finalLegend b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #102033;
+}
+
+.finalInputList {
+  display: grid;
+  gap: 10px;
+}
+
+.finalExtraList {
+  margin-top: 12px;
+}
+
+.finalInputRow {
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 10px;
+}
+
+.finalInputRow.mode-off {
+  opacity: 0.62;
+}
+
+.finalInputLabel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.finalInputLabel > span {
+  color: #102033;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.finalModeControl {
+  display: inline-flex;
+  gap: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  padding: 3px;
+}
+
+.finalModeControl button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.finalModeControl button.active.plus {
+  background: #005b82;
+  color: #fff;
+}
+
+.finalModeControl button.active.minus {
+  background: #0f766e;
+  color: #fff;
+}
+
+.finalModeControl button.active.off {
+  background: #94a3b8;
+  color: #fff;
+}
+
+.finalInputRow .inputWrap input:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+.finalRemoveBtn {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.finalExtraButtons {
+  display: grid;
+  gap: 7px;
+}
+
+.finalExtraButtons button {
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #005b82;
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.finalExtraButtons button:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+  background: #f8fbfd;
+}
+
 .resultsTitle {
   position: relative;
   z-index: 1;
@@ -567,6 +714,11 @@ select {
 .resultMarker.isPlus {
   color: #475569;
   font-size: 15px;
+}
+
+.resultMarker.isMinus {
+  color: #0f766e;
+  font-size: 18px;
 }
 
 .resultRow small {
@@ -689,6 +841,66 @@ select {
 
 .vatRow small {
   color: #64748b;
+}
+
+.finalSummary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 650px;
+  max-width: 100%;
+  margin-bottom: 12px;
+}
+
+.finalSummary div {
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  padding: 13px 14px;
+}
+
+.finalSummary span {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.finalSummary strong {
+  color: #005b82;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.finalRows {
+  margin-top: 4px;
+}
+
+.finalResultRow.mode-minus {
+  background: #f8fbfd;
+}
+
+.finalRowValue {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.finalRowValue strong {
+  color: #005b82;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.finalResultRow.mode-minus .finalRowValue strong {
+  color: #0f766e;
+}
+
+.finalTotalBox.isOverpaid {
+  background: #0f766e;
 }
 
 .totalBox {
