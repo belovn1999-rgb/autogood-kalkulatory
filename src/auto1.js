@@ -356,7 +356,6 @@ async function drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targe
 
   for (const box of placements) {
     const crop = cropRenderedCanvas(sourceCanvas, viewport, box, renderScale);
-    if (isLowContentCanvas(crop)) continue;
     const image = await pdfDoc.embedJpg(canvasJpegBytes(crop, 0.98));
     targetPage.drawImage(image, {
       x: box.x,
@@ -443,15 +442,20 @@ function cleanLabel(value) {
   return normalizeText(value).replace(/:$/, "").toLowerCase();
 }
 
+function isCoverFieldLabel(value) {
+  return /^(build year|first registration|license plate|odometer reading|fuel type|horsepower|cylinder capacity|gear box|inspection expires|body type|total number of owners|keys|prior damage|according to previous|owner|country of origin|country of last|registration|environmental class|coc papers|seats|color|upholstery|door count|co2 emissions|car location|stock number|your bid includes|vat rate|in high demand|merchants?|minimum bid|purchase now)$/i.test(cleanLabel(value));
+}
+
 function coverValueFrom(lines, index) {
   let cursor = index + 1;
   while (lines[cursor] === ":") cursor += 1;
   if (!lines[cursor]) return "";
+  if (isCoverFieldLabel(lines[cursor]) || isVideoControlText(lines[cursor]) || /^€/.test(lines[cursor])) return "";
 
   let value = lines[cursor];
   const next = lines[cursor + 1] || "";
-  if (/^\(.+\)$/.test(next)) value = `${value} ${next}`;
-  if (/^g\/km$/i.test(next)) value = `${value}${next}`;
+  if (/^\(.+\)$/.test(next) && !isCoverFieldLabel(next)) value = `${value} ${next}`;
+  if (/^g\/km$/i.test(next) && !isCoverFieldLabel(next)) value = `${value}${next}`;
   return value;
 }
 
@@ -540,6 +544,21 @@ function fixedCoverFields(text) {
     ].filter((field) => field.value),
     location: valueAfter(lines, "Car location"),
   };
+}
+
+function isCoverTailPage(text) {
+  const lines = pageLines(text).filter((line) => !isVideoControlText(line));
+  if (!lines.length || lines.length > 12) return false;
+
+  const normalized = lines.map((line) => cleanLabel(line));
+  const hasTailField = normalized.some((line) => /^(door count|co2 emissions|car location)$/.test(line));
+  if (!hasTailField) return false;
+
+  return lines.every((line) => {
+    if (line === ":") return true;
+    if (isCoverFieldLabel(line)) return true;
+    return /^[A-Z]{2},\s+/.test(line) || /^[\d,.]+\s*g\/km$/i.test(line) || /^g\/km$/i.test(line) || /^\d+$/.test(line);
+  });
 }
 
 function rgb(pdfLib, r, g, b) {
@@ -653,20 +672,23 @@ async function drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, so
   const blueLineY = 58 + titleLines * 25 + 18;
   drawPdfLine(pdfLib, targetPage, 257, blueLineY, 560, blueLineY, rgb(pdfLib, 0.62, 0.76, 0.91));
 
-  let y = blueLineY + 26;
+  let y = blueLineY + 18;
+  const fieldSize = 8.1;
+  const labelLineHeight = 12.2;
+  const rowGap = 3.8;
 
   cover.fields.forEach((field) => {
     field.label.forEach((line, offset) => {
-      drawPdfText(pdfLib, targetPage, line, 256, y + offset * 17, { size: 8.7, font: fonts.bold });
+      drawPdfText(pdfLib, targetPage, line, 256, y + offset * labelLineHeight, { size: fieldSize, font: fonts.bold });
     });
-    drawPdfText(pdfLib, targetPage, field.value, 416, y, { size: 8.7, font: fonts.regular });
-    y += Math.max(field.label.length, 1) * 17 + 8;
+    drawPdfText(pdfLib, targetPage, field.value, 416, y, { size: fieldSize, font: fonts.regular });
+    y += Math.max(field.label.length, 1) * labelLineHeight + rowGap;
   });
 
   if (cover.location) {
-    const locationY = Math.min(Math.max(y + 10, 704), 760);
-    drawPdfText(pdfLib, targetPage, "Car location", 256, locationY, { size: 8.7, font: fonts.bold });
-    drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 22, { size: 8.7, font: fonts.regular });
+    const locationY = Math.min(y + 8, 760);
+    drawPdfText(pdfLib, targetPage, "Car location", 256, locationY, { size: fieldSize, font: fonts.bold });
+    drawPdfText(pdfLib, targetPage, cover.location, 256, locationY + 17, { size: fieldSize, font: fonts.regular });
   }
 }
 
@@ -693,7 +715,10 @@ async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData
     setStatus(`Buduje czysty PDF: strona ${pageNumber}/${pageData.length}`, 35 + (pageNumber / pageData.length) * 55);
 
     if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
-      await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, data, fonts);
+      const tailText = pageNumber === 1 && isCoverTailPage(pageData[index + 1]?.text || "") ? pageData[index + 1].text : "";
+      await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, { ...data, text: [data.text, tailText].filter(Boolean).join("\n") }, fonts);
+    } else if (isCoverTailPage(data.text)) {
+      await drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, data);
     } else {
       pdfDoc.removePage(pdfDoc.getPageCount() - 1);
       const [copiedPage] = await pdfDoc.copyPages(sourcePdfLib, [index]);
