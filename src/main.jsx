@@ -61,15 +61,13 @@ const copy = {
     finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
     finalBalance: "Finalne rozliczenie",
     finalCurrency: "Waluta rozliczenia",
-    finalFixedCosts: "Stałe pozycje",
-    finalExtras: "Dodatkowe pozycje",
+    finalFixedCosts: "Widoczne pozycje",
+    finalExtras: "Niewidoczne pozycje",
     finalAddExtra: "Dodaj",
     finalRemove: "Usuń",
     finalModePlus: "Do zapłaty",
     finalModeMinus: "Zapłacone / odjęcie",
     finalModeOff: "Nie licz",
-    finalPaid: "Już zapłacone / odjęte",
-    finalToPay: "Koszty do rozliczenia",
     finalDue: "Pozostało do dopłaty",
     finalOverpaid: "Nadpłata / do zwrotu",
     finalRateLine: "Kurs EUR/PLN",
@@ -129,15 +127,13 @@ const copy = {
     finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
-    finalFixedCosts: "Постоянные позиции",
-    finalExtras: "Дополнительные позиции",
+    finalFixedCosts: "Видимые позиции",
+    finalExtras: "Скрытые позиции",
     finalAddExtra: "Добавить",
     finalRemove: "Удалить",
     finalModePlus: "К доплате",
     finalModeMinus: "Оплачено / минус",
     finalModeOff: "Не считать",
-    finalPaid: "Уже оплачено / минус",
-    finalToPay: "Расходы к расчёту",
     finalDue: "Осталось доплатить",
     finalOverpaid: "Переплата / к возврату",
     finalRateLine: "Курс EUR/PLN",
@@ -561,12 +557,12 @@ function formatPlainAmount(value, currency = "EUR") {
 }
 
 const finalFixedTemplates = [
-  { key: "inspection", label: { pl: "Oględziny", ru: "Осмотр" }, mode: "plus" },
-  { key: "delivery", label: { pl: "Dostawa", ru: "Доставка" }, mode: "plus" },
+  { key: "inspection", label: { pl: "Oględziny specjalisty", ru: "Осмотр специалиста" }, mode: "plus", vat: true },
+  { key: "delivery", label: { pl: "Dostawa na lawecie", ru: "Доставка на автовозе" }, mode: "plus", vat: true },
   { key: "translation", label: { pl: "Tłumaczenie dokumentów", ru: "Перевод документов" }, mode: "plus", defaultPln: DOC_TRANSLATION },
   { key: "technical", label: { pl: "Przegląd techniczny", ru: "Техосмотр" }, mode: "plus", defaultPln: TO_FEE },
-  { key: "commission", label: { pl: "Prowizja AUTOGOOD", ru: "Комиссия AUTOGOOD" }, mode: "plus" },
-  { key: "deposit", label: { pl: "Depozyt", ru: "Депозит" }, mode: "minus" },
+  { key: "commission", label: { pl: "Prowizja AUTOGOOD", ru: "Комиссия AUTOGOOD" }, mode: "plus", vat: true },
+  { key: "deposit", label: { pl: "Zaliczka", ru: "Аванс" }, mode: "minus" },
 ];
 
 const finalExtraTemplates = [
@@ -575,8 +571,9 @@ const finalExtraTemplates = [
   { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, mode: "plus" },
   { key: "service", label: { pl: "Serwis", ru: "Сервис" }, mode: "plus" },
   { key: "registration", label: { pl: "Rejestracja", ru: "Регистрация" }, mode: "plus" },
-  { key: "deposit2", label: { pl: "Depozyt 2", ru: "Депозит 2" }, mode: "minus" },
+  { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2" }, mode: "minus" },
 ];
+const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
 
 function convertFinalAmount(value, fromCurrency, toCurrency, rate) {
   const amount = n(value);
@@ -601,6 +598,7 @@ function createFinalItem(template, currency, rate) {
     group: template.group || "fixed",
     amount: finalInputValue(converted, currency),
     mode: template.mode || "plus",
+    vat: Boolean(template.vat),
   };
 }
 
@@ -649,6 +647,20 @@ function finalSignedAmountLabel(item, currency) {
   const value = Math.abs(n(item.amount));
   const sign = item.mode === "minus" ? "−" : "+";
   return `${sign} ${money(value, currency)}`;
+}
+
+function finalTemplateForKey(key) {
+  return finalTemplates.find((template) => template.key === key);
+}
+
+function normalizeFinalItem(item) {
+  const template = finalTemplateForKey(item.key);
+  return {
+    ...item,
+    label: template?.label || item.label,
+    mode: item.mode || template?.mode || "plus",
+    vat: Boolean(template?.vat || item.vat),
+  };
 }
 
 function NumInput({ label, value, onChange, suffix, className = "" }) {
@@ -949,9 +961,8 @@ function FinalBalanceInputs({
   onAddExtra,
   onRemoveExtra,
 }) {
-  const fixedItems = items.filter((item) => item.group !== "extra");
-  const extraItems = items.filter((item) => item.group === "extra");
-  const addedExtraKeys = new Set(extraItems.map((item) => item.key));
+  const visibleKeys = new Set(items.map((item) => item.key));
+  const hiddenTemplates = finalTemplates.filter((template) => !visibleKeys.has(template.key));
 
   return (
     <>
@@ -973,7 +984,7 @@ function FinalBalanceInputs({
 
       <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
       <div className="finalInputList">
-        {fixedItems.map((item) => (
+        {items.map((item) => (
           <FinalItemInput
             key={item.key}
             c={c}
@@ -982,6 +993,7 @@ function FinalBalanceInputs({
             currency={currency}
             onAmountChange={(value) => onAmountChange(item.key, value)}
             onModeChange={(mode) => onModeChange(item.key, mode)}
+            onRemove={() => onRemoveExtra(item.key)}
           />
         ))}
       </div>
@@ -990,34 +1002,19 @@ function FinalBalanceInputs({
 
       <h3 className="sidebarSubhead">{c.finalExtras}</h3>
       <div className="finalExtraButtons">
-        {finalExtraTemplates.map((template) => (
+        {hiddenTemplates.map((template) => (
           <button
             key={template.key}
             type="button"
-            disabled={addedExtraKeys.has(template.key)}
             onClick={() => onAddExtra(template)}
           >
             {c.finalAddExtra}: {template.label[lang]}
           </button>
         ))}
+        {hiddenTemplates.length === 0 && (
+          <p className="finalHiddenEmpty">{lang === "ru" ? "Все позиции видимы." : "Wszystkie pozycje są widoczne."}</p>
+        )}
       </div>
-
-      {extraItems.length > 0 && (
-        <div className="finalInputList finalExtraList">
-          {extraItems.map((item) => (
-            <FinalItemInput
-              key={item.key}
-              c={c}
-              item={item}
-              lang={lang}
-              currency={currency}
-              onAmountChange={(value) => onAmountChange(item.key, value)}
-              onModeChange={(mode) => onModeChange(item.key, mode)}
-              onRemove={() => onRemoveExtra(item.key)}
-            />
-          ))}
-        </div>
-      )}
     </>
   );
 }
@@ -1034,28 +1031,15 @@ function FinalBalanceResults({ c, lang, currency, rate, calc }) {
         <h2><MoneyIcon />{c.finalBalance}</h2>
       </div>
 
-      <div className="finalSummary">
-        <div>
-          <span>{c.finalToPay}</span>
-          <strong>{money(calc.positive, currency)}</strong>
-        </div>
-        <div>
-          <span>{c.finalPaid}</span>
-          <strong>{money(calc.negative, currency)}</strong>
-        </div>
-      </div>
-
       <div className="rows finalRows">
         {calc.rows.map((item) => (
           <div key={item.key} className={`resultRow finalResultRow mode-${item.mode}`}>
-            <span className={`resultMarker ${item.mode === "minus" ? "isMinus" : "isPlus"}`} aria-hidden="true">
-              {item.mode === "minus" ? "−" : "+"}
-            </span>
             <div className="rowText">
               <span className="rowLabel">{item.label[lang]}</span>
             </div>
             <div className="rowValue finalRowValue">
               <strong>{finalSignedAmountLabel(item, currency)}</strong>
+              {item.vat && tagLabel("+VAT 23%")}
             </div>
           </div>
         ))}
@@ -1368,7 +1352,7 @@ function printCalculation({ lang, tab, title, rows, total, rate, financed, hasGe
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function printFinalBalance({ lang, rows, total, positive, negative, currency, rate }) {
+function printFinalBalance({ lang, rows, total, currency, rate }) {
   const c = copy[lang];
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
@@ -1377,7 +1361,7 @@ function printFinalBalance({ lang, rows, total, positive, negative, currency, ra
     .map((item) => `
       <tr class="${item.mode === "minus" ? "minusRow" : ""}">
         <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vat ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
       </tr>`
     )
     .join("");
@@ -1396,16 +1380,13 @@ function printFinalBalance({ lang, rows, total, positive, negative, currency, ra
     header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px;padding-bottom:18px;border-bottom:2px solid #dbe4ee}
     .printLogo{display:block;width:250px;height:auto}
     h1{margin:0;color:#005B82;font-size:30px;line-height:1;font-weight:800;text-align:right}
-    .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-    .summary div{border:1px solid #dbe4ee;border-radius:10px;background:#f8fbfd;padding:14px}
-    .summary span{display:block;color:#64748b;font-size:12px;font-weight:800;margin-bottom:6px}
-    .summary strong{color:#005B82;font-size:24px}
     table{width:100%;border-collapse:separate;border-spacing:0 7px;margin-top:4px}
     td{background:#fff;border-top:1px solid #dbe4ee;border-bottom:1px solid #dbe4ee;padding:12px 14px;vertical-align:middle}
     td:first-child{border-left:1px solid #dbe4ee;border-radius:8px 0 0 8px}
     td:last-child{width:260px;border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;white-space:nowrap}
     .minusRow td{background:#f8fbfd}
     .minusRow b{color:#0f766e}
+    .softVatTag{display:inline-flex;margin-left:8px;border-radius:999px;padding:3px 7px;color:#64748b;background:#f1f5f9;font-size:8.5px;font-weight:900;letter-spacing:.03em;vertical-align:middle}
     .total{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 22px;margin-top:18px;padding:22px 24px 18px;border-radius:14px;background:#005B82;color:#fff}
     .total.overpaid{background:#0f766e}
     .totalLabel{font-size:24px;font-weight:900;text-align:left}
@@ -1420,10 +1401,6 @@ function printFinalBalance({ lang, rows, total, positive, negative, currency, ra
       <a href="${homeUrl}" target="_blank" rel="noopener"><img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" /></a>
       <h1>${c.finalBalance}</h1>
     </header>
-    <div class="summary">
-      <div><span>${c.finalToPay}</span><strong>${money(positive, currency)}</strong></div>
-      <div><span>${c.finalPaid}</span><strong>${money(negative, currency)}</strong></div>
-    </div>
     <table>${rowsHtml}</table>
     <div class="total ${totalIsNegative ? "overpaid" : ""}">
       <div class="totalLabel">${totalIsNegative ? c.finalOverpaid : c.finalDue}</div>
@@ -1576,7 +1553,7 @@ function App() {
     setFinalItems((current) => (
       current.some((item) => item.key === template.key)
         ? current
-        : [...current, { ...createFinalItem({ ...template, group: "extra" }, finalCurrency, n(rate) || DEFAULT_RATE), group: "extra" }]
+        : [...current, createFinalItem(template, finalCurrency, n(rate) || DEFAULT_RATE)]
     ));
   };
 
@@ -1664,7 +1641,9 @@ function App() {
       setLang(item.lang === "ru" ? "ru" : "pl");
       setActiveTab(FINAL_TAB_ID);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
-      setFinalItems(Array.isArray(item.items) && item.items.length ? item.items : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
+      setFinalItems(Array.isArray(item.items) && item.items.length
+        ? item.items.map(normalizeFinalItem)
+        : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
       setRate(item.rate || DEFAULT_RATE);
       rateTouchedRef.current = true;
       setMobileDeUrl("");
@@ -1797,8 +1776,6 @@ function App() {
                   lang: safeLang,
                   rows: finalCalc.rows,
                   total: finalCalc.total,
-                  positive: finalCalc.positive,
-                  negative: finalCalc.negative,
                   currency: finalCurrency,
                   rate: n(rate) || DEFAULT_RATE,
                 })

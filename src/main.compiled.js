@@ -69,15 +69,13 @@ const copy = {
     finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
     finalBalance: "Finalne rozliczenie",
     finalCurrency: "Waluta rozliczenia",
-    finalFixedCosts: "Stałe pozycje",
-    finalExtras: "Dodatkowe pozycje",
+    finalFixedCosts: "Widoczne pozycje",
+    finalExtras: "Niewidoczne pozycje",
     finalAddExtra: "Dodaj",
     finalRemove: "Usuń",
     finalModePlus: "Do zapłaty",
     finalModeMinus: "Zapłacone / odjęcie",
     finalModeOff: "Nie licz",
-    finalPaid: "Już zapłacone / odjęte",
-    finalToPay: "Koszty do rozliczenia",
     finalDue: "Pozostało do dopłaty",
     finalOverpaid: "Nadpłata / do zwrotu",
     finalRateLine: "Kurs EUR/PLN",
@@ -137,15 +135,13 @@ const copy = {
     finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
-    finalFixedCosts: "Постоянные позиции",
-    finalExtras: "Дополнительные позиции",
+    finalFixedCosts: "Видимые позиции",
+    finalExtras: "Скрытые позиции",
     finalAddExtra: "Добавить",
     finalRemove: "Удалить",
     finalModePlus: "К доплате",
     finalModeMinus: "Оплачено / минус",
     finalModeOff: "Не считать",
-    finalPaid: "Уже оплачено / минус",
-    finalToPay: "Расходы к расчёту",
     finalDue: "Осталось доплатить",
     finalOverpaid: "Переплата / к возврату",
     finalRateLine: "Курс EUR/PLN",
@@ -614,17 +610,19 @@ function formatPlainAmount(value, currency = "EUR") {
 const finalFixedTemplates = [{
   key: "inspection",
   label: {
-    pl: "Oględziny",
-    ru: "Осмотр"
+    pl: "Oględziny specjalisty",
+    ru: "Осмотр специалиста"
   },
-  mode: "plus"
+  mode: "plus",
+  vat: true
 }, {
   key: "delivery",
   label: {
-    pl: "Dostawa",
-    ru: "Доставка"
+    pl: "Dostawa na lawecie",
+    ru: "Доставка на автовозе"
   },
-  mode: "plus"
+  mode: "plus",
+  vat: true
 }, {
   key: "translation",
   label: {
@@ -647,12 +645,13 @@ const finalFixedTemplates = [{
     pl: "Prowizja AUTOGOOD",
     ru: "Комиссия AUTOGOOD"
   },
-  mode: "plus"
+  mode: "plus",
+  vat: true
 }, {
   key: "deposit",
   label: {
-    pl: "Depozyt",
-    ru: "Депозит"
+    pl: "Zaliczka",
+    ru: "Аванс"
   },
   mode: "minus"
 }];
@@ -694,11 +693,12 @@ const finalExtraTemplates = [{
 }, {
   key: "deposit2",
   label: {
-    pl: "Depozyt 2",
-    ru: "Депозит 2"
+    pl: "Zaliczka 2",
+    ru: "Аванс 2"
   },
   mode: "minus"
 }];
+const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
 function convertFinalAmount(value, fromCurrency, toCurrency, rate) {
   const amount = n(value);
   const safeRate = n(rate) || DEFAULT_RATE;
@@ -717,7 +717,8 @@ function createFinalItem(template, currency, rate) {
     label: template.label,
     group: template.group || "fixed",
     amount: finalInputValue(converted, currency),
-    mode: template.mode || "plus"
+    mode: template.mode || "plus",
+    vat: Boolean(template.vat)
   };
 }
 function initialFinalItems(currency = "PLN", rate = DEFAULT_RATE) {
@@ -760,6 +761,18 @@ function finalSignedAmountLabel(item, currency) {
   const value = Math.abs(n(item.amount));
   const sign = item.mode === "minus" ? "−" : "+";
   return `${sign} ${money(value, currency)}`;
+}
+function finalTemplateForKey(key) {
+  return finalTemplates.find(template => template.key === key);
+}
+function normalizeFinalItem(item) {
+  const template = finalTemplateForKey(item.key);
+  return {
+    ...item,
+    label: template?.label || item.label,
+    mode: item.mode || template?.mode || "plus",
+    vat: Boolean(template?.vat || item.vat)
+  };
 }
 function NumInput({
   label,
@@ -1082,9 +1095,8 @@ function FinalBalanceInputs({
   onAddExtra,
   onRemoveExtra
 }) {
-  const fixedItems = items.filter(item => item.group !== "extra");
-  const extraItems = items.filter(item => item.group === "extra");
-  const addedExtraKeys = new Set(extraItems.map(item => item.key));
+  const visibleKeys = new Set(items.map(item => item.key));
+  const hiddenTemplates = finalTemplates.filter(template => !visibleKeys.has(template.key));
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
   }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
@@ -1103,28 +1115,7 @@ function FinalBalanceInputs({
     className: "sidebarSubhead"
   }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
-  }, fixedItems.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
-    key: item.key,
-    c: c,
-    item: item,
-    lang: lang,
-    currency: currency,
-    onAmountChange: value => onAmountChange(item.key, value),
-    onModeChange: mode => onModeChange(item.key, mode)
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "divider"
-  }), /*#__PURE__*/React.createElement("h3", {
-    className: "sidebarSubhead"
-  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
-    className: "finalExtraButtons"
-  }, finalExtraTemplates.map(template => /*#__PURE__*/React.createElement("button", {
-    key: template.key,
-    type: "button",
-    disabled: addedExtraKeys.has(template.key),
-    onClick: () => onAddExtra(template)
-  }, c.finalAddExtra, ": ", template.label[lang]))), extraItems.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "finalInputList finalExtraList"
-  }, extraItems.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
+  }, items.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
     key: item.key,
     c: c,
     item: item,
@@ -1133,7 +1124,19 @@ function FinalBalanceInputs({
     onAmountChange: value => onAmountChange(item.key, value),
     onModeChange: mode => onModeChange(item.key, mode),
     onRemove: () => onRemoveExtra(item.key)
-  }))));
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "divider"
+  }), /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
+    className: "finalExtraButtons"
+  }, hiddenTemplates.map(template => /*#__PURE__*/React.createElement("button", {
+    key: template.key,
+    type: "button",
+    onClick: () => onAddExtra(template)
+  }, c.finalAddExtra, ": ", template.label[lang])), hiddenTemplates.length === 0 && /*#__PURE__*/React.createElement("p", {
+    className: "finalHiddenEmpty"
+  }, lang === "ru" ? "Все позиции видимы." : "Wszystkie pozycje są widoczne.")));
 }
 function FinalBalanceResults({
   c,
@@ -1151,22 +1154,17 @@ function FinalBalanceResults({
   }), /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
   }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.finalBalance)), /*#__PURE__*/React.createElement("div", {
-    className: "finalSummary"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, c.finalToPay), /*#__PURE__*/React.createElement("strong", null, money(calc.positive, currency))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", null, c.finalPaid), /*#__PURE__*/React.createElement("strong", null, money(calc.negative, currency)))), /*#__PURE__*/React.createElement("div", {
     className: "rows finalRows"
   }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
     key: item.key,
     className: `resultRow finalResultRow mode-${item.mode}`
-  }, /*#__PURE__*/React.createElement("span", {
-    className: `resultMarker ${item.mode === "minus" ? "isMinus" : "isPlus"}`,
-    "aria-hidden": "true"
-  }, item.mode === "minus" ? "−" : "+"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     className: "rowText"
   }, /*#__PURE__*/React.createElement("span", {
     className: "rowLabel"
   }, item.label[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rowValue finalRowValue"
-  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)))))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)), item.vat && tagLabel("+VAT 23%"))))), /*#__PURE__*/React.createElement("div", {
     className: `totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "totalMarker",
@@ -1439,8 +1437,6 @@ function printFinalBalance({
   lang,
   rows,
   total,
-  positive,
-  negative,
   currency,
   rate
 }) {
@@ -1451,7 +1447,7 @@ function printFinalBalance({
   const rowsHtml = rows.map(item => `
       <tr class="${item.mode === "minus" ? "minusRow" : ""}">
         <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vat ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
       </tr>`).join("");
   const html = `
 <!doctype html>
@@ -1468,16 +1464,13 @@ function printFinalBalance({
     header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:20px;padding-bottom:18px;border-bottom:2px solid #dbe4ee}
     .printLogo{display:block;width:250px;height:auto}
     h1{margin:0;color:#005B82;font-size:30px;line-height:1;font-weight:800;text-align:right}
-    .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-    .summary div{border:1px solid #dbe4ee;border-radius:10px;background:#f8fbfd;padding:14px}
-    .summary span{display:block;color:#64748b;font-size:12px;font-weight:800;margin-bottom:6px}
-    .summary strong{color:#005B82;font-size:24px}
     table{width:100%;border-collapse:separate;border-spacing:0 7px;margin-top:4px}
     td{background:#fff;border-top:1px solid #dbe4ee;border-bottom:1px solid #dbe4ee;padding:12px 14px;vertical-align:middle}
     td:first-child{border-left:1px solid #dbe4ee;border-radius:8px 0 0 8px}
     td:last-child{width:260px;border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;white-space:nowrap}
     .minusRow td{background:#f8fbfd}
     .minusRow b{color:#0f766e}
+    .softVatTag{display:inline-flex;margin-left:8px;border-radius:999px;padding:3px 7px;color:#64748b;background:#f1f5f9;font-size:8.5px;font-weight:900;letter-spacing:.03em;vertical-align:middle}
     .total{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 22px;margin-top:18px;padding:22px 24px 18px;border-radius:14px;background:#005B82;color:#fff}
     .total.overpaid{background:#0f766e}
     .totalLabel{font-size:24px;font-weight:900;text-align:left}
@@ -1492,10 +1485,6 @@ function printFinalBalance({
       <a href="${homeUrl}" target="_blank" rel="noopener"><img class="printLogo" src="${logoUrl}" alt="AUTOGOOD" /></a>
       <h1>${c.finalBalance}</h1>
     </header>
-    <div class="summary">
-      <div><span>${c.finalToPay}</span><strong>${money(positive, currency)}</strong></div>
-      <div><span>${c.finalPaid}</span><strong>${money(negative, currency)}</strong></div>
-    </div>
     <table>${rowsHtml}</table>
     <div class="total ${totalIsNegative ? "overpaid" : ""}">
       <div class="totalLabel">${totalIsNegative ? c.finalOverpaid : c.finalDue}</div>
@@ -1635,13 +1624,7 @@ function App() {
     } : item));
   };
   const addFinalExtra = template => {
-    setFinalItems(current => current.some(item => item.key === template.key) ? current : [...current, {
-      ...createFinalItem({
-        ...template,
-        group: "extra"
-      }, finalCurrency, n(rate) || DEFAULT_RATE),
-      group: "extra"
-    }]);
+    setFinalItems(current => current.some(item => item.key === template.key) ? current : [...current, createFinalItem(template, finalCurrency, n(rate) || DEFAULT_RATE)]);
   };
   const removeFinalExtra = key => {
     setFinalItems(current => current.filter(item => item.key !== key));
@@ -1724,7 +1707,7 @@ function App() {
       setLang(item.lang === "ru" ? "ru" : "pl");
       setActiveTab(FINAL_TAB_ID);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
-      setFinalItems(Array.isArray(item.items) && item.items.length ? item.items : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
+      setFinalItems(Array.isArray(item.items) && item.items.length ? item.items.map(normalizeFinalItem) : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
       setRate(item.rate || DEFAULT_RATE);
       rateTouchedRef.current = true;
       setMobileDeUrl("");
@@ -1861,8 +1844,6 @@ function App() {
       lang: safeLang,
       rows: finalCalc.rows,
       total: finalCalc.total,
-      positive: finalCalc.positive,
-      negative: finalCalc.negative,
       currency: finalCurrency,
       rate: n(rate) || DEFAULT_RATE
     }) : printCalculation({

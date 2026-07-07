@@ -643,6 +643,18 @@ select {
   background: #f8fbfd;
 }
 
+.finalHiddenEmpty {
+  margin: 0;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  background: #f8fbfd;
+  color: #64748b;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
 .resultsTitle {
   position: relative;
   z-index: 1;
@@ -879,13 +891,19 @@ select {
   margin-top: 4px;
 }
 
+.finalResultRow {
+  grid-template-columns: 310px 220px;
+}
+
 .finalResultRow.mode-minus {
   background: #f8fbfd;
 }
 
 .finalRowValue {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -1206,8 +1224,16 @@ select {
     grid-template-columns: 22px minmax(0, 1fr);
   }
 
+  .finalResultRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .rowValue {
     grid-column: 2;
+  }
+
+  .finalRowValue {
+    grid-column: auto;
   }
 
   .totalBox {
