@@ -141,6 +141,23 @@ function dataUrlBytes(dataUrl) {
   return bytes;
 }
 
+function bytesToLatin1String(bytes) {
+  const chunks = [];
+  const size = 0x8000;
+  for (let index = 0; index < bytes.length; index += size) {
+    chunks.push(String.fromCharCode(...bytes.subarray(index, index + size)));
+  }
+  return chunks.join("");
+}
+
+function latin1StringToBytes(value) {
+  const bytes = new Uint8Array(value.length);
+  for (let index = 0; index < value.length; index += 1) {
+    bytes[index] = value.charCodeAt(index) & 0xff;
+  }
+  return bytes;
+}
+
 function canvasJpegBytes(canvas, quality = 0.9) {
   return dataUrlBytes(canvas.toDataURL("image/jpeg", quality));
 }
@@ -432,6 +449,61 @@ function shouldUseSeparatePhotoObjects(text, pageNumber) {
   if (hasPictureCounter(text)) return true;
   if (/car highlights|additional photos|car service images|documentation of prior damage|service images/i.test(text)) return true;
   return normalizeText(text).length < 450;
+}
+
+function stripRightScrollbarBlocks(content) {
+  const scrollbarBlock = /q\n2375(?:\.\d+)? [\d.]+ 45\.458984 [\d.]+ re\nW\* n\nq\n3\.125 0 0 3\.125 2375 [-\d.]+ cm\n[\s\S]*?\nQ\nQ\n/g;
+  let removed = 0;
+  const cleaned = content.replace(scrollbarBlock, () => {
+    removed += 1;
+    return "";
+  });
+  return { cleaned, removed };
+}
+
+function stripRightScrollbarsFromPdf(pdfLib, pdfDoc) {
+  if (!pdfLib.decodePDFRawStream || !pdfLib.PDFName) return 0;
+
+  let removed = 0;
+  pdfDoc.getPages().forEach((page) => {
+    const contents = page.node.Contents?.();
+    if (!contents) return;
+
+    const contentRefs = contents.array ? contents.array : [contents];
+    const newContentRefs = [];
+    let changed = false;
+
+    contentRefs.forEach((contentRef) => {
+      const stream = pdfDoc.context.lookup(contentRef);
+      if (!stream?.dict || !stream.getContents) {
+        newContentRefs.push(contentRef);
+        return;
+      }
+
+      try {
+        const decoded = pdfLib.decodePDFRawStream(stream).decode();
+        const content = bytesToLatin1String(decoded);
+        const result = stripRightScrollbarBlocks(content);
+
+        if (result.removed > 0) {
+          removed += result.removed;
+          changed = true;
+          const cleanStream = pdfDoc.context.flateStream(latin1StringToBytes(result.cleaned));
+          newContentRefs.push(pdfDoc.context.register(cleanStream));
+        } else {
+          newContentRefs.push(contentRef);
+        }
+      } catch (error) {
+        newContentRefs.push(contentRef);
+      }
+    });
+
+    if (changed) {
+      page.node.set(pdfLib.PDFName.of("Contents"), pdfDoc.context.obj(newContentRefs));
+    }
+  });
+
+  return removed;
 }
 
 function pageLines(text) {
@@ -765,6 +837,7 @@ async function processPdf() {
 
   setStatus("Buduje czysty PDF bez maskowania...", 35);
   const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData);
+  const removedRightLines = stripRightScrollbarsFromPdf(pdfLib, pdfDoc);
 
   setStatus("Zapisuje czysty PDF...", 90);
   const outputBytes = await pdfDoc.save({ useObjectStreams: false });
@@ -775,7 +848,7 @@ async function processPdf() {
   downloadButton.download = resultFileName;
   downloadButton.classList.remove("isDisabled");
   resultPreview.src = resultUrl;
-  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${removedPages} stron.`;
+  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${removedPages} stron, ${removedRightLines} prawych linii.`;
   setStatus("Gotowe. PDF przebudowany bez bialych masek.", 100);
 }
 
