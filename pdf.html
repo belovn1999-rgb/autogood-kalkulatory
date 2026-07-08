@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AUTOGOOD Umowa</title>
-    <link rel="stylesheet" href="./src/pdf.css?v=20260708-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260708-2" />
   </head>
   <body>
     <main class="app-shell">
@@ -52,15 +52,10 @@
             <div class="card-head">ZLECENIODAWCA:</div>
             <div class="field-row client-kind">
               <label><input type="radio" name="clientType" value="person" checked /> <span>osoba</span></label>
-              <label><input type="radio" name="clientType" value="company" /> <span>firma</span></label>
             </div>
             <label class="field">
               <span>Imię i Nazwisko/Nazwa:</span>
               <input id="clientName" type="text" />
-            </label>
-            <label class="checkbox-line">
-              <input id="clientEntrepreneur" type="checkbox" />
-              <span>Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym</span>
             </label>
             <label class="field">
               <span>Adres:</span>
@@ -95,10 +90,8 @@
 
             <div class="card-head compact">PRZEDMIOT UMOWY:</div>
             <div class="checkbox-group">
-              <label data-subject-option="mediation"><input name="subject" type="checkbox" value="mediation" /> <span>1) wyszukanie ofert oraz pośrednictwo w zakupie</span></label>
-              <label data-subject-option="purchase_by_autogood"><input name="subject" type="checkbox" value="purchase_by_autogood" checked /> <span>2) wyszukanie ofert oraz zakup przez Zleceniobiorcę</span></label>
-              <label data-subject-option="financing"><input name="subject" type="checkbox" value="financing" /> <span>3) zakup z finansowania</span></label>
-              <label data-subject-option="client_indicated_vehicle"><input id="clientIndicatedVehicle" type="checkbox" /> <span>pojazd wskazany przez Zleceniodawcę</span></label>
+              <label data-subject-option="purchase_by_autogood"><input name="subject" type="checkbox" value="purchase_by_autogood" checked /> <span>wyszukanie ofert pojazdów zgodnie z kryteriami określonymi przez Zleceniodawcę oraz zakup przez Zleceniobiorcę na rachunek Zleceniodawcy w ramach ustalonego budżetu w celu eksportu do Białorusi</span></label>
+              <label data-subject-option="client_indicated_vehicle"><input id="clientIndicatedVehicle" type="checkbox" /> <span>zakupienie pojazdu wskazanego przez Zleceniodawcę (z aukcji lub oferty), w imieniu Zleceniodawcy</span></label>
             </div>
 
             <div class="card-head compact">BUDŻET NA ZAKUP</div>
@@ -204,6 +197,6 @@
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-1"></script>
+    <script src="./src/pdf.js?v=20260708-2"></script>
   </body>
 </html>

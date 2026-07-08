@@ -678,9 +678,12 @@ function saveCurrentContractData() {
 }
 
 function syncClientTypeRules() {
-  const isCompany = checkedRadio("clientType") === "company";
-  $("clientEntrepreneur").checked = isCompany;
-  $("clientEntrepreneur").disabled = isCompany;
+  const isCompany = !isExportContract && checkedRadio("clientType") === "company";
+  const entrepreneur = $("clientEntrepreneur");
+  if (entrepreneur) {
+    entrepreneur.checked = isCompany;
+    entrepreneur.disabled = isCompany;
+  }
   $("clientDocumentType").disabled = isCompany;
   $("clientDocument").disabled = isCompany;
   if (isCompany) {
@@ -781,7 +784,7 @@ function parseRawTextValue(text) {
 
 function applyParsed(data) {
   if (data.client?.type) {
-    setRadio("clientType", data.client.type);
+    setRadio("clientType", isExportContract ? "person" : data.client.type);
     syncClientTypeRules();
   }
   $("clientName").value = data.client?.name || $("clientName").value;
@@ -809,8 +812,9 @@ function applyParsed(data) {
 }
 
 function collectData() {
-  const clientType = checkedRadio("clientType") || "person";
+  const clientType = isExportContract ? "person" : checkedRadio("clientType") || "person";
   const isCompany = clientType === "company";
+  const entrepreneur = $("clientEntrepreneur");
   return {
     contract: {
       date: $("contractDate").value || todayISO(),
@@ -818,7 +822,7 @@ function collectData() {
     },
     client: {
       type: clientType,
-      is_entrepreneur: isCompany || $("clientEntrepreneur").checked,
+      is_entrepreneur: !isExportContract && (isCompany || Boolean(entrepreneur?.checked)),
       name: $("clientName").value.trim(),
       address: $("clientAddress").value.trim(),
       pesel: isCompany ? "" : $("clientIdentifier").value.trim(),
@@ -860,10 +864,10 @@ function collectData() {
 function checkedKeys(data) {
   const checks = new Set();
   const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
-  if (data.client.is_entrepreneur || data.client.type === "company") checks.add("client_is_entrepreneur");
-  if (subjects.has("mediation")) checks.add("subject_mediation");
+  if (!isExportContract && (data.client.is_entrepreneur || data.client.type === "company")) checks.add("client_is_entrepreneur");
+  if (!isExportContract && subjects.has("mediation")) checks.add("subject_mediation");
   if (subjects.has("purchase_by_autogood")) checks.add("subject_purchase_by_autogood");
-  if (subjects.has("financing")) checks.add("subject_financing");
+  if (!isExportContract && subjects.has("financing")) checks.add("subject_financing");
   if (data.agreement.client_indicated_vehicle) checks.add("subject_client_indicated_vehicle");
   for (const fuel of data.vehicle.fuel || []) checks.add(`fuel_${fuel}`);
   for (const gearbox of asArray(data.vehicle.gearbox)) checks.add(`gearbox_${gearbox}`);
@@ -1314,7 +1318,7 @@ async function generatePdfBlob() {
 
   section("ZLECENIODAWCA");
   line("Imię i Nazwisko/Nazwa", data.client.name);
-  box("Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym", data.client.is_entrepreneur);
+  if (!isExportContract) box("Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym", data.client.is_entrepreneur);
   line("Adres", data.client.address);
   line("PESEL/NIP", data.client.type === "company" ? data.client.nip : data.client.pesel);
   line("Rodzaj, numer i seria dokumentu tożsamości", data.client.document);
@@ -1323,10 +1327,15 @@ async function generatePdfBlob() {
 
   section("PRZEDMIOT UMOWY");
   const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
-  box("wyszukanie ofert oraz pośrednictwo w zakupie", subjects.has("mediation"));
-  box("wyszukanie ofert oraz zakup przez Zleceniobiorcę", subjects.has("purchase_by_autogood"));
-  box("zakup z finansowania", subjects.has("financing"));
-  box("pojazd wskazany przez Zleceniodawcę", data.agreement.client_indicated_vehicle);
+  if (isExportContract) {
+    box(exportSubjectLabels.purchase_by_autogood, subjects.has("purchase_by_autogood"));
+    box(exportSubjectLabels.client_indicated_vehicle, data.agreement.client_indicated_vehicle);
+  } else {
+    box("wyszukanie ofert oraz pośrednictwo w zakupie", subjects.has("mediation"));
+    box("wyszukanie ofert oraz zakup przez Zleceniobiorcę", subjects.has("purchase_by_autogood"));
+    box("zakup z finansowania", subjects.has("financing"));
+    box("pojazd wskazany przez Zleceniodawcę", data.agreement.client_indicated_vehicle);
+  }
 
   section("BUDŻET NA ZAKUP");
   line("Budżet", data.budget.total);
@@ -1438,7 +1447,8 @@ function resetForm() {
   setRadio("clientType", "person");
   setCheckedValues("subject", ["purchase_by_autogood"]);
   setRadio("commissionOption", exportDefaultCommission);
-  $("clientEntrepreneur").checked = false;
+  const entrepreneur = $("clientEntrepreneur");
+  if (entrepreneur) entrepreneur.checked = false;
   syncClientTypeRules();
   updateDocumentFileName();
   setStatus("");
