@@ -557,6 +557,10 @@ select {
 }
 
 .finalInputLabel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -568,10 +572,8 @@ select {
 }
 
 .finalModeControl {
-  grid-row: 1 / span 2;
   display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #fff;
@@ -589,6 +591,27 @@ select {
   color: #64748b;
   font-weight: 900;
   line-height: 1;
+}
+
+.finalOffButton {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 100%;
+  min-height: 58px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.finalOffButton.active {
+  background: #94a3b8;
+  color: #fff;
 }
 
 .finalModeControl button.active.plus {
@@ -905,8 +928,8 @@ select {
 }
 
 .finalResultRow {
-  grid-template-columns: minmax(240px, 1fr) 108px 96px;
-  gap: 8px 12px;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 8px 10px;
 }
 
 .finalResultRow.mode-minus {
@@ -915,10 +938,10 @@ select {
 
 .finalRowValue {
   display: grid;
-  grid-template-columns: 108px 86px;
+  grid-template-columns: max-content max-content;
   align-items: center;
-  justify-content: start;
-  gap: 6px;
+  justify-content: end;
+  gap: 5px;
   min-width: 0;
 }
 

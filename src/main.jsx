@@ -650,6 +650,12 @@ function finalSignedAmountLabel(item, currency) {
   return `${sign} ${money(value, currency)}`;
 }
 
+function oppositeCurrencyAmount(value, currency, rate) {
+  const safeRate = n(rate) || DEFAULT_RATE;
+  if (currency === "EUR") return money(Math.abs(value) * safeRate, "PLN");
+  return money(Math.abs(value) / safeRate, "EUR");
+}
+
 function finalTemplateForKey(key) {
   return finalTemplates.find((template) => template.key === key);
 }
@@ -920,17 +926,30 @@ function FinalModeControl({ c, value, onChange }) {
     <div className="finalModeControl" aria-label={c.finalCurrency}>
       <button type="button" className={value === "plus" ? "active plus" : "plus"} onClick={() => onChange("plus")}>+</button>
       <button type="button" className={value === "minus" ? "active minus" : "minus"} onClick={() => onChange("minus")}>−</button>
-      <button type="button" className={value === "off" ? "active off" : "off"} onClick={() => onChange("off")}>×</button>
     </div>
   );
 }
 
-function FinalItemInput({ c, item, lang, currency, onAmountChange, onModeChange, onRemove }) {
+function FinalOffButton({ item, onToggle }) {
+  return (
+    <button
+      type="button"
+      className={`finalOffButton ${item.mode === "off" ? "active" : ""}`}
+      onClick={onToggle}
+      aria-label="Nie licz"
+    >
+      ×
+    </button>
+  );
+}
+
+function FinalItemInput({ c, item, lang, currency, onAmountChange, onModeChange, onOffToggle }) {
   return (
     <div className={`finalInputRow mode-${item.mode}`}>
-      <FinalModeControl c={c} value={item.mode} onChange={onModeChange} />
+      <FinalOffButton item={item} onToggle={onOffToggle} />
       <div className="finalInputLabel">
         <span>{item.label[lang]}</span>
+        <FinalModeControl c={c} value={item.mode} onChange={onModeChange} />
       </div>
       <div className="inputWrap">
         <input
@@ -955,8 +974,7 @@ function FinalBalanceInputs({
   onCurrencyChange,
   onAmountChange,
   onModeChange,
-  onAddExtra,
-  onRemoveExtra,
+  onOffToggle,
 }) {
   return (
     <>
@@ -987,6 +1005,7 @@ function FinalBalanceInputs({
             currency={currency}
             onAmountChange={(value) => onAmountChange(item.key, value)}
             onModeChange={(mode) => onModeChange(item.key, mode)}
+            onOffToggle={() => onOffToggle(item.key)}
           />
         ))}
       </div>
@@ -1027,6 +1046,7 @@ function FinalBalanceResults({ c, lang, currency, rate, calc }) {
         </div>
         <div className="totalValue">
           <strong>{money(Math.abs(calc.total), currency)}</strong>
+          <em>({oppositeCurrencyAmount(calc.total, currency, rate)})</em>
         </div>
         <div className="totalRate">{c.finalRateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
       </div>
@@ -1520,19 +1540,15 @@ function App() {
 
   const setFinalMode = (key, mode) => {
     setFinalItems((current) => current.map((item) => (
-      item.key === key ? { ...item, mode: mode === "plus" || mode === "minus" ? mode : "off" } : item
+      item.key === key ? { ...item, mode, activeMode: mode } : item
     )));
   };
 
-  const addFinalExtra = (template) => {
+  const toggleFinalOff = (key) => {
     setFinalItems((current) => current.map((item) => (
-      item.key === template.key ? { ...item, mode: item.activeMode || "plus" } : item
-    )));
-  };
-
-  const removeFinalExtra = (key) => {
-    setFinalItems((current) => current.map((item) => (
-      item.key === key ? { ...item, mode: "off" } : item
+      item.key === key
+        ? { ...item, mode: item.mode === "off" ? (item.activeMode || "plus") : "off" }
+        : item
     )));
   };
 
@@ -1790,8 +1806,7 @@ function App() {
               onCurrencyChange={switchFinalCurrency}
               onAmountChange={setFinalAmount}
               onModeChange={setFinalMode}
-              onAddExtra={addFinalExtra}
-              onRemoveExtra={removeFinalExtra}
+              onOffToggle={toggleFinalOff}
             />
           ) : (
             <>

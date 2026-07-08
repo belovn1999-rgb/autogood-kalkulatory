@@ -769,6 +769,11 @@ function finalSignedAmountLabel(item, currency) {
   const sign = item.mode === "minus" ? "−" : "+";
   return `${sign} ${money(value, currency)}`;
 }
+function oppositeCurrencyAmount(value, currency, rate) {
+  const safeRate = n(rate) || DEFAULT_RATE;
+  if (currency === "EUR") return money(Math.abs(value) * safeRate, "PLN");
+  return money(Math.abs(value) / safeRate, "EUR");
+}
 function finalTemplateForKey(key) {
   return finalTemplates.find(template => template.key === key);
 }
@@ -1054,11 +1059,18 @@ function FinalModeControl({
     type: "button",
     className: value === "minus" ? "active minus" : "minus",
     onClick: () => onChange("minus")
-  }, "\u2212"), /*#__PURE__*/React.createElement("button", {
+  }, "\u2212"));
+}
+function FinalOffButton({
+  item,
+  onToggle
+}) {
+  return /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: value === "off" ? "active off" : "off",
-    onClick: () => onChange("off")
-  }, "\xD7"));
+    className: `finalOffButton ${item.mode === "off" ? "active" : ""}`,
+    onClick: onToggle,
+    "aria-label": "Nie licz"
+  }, "\xD7");
 }
 function FinalItemInput({
   c,
@@ -1067,17 +1079,20 @@ function FinalItemInput({
   currency,
   onAmountChange,
   onModeChange,
-  onRemove
+  onOffToggle
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: `finalInputRow mode-${item.mode}`
-  }, /*#__PURE__*/React.createElement(FinalModeControl, {
+  }, /*#__PURE__*/React.createElement(FinalOffButton, {
+    item: item,
+    onToggle: onOffToggle
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "finalInputLabel"
+  }, /*#__PURE__*/React.createElement("span", null, item.label[lang]), /*#__PURE__*/React.createElement(FinalModeControl, {
     c: c,
     value: item.mode,
     onChange: onModeChange
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "finalInputLabel"
-  }, /*#__PURE__*/React.createElement("span", null, item.label[lang])), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     className: "inputWrap"
   }, /*#__PURE__*/React.createElement("input", {
     inputMode: "decimal",
@@ -1096,8 +1111,7 @@ function FinalBalanceInputs({
   onCurrencyChange,
   onAmountChange,
   onModeChange,
-  onAddExtra,
-  onRemoveExtra
+  onOffToggle
 }) {
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
@@ -1124,7 +1138,8 @@ function FinalBalanceInputs({
     lang: lang,
     currency: currency,
     onAmountChange: value => onAmountChange(item.key, value),
-    onModeChange: mode => onModeChange(item.key, mode)
+    onModeChange: mode => onModeChange(item.key, mode),
+    onOffToggle: () => onOffToggle(item.key)
   }))));
 }
 function FinalBalanceResults({
@@ -1162,7 +1177,7 @@ function FinalBalanceResults({
     className: "totalLabel"
   }, /*#__PURE__*/React.createElement("span", null, totalLabel)), /*#__PURE__*/React.createElement("div", {
     className: "totalValue"
-  }, /*#__PURE__*/React.createElement("strong", null, money(Math.abs(calc.total), currency))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, money(Math.abs(calc.total), currency)), /*#__PURE__*/React.createElement("em", null, "(", oppositeCurrencyAmount(calc.total, currency, rate), ")")), /*#__PURE__*/React.createElement("div", {
     className: "totalRate"
   }, c.finalRateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")));
 }
@@ -1609,19 +1624,14 @@ function App() {
   const setFinalMode = (key, mode) => {
     setFinalItems(current => current.map(item => item.key === key ? {
       ...item,
-      mode: mode === "plus" || mode === "minus" ? mode : "off"
+      mode,
+      activeMode: mode
     } : item));
   };
-  const addFinalExtra = template => {
-    setFinalItems(current => current.map(item => item.key === template.key ? {
-      ...item,
-      mode: item.activeMode || "plus"
-    } : item));
-  };
-  const removeFinalExtra = key => {
+  const toggleFinalOff = key => {
     setFinalItems(current => current.map(item => item.key === key ? {
       ...item,
-      mode: "off"
+      mode: item.mode === "off" ? item.activeMode || "plus" : "off"
     } : item));
   };
   const setManualOverride = (key, value) => {
@@ -1876,8 +1886,7 @@ function App() {
     onCurrencyChange: switchFinalCurrency,
     onAmountChange: setFinalAmount,
     onModeChange: setFinalMode,
-    onAddExtra: addFinalExtra,
-    onRemoveExtra: removeFinalExtra
+    onOffToggle: toggleFinalOff
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
     c: c,
     url: mobileDeUrl,
