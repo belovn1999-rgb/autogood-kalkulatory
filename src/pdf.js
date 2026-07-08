@@ -10,8 +10,11 @@ const contractHistoryLimit = 3;
 let currentDownloadUrls = [];
 const pageParams = new URLSearchParams(window.location.search);
 const contractVariant = pageParams.get("variant") || "standard";
-const contractHistoryKey = `autogood-order-contract-history-v1:${contractVariant}`;
 const isExportContract = contractVariant === "export";
+const contractDocumentId = isExportContract ? "03-export" : "01-poland";
+const legacyContractHistoryKey = "autogood-order-contract-history-v1";
+const previousVariantHistoryKey = `${legacyContractHistoryKey}:${contractVariant}`;
+const contractHistoryKey = `autogood-contract-history:${contractDocumentId}:v1`;
 const exportDefaultCommission = "350 EUR + 1% od ceny pojazdu.";
 
 const exportSubjectLabels = {
@@ -569,13 +572,27 @@ function configureContractVariant() {
   setRadio("commissionOption", exportDefaultCommission);
 }
 
-function readContractHistory() {
+function readHistoryFromStorage(key) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(contractHistoryKey) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
     return Array.isArray(parsed) ? parsed.slice(0, contractHistoryLimit) : [];
   } catch {
     return [];
   }
+}
+
+function prepareContractHistoryStorage() {
+  const current = readHistoryFromStorage(contractHistoryKey);
+  const previous = readHistoryFromStorage(previousVariantHistoryKey);
+  if (!current.length && previous.length) {
+    localStorage.setItem(contractHistoryKey, JSON.stringify(previous.slice(0, contractHistoryLimit)));
+  }
+  localStorage.removeItem(legacyContractHistoryKey);
+  if (previousVariantHistoryKey !== contractHistoryKey) localStorage.removeItem(previousVariantHistoryKey);
+}
+
+function readContractHistory() {
+  return readHistoryFromStorage(contractHistoryKey);
 }
 
 function writeContractHistory(items) {
@@ -1463,6 +1480,7 @@ function resetForm() {
 }
 
 configureContractVariant();
+prepareContractHistoryStorage();
 $("contractDate").value = todayISO();
 setDefaultSelectValues();
 updateDocumentFileName();
