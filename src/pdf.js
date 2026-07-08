@@ -1057,11 +1057,17 @@ function setCellVerticalAlign(cell, value) {
   tcPr.append(wEl(cell.ownerDocument, "vAlign", { val: value }));
 }
 
-function makeParagraph(doc, runs, { align = "" } = {}) {
+function makeParagraph(doc, runs, { align = "", left = "", hanging = "" } = {}) {
   const p = wEl(doc, "p");
-  if (align) {
+  if (align || left || hanging) {
     const pPr = wEl(doc, "pPr");
-    pPr.append(wEl(doc, "jc", { val: align }));
+    if (align) pPr.append(wEl(doc, "jc", { val: align }));
+    if (left || hanging) {
+      const indAttrs = {};
+      if (left) indAttrs.left = left;
+      if (hanging) indAttrs.hanging = hanging;
+      pPr.append(wEl(doc, "ind", indAttrs));
+    }
     p.append(pPr);
   }
   for (const run of runs) p.append(makeRun(doc, run.text, run));
@@ -1156,8 +1162,15 @@ function checkboxText(checked) {
   return checked ? "☑" : "☐";
 }
 
+function removeParagraphsContainingText(cell, text) {
+  for (const p of directChildren(cell, W, "p")) {
+    if (paragraphText(p).includes(text)) p.remove();
+  }
+}
+
 function setExportClientBlock(rows, data) {
   const docValue = data.client.type === "company" ? "" : data.client.document;
+  removeParagraphsContainingText(rows[2][0], "Zleceniodawca jest przedsiębiorcą");
   setCellParagraphs(rows[4][0], [
     { runs: [{ text: "Rodzaj, numer i seria dokumentu tożsamości:", bold: true, underline: true }] },
     { runs: [{ text: docValue || " " }] },
@@ -1185,12 +1198,14 @@ function setExportSubjectBlock(rows, data) {
   const indicatedChecked = data.agreement.client_indicated_vehicle;
   setCellParagraphs(rows[9][0], [
     {
+      options: { align: "left", left: "360", hanging: "360" },
       runs: [
         { text: checkboxText(purchaseChecked), font: "DejaVu Sans" },
         { text: ` ${exportSubjectLabels.purchase_by_autogood}` },
       ],
     },
     {
+      options: { align: "left", left: "360", hanging: "360" },
       runs: [
         { text: checkboxText(indicatedChecked), font: "DejaVu Sans" },
         { text: ` ${exportSubjectLabels.client_indicated_vehicle}` },
@@ -1204,11 +1219,11 @@ function setExportCompensationBlock(rows, data) {
   setCellVerticalAlign(cell, "center");
   setCellParagraphs(cell, [
     {
-      options: { align: "center" },
+      options: { align: "left" },
       runs: [{ text: "1. Za usługę wyszukania i zakupu pojazdu:", bold: true, underline: true }],
     },
     {
-      options: { align: "center" },
+      options: { align: "left" },
       runs: [{ text: data.compensation?.commission || exportDefaultCommission }],
     },
   ]);
