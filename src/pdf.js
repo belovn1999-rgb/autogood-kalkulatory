@@ -5,12 +5,13 @@ const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_t
 const stampUrl = "./assets/autogood-stamp.jpg";
 const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
-const contractHistoryKey = "autogood-order-contract-history-v1";
 const contractHistoryLimit = 3;
 
 let currentDownloadUrls = [];
 const pageParams = new URLSearchParams(window.location.search);
-const isExportContract = pageParams.get("variant") === "export";
+const contractVariant = pageParams.get("variant") || "standard";
+const contractHistoryKey = `autogood-order-contract-history-v1:${contractVariant}`;
+const isExportContract = contractVariant === "export";
 const exportDefaultCommission = "350 EUR + 1% od ceny pojazdu.";
 
 const exportSubjectLabels = {
