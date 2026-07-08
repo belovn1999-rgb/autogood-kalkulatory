@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD PartsLink24 VIN</title>
+    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260708-1" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span>PartsLink24</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./calculators.html">Kalkulatory</a>
+          <a href="./umowy.html">Umowy PDF</a>
+          <a href="./auctions.html">Aukcje</a>
+        </nav>
+      </header>
+
+      <section class="workspaceHero">
+        <p class="eyebrow">04 / Проверка VIN</p>
+        <h1>PartsLink24 VIN → PDF</h1>
+        <p>Ввод VIN, выбор языка и марки для внутренней выгрузки заводской комплектации.</p>
+      </section>
+
+      <section class="pipeline" aria-label="PartsLink24 VIN check">
+        <article class="stageCard">
+          <span class="stageIndex">01</span>
+          <h2>Поля проверки</h2>
+          <ul>
+            <li>Язык: RU / PL / ENG</li>
+            <li>Марка авто</li>
+            <li>VIN для проверки</li>
+          </ul>
+        </article>
+
+        <article class="stageCard">
+          <span class="stageIndex">02</span>
+          <h2>Первые марки</h2>
+          <ul>
+            <li>BMW, Volvo, Audi: общий поиск VIN</li>
+            <li>Mercedes-Benz, Peugeot: сначала плитка марки</li>
+            <li>Peugeot: дата производства не обязательна</li>
+          </ul>
+        </article>
+
+        <article class="stageCard">
+          <span class="stageIndex">03</span>
+          <h2>Технический план</h2>
+          <p>
+            Логика маршрутизации и критерии проверки PDF сохранены в репозитории.
+          </p>
+          <a class="stageAction" href="./docs/PARTSLINK24_VIN_CHECK.md">Открыть план</a>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
