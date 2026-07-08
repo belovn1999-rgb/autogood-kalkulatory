@@ -544,6 +544,12 @@ function updateDocumentFileName() {
   $("documentFileName").textContent = filenameFor(collectData(), "pdf");
 }
 
+function setDefaultSelectValues() {
+  $("clientDocumentType").value = "paszport";
+  $("budgetCurrency").value = "EUR";
+  $("advanceCurrency").value = "EUR";
+}
+
 function configureContractVariant() {
   if (!isExportContract) return;
   document.body.classList.add("export-contract");
@@ -1445,6 +1451,7 @@ function resetForm() {
     if (node.type === "radio" || node.type === "checkbox") node.checked = false;
     else node.value = "";
   });
+  setDefaultSelectValues();
   setRadio("clientType", "person");
   setCheckedValues("subject", ["purchase_by_autogood"]);
   setRadio("commissionOption", exportDefaultCommission);
@@ -1457,6 +1464,7 @@ function resetForm() {
 
 configureContractVariant();
 $("contractDate").value = todayISO();
+setDefaultSelectValues();
 updateDocumentFileName();
 renderContractHistory();
 $("parseBtn").addEventListener("click", parseRawText);

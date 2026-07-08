@@ -69,9 +69,9 @@
               <span>Rodzaj, numer i seria dokumentu tożsamości:</span>
               <div class="document-control">
                 <select id="clientDocumentType" aria-label="Rodzaj dokumentu">
-                  <option value="" selected>brak dokumentu</option>
+                  <option value="">brak dokumentu</option>
                   <option value="dowód osobisty">dowód osobisty</option>
-                  <option value="paszport">paszport</option>
+                  <option value="paszport" selected>paszport</option>
                   <option value="karta pobytu">karta pobytu</option>
                 </select>
                 <input id="clientDocument" type="text" />
@@ -101,8 +101,8 @@
                 <div class="amount-control">
                   <input id="budgetTotal" type="text" inputmode="decimal" />
                   <select id="budgetCurrency" aria-label="Waluta budżetu">
-                    <option value="PLN" selected>PLN</option>
-                    <option value="EUR">EUR</option>
+                    <option value="PLN">PLN</option>
+                    <option value="EUR" selected>EUR</option>
                   </select>
                 </div>
               </label>
@@ -111,8 +111,8 @@
                 <div class="amount-control">
                   <input id="budgetAdvance" type="text" inputmode="decimal" />
                   <select id="advanceCurrency" aria-label="Waluta zaliczki">
-                    <option value="PLN" selected>PLN</option>
-                    <option value="EUR">EUR</option>
+                    <option value="PLN">PLN</option>
+                    <option value="EUR" selected>EUR</option>
                   </select>
                 </div>
               </label>
@@ -197,6 +197,6 @@
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-3"></script>
+    <script src="./src/pdf.js?v=20260708-4"></script>
   </body>
 </html>
