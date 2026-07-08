@@ -1033,7 +1033,7 @@ function FinalBalanceResults({ c, lang, currency, rate, calc }) {
             </div>
             <div className="rowValue finalRowValue">
               <strong>{finalSignedAmountLabel(item, currency)}</strong>
-              {item.vat && tagLabel("+VAT 23%")}
+              <span className="finalVatSlot">{item.vat && tagLabel("+VAT 23%")}</span>
             </div>
           </div>
         ))}

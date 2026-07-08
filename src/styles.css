@@ -928,7 +928,7 @@ select {
 }
 
 .finalResultRow {
-  grid-template-columns: minmax(0, 1fr) 210px;
+  grid-template-columns: minmax(0, 1fr) 196px;
   gap: 8px 10px;
 }
 
@@ -938,9 +938,9 @@ select {
 
 .finalRowValue {
   display: grid;
-  grid-template-columns: max-content max-content;
+  grid-template-columns: 104px 72px;
   align-items: center;
-  justify-content: end;
+  justify-content: start;
   gap: 5px;
   min-width: 0;
 }
@@ -951,6 +951,16 @@ select {
   font-weight: 900;
   text-align: left;
   white-space: nowrap;
+}
+
+.finalVatSlot {
+  display: inline-flex;
+  align-items: center;
+  min-width: 72px;
+}
+
+.finalVatSlot:empty {
+  visibility: hidden;
 }
 
 .finalResultRow.mode-minus .finalRowValue strong {

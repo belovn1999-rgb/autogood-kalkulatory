@@ -1168,7 +1168,9 @@ function FinalBalanceResults({
     className: "rowLabel"
   }, item.label[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rowValue finalRowValue"
-  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)), item.vat && tagLabel("+VAT 23%"))))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)), /*#__PURE__*/React.createElement("span", {
+    className: "finalVatSlot"
+  }, item.vat && tagLabel("+VAT 23%")))))), /*#__PURE__*/React.createElement("div", {
     className: `totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "totalMarker",
