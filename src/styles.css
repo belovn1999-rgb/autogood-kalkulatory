@@ -941,7 +941,7 @@ select {
   grid-template-columns: 84px 72px;
   align-items: center;
   justify-content: start;
-  gap: 5px;
+  gap: 3px;
   min-width: 0;
 }
 
