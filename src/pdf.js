@@ -9,6 +9,15 @@ const contractHistoryKey = "autogood-order-contract-history-v1";
 const contractHistoryLimit = 3;
 
 let currentDownloadUrls = [];
+const pageParams = new URLSearchParams(window.location.search);
+const isExportContract = pageParams.get("variant") === "export";
+const exportDefaultCommission = "350 EUR + 1% od ceny pojazdu.";
+
+const exportSubjectLabels = {
+  purchase_by_autogood:
+    "wyszukanie ofert pojazdów zgodnie z kryteriami określonymi przez Zleceniodawcę oraz zakup przez Zleceniobiorcę na rachunek Zleceniodawcy w ramach ustalonego budżetu w celu eksportu do Białorusi",
+  client_indicated_vehicle: "zakupienie pojazdu wskazanego przez Zleceniodawcę (z aukcji lub oferty), w imieniu Zleceniodawcy",
+};
 
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
@@ -534,6 +543,25 @@ function updateDocumentFileName() {
   $("documentFileName").textContent = filenameFor(collectData(), "pdf");
 }
 
+function configureContractVariant() {
+  if (!isExportContract) return;
+  document.body.classList.add("export-contract");
+  document.title = "AUTOGOOD Umowa Export";
+  const brandLabel = document.querySelector(".brand span");
+  if (brandLabel) brandLabel.textContent = "Umowa Export";
+
+  document.querySelectorAll("[data-subject-option]").forEach((label) => {
+    const option = label.dataset.subjectOption;
+    label.hidden = option === "mediation" || option === "financing";
+  });
+
+  const purchaseLabel = document.querySelector('[data-subject-option="purchase_by_autogood"] span');
+  if (purchaseLabel) purchaseLabel.textContent = exportSubjectLabels.purchase_by_autogood;
+  const indicatedLabel = document.querySelector('[data-subject-option="client_indicated_vehicle"] span');
+  if (indicatedLabel) indicatedLabel.textContent = exportSubjectLabels.client_indicated_vehicle;
+  setRadio("commissionOption", exportDefaultCommission);
+}
+
 function readContractHistory() {
   try {
     const parsed = JSON.parse(localStorage.getItem(contractHistoryKey) || "[]");
@@ -807,6 +835,9 @@ function collectData() {
       total: formatMoneyValue($("budgetTotal").value, $("budgetCurrency").value),
       advance: formatMoneyValue($("budgetAdvance").value, $("advanceCurrency").value),
     },
+    compensation: {
+      commission: checkedRadio("commissionOption") || exportDefaultCommission,
+    },
     vehicle: {
       make_model: $("vehicleMakeModel").value.trim(),
       fuel: fuelValues(),
@@ -856,10 +887,10 @@ function wEl(doc, name, attrs = {}) {
   return el;
 }
 
-function makeRun(doc, text, { size = 18, bold = false, underline = false, breakBefore = false } = {}) {
+function makeRun(doc, text, { size = 18, bold = false, underline = false, breakBefore = false, font = "Calibri" } = {}) {
   const r = wEl(doc, "r");
   const rPr = wEl(doc, "rPr");
-  rPr.append(wEl(doc, "rFonts", { ascii: "Calibri", hAnsi: "Calibri", cs: "Calibri" }));
+  rPr.append(wEl(doc, "rFonts", { ascii: font, hAnsi: font, cs: font, eastAsia: font }));
   if (bold) rPr.append(wEl(doc, "b"));
   else rPr.append(wEl(doc, "b", { val: "0" }), wEl(doc, "bCs", { val: "0" }));
   if (underline) rPr.append(wEl(doc, "u", { val: "single" }));
@@ -976,6 +1007,45 @@ function paragraph(cell, index) {
   return directChildren(cell, W, "p")[index];
 }
 
+function clearCellContent(cell) {
+  for (const child of [...cell.childNodes]) {
+    if (child.namespaceURI === W && child.localName === "tcPr") continue;
+    child.remove();
+  }
+}
+
+function cellProperties(cell) {
+  let tcPr = directChildren(cell, W, "tcPr")[0];
+  if (!tcPr) {
+    tcPr = wEl(cell.ownerDocument, "tcPr");
+    cell.insertBefore(tcPr, cell.firstChild);
+  }
+  return tcPr;
+}
+
+function setCellVerticalAlign(cell, value) {
+  const tcPr = cellProperties(cell);
+  for (const align of directChildren(tcPr, W, "vAlign")) align.remove();
+  tcPr.append(wEl(cell.ownerDocument, "vAlign", { val: value }));
+}
+
+function makeParagraph(doc, runs, { align = "" } = {}) {
+  const p = wEl(doc, "p");
+  if (align) {
+    const pPr = wEl(doc, "pPr");
+    pPr.append(wEl(doc, "jc", { val: align }));
+    p.append(pPr);
+  }
+  for (const run of runs) p.append(makeRun(doc, run.text, run));
+  return p;
+}
+
+function setCellParagraphs(cell, paragraphs) {
+  clearCellContent(cell);
+  const doc = cell.ownerDocument;
+  for (const paragraphData of paragraphs) cell.append(makeParagraph(doc, paragraphData.runs, paragraphData.options || {}));
+}
+
 function setCheckboxGlyph(textEl, checked) {
   textEl.textContent = checked ? "☑" : "☐";
   const run = textEl.parentNode;
@@ -1054,6 +1124,74 @@ function compactAppendixLayout(root) {
   }
 }
 
+function checkboxText(checked) {
+  return checked ? "☑" : "☐";
+}
+
+function setExportClientBlock(rows, data) {
+  const docValue = data.client.type === "company" ? "" : data.client.document;
+  setCellParagraphs(rows[4][0], [
+    { runs: [{ text: "Rodzaj, numer i seria dokumentu tożsamości:", bold: true, underline: true }] },
+    { runs: [{ text: docValue || " " }] },
+  ]);
+  setCellParagraphs(rows[5][0], [
+    {
+      runs: [
+        { text: "Nr. tel.:", bold: true, underline: true },
+        { text: data.client.phone ? ` ${data.client.phone}` : " " },
+      ],
+    },
+    {
+      runs: [
+        { text: "E-mail:", bold: true, underline: true },
+        { text: data.client.email ? ` ${data.client.email}` : " " },
+      ],
+    },
+  ]);
+  setCellParagraphs(rows[6][0], [{ runs: [{ text: " " }] }]);
+}
+
+function setExportSubjectBlock(rows, data) {
+  const subjects = new Set(data.agreement.subjects || []);
+  const purchaseChecked = subjects.has("purchase_by_autogood");
+  const indicatedChecked = data.agreement.client_indicated_vehicle;
+  setCellParagraphs(rows[9][0], [
+    {
+      runs: [
+        { text: checkboxText(purchaseChecked), font: "DejaVu Sans" },
+        { text: ` ${exportSubjectLabels.purchase_by_autogood}` },
+      ],
+    },
+    {
+      runs: [
+        { text: checkboxText(indicatedChecked), font: "DejaVu Sans" },
+        { text: ` ${exportSubjectLabels.client_indicated_vehicle}` },
+      ],
+    },
+  ]);
+}
+
+function setExportCompensationBlock(rows, data) {
+  const cell = rows[14][0];
+  setCellVerticalAlign(cell, "center");
+  setCellParagraphs(cell, [
+    {
+      options: { align: "center" },
+      runs: [{ text: "1. Za usługę wyszukania i zakupu pojazdu:", bold: true, underline: true }],
+    },
+    {
+      options: { align: "center" },
+      runs: [{ text: data.compensation?.commission || exportDefaultCommission }],
+    },
+  ]);
+}
+
+function applyExportContractLayout(rows, data) {
+  setExportClientBlock(rows, data);
+  setExportSubjectBlock(rows, data);
+  setExportCompensationBlock(rows, data);
+}
+
 async function generateDocx() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
   const data = collectData();
@@ -1088,6 +1226,7 @@ async function generateDocx() {
   setParagraphText(paragraph(rows[13][2], 2), data.vehicle.required_equipment);
   setParagraphText(paragraph(rows[15][2], 2), data.vehicle.expected_equipment);
   setDocxCheckboxes(root, data);
+  if (isExportContract) applyExportContractLayout(rows, data);
   compactAppendixLayout(root);
 
   const serialized = new XMLSerializer().serializeToString(xml);
@@ -1298,12 +1437,14 @@ function resetForm() {
   });
   setRadio("clientType", "person");
   setCheckedValues("subject", ["purchase_by_autogood"]);
+  setRadio("commissionOption", exportDefaultCommission);
   $("clientEntrepreneur").checked = false;
   syncClientTypeRules();
   updateDocumentFileName();
   setStatus("");
 }
 
+configureContractVariant();
 $("contractDate").value = todayISO();
 updateDocumentFileName();
 renderContractHistory();

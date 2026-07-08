@@ -316,6 +316,18 @@ textarea {
   margin-top: 12px;
 }
 
+.export-only {
+  display: none;
+}
+
+body.export-contract .export-only {
+  display: block;
+}
+
+body.export-contract .client-identifier-field {
+  display: none;
+}
+
 .field,
 .field-row,
 .checkbox-line,
@@ -424,10 +436,19 @@ input[type="radio"] {
 }
 
 .checkbox-group label,
+.commission-options label,
 .options-block label {
   display: flex;
   gap: 8px;
   align-items: flex-start;
+}
+
+.commission-options {
+  display: grid;
+  gap: 9px;
+  margin: 12px;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .options-block {
