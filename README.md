@@ -104,6 +104,12 @@ Auto1 PDF client cleaner:
 https://belovn1999-rgb.github.io/autogood-kalkulatory/auto1.html
 ```
 
+PartsLink24 VIN check:
+
+```text
+docs/PARTSLINK24_VIN_CHECK.md
+```
+
 ## Uruchomienie
 
 W folderze projektu uruchom:
@@ -147,3 +153,4 @@ Po zmianach uruchom:
 - szablony wiadomosci do klienta z podstawieniem danych z Deal Desk.
 - generator dokumentow roboczych z danych Deal Desk.
 - narzedzie Auto1 do czyszczenia raportow aukcyjnych PDF przed wysylka do klienta.
+- plan i logika testowa PartsLink24 VIN -> PDF.

@@ -1,0 +1,43 @@
+{
+  "languages": ["RU", "PL", "ENG"],
+  "brands": {
+    "BMW": {
+      "route": "general_vin_search",
+      "sampleVin": "WBA31AA0905V40977",
+      "sampleLanguage": "RU",
+      "expectedKeywords": ["partslink24", "BMW"],
+      "expectedTextAny": ["Идентификация автомобиля", "Серийная комплектация", "Спецоборудование"]
+    },
+    "Mercedes-Benz": {
+      "route": "brand_first_search",
+      "brandTile": "Mercedes-Benz",
+      "sampleVin": "WDD2120481A322032",
+      "sampleLanguage": "PL",
+      "expectedKeywords": ["partslink24", "Mercedes-Benz"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "SAA Numbers"]
+    },
+    "Volvo": {
+      "route": "general_vin_search",
+      "sampleVin": "YV1ZZK5V2P2106956",
+      "sampleLanguage": "PL",
+      "expectedKeywords": ["partslink24", "Volvo"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "Informacje techniczne"]
+    },
+    "Peugeot": {
+      "route": "brand_first_search",
+      "brandTile": "Peugeot",
+      "sampleVin": "VF3MCYHZUMS121613",
+      "sampleLanguage": "RU",
+      "expectedKeywords": ["partslink24", "Peugeot"],
+      "expectedTextAny": ["Идентификация автомобиля", "Модель", "Оснащение"],
+      "notes": ["Дата производства не обязательна."]
+    },
+    "Audi": {
+      "route": "general_vin_search",
+      "sampleVin": "WAUZZZ4M3RD016484",
+      "sampleLanguage": "PL",
+      "expectedKeywords": ["partslink24", "Audi"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Data produkcji", "Wyposazenie"]
+    }
+  }
+}

@@ -4,6 +4,8 @@ dist/
 build/
 .env
 .env.*
+!tools/partslink24/.env.example
+output/partslink24/
 contract-pdf-work/__pycache__/
 contract-pdf-work/output/
 contract-pdf-work/examples/
