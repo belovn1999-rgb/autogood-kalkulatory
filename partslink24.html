@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AUTOGOOD PartsLink24 VIN</title>
-    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260708-1" />
+    <title>AUTOGOOD VIN → PDF</title>
+    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260708-2" />
   </head>
   <body>
     <main class="workspaceShell">
       <header class="workspaceHeader">
         <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>PartsLink24</span>
+          <span>VIN → PDF</span>
         </a>
         <nav class="workspaceNav" aria-label="Workspace navigation">
           <a href="./">Tools</a>
@@ -23,40 +23,78 @@
 
       <section class="workspaceHero">
         <p class="eyebrow">04 / Проверка VIN</p>
-        <h1>PartsLink24 VIN → PDF</h1>
-        <p>Ввод VIN, выбор языка и марки для внутренней выгрузки заводской комплектации.</p>
+        <h1>VIN → PDF</h1>
       </section>
 
-      <section class="pipeline" aria-label="PartsLink24 VIN check">
-        <article class="stageCard">
-          <span class="stageIndex">01</span>
-          <h2>Поля проверки</h2>
-          <ul>
-            <li>Язык: RU / PL / ENG</li>
-            <li>Марка авто</li>
-            <li>VIN для проверки</li>
-          </ul>
-        </article>
+      <section class="dealForm" aria-label="VIN PDF form">
+        <div class="dealPanel dealPanelWide">
+          <label>
+            1. Выбор языка: RU / PL / ENG
+            <select id="partslinkLanguage" name="language">
+              <option value="RU">RU</option>
+              <option value="PL">PL</option>
+              <option value="ENG">ENG</option>
+            </select>
+          </label>
 
-        <article class="stageCard">
-          <span class="stageIndex">02</span>
-          <h2>Первые марки</h2>
-          <ul>
-            <li>BMW, Volvo, Audi: общий поиск VIN</li>
-            <li>Mercedes-Benz, Peugeot: сначала плитка марки</li>
-            <li>Peugeot: дата производства не обязательна</li>
-          </ul>
-        </article>
+          <label>
+            2. Выбор Марки авто
+            <select id="partslinkBrand" name="brand"></select>
+          </label>
 
-        <article class="stageCard">
-          <span class="stageIndex">03</span>
-          <h2>Технический план</h2>
-          <p>
-            Логика маршрутизации и критерии проверки PDF сохранены в репозитории.
-          </p>
-          <a class="stageAction" href="./docs/PARTSLINK24_VIN_CHECK.md">Открыть план</a>
-        </article>
+          <label>
+            3. Строка для ввода VIN для проверки и загрузки через партслинк
+            <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
+          </label>
+        </div>
       </section>
     </main>
+    <script>
+      const brandSelect = document.getElementById("partslinkBrand");
+      const vinInput = document.getElementById("partslinkVin");
+      const fallbackBrands = {
+        BMW: { sampleVin: "WBA31AA0905V40977", route: "general_vin_search" },
+        "Mercedes-Benz": { sampleVin: "WDD2120481A322032", route: "brand_first_search" },
+        Volvo: { sampleVin: "YV1ZZK5V2P2106956", route: "general_vin_search" },
+        Peugeot: { sampleVin: "VF3MCYHZUMS121613", route: "brand_first_search" },
+        Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" }
+      };
+      let brandRoutes = fallbackBrands;
+
+      function renderBrands() {
+        brandSelect.innerHTML = "";
+        Object.keys(brandRoutes).forEach((brand) => {
+          const option = document.createElement("option");
+          option.value = brand;
+          option.textContent = brand;
+          brandSelect.append(option);
+        });
+        applyBrandLogic();
+      }
+
+      function applyBrandLogic() {
+        const current = brandRoutes[brandSelect.value];
+        if (!current) return;
+        vinInput.placeholder = current.sampleVin || "";
+        vinInput.dataset.route = current.route || "";
+        if (!vinInput.value) vinInput.value = current.sampleVin || "";
+      }
+
+      vinInput.addEventListener("input", () => {
+        vinInput.value = vinInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 17);
+      });
+      brandSelect.addEventListener("change", () => {
+        vinInput.value = "";
+        applyBrandLogic();
+      });
+
+      fetch("./tools/partslink24/brand-routes.json?v=20260708-2")
+        .then((response) => response.ok ? response.json() : Promise.reject())
+        .then((data) => {
+          brandRoutes = data.brands || fallbackBrands;
+          renderBrands();
+        })
+        .catch(renderBrands);
+    </script>
   </body>
 </html>
