@@ -928,7 +928,7 @@ select {
 }
 
 .finalResultRow {
-  grid-template-columns: minmax(0, 1fr) 196px;
+  grid-template-columns: minmax(0, 1fr) 186px;
   gap: 8px 10px;
 }
 
@@ -938,7 +938,7 @@ select {
 
 .finalRowValue {
   display: grid;
-  grid-template-columns: 104px 72px;
+  grid-template-columns: 84px 72px;
   align-items: center;
   justify-content: start;
   gap: 5px;
