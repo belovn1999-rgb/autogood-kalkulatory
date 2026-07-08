@@ -661,42 +661,48 @@ const finalExtraTemplates = [{
     pl: "30% rabatu dealera",
     ru: "30% скидки дилера"
   },
-  mode: "minus"
+  mode: "off",
+  activeMode: "minus"
 }, {
   key: "detailing",
   label: {
     pl: "Detailing",
     ru: "Дитейлинг"
   },
-  mode: "plus"
+  mode: "off",
+  activeMode: "plus"
 }, {
   key: "painting",
   label: {
     pl: "Lakierowanie",
     ru: "Покраска"
   },
-  mode: "plus"
+  mode: "off",
+  activeMode: "plus"
 }, {
   key: "service",
   label: {
     pl: "Serwis",
     ru: "Сервис"
   },
-  mode: "plus"
+  mode: "off",
+  activeMode: "plus"
 }, {
   key: "registration",
   label: {
     pl: "Rejestracja",
     ru: "Регистрация"
   },
-  mode: "plus"
+  mode: "off",
+  activeMode: "plus"
 }, {
   key: "deposit2",
   label: {
     pl: "Zaliczka 2",
     ru: "Аванс 2"
   },
-  mode: "minus"
+  mode: "off",
+  activeMode: "minus"
 }];
 const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
 function convertFinalAmount(value, fromCurrency, toCurrency, rate) {
@@ -718,11 +724,12 @@ function createFinalItem(template, currency, rate) {
     group: template.group || "fixed",
     amount: finalInputValue(converted, currency),
     mode: template.mode || "plus",
+    activeMode: template.activeMode || template.mode || "plus",
     vat: Boolean(template.vat)
   };
 }
 function initialFinalItems(currency = "PLN", rate = DEFAULT_RATE) {
-  return finalFixedTemplates.map(template => createFinalItem(template, currency, rate));
+  return finalTemplates.map(template => createFinalItem(template, currency, rate));
 }
 function finalLineSignedValue(item) {
   if (item.mode === "off") return 0;
@@ -771,6 +778,7 @@ function normalizeFinalItem(item) {
     ...item,
     label: template?.label || item.label,
     mode: item.mode || template?.mode || "plus",
+    activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
     vat: Boolean(template?.vat || item.vat)
   };
 }
@@ -1063,13 +1071,13 @@ function FinalItemInput({
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: `finalInputRow mode-${item.mode}`
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "finalInputLabel"
-  }, /*#__PURE__*/React.createElement("span", null, item.label[lang]), /*#__PURE__*/React.createElement(FinalModeControl, {
+  }, /*#__PURE__*/React.createElement(FinalModeControl, {
     c: c,
     value: item.mode,
     onChange: onModeChange
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "finalInputLabel"
+  }, /*#__PURE__*/React.createElement("span", null, item.label[lang])), /*#__PURE__*/React.createElement("div", {
     className: "inputWrap"
   }, /*#__PURE__*/React.createElement("input", {
     inputMode: "decimal",
@@ -1078,11 +1086,7 @@ function FinalItemInput({
     onChange: event => onAmountChange(event.target.value),
     placeholder: "0.00",
     disabled: item.mode === "off"
-  }), /*#__PURE__*/React.createElement("b", null, currency)), onRemove && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "finalRemoveBtn",
-    onClick: onRemove
-  }, c.finalRemove));
+  }), /*#__PURE__*/React.createElement("b", null, currency)));
 }
 function FinalBalanceInputs({
   c,
@@ -1095,8 +1099,6 @@ function FinalBalanceInputs({
   onAddExtra,
   onRemoveExtra
 }) {
-  const visibleKeys = new Set(items.map(item => item.key));
-  const hiddenTemplates = finalTemplates.filter(template => !visibleKeys.has(template.key));
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
   }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
@@ -1113,7 +1115,7 @@ function FinalBalanceInputs({
     className: "divider"
   }), /*#__PURE__*/React.createElement("h3", {
     className: "sidebarSubhead"
-  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
+  }, c.finalBalance), /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
   }, items.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
     key: item.key,
@@ -1122,21 +1124,8 @@ function FinalBalanceInputs({
     lang: lang,
     currency: currency,
     onAmountChange: value => onAmountChange(item.key, value),
-    onModeChange: mode => onModeChange(item.key, mode),
-    onRemove: () => onRemoveExtra(item.key)
-  }))), /*#__PURE__*/React.createElement("div", {
-    className: "divider"
-  }), /*#__PURE__*/React.createElement("h3", {
-    className: "sidebarSubhead"
-  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
-    className: "finalExtraButtons"
-  }, hiddenTemplates.map(template => /*#__PURE__*/React.createElement("button", {
-    key: template.key,
-    type: "button",
-    onClick: () => onAddExtra(template)
-  }, c.finalAddExtra, ": ", template.label[lang])), hiddenTemplates.length === 0 && /*#__PURE__*/React.createElement("p", {
-    className: "finalHiddenEmpty"
-  }, lang === "ru" ? "Все позиции видимы." : "Wszystkie pozycje są widoczne.")));
+    onModeChange: mode => onModeChange(item.key, mode)
+  }))));
 }
 function FinalBalanceResults({
   c,
@@ -1620,14 +1609,20 @@ function App() {
   const setFinalMode = (key, mode) => {
     setFinalItems(current => current.map(item => item.key === key ? {
       ...item,
-      mode
+      mode: mode === "plus" || mode === "minus" ? mode : "off"
     } : item));
   };
   const addFinalExtra = template => {
-    setFinalItems(current => current.some(item => item.key === template.key) ? current : [...current, createFinalItem(template, finalCurrency, n(rate) || DEFAULT_RATE)]);
+    setFinalItems(current => current.map(item => item.key === template.key ? {
+      ...item,
+      mode: item.activeMode || "plus"
+    } : item));
   };
   const removeFinalExtra = key => {
-    setFinalItems(current => current.filter(item => item.key !== key));
+    setFinalItems(current => current.map(item => item.key === key ? {
+      ...item,
+      mode: "off"
+    } : item));
   };
   const setManualOverride = (key, value) => {
     setManualOverrides(current => {

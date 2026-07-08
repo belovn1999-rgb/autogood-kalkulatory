@@ -566,12 +566,12 @@ const finalFixedTemplates = [
 ];
 
 const finalExtraTemplates = [
-  { key: "dealerDiscount30", label: { pl: "30% rabatu dealera", ru: "30% скидки дилера" }, mode: "minus" },
-  { key: "detailing", label: { pl: "Detailing", ru: "Дитейлинг" }, mode: "plus" },
-  { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, mode: "plus" },
-  { key: "service", label: { pl: "Serwis", ru: "Сервис" }, mode: "plus" },
-  { key: "registration", label: { pl: "Rejestracja", ru: "Регистрация" }, mode: "plus" },
-  { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2" }, mode: "minus" },
+  { key: "dealerDiscount30", label: { pl: "30% rabatu dealera", ru: "30% скидки дилера" }, mode: "off", activeMode: "minus" },
+  { key: "detailing", label: { pl: "Detailing", ru: "Дитейлинг" }, mode: "off", activeMode: "plus" },
+  { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, mode: "off", activeMode: "plus" },
+  { key: "service", label: { pl: "Serwis", ru: "Сервис" }, mode: "off", activeMode: "plus" },
+  { key: "registration", label: { pl: "Rejestracja", ru: "Регистрация" }, mode: "off", activeMode: "plus" },
+  { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2" }, mode: "off", activeMode: "minus" },
 ];
 const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
 
@@ -598,12 +598,13 @@ function createFinalItem(template, currency, rate) {
     group: template.group || "fixed",
     amount: finalInputValue(converted, currency),
     mode: template.mode || "plus",
+    activeMode: template.activeMode || template.mode || "plus",
     vat: Boolean(template.vat),
   };
 }
 
 function initialFinalItems(currency = "PLN", rate = DEFAULT_RATE) {
-  return finalFixedTemplates.map((template) => createFinalItem(template, currency, rate));
+  return finalTemplates.map((template) => createFinalItem(template, currency, rate));
 }
 
 function finalLineSignedValue(item) {
@@ -659,6 +660,7 @@ function normalizeFinalItem(item) {
     ...item,
     label: template?.label || item.label,
     mode: item.mode || template?.mode || "plus",
+    activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
     vat: Boolean(template?.vat || item.vat),
   };
 }
@@ -926,9 +928,9 @@ function FinalModeControl({ c, value, onChange }) {
 function FinalItemInput({ c, item, lang, currency, onAmountChange, onModeChange, onRemove }) {
   return (
     <div className={`finalInputRow mode-${item.mode}`}>
+      <FinalModeControl c={c} value={item.mode} onChange={onModeChange} />
       <div className="finalInputLabel">
         <span>{item.label[lang]}</span>
-        <FinalModeControl c={c} value={item.mode} onChange={onModeChange} />
       </div>
       <div className="inputWrap">
         <input
@@ -941,11 +943,6 @@ function FinalItemInput({ c, item, lang, currency, onAmountChange, onModeChange,
         />
         <b>{currency}</b>
       </div>
-      {onRemove && (
-        <button type="button" className="finalRemoveBtn" onClick={onRemove}>
-          {c.finalRemove}
-        </button>
-      )}
     </div>
   );
 }
@@ -961,9 +958,6 @@ function FinalBalanceInputs({
   onAddExtra,
   onRemoveExtra,
 }) {
-  const visibleKeys = new Set(items.map((item) => item.key));
-  const hiddenTemplates = finalTemplates.filter((template) => !visibleKeys.has(template.key));
-
   return (
     <>
       <div className="toggleBlock">
@@ -982,7 +976,7 @@ function FinalBalanceInputs({
 
       <div className="divider" />
 
-      <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
+      <h3 className="sidebarSubhead">{c.finalBalance}</h3>
       <div className="finalInputList">
         {items.map((item) => (
           <FinalItemInput
@@ -993,27 +987,8 @@ function FinalBalanceInputs({
             currency={currency}
             onAmountChange={(value) => onAmountChange(item.key, value)}
             onModeChange={(mode) => onModeChange(item.key, mode)}
-            onRemove={() => onRemoveExtra(item.key)}
           />
         ))}
-      </div>
-
-      <div className="divider" />
-
-      <h3 className="sidebarSubhead">{c.finalExtras}</h3>
-      <div className="finalExtraButtons">
-        {hiddenTemplates.map((template) => (
-          <button
-            key={template.key}
-            type="button"
-            onClick={() => onAddExtra(template)}
-          >
-            {c.finalAddExtra}: {template.label[lang]}
-          </button>
-        ))}
-        {hiddenTemplates.length === 0 && (
-          <p className="finalHiddenEmpty">{lang === "ru" ? "Все позиции видимы." : "Wszystkie pozycje są widoczne."}</p>
-        )}
       </div>
     </>
   );
@@ -1545,20 +1520,20 @@ function App() {
 
   const setFinalMode = (key, mode) => {
     setFinalItems((current) => current.map((item) => (
-      item.key === key ? { ...item, mode } : item
+      item.key === key ? { ...item, mode: mode === "plus" || mode === "minus" ? mode : "off" } : item
     )));
   };
 
   const addFinalExtra = (template) => {
-    setFinalItems((current) => (
-      current.some((item) => item.key === template.key)
-        ? current
-        : [...current, createFinalItem(template, finalCurrency, n(rate) || DEFAULT_RATE)]
-    ));
+    setFinalItems((current) => current.map((item) => (
+      item.key === template.key ? { ...item, mode: item.activeMode || "plus" } : item
+    )));
   };
 
   const removeFinalExtra = (key) => {
-    setFinalItems((current) => current.filter((item) => item.key !== key));
+    setFinalItems((current) => current.map((item) => (
+      item.key === key ? { ...item, mode: "off" } : item
+    )));
   };
 
   const setManualOverride = (key, value) => {

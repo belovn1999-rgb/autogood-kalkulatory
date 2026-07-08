@@ -533,7 +533,7 @@ select {
 
 .finalInputList {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .finalExtraList {
@@ -541,22 +541,23 @@ select {
 }
 
 .finalInputRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 10px;
   border: 1px solid #dbe4ee;
   border-radius: 8px;
-  background: #f8fbfd;
+  background: #fff;
   padding: 10px;
 }
 
 .finalInputRow.mode-off {
-  opacity: 0.62;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .finalInputLabel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  min-width: 0;
 }
 
 .finalInputLabel > span {
@@ -567,8 +568,10 @@ select {
 }
 
 .finalModeControl {
+  grid-row: 1 / span 2;
   display: inline-flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: 2px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #fff;
@@ -578,8 +581,8 @@ select {
 .finalModeControl button {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 24px;
   border: 0;
   border-radius: 6px;
   background: transparent;
@@ -606,6 +609,16 @@ select {
 .finalInputRow .inputWrap input:disabled {
   cursor: not-allowed;
   color: #94a3b8;
+  background: #f8fafc;
+}
+
+.finalInputRow.mode-off .inputWrap,
+.finalInputRow.mode-off .inputWrap b {
+  background: #e2e8f0;
+}
+
+.finalInputRow.mode-off .finalInputLabel > span {
+  color: #64748b;
 }
 
 .finalRemoveBtn {
@@ -892,7 +905,8 @@ select {
 }
 
 .finalResultRow {
-  grid-template-columns: 310px 220px;
+  grid-template-columns: minmax(240px, 1fr) 108px 96px;
+  gap: 8px 12px;
 }
 
 .finalResultRow.mode-minus {
@@ -900,9 +914,10 @@ select {
 }
 
 .finalRowValue {
-  display: flex;
+  display: grid;
+  grid-template-columns: 108px 86px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: start;
   gap: 6px;
   min-width: 0;
 }
@@ -911,6 +926,8 @@ select {
   color: #005b82;
   font-size: 18px;
   font-weight: 900;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .finalResultRow.mode-minus .finalRowValue strong {
