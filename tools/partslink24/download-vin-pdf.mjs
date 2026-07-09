@@ -69,9 +69,26 @@ async function login(page, credentials) {
     page.locator("#hidden-login").click()
   ]);
 
+  await confirmExistingSession(page);
+  await waitForLogin(page);
+}
+
+async function confirmExistingSession(page) {
+  const confirmButton = page.getByText(/подтвердить|confirm|potwierdź|potwierdz/i).first();
+  if (!await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) return;
+
+  await Promise.all([
+    page.waitForLoadState("networkidle").catch(() => {}),
+    confirmButton.click()
+  ]);
+}
+
+async function waitForLogin(page) {
   const loginResult = await page.waitForFunction(() => {
     const error = document.querySelector("#loginErrorDiv")?.textContent?.trim();
     if (error) return { ok: false, error };
+    const sessionText = document.body?.textContent || "";
+    if (/завершить сеанс|session and log in|zakończyć sesję/i.test(sessionText)) return false;
     if (!document.querySelector("#login-id")) return { ok: true };
     return false;
   }, null, { timeout: 45000 });
@@ -112,7 +129,9 @@ async function openVehicle(page, brandConfig, vin) {
 }
 
 async function downloadPdf(page, options) {
-  const pdfButton = page.locator('[title*="PDF" i], [aria-label*="PDF" i], text=/PDF/i').first();
+  const pdfButton = page.locator('[title*="PDF" i], [aria-label*="PDF" i]')
+    .or(page.getByText(/PDF/i))
+    .first();
   const pagePromise = page.context().waitForEvent("page").catch(() => null);
   const downloadPromise = page.waitForEvent("download").catch(() => null);
 
