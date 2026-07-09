@@ -69,6 +69,16 @@
       };
       let brandRoutes = fallbackBrands;
 
+      function getPartslinkApiBase() {
+        if (window.PARTSLINK24_API_BASE) {
+          return String(window.PARTSLINK24_API_BASE).replace(/\/$/, "");
+        }
+        if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
+          return "";
+        }
+        return "http://127.0.0.1:4174";
+      }
+
       function renderBrands() {
         brandSelect.innerHTML = "";
         Object.keys(brandRoutes).forEach((brand) => {
@@ -118,7 +128,7 @@
         statusLine.textContent = "Проверяем VIN в PartsLink...";
 
         try {
-          const apiBase = window.PARTSLINK24_API_BASE || "";
+          const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
             method: "POST",
             headers: { "content-type": "application/json" },
@@ -140,7 +150,7 @@
             link.remove();
           }
         } catch (error) {
-          statusLine.textContent = error instanceof Error ? error.message : "Не удалось проверить VIN.";
+          statusLine.textContent = "Сервер проверки VIN недоступен. Запусти start-partslink24.command на Mac и повтори.";
         } finally {
           checkButton.disabled = false;
         }
