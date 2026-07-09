@@ -61,8 +61,8 @@ const copy = {
     finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
     finalBalance: "Finalne rozliczenie",
     finalCurrency: "Waluta rozliczenia",
-    finalFixedCosts: "Widoczne pozycje",
-    finalExtras: "Niewidoczne pozycje",
+    finalFixedCosts: "Aktywne pozycje",
+    finalExtras: "Nieaktywne pozycje",
     finalAddExtra: "Dodaj",
     finalRemove: "Usuń",
     finalModePlus: "Do zapłaty",
@@ -127,8 +127,8 @@ const copy = {
     finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
-    finalFixedCosts: "Видимые позиции",
-    finalExtras: "Скрытые позиции",
+    finalFixedCosts: "Активные позиции",
+    finalExtras: "Неактивные позиции",
     finalAddExtra: "Добавить",
     finalRemove: "Удалить",
     finalModePlus: "К доплате",
@@ -976,38 +976,58 @@ function FinalBalanceInputs({
   onModeChange,
   onOffToggle,
 }) {
+  const activeItems = items.filter((item) => item.mode !== "off");
+  const inactiveItems = items.filter((item) => item.mode === "off");
+
+  const renderItem = (item) => (
+    <FinalItemInput
+      key={item.key}
+      c={c}
+      item={item}
+      lang={lang}
+      currency={currency}
+      onAmountChange={(value) => onAmountChange(item.key, value)}
+      onModeChange={(mode) => onModeChange(item.key, mode)}
+      onOffToggle={() => onOffToggle(item.key)}
+    />
+  );
+
   return (
     <>
-      <div className="toggleBlock">
-        <span>{c.finalCurrency}</span>
-        <div className="segmented full">
-          <button className={currency === "PLN" ? "active" : ""} onClick={() => onCurrencyChange("PLN")}>PLN</button>
-          <button className={currency === "EUR" ? "active" : ""} onClick={() => onCurrencyChange("EUR")}>EUR</button>
+      <div className="finalControlsGrid">
+        <div className="toggleBlock">
+          <span>{c.finalCurrency}</span>
+          <div className="segmented full">
+            <button className={currency === "PLN" ? "active" : ""} onClick={() => onCurrencyChange("PLN")}>PLN</button>
+            <button className={currency === "EUR" ? "active" : ""} onClick={() => onCurrencyChange("EUR")}>EUR</button>
+          </div>
         </div>
-      </div>
 
-      <div className="finalLegend">
-        <span><b>+</b> {c.finalModePlus}</span>
-        <span><b>−</b> {c.finalModeMinus}</span>
-        <span><b>×</b> {c.finalModeOff}</span>
+        <div className="finalLegend">
+          <span><b>+</b> {c.finalModePlus}</span>
+          <span><b>−</b> {c.finalModeMinus}</span>
+          <span><b>×</b> {c.finalModeOff}</span>
+        </div>
       </div>
 
       <div className="divider" />
 
-      <h3 className="sidebarSubhead">{c.finalBalance}</h3>
-      <div className="finalInputList">
-        {items.map((item) => (
-          <FinalItemInput
-            key={item.key}
-            c={c}
-            item={item}
-            lang={lang}
-            currency={currency}
-            onAmountChange={(value) => onAmountChange(item.key, value)}
-            onModeChange={(mode) => onModeChange(item.key, mode)}
-            onOffToggle={() => onOffToggle(item.key)}
-          />
-        ))}
+      <div className="finalColumns">
+        <section className="finalColumn">
+          <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
+          <div className="finalInputList">
+            {activeItems.map(renderItem)}
+          </div>
+        </section>
+
+        <section className="finalColumn">
+          <h3 className="sidebarSubhead">{c.finalExtras}</h3>
+          <div className="finalInputList">
+            {inactiveItems.length ? inactiveItems.map(renderItem) : (
+              <p className="finalHiddenEmpty">{lang === "ru" ? "Нет неактивных позиций." : "Brak nieaktywnych pozycji."}</p>
+            )}
+          </div>
+        </section>
       </div>
     </>
   );
@@ -1793,8 +1813,8 @@ function App() {
         ))}
       </nav>
 
-      <section className="grid">
-        <aside className="card sidebar">
+      <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
+        <aside className={`card sidebar ${isFinalBalance ? "finalSidebar" : ""}`}>
           <h2>{c.inputs}</h2>
 
           {isFinalBalance ? (

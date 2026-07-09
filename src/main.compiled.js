@@ -69,8 +69,8 @@ const copy = {
     finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
     finalBalance: "Finalne rozliczenie",
     finalCurrency: "Waluta rozliczenia",
-    finalFixedCosts: "Widoczne pozycje",
-    finalExtras: "Niewidoczne pozycje",
+    finalFixedCosts: "Aktywne pozycje",
+    finalExtras: "Nieaktywne pozycje",
     finalAddExtra: "Dodaj",
     finalRemove: "Usuń",
     finalModePlus: "Do zapłaty",
@@ -135,8 +135,8 @@ const copy = {
     finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
-    finalFixedCosts: "Видимые позиции",
-    finalExtras: "Скрытые позиции",
+    finalFixedCosts: "Активные позиции",
+    finalExtras: "Неактивные позиции",
     finalAddExtra: "Добавить",
     finalRemove: "Удалить",
     finalModePlus: "К доплате",
@@ -1113,7 +1113,21 @@ function FinalBalanceInputs({
   onModeChange,
   onOffToggle
 }) {
+  const activeItems = items.filter(item => item.mode !== "off");
+  const inactiveItems = items.filter(item => item.mode === "off");
+  const renderItem = item => /*#__PURE__*/React.createElement(FinalItemInput, {
+    key: item.key,
+    c: c,
+    item: item,
+    lang: lang,
+    currency: currency,
+    onAmountChange: value => onAmountChange(item.key, value),
+    onModeChange: mode => onModeChange(item.key, mode),
+    onOffToggle: () => onOffToggle(item.key)
+  });
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "finalControlsGrid"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
   }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
     className: "segmented full"
@@ -1125,22 +1139,25 @@ function FinalBalanceInputs({
     onClick: () => onCurrencyChange("EUR")
   }, "EUR"))), /*#__PURE__*/React.createElement("div", {
     className: "finalLegend"
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "+"), " ", c.finalModePlus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\u2212"), " ", c.finalModeMinus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\xD7"), " ", c.finalModeOff)), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "+"), " ", c.finalModePlus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\u2212"), " ", c.finalModeMinus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\xD7"), " ", c.finalModeOff))), /*#__PURE__*/React.createElement("div", {
     className: "divider"
-  }), /*#__PURE__*/React.createElement("h3", {
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "finalColumns"
+  }, /*#__PURE__*/React.createElement("section", {
+    className: "finalColumn"
+  }, /*#__PURE__*/React.createElement("h3", {
     className: "sidebarSubhead"
-  }, c.finalBalance), /*#__PURE__*/React.createElement("div", {
+  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
-  }, items.map(item => /*#__PURE__*/React.createElement(FinalItemInput, {
-    key: item.key,
-    c: c,
-    item: item,
-    lang: lang,
-    currency: currency,
-    onAmountChange: value => onAmountChange(item.key, value),
-    onModeChange: mode => onModeChange(item.key, mode),
-    onOffToggle: () => onOffToggle(item.key)
-  }))));
+  }, activeItems.map(renderItem))), /*#__PURE__*/React.createElement("section", {
+    className: "finalColumn"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
+    className: "finalInputList"
+  }, inactiveItems.length ? inactiveItems.map(renderItem) : /*#__PURE__*/React.createElement("p", {
+    className: "finalHiddenEmpty"
+  }, lang === "ru" ? "Нет неактивных позиций." : "Brak nieaktywnych pozycji.")))));
 }
 function FinalBalanceResults({
   c,
@@ -1877,9 +1894,9 @@ function App() {
     className: item.id === activeTab ? "active" : "",
     onClick: () => switchTab(item.id)
   }, /*#__PURE__*/React.createElement("span", null, item.id), calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement("section", {
-    className: "grid"
+    className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
-    className: "card sidebar"
+    className: `card sidebar ${isFinalBalance ? "finalSidebar" : ""}`
   }, /*#__PURE__*/React.createElement("h2", null, c.inputs), isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceInputs, {
     c: c,
     lang: safeLang,

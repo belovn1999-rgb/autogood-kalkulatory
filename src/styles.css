@@ -254,8 +254,23 @@ button {
   align-items: start;
 }
 
+.finalGrid {
+  grid-template-columns: minmax(560px, 650px) max-content;
+}
+
+.finalGrid .historyPanel {
+  position: static;
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .card {
   padding: 20px;
+}
+
+.finalSidebar {
+  width: 650px;
+  max-width: 100%;
 }
 
 .results {
@@ -502,6 +517,17 @@ select {
   font-size: 14px;
 }
 
+.finalControlsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.finalControlsGrid .toggleBlock {
+  margin-bottom: 0;
+}
+
 .finalLegend {
   display: grid;
   gap: 6px;
@@ -534,6 +560,17 @@ select {
 .finalInputList {
   display: grid;
   gap: 8px;
+}
+
+.finalColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.finalColumn {
+  min-width: 0;
 }
 
 .finalExtraList {
@@ -1205,11 +1242,25 @@ select {
     grid-template-columns: 310px max-content;
   }
 
+  .finalGrid {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .finalSidebar {
+    width: 100%;
+  }
+
   .historyPanel {
     position: static;
     grid-column: 2;
     width: 690px;
     max-width: 100%;
+  }
+
+  .finalGrid .historyPanel {
+    grid-column: auto;
+    width: 100%;
   }
 
   .historyList {
@@ -1220,6 +1271,11 @@ select {
 @media (max-width: 860px) {
   .grid,
   .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .finalControlsGrid,
+  .finalColumns {
     grid-template-columns: 1fr;
   }
 
