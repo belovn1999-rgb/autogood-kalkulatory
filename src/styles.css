@@ -27,19 +27,27 @@ button {
 }
 
 .printBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 136px;
   border: 0;
   border-radius: 8px;
   background: #005b82;
   color: #fff;
   padding: 12px 18px;
   font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .screenshotBtn {
+  width: 190px;
   background: #102033;
 }
 
 .saveBtn {
+  width: 180px;
   background: #0f766e;
 }
 
@@ -108,7 +116,7 @@ button {
 }
 
 .ratesPanel {
-  min-width: 168px;
+  width: 168px;
   border: 1px solid #dbe4ee;
   border-radius: 10px;
   background: #fff;
@@ -1314,6 +1322,12 @@ select {
 
   .ratesPanel {
     width: min(280px, 100%);
+  }
+
+  .printBtn,
+  .screenshotBtn,
+  .saveBtn {
+    width: min(220px, 100%);
   }
 
   .rateField {
