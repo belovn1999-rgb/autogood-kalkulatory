@@ -651,6 +651,52 @@ a {
   resize: vertical;
 }
 
+.partslinkVinForm {
+  grid-template-columns: minmax(0, 560px);
+}
+
+.partslinkVinForm .dealPanelWide {
+  grid-column: auto;
+}
+
+.partslinkVinPanel {
+  width: min(560px, 100%);
+}
+
+.partslinkActions {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding-top: 2px;
+}
+
+.partslinkActions button {
+  border: 1px solid #005b82;
+  border-radius: 8px;
+  background: #005b82;
+  color: #fff;
+  padding: 11px 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.partslinkActions button:disabled {
+  border-color: #c9d5e1;
+  background: #cbd5e1;
+  color: #64748b;
+  cursor: wait;
+}
+
+.partslinkActions p {
+  min-height: 18px;
+  margin: 0;
+  color: #526173;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .dealFieldsTwo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

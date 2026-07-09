@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD VIN → PDF</title>
-    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260708-2" />
+    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260709-1" />
   </head>
   <body>
     <main class="workspaceShell">
@@ -26,8 +26,8 @@
         <h1>VIN → PDF</h1>
       </section>
 
-      <section class="dealForm" aria-label="VIN PDF form">
-        <div class="dealPanel dealPanelWide">
+      <section class="dealForm partslinkVinForm" aria-label="VIN PDF form">
+        <div class="dealPanel dealPanelWide partslinkVinPanel">
           <label>
             1. Выбор языка: RU / PL / ENG
             <select id="partslinkLanguage" name="language">
@@ -46,12 +46,20 @@
             3. Строка для ввода VIN для проверки и загрузки через партслинк
             <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
           </label>
+
+          <div class="partslinkActions">
+            <button id="partslinkCheckButton" type="button">Проверить VIN</button>
+            <p id="partslinkStatus" role="status" aria-live="polite"></p>
+          </div>
         </div>
       </section>
     </main>
     <script>
+      const languageSelect = document.getElementById("partslinkLanguage");
       const brandSelect = document.getElementById("partslinkBrand");
       const vinInput = document.getElementById("partslinkVin");
+      const checkButton = document.getElementById("partslinkCheckButton");
+      const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
         BMW: { sampleVin: "WBA31AA0905V40977", route: "general_vin_search" },
         "Mercedes-Benz": { sampleVin: "WDD2120481A322032", route: "brand_first_search" },
@@ -77,7 +85,6 @@
         if (!current) return;
         vinInput.placeholder = current.sampleVin || "";
         vinInput.dataset.route = current.route || "";
-        if (!vinInput.value) vinInput.value = current.sampleVin || "";
       }
 
       vinInput.addEventListener("input", () => {
@@ -95,6 +102,49 @@
           renderBrands();
         })
         .catch(renderBrands);
+
+      checkButton.addEventListener("click", async () => {
+        const vin = vinInput.value.trim().toUpperCase();
+        const brand = brandSelect.value;
+        const language = languageSelect.value;
+
+        if (!/^[A-Z0-9]{17}$/.test(vin)) {
+          statusLine.textContent = "VIN должен содержать 17 символов.";
+          vinInput.focus();
+          return;
+        }
+
+        checkButton.disabled = true;
+        statusLine.textContent = "Проверяем VIN в PartsLink...";
+
+        try {
+          const apiBase = window.PARTSLINK24_API_BASE || "";
+          const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ brand, vin, language })
+          });
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok || !result.ok) {
+            throw new Error(result.error || "Сервер проверки VIN недоступен.");
+          }
+
+          statusLine.textContent = "PDF готов.";
+          if (result.downloadUrl) {
+            const link = document.createElement("a");
+            link.href = `${apiBase}${result.downloadUrl}`;
+            link.download = result.fileName || `${vin}.pdf`;
+            document.body.append(link);
+            link.click();
+            link.remove();
+          }
+        } catch (error) {
+          statusLine.textContent = error instanceof Error ? error.message : "Не удалось проверить VIN.";
+        } finally {
+          checkButton.disabled = false;
+        }
+      });
     </script>
   </body>
 </html>
