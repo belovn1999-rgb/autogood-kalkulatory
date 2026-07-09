@@ -68,6 +68,7 @@
         Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" }
       };
       let brandRoutes = fallbackBrands;
+      const defaultPartslinkApiBase = "https://bold-did-today-appreciation.trycloudflare.com";
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -90,7 +91,7 @@
         if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
           return "";
         }
-        return localStorage.getItem("partslink24ApiBase") || "";
+        return localStorage.getItem("partslink24ApiBase") || defaultPartslinkApiBase;
       }
 
       function renderBrands() {
