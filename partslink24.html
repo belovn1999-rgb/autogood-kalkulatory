@@ -69,14 +69,28 @@
       };
       let brandRoutes = fallbackBrands;
 
+      function readApiBaseFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const value = params.get("api") || params.get("backend");
+        if (!value) return "";
+        const normalized = value.trim().replace(/\/$/, "");
+        if (/^https:\/\/[a-z0-9.-]+/i.test(normalized)) {
+          localStorage.setItem("partslink24ApiBase", normalized);
+          return normalized;
+        }
+        return "";
+      }
+
       function getPartslinkApiBase() {
+        const urlApiBase = readApiBaseFromUrl();
+        if (urlApiBase) return urlApiBase;
         if (window.PARTSLINK24_API_BASE) {
           return String(window.PARTSLINK24_API_BASE).replace(/\/$/, "");
         }
         if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
           return "";
         }
-        return "http://127.0.0.1:4174";
+        return localStorage.getItem("partslink24ApiBase") || "";
       }
 
       function renderBrands() {
@@ -150,7 +164,7 @@
             link.remove();
           }
         } catch (error) {
-          statusLine.textContent = "GitHub-страница не может подключиться к Mac. Открой локальную страницу http://127.0.0.1:4174/partslink24.html";
+          statusLine.textContent = "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
         } finally {
           checkButton.disabled = false;
         }
