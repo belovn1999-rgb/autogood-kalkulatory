@@ -57,38 +57,39 @@ try {
 }
 
 async function login(page, credentials) {
-  await page.goto("https://www.partslink24.com/partslink24/user/login.do", { waitUntil: "domcontentloaded" });
-
-  await page.locator('input[name*="company" i], input[name*="customer" i], input[name*="firm" i], input[type="text"]').first()
-    .fill(credentials.companyId);
-  await page.locator('input[name*="user" i], input[name*="login" i], input[type="text"]').nth(1)
-    .fill(credentials.username);
-  await page.locator('input[type="password"]').fill(credentials.password);
-
+  await page.goto("https://www.partslink24.com", { waitUntil: "domcontentloaded" });
   await setLanguage(page, credentials.language);
+
+  await page.locator("#login-id").fill(credentials.companyId);
+  await page.locator("#login-name").fill(credentials.username);
+  await page.locator("#inputPassword").fill(credentials.password);
 
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => {}),
-    page.getByRole("button", { name: /log|login|zaloguj|вход/i }).click()
+    page.locator("#hidden-login").click()
   ]);
 
-  await page.waitForSelector('input:visible', { timeout: 30000 });
+  const loginResult = await page.waitForFunction(() => {
+    const error = document.querySelector("#loginErrorDiv")?.textContent?.trim();
+    if (error) return { ok: false, error };
+    if (!document.querySelector("#login-id")) return { ok: true };
+    return false;
+  }, null, { timeout: 45000 });
+  const result = await loginResult.jsonValue();
+  if (!result.ok) fail(result.error || "PartsLink24 login failed.");
+
+  await page.waitForLoadState("networkidle").catch(() => {});
 }
 
 async function setLanguage(page, language) {
-  const labels = {
-    RU: [/рус/i, /russ/i],
-    PL: [/polski/i, /polish/i],
-    ENG: [/english/i, /engl/i]
-  }[language];
+  const codes = { RU: "ru", PL: "pl" };
+  const code = codes[language];
+  if (!code) return;
 
-  for (const label of labels) {
-    const option = page.getByText(label).first();
-    if (await option.count().catch(() => 0)) {
-      await option.click().catch(() => {});
-      return;
-    }
-  }
+  await page.goto(`https://www.partslink24.com/partslink24/relaunch.do?changeLang=${code}`, {
+    waitUntil: "domcontentloaded"
+  });
+  await page.locator("#login-id").waitFor({ timeout: 30000 });
 }
 
 async function openVehicle(page, brandConfig, vin) {
@@ -99,7 +100,7 @@ async function openVehicle(page, brandConfig, vin) {
     await page.waitForLoadState("networkidle").catch(() => {});
   }
 
-  const search = page.locator('input:visible').first();
+  const search = page.locator('input:visible:not([type="submit"]):not([type="password"])').first();
   await search.fill(vin);
 
   await Promise.all([
