@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,6 +18,8 @@ const brand = readOption(args, "--brand");
 const language = readOption(args, "--language") || process.env.PARTSLINK24_DEFAULT_LANGUAGE || "RU";
 const outDir = resolve(readOption(args, "--out-dir") || join(repoRoot, "output/partslink24"));
 const headless = !args.includes("--headed");
+const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
+const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 350);
 
 if (!vin) fail("Missing --vin.");
 if (!brand) fail("Missing --brand.");
@@ -35,11 +38,16 @@ if (!brandConfig) fail(`Unknown brand: ${brand}`);
 if (!routes.languages.includes(language)) fail(`Unsupported language: ${language}`);
 
 mkdirSync(outDir, { recursive: true });
+mkdirSync(userDataDir, { recursive: true });
 
 const { chromium } = await import("playwright");
-const browser = await chromium.launch({ headless });
-const context = await browser.newContext({ acceptDownloads: true });
-const page = await context.newPage();
+const context = await chromium.launchPersistentContext(userDataDir, {
+  acceptDownloads: true,
+  headless,
+  slowMo,
+  viewport: { width: 1280, height: 720 }
+});
+const page = context.pages()[0] || await context.newPage();
 
 try {
   await login(page, { companyId, username, password, language });
@@ -53,16 +61,24 @@ try {
   process.stderr.write(`${JSON.stringify({ ok: false, brand, vin, language, error: message, screenshotPath }, null, 2)}\n`);
   process.exitCode = 1;
 } finally {
-  await browser.close();
+  await context.close();
 }
 
 async function login(page, credentials) {
   await page.goto("https://www.partslink24.com", { waitUntil: "domcontentloaded" });
+  await humanDelay();
   await setLanguage(page, credentials.language);
 
-  await page.locator("#login-id").fill(credentials.companyId);
-  await page.locator("#login-name").fill(credentials.username);
-  await page.locator("#inputPassword").fill(credentials.password);
+  const loginId = page.locator("#login-id");
+  if (!await loginId.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await page.waitForLoadState("networkidle").catch(() => {});
+    return;
+  }
+
+  await fillHuman(loginId, credentials.companyId);
+  await fillHuman(page.locator("#login-name"), credentials.username);
+  await fillHuman(page.locator("#inputPassword"), credentials.password);
+  await humanDelay();
 
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => {}),
@@ -77,6 +93,7 @@ async function confirmExistingSession(page) {
   const confirmButton = page.getByText(/подтвердить|confirm|potwierdź|potwierdz/i).first();
   if (!await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) return;
 
+  await humanDelay();
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => {}),
     confirmButton.click()
@@ -106,19 +123,22 @@ async function setLanguage(page, language) {
   await page.goto(`https://www.partslink24.com/partslink24/relaunch.do?changeLang=${code}`, {
     waitUntil: "domcontentloaded"
   });
-  await page.locator("#login-id").waitFor({ timeout: 30000 });
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await humanDelay();
 }
 
 async function openVehicle(page, brandConfig, vin) {
   if (brandConfig.route === "brand_first_search") {
-    await page.getByRole("img", { name: new RegExp(brandConfig.brandTile || "", "i") }).click().catch(async () => {
-      await page.getByText(new RegExp(brandConfig.brandTile || "", "i")).click();
+    await clickHuman(page.getByRole("img", { name: new RegExp(brandConfig.brandTile || "", "i") }).first()).catch(async () => {
+      await clickHuman(page.getByText(new RegExp(brandConfig.brandTile || "", "i")).first());
     });
     await page.waitForLoadState("networkidle").catch(() => {});
+    await humanDelay();
   }
 
   const search = page.locator('input:visible:not([type="submit"]):not([type="password"])').first();
-  await search.fill(vin);
+  await fillHuman(search, vin);
+  await humanDelay();
 
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => {}),
@@ -135,7 +155,7 @@ async function downloadPdf(page, options) {
   const pagePromise = page.context().waitForEvent("page").catch(() => null);
   const downloadPromise = page.waitForEvent("download").catch(() => null);
 
-  await pdfButton.click();
+  await clickHuman(pdfButton);
 
   const download = await downloadPromise;
   if (download) {
@@ -165,6 +185,29 @@ function makePdfName({ brand, vin, language }) {
 
 async function readJson(path) {
   return JSON.parse(await import("node:fs").then((fs) => fs.readFileSync(path, "utf8")));
+}
+
+async function fillHuman(locator, value) {
+  await locator.click();
+  await humanDelay(200, 500);
+  await locator.fill("");
+  await locator.pressSequentially(String(value), { delay: randomInt(45, 120) });
+}
+
+async function clickHuman(locator) {
+  await humanDelay();
+  await locator.click();
+  await humanDelay();
+}
+
+async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || 650), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || 1600)) {
+  await new Promise((resolveDelay) => setTimeout(resolveDelay, randomInt(min, max)));
+}
+
+function randomInt(min, max) {
+  const low = Math.max(0, Math.floor(min));
+  const high = Math.max(low, Math.floor(max));
+  return low + Math.floor(Math.random() * (high - low + 1));
 }
 
 function readOption(values, name) {

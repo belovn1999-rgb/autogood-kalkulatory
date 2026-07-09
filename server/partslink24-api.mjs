@@ -11,6 +11,9 @@ loadLocalEnv(join(repoRoot, "tools/partslink24/.env"));
 const routes = JSON.parse(readFileSync(routesPath, "utf8"));
 const outputDir = resolve(repoRoot, "output/partslink24");
 const port = Number(process.env.PORT || 4174);
+const minRunGapMs = Number(process.env.PARTSLINK24_MIN_RUN_GAP_MS || 7000);
+let partslinkQueue = Promise.resolve();
+let lastRunFinishedAt = 0;
 
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -60,7 +63,7 @@ async function handleVinCheck(request, response) {
     });
   }
 
-  const result = await runPartslinkScript({ brand, language, vin });
+  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin }));
   if (!result.ok) return sendJson(response, 500, result);
 
   const fileName = basename(result.pdfPath || "");
@@ -72,6 +75,22 @@ async function handleVinCheck(request, response) {
     fileName,
     downloadUrl: `/api/partslink24/pdf/${encodeURIComponent(fileName)}`
   });
+}
+
+function enqueuePartslinkRun(run) {
+  const queued = partslinkQueue.then(async () => {
+    const elapsed = Date.now() - lastRunFinishedAt;
+    if (lastRunFinishedAt && elapsed < minRunGapMs) {
+      await delay(minRunGapMs - elapsed);
+    }
+    try {
+      return await run();
+    } finally {
+      lastRunFinishedAt = Date.now();
+    }
+  });
+  partslinkQueue = queued.catch(() => {});
+  return queued;
 }
 
 function runPartslinkScript({ brand, language, vin }) {
@@ -108,6 +127,10 @@ function runPartslinkScript({ brand, language, vin }) {
       resolveRun({ ok: false, error: errorMessage(error) });
     });
   });
+}
+
+function delay(ms) {
+  return new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 }
 
 function sendPdf(request, response) {
