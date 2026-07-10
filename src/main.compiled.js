@@ -79,6 +79,11 @@ const copy = {
     finalDue: "Pozostało do dopłaty",
     finalOverpaid: "Nadpłata / do zwrotu",
     finalRateLine: "Kurs EUR/PLN",
+    finalCustomTitle: "Dodaj własny koszt",
+    finalCustomPlaceholder: "Nazwa kosztu",
+    finalCustomAdd: "Dodaj koszt",
+    finalCustomDelete: "Usuń pozycję",
+    finalVatToggle: "Dodaj VAT 23%",
     mobileImportTitle: "Link Mobile.de",
     mobileImportPlaceholder: "Wklej link ogłoszenia",
     mobileImportButton: "Załaduj dane",
@@ -145,6 +150,11 @@ const copy = {
     finalDue: "Осталось доплатить",
     finalOverpaid: "Переплата / к возврату",
     finalRateLine: "Курс EUR/PLN",
+    finalCustomTitle: "Добавить свой расход",
+    finalCustomPlaceholder: "Название расхода",
+    finalCustomAdd: "Добавить расход",
+    finalCustomDelete: "Удалить позицию",
+    finalVatToggle: "Добавить НДС 23%",
     mobileImportTitle: "Ссылка Mobile.de",
     mobileImportPlaceholder: "Вставь ссылку объявления",
     mobileImportButton: "Загрузить данные",
@@ -754,11 +764,15 @@ function finalLineSignedValue(item) {
   if (!amount) return 0;
   return item.mode === "minus" ? -amount : amount;
 }
+function finalLineVatValue(item) {
+  if (item.mode !== "plus" || !item.vatAdded) return 0;
+  return n(item.amount) * VAT;
+}
 function calculateFinalBalance(items) {
   const active = items.filter(item => item.mode !== "off");
   const positive = active.reduce((sum, item) => {
     const value = finalLineSignedValue(item);
-    return value > 0 ? sum + value : sum;
+    return value > 0 ? sum + value + finalLineVatValue(item) : sum;
   }, 0);
   const negative = active.reduce((sum, item) => {
     const value = finalLineSignedValue(item);
@@ -784,12 +798,12 @@ function finalHistorySignature(item) {
 function finalSignedAmountLabel(item, currency) {
   const value = Math.abs(n(item.amount));
   const sign = item.mode === "minus" ? "−" : "+";
-  return `${sign} ${money(value, currency)}`;
+  return `${sign} ${moneyExact(value, currency)}`;
 }
 function oppositeCurrencyAmount(value, currency, rate) {
   const safeRate = n(rate) || DEFAULT_RATE;
-  if (currency === "EUR") return money(Math.abs(value) * safeRate, "PLN");
-  return money(Math.abs(value) / safeRate, "EUR");
+  if (currency === "EUR") return moneyExact(Math.abs(value) * safeRate, "PLN");
+  return moneyExact(Math.abs(value) / safeRate, "EUR");
 }
 function finalTemplateForKey(key) {
   return finalTemplates.find(template => template.key === key);
@@ -801,7 +815,26 @@ function normalizeFinalItem(item) {
     label: template?.label || item.label,
     mode: item.mode || template?.mode || "plus",
     activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
-    vat: Boolean(template?.vat || item.vat)
+    vat: Boolean(template?.vat || item.vat),
+    vatAdded: Boolean(item.vatAdded)
+  };
+}
+function customFinalItem(label, currency) {
+  const safeLabel = String(label || "").trim();
+  return {
+    key: `custom-${Date.now()}-${Math.round(Math.random() * 100000)}`,
+    label: {
+      pl: safeLabel,
+      ru: safeLabel
+    },
+    group: "custom",
+    amount: "",
+    mode: "plus",
+    activeMode: "plus",
+    vat: false,
+    vatAdded: false,
+    isCustom: true,
+    currency
   };
 }
 function NumInput({
@@ -1096,14 +1129,22 @@ function FinalItemInput({
   currency,
   onAmountChange,
   onModeChange,
-  onOffToggle
+  onOffToggle,
+  onDelete
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: `finalInputRow mode-${item.mode}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "finalRowActions"
   }, /*#__PURE__*/React.createElement(FinalOffButton, {
     item: item,
     onToggle: onOffToggle
-  }), /*#__PURE__*/React.createElement("div", {
+  }), item.isCustom && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "finalCustomDeleteBtn",
+    onClick: onDelete,
+    title: c.finalCustomDelete
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
     className: "finalInputLabel"
   }, /*#__PURE__*/React.createElement("span", null, item.label[lang]), /*#__PURE__*/React.createElement(FinalModeControl, {
     c: c,
@@ -1125,12 +1166,14 @@ function FinalBalanceInputs({
   lang,
   currency,
   items,
+  customName,
+  onCustomNameChange,
+  onAddCustom,
   onAmountChange,
   onModeChange,
-  onOffToggle
+  onOffToggle,
+  onDeleteCustom
 }) {
-  const activeItems = items.filter(item => item.mode !== "off");
-  const inactiveItems = items.filter(item => item.mode === "off");
   const renderItem = item => /*#__PURE__*/React.createElement(FinalItemInput, {
     key: item.key,
     c: c,
@@ -1139,25 +1182,27 @@ function FinalBalanceInputs({
     currency: currency,
     onAmountChange: value => onAmountChange(item.key, value),
     onModeChange: mode => onModeChange(item.key, mode),
-    onOffToggle: () => onOffToggle(item.key)
+    onOffToggle: () => onOffToggle(item.key),
+    onDelete: item.isCustom ? () => onDeleteCustom(item.key) : undefined
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "finalColumns"
-  }, /*#__PURE__*/React.createElement("section", {
-    className: "finalColumn"
+    className: "finalInputList"
+  }, items.map(renderItem)), /*#__PURE__*/React.createElement("div", {
+    className: "finalCustomAdd"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "sidebarSubhead"
-  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
-    className: "finalInputList"
-  }, activeItems.map(renderItem))), /*#__PURE__*/React.createElement("section", {
-    className: "finalColumn"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "sidebarSubhead"
-  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
-    className: "finalInputList"
-  }, inactiveItems.length ? inactiveItems.map(renderItem) : /*#__PURE__*/React.createElement("p", {
-    className: "finalHiddenEmpty"
-  }, lang === "ru" ? "Нет неактивных позиций." : "Brak nieaktywnych pozycji.")))));
+  }, c.finalCustomTitle), /*#__PURE__*/React.createElement("div", {
+    className: "finalCustomControl"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: customName,
+    onChange: event => onCustomNameChange(event.target.value),
+    placeholder: c.finalCustomPlaceholder
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onAddCustom,
+    disabled: !String(customName).trim()
+  }, c.finalCustomAdd))));
 }
 function FinalCurrencyControl({
   c,
@@ -1182,7 +1227,8 @@ function FinalBalanceResults({
   currency,
   rate,
   calc,
-  onCurrencyChange
+  onCurrencyChange,
+  onToggleVat
 }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
@@ -1200,6 +1246,8 @@ function FinalBalanceResults({
     className: "rows finalRows"
   }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
     key: item.key,
+    className: "finalResultLine"
+  }, /*#__PURE__*/React.createElement("div", {
     className: `resultRow finalResultRow mode-${item.mode}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "rowText"
@@ -1209,7 +1257,12 @@ function FinalBalanceResults({
     className: "rowValue finalRowValue"
   }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)), /*#__PURE__*/React.createElement("span", {
     className: "finalVatSlot"
-  }, item.vat && tagLabel("+VAT 23%")))))), /*#__PURE__*/React.createElement("div", {
+  }, item.vatAdded && tagLabel("+VAT 23%")))), item.mode === "plus" && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `finalVatToggle ${item.vatAdded ? "active" : ""}`,
+    onClick: () => onToggleVat(item.key),
+    title: c.finalVatToggle
+  }, item.vatAdded ? "−" : "+")))), /*#__PURE__*/React.createElement("div", {
     className: `totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "totalMarker",
@@ -1218,7 +1271,7 @@ function FinalBalanceResults({
     className: "totalLabel"
   }, /*#__PURE__*/React.createElement("span", null, totalLabel)), /*#__PURE__*/React.createElement("div", {
     className: "totalValue"
-  }, /*#__PURE__*/React.createElement("strong", null, money(Math.abs(calc.total), currency)), /*#__PURE__*/React.createElement("em", null, "(", oppositeCurrencyAmount(calc.total, currency, rate), ")")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, moneyExact(Math.abs(calc.total), currency)), /*#__PURE__*/React.createElement("em", null, "(", oppositeCurrencyAmount(calc.total, currency, rate), ")")), /*#__PURE__*/React.createElement("div", {
     className: "totalRate"
   }, c.finalRateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")));
 }
@@ -1492,7 +1545,7 @@ function printFinalBalance({
   const rowsHtml = rows.map(item => `
       <tr class="${item.mode === "minus" ? "minusRow" : ""}">
         <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vat ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vatAdded ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
       </tr>`).join("");
   const html = `
 <!doctype html>
@@ -1533,7 +1586,7 @@ function printFinalBalance({
     <table>${rowsHtml}</table>
     <div class="total ${totalIsNegative ? "overpaid" : ""}">
       <div class="totalLabel">${totalIsNegative ? c.finalOverpaid : c.finalDue}</div>
-      <div><b>${money(Math.abs(total), currency)}</b></div>
+      <div><b>${moneyExact(Math.abs(total), currency)}</b></div>
       <div class="totalRate">${c.finalRateLine}: ${calculationRateLabel(rate)} PLN</div>
     </div>
     <div class="footerMark">AG</div>
@@ -1585,6 +1638,7 @@ function App() {
   const [finalHistory, setFinalHistory] = useState(() => readHistory(FINAL_HISTORY_KEY));
   const [finalCurrency, setFinalCurrency] = useState("PLN");
   const [finalItems, setFinalItems] = useState(() => initialFinalItems("PLN", DEFAULT_RATE));
+  const [finalCustomName, setFinalCustomName] = useState("");
   const [manualOverrides, setManualOverrides] = useState({});
   const [editingOverride, setEditingOverride] = useState("");
   const resultsRef = useRef(null);
@@ -1666,7 +1720,8 @@ function App() {
     setFinalItems(current => current.map(item => item.key === key ? {
       ...item,
       mode,
-      activeMode: mode
+      activeMode: mode,
+      vatAdded: mode === "plus" ? item.vatAdded : false
     } : item));
   };
   const toggleFinalOff = key => {
@@ -1674,6 +1729,21 @@ function App() {
       ...item,
       mode: item.mode === "off" ? item.activeMode || "plus" : "off"
     } : item));
+  };
+  const toggleFinalVat = key => {
+    setFinalItems(current => current.map(item => item.key === key && item.mode === "plus" ? {
+      ...item,
+      vatAdded: !item.vatAdded
+    } : item));
+  };
+  const addCustomFinalItem = () => {
+    const label = finalCustomName.trim();
+    if (!label) return;
+    setFinalItems(current => [customFinalItem(label, finalCurrency), ...current]);
+    setFinalCustomName("");
+  };
+  const deleteCustomFinalItem = key => {
+    setFinalItems(current => current.filter(item => item.key !== key || !item.isCustom));
   };
   const setManualOverride = (key, value) => {
     setManualOverrides(current => {
@@ -1710,7 +1780,7 @@ function App() {
         lang: safeLang,
         finalCurrency,
         rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
-        items: finalItems.filter(line => line.mode !== "off" || n(line.amount) > 0),
+        items: finalItems,
         total: finalCalc.total,
         title: c.finalBalance
       };
@@ -1924,9 +1994,13 @@ function App() {
     lang: safeLang,
     currency: finalCurrency,
     items: finalItems,
+    customName: finalCustomName,
+    onCustomNameChange: setFinalCustomName,
+    onAddCustom: addCustomFinalItem,
     onAmountChange: setFinalAmount,
     onModeChange: setFinalMode,
-    onOffToggle: toggleFinalOff
+    onOffToggle: toggleFinalOff,
+    onDeleteCustom: deleteCustomFinalItem
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
     c: c,
     url: mobileDeUrl,
@@ -1978,7 +2052,7 @@ function App() {
     onChange: value => setField(field.key, value),
     suffix: field.currency
   })))), /*#__PURE__*/React.createElement("section", {
-    className: "card results",
+    className: `card results ${isFinalBalance ? "finalResults" : ""}`,
     ref: resultsRef
   }, isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceResults, {
     c: c,
@@ -1986,7 +2060,8 @@ function App() {
     currency: finalCurrency,
     rate: n(rate) || DEFAULT_RATE,
     calc: finalCalc,
-    onCurrencyChange: switchFinalCurrency
+    onCurrencyChange: switchFinalCurrency,
+    onToggleVat: toggleFinalVat
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",

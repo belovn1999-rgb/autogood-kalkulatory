@@ -289,6 +289,10 @@ button {
   max-width: 100%;
 }
 
+.finalResults {
+  overflow: visible;
+}
+
 .results::before {
   content: "";
   position: absolute;
@@ -532,7 +536,7 @@ select {
 
 .finalColumns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
@@ -574,6 +578,14 @@ select {
   border-radius: 8px;
   background: #fff;
   padding: 10px;
+}
+
+.finalRowActions {
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  align-self: stretch;
 }
 
 .finalInputRow.mode-off {
@@ -619,7 +631,6 @@ select {
 }
 
 .finalOffButton {
-  grid-row: 1 / span 2;
   display: grid;
   place-items: center;
   width: 30px;
@@ -630,6 +641,20 @@ select {
   background: #fff;
   color: #64748b;
   font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.finalCustomDeleteBtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
 }
@@ -667,6 +692,42 @@ select {
 
 .finalInputRow.mode-off .finalInputLabel > span {
   color: #64748b;
+}
+
+.finalCustomAdd {
+  margin-top: 16px;
+  border-top: 1px solid #dbe4ee;
+  padding-top: 14px;
+}
+
+.finalCustomControl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.finalCustomControl input {
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: #102033;
+  outline: none;
+}
+
+.finalCustomControl button {
+  border: 0;
+  border-radius: 8px;
+  background: #005b82;
+  color: #fff;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.finalCustomControl button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .finalRemoveBtn {
@@ -950,6 +1011,13 @@ select {
 
 .finalRows {
   margin-top: 12px;
+  overflow: visible;
+}
+
+.finalResultLine {
+  position: relative;
+  width: 650px;
+  max-width: 100%;
 }
 
 .finalResultRow {
@@ -959,6 +1027,31 @@ select {
 
 .finalResultRow.mode-minus {
   background: #f8fbfd;
+}
+
+.finalVatToggle {
+  position: absolute;
+  top: 50%;
+  right: -42px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #005b82;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translateY(-50%);
+  box-shadow: 0 8px 18px rgba(15, 35, 52, 0.12);
+}
+
+.finalVatToggle.active {
+  color: #0f766e;
+  border-color: #99f6e4;
+  background: #f0fdfa;
 }
 
 .finalRowValue {
@@ -1233,10 +1326,19 @@ select {
   .finalGrid {
     grid-template-columns: 1fr;
     width: 100%;
+    max-width: 100%;
+  }
+
+  .grid.finalGrid {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    max-width: 100%;
   }
 
   .finalSidebar {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .historyPanel {
@@ -1263,6 +1365,10 @@ select {
   }
 
   .finalColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .finalCustomControl {
     grid-template-columns: 1fr;
   }
 
@@ -1330,6 +1436,13 @@ select {
 
   .finalResultRow {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .finalVatToggle {
+    position: static;
+    justify-self: end;
+    margin-top: 6px;
+    transform: none;
   }
 
   .rowValue {
