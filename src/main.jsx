@@ -1020,6 +1020,9 @@ function FinalBalanceInputs({
   onOffToggle,
   onDeleteCustom,
 }) {
+  const activeItems = items.filter((item) => item.mode !== "off");
+  const inactiveItems = items.filter((item) => item.mode === "off");
+
   const renderItem = (item) => (
     <FinalItemInput
       key={item.key}
@@ -1036,8 +1039,19 @@ function FinalBalanceInputs({
 
   return (
     <>
-      <div className="finalInputList">
-        {items.map(renderItem)}
+      <div className="finalColumns">
+        <div className="finalColumn">
+          <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
+          <div className="finalInputList">
+            {activeItems.map(renderItem)}
+          </div>
+        </div>
+        <div className="finalColumn">
+          <h3 className="sidebarSubhead">{c.finalExtras}</h3>
+          <div className="finalInputList">
+            {inactiveItems.map(renderItem)}
+          </div>
+        </div>
       </div>
 
       <div className="finalCustomAdd">

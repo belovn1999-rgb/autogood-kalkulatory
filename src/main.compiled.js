@@ -1174,6 +1174,8 @@ function FinalBalanceInputs({
   onOffToggle,
   onDeleteCustom
 }) {
+  const activeItems = items.filter(item => item.mode !== "off");
+  const inactiveItems = items.filter(item => item.mode === "off");
   const renderItem = item => /*#__PURE__*/React.createElement(FinalItemInput, {
     key: item.key,
     c: c,
@@ -1186,8 +1188,20 @@ function FinalBalanceInputs({
     onDelete: item.isCustom ? () => onDeleteCustom(item.key) : undefined
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "finalColumns"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "finalColumn"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
-  }, items.map(renderItem)), /*#__PURE__*/React.createElement("div", {
+  }, activeItems.map(renderItem))), /*#__PURE__*/React.createElement("div", {
+    className: "finalColumn"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "sidebarSubhead"
+  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
+    className: "finalInputList"
+  }, inactiveItems.map(renderItem)))), /*#__PURE__*/React.createElement("div", {
     className: "finalCustomAdd"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "sidebarSubhead"
