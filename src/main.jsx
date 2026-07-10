@@ -576,14 +576,14 @@ const finalFixedTemplates = [
 ];
 
 const finalExtraTemplates = [
-  { key: "dealerDiscount30", label: { pl: "30% rabatu dealera", ru: "30% скидки дилера" }, mode: "off", activeMode: "minus" },
-  { key: "germanCompanyCommission", label: { pl: "Prowizja firmy niemieckiej", ru: "Комиссия немецкой фирмы" }, mode: "off", activeMode: "plus" },
-  { key: "inspection2", label: { pl: "Oględziny x2", ru: "Осмотр x2" }, mode: "off", activeMode: "plus", vat: true },
-  { key: "detailing", label: { pl: "Detailing", ru: "Дитейлинг" }, mode: "off", activeMode: "plus" },
-  { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, mode: "off", activeMode: "plus" },
-  { key: "service", label: { pl: "Serwis", ru: "Сервис" }, mode: "off", activeMode: "plus" },
-  { key: "registration", label: { pl: "Rejestracja", ru: "Регистрация" }, mode: "off", activeMode: "plus" },
-  { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2" }, mode: "off", activeMode: "minus" },
+  { key: "dealerDiscount30", label: { pl: "30% rabatu dealera", ru: "30% скидки дилера" }, group: "extra", mode: "off", activeMode: "minus" },
+  { key: "germanCompanyCommission", label: { pl: "Prowizja firmy niemieckiej", ru: "Комиссия немецкой фирмы" }, group: "extra", mode: "off", activeMode: "plus" },
+  { key: "inspection2", label: { pl: "Oględziny x2", ru: "Осмотр x2" }, group: "extra", mode: "off", activeMode: "plus", vat: true },
+  { key: "detailing", label: { pl: "Detailing", ru: "Дитейлинг" }, group: "extra", mode: "off", activeMode: "plus" },
+  { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, group: "extra", mode: "off", activeMode: "plus" },
+  { key: "service", label: { pl: "Serwis", ru: "Сервис" }, group: "extra", mode: "off", activeMode: "plus" },
+  { key: "registration", label: { pl: "Rejestracja", ru: "Регистрация" }, group: "extra", mode: "off", activeMode: "plus" },
+  { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2" }, group: "extra", mode: "off", activeMode: "minus" },
 ];
 const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
 
@@ -682,6 +682,7 @@ function normalizeFinalItem(item) {
   return {
     ...item,
     label: template?.label || item.label,
+    group: template?.group || item.group || "fixed",
     mode: item.mode || template?.mode || "plus",
     activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
     vat: Boolean(template?.vat || item.vat),
@@ -1020,8 +1021,8 @@ function FinalBalanceInputs({
   onOffToggle,
   onDeleteCustom,
 }) {
-  const activeItems = items.filter((item) => item.mode !== "off");
-  const inactiveItems = items.filter((item) => item.mode === "off");
+  const leftItems = items.filter((item) => item.group !== "extra");
+  const rightItems = items.filter((item) => item.group === "extra");
 
   const renderItem = (item) => (
     <FinalItemInput
@@ -1041,15 +1042,13 @@ function FinalBalanceInputs({
     <>
       <div className="finalColumns">
         <div className="finalColumn">
-          <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
           <div className="finalInputList">
-            {activeItems.map(renderItem)}
+            {leftItems.map(renderItem)}
           </div>
         </div>
         <div className="finalColumn">
-          <h3 className="sidebarSubhead">{c.finalExtras}</h3>
           <div className="finalInputList">
-            {inactiveItems.map(renderItem)}
+            {rightItems.map(renderItem)}
           </div>
         </div>
       </div>

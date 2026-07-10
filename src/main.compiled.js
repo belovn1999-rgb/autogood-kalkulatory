@@ -671,6 +671,7 @@ const finalExtraTemplates = [{
     pl: "30% rabatu dealera",
     ru: "30% скидки дилера"
   },
+  group: "extra",
   mode: "off",
   activeMode: "minus"
 }, {
@@ -679,6 +680,7 @@ const finalExtraTemplates = [{
     pl: "Prowizja firmy niemieckiej",
     ru: "Комиссия немецкой фирмы"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus"
 }, {
@@ -687,6 +689,7 @@ const finalExtraTemplates = [{
     pl: "Oględziny x2",
     ru: "Осмотр x2"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus",
   vat: true
@@ -696,6 +699,7 @@ const finalExtraTemplates = [{
     pl: "Detailing",
     ru: "Дитейлинг"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus"
 }, {
@@ -704,6 +708,7 @@ const finalExtraTemplates = [{
     pl: "Lakierowanie",
     ru: "Покраска"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus"
 }, {
@@ -712,6 +717,7 @@ const finalExtraTemplates = [{
     pl: "Serwis",
     ru: "Сервис"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus"
 }, {
@@ -720,6 +726,7 @@ const finalExtraTemplates = [{
     pl: "Rejestracja",
     ru: "Регистрация"
   },
+  group: "extra",
   mode: "off",
   activeMode: "plus"
 }, {
@@ -728,6 +735,7 @@ const finalExtraTemplates = [{
     pl: "Zaliczka 2",
     ru: "Аванс 2"
   },
+  group: "extra",
   mode: "off",
   activeMode: "minus"
 }];
@@ -813,6 +821,7 @@ function normalizeFinalItem(item) {
   return {
     ...item,
     label: template?.label || item.label,
+    group: template?.group || item.group || "fixed",
     mode: item.mode || template?.mode || "plus",
     activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
     vat: Boolean(template?.vat || item.vat),
@@ -1174,8 +1183,8 @@ function FinalBalanceInputs({
   onOffToggle,
   onDeleteCustom
 }) {
-  const activeItems = items.filter(item => item.mode !== "off");
-  const inactiveItems = items.filter(item => item.mode === "off");
+  const leftItems = items.filter(item => item.group !== "extra");
+  const rightItems = items.filter(item => item.group === "extra");
   const renderItem = item => /*#__PURE__*/React.createElement(FinalItemInput, {
     key: item.key,
     c: c,
@@ -1191,17 +1200,13 @@ function FinalBalanceInputs({
     className: "finalColumns"
   }, /*#__PURE__*/React.createElement("div", {
     className: "finalColumn"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "sidebarSubhead"
-  }, c.finalFixedCosts), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
-  }, activeItems.map(renderItem))), /*#__PURE__*/React.createElement("div", {
+  }, leftItems.map(renderItem))), /*#__PURE__*/React.createElement("div", {
     className: "finalColumn"
-  }, /*#__PURE__*/React.createElement("h3", {
-    className: "sidebarSubhead"
-  }, c.finalExtras), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     className: "finalInputList"
-  }, inactiveItems.map(renderItem)))), /*#__PURE__*/React.createElement("div", {
+  }, rightItems.map(renderItem)))), /*#__PURE__*/React.createElement("div", {
     className: "finalCustomAdd"
   }, /*#__PURE__*/React.createElement("h3", {
     className: "sidebarSubhead"
