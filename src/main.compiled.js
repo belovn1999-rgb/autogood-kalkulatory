@@ -664,6 +664,23 @@ const finalExtraTemplates = [{
   mode: "off",
   activeMode: "minus"
 }, {
+  key: "germanCompanyCommission",
+  label: {
+    pl: "Prowizja firmy niemieckiej",
+    ru: "Комиссия немецкой фирмы"
+  },
+  mode: "off",
+  activeMode: "plus"
+}, {
+  key: "inspection2",
+  label: {
+    pl: "Oględziny x2",
+    ru: "Осмотр x2"
+  },
+  mode: "off",
+  activeMode: "plus",
+  vat: true
+}, {
   key: "detailing",
   label: {
     pl: "Detailing",

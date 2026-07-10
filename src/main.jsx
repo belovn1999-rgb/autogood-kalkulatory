@@ -567,6 +567,8 @@ const finalFixedTemplates = [
 
 const finalExtraTemplates = [
   { key: "dealerDiscount30", label: { pl: "30% rabatu dealera", ru: "30% скидки дилера" }, mode: "off", activeMode: "minus" },
+  { key: "germanCompanyCommission", label: { pl: "Prowizja firmy niemieckiej", ru: "Комиссия немецкой фирмы" }, mode: "off", activeMode: "plus" },
+  { key: "inspection2", label: { pl: "Oględziny x2", ru: "Осмотр x2" }, mode: "off", activeMode: "plus", vat: true },
   { key: "detailing", label: { pl: "Detailing", ru: "Дитейлинг" }, mode: "off", activeMode: "plus" },
   { key: "painting", label: { pl: "Lakierowanie", ru: "Покраска" }, mode: "off", activeMode: "plus" },
   { key: "service", label: { pl: "Serwis", ru: "Сервис" }, mode: "off", activeMode: "plus" },
