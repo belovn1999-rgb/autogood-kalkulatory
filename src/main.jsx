@@ -971,7 +971,6 @@ function FinalBalanceInputs({
   lang,
   currency,
   items,
-  onCurrencyChange,
   onAmountChange,
   onModeChange,
   onOffToggle,
@@ -994,24 +993,6 @@ function FinalBalanceInputs({
 
   return (
     <>
-      <div className="finalControlsGrid">
-        <div className="toggleBlock">
-          <span>{c.finalCurrency}</span>
-          <div className="segmented full">
-            <button className={currency === "PLN" ? "active" : ""} onClick={() => onCurrencyChange("PLN")}>PLN</button>
-            <button className={currency === "EUR" ? "active" : ""} onClick={() => onCurrencyChange("EUR")}>EUR</button>
-          </div>
-        </div>
-
-        <div className="finalLegend">
-          <span><b>+</b> {c.finalModePlus}</span>
-          <span><b>−</b> {c.finalModeMinus}</span>
-          <span><b>×</b> {c.finalModeOff}</span>
-        </div>
-      </div>
-
-      <div className="divider" />
-
       <div className="finalColumns">
         <section className="finalColumn">
           <h3 className="sidebarSubhead">{c.finalFixedCosts}</h3>
@@ -1033,13 +1014,27 @@ function FinalBalanceInputs({
   );
 }
 
-function FinalBalanceResults({ c, lang, currency, rate, calc }) {
+function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
+  return (
+    <div className="finalResultCurrency">
+      <span>{c.finalCurrency}</span>
+      <div className="segmented full">
+        <button className={currency === "PLN" ? "active" : ""} onClick={() => onCurrencyChange("PLN")}>PLN</button>
+        <button className={currency === "EUR" ? "active" : ""} onClick={() => onCurrencyChange("EUR")}>EUR</button>
+      </div>
+    </div>
+  );
+}
+
+function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
 
   return (
     <>
       <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
+
+      <FinalCurrencyControl c={c} currency={currency} onCurrencyChange={onCurrencyChange} />
 
       <div className="resultsTitle">
         <h2><MoneyIcon />{c.finalBalance}</h2>
@@ -1823,7 +1818,6 @@ function App() {
               lang={safeLang}
               currency={finalCurrency}
               items={finalItems}
-              onCurrencyChange={switchFinalCurrency}
               onAmountChange={setFinalAmount}
               onModeChange={setFinalMode}
               onOffToggle={toggleFinalOff}
@@ -1906,6 +1900,7 @@ function App() {
               currency={finalCurrency}
               rate={n(rate) || DEFAULT_RATE}
               calc={finalCalc}
+              onCurrencyChange={switchFinalCurrency}
             />
           ) : (
             <>

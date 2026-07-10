@@ -1108,7 +1108,6 @@ function FinalBalanceInputs({
   lang,
   currency,
   items,
-  onCurrencyChange,
   onAmountChange,
   onModeChange,
   onOffToggle
@@ -1126,22 +1125,6 @@ function FinalBalanceInputs({
     onOffToggle: () => onOffToggle(item.key)
   });
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    className: "finalControlsGrid"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "toggleBlock"
-  }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
-    className: "segmented full"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: currency === "PLN" ? "active" : "",
-    onClick: () => onCurrencyChange("PLN")
-  }, "PLN"), /*#__PURE__*/React.createElement("button", {
-    className: currency === "EUR" ? "active" : "",
-    onClick: () => onCurrencyChange("EUR")
-  }, "EUR"))), /*#__PURE__*/React.createElement("div", {
-    className: "finalLegend"
-  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "+"), " ", c.finalModePlus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\u2212"), " ", c.finalModeMinus), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "\xD7"), " ", c.finalModeOff))), /*#__PURE__*/React.createElement("div", {
-    className: "divider"
-  }), /*#__PURE__*/React.createElement("div", {
     className: "finalColumns"
   }, /*#__PURE__*/React.createElement("section", {
     className: "finalColumn"
@@ -1159,12 +1142,30 @@ function FinalBalanceInputs({
     className: "finalHiddenEmpty"
   }, lang === "ru" ? "Нет неактивных позиций." : "Brak nieaktywnych pozycji.")))));
 }
+function FinalCurrencyControl({
+  c,
+  currency,
+  onCurrencyChange
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "finalResultCurrency"
+  }, /*#__PURE__*/React.createElement("span", null, c.finalCurrency), /*#__PURE__*/React.createElement("div", {
+    className: "segmented full"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: currency === "PLN" ? "active" : "",
+    onClick: () => onCurrencyChange("PLN")
+  }, "PLN"), /*#__PURE__*/React.createElement("button", {
+    className: currency === "EUR" ? "active" : "",
+    onClick: () => onCurrencyChange("EUR")
+  }, "EUR")));
+}
 function FinalBalanceResults({
   c,
   lang,
   currency,
   rate,
-  calc
+  calc,
+  onCurrencyChange
 }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
@@ -1172,6 +1173,10 @@ function FinalBalanceResults({
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
     alt: "AUTOGOOD"
+  }), /*#__PURE__*/React.createElement(FinalCurrencyControl, {
+    c: c,
+    currency: currency,
+    onCurrencyChange: onCurrencyChange
   }), /*#__PURE__*/React.createElement("div", {
     className: "resultsTitle"
   }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.finalBalance)), /*#__PURE__*/React.createElement("div", {
@@ -1902,7 +1907,6 @@ function App() {
     lang: safeLang,
     currency: finalCurrency,
     items: finalItems,
-    onCurrencyChange: switchFinalCurrency,
     onAmountChange: setFinalAmount,
     onModeChange: setFinalMode,
     onOffToggle: toggleFinalOff
@@ -1964,7 +1968,8 @@ function App() {
     lang: safeLang,
     currency: finalCurrency,
     rate: n(rate) || DEFAULT_RATE,
-    calc: finalCalc
+    calc: finalCalc,
+    onCurrencyChange: switchFinalCurrency
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",

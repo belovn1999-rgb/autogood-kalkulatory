@@ -525,46 +525,6 @@ select {
   font-size: 14px;
 }
 
-.finalControlsGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  align-items: stretch;
-}
-
-.finalControlsGrid .toggleBlock {
-  margin-bottom: 0;
-}
-
-.finalLegend {
-  display: grid;
-  gap: 6px;
-  border: 1px solid #dbe4ee;
-  border-radius: 8px;
-  background: #f8fbfd;
-  padding: 10px;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.finalLegend span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.finalLegend b {
-  display: inline-grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  color: #102033;
-}
-
 .finalInputList {
   display: grid;
   gap: 8px;
@@ -579,6 +539,26 @@ select {
 
 .finalColumn {
   min-width: 0;
+}
+
+.finalResultCurrency {
+  position: relative;
+  z-index: 3;
+  width: 280px;
+  max-width: calc(100% - 100px);
+  margin-bottom: 14px;
+}
+
+.finalResultCurrency > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.finalResultCurrency .segmented {
+  background: #fff;
 }
 
 .finalExtraList {
@@ -969,7 +949,7 @@ select {
 }
 
 .finalRows {
-  margin-top: 4px;
+  margin-top: 12px;
 }
 
 .finalResultRow {
@@ -1282,9 +1262,13 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .finalControlsGrid,
   .finalColumns {
     grid-template-columns: 1fr;
+  }
+
+  .finalResultCurrency {
+    width: min(280px, 100%);
+    max-width: 100%;
   }
 
   .topbar,
