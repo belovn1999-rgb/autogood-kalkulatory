@@ -20,7 +20,6 @@ const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 5;
 const FINAL_TAB_ID = 5;
-const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png?v=2";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -33,6 +32,7 @@ const RATES_FALLBACK = {
 const copy = {
   pl: {
     appTitle: "AUTOGOOD Kalkulatory",
+    navTitle: "Kalkulatory",
     print: "Druk / PDF",
     screenshot: "Kopiuj obraz",
     screenshotReady: "Obraz skopiowany.",
@@ -42,6 +42,7 @@ const copy = {
     saveCalculationReady: "Kalkulacja zapisana.",
     saveCalculationEmpty: "Najpierw wpisz dane kalkulacji.",
     exchange: "Kurs EUR/PLN",
+    avgRate: "Średni kurs",
     engine: "Typ silnika",
     commissionType: "Rodzaj prowizji",
     standard: "Standard",
@@ -51,10 +52,6 @@ const copy = {
     total: "Razem",
     totalJoin: "lub",
     rateLine: "Przeliczono po kursie",
-    ratesTitle: "Kursy sprzedaży",
-    ratesSource: "źródło",
-    ratesUpdated: "aktualizacja",
-    ratesLoading: "Ładowanie kursów",
     historyTitle: "Historia zmian",
     historyEmpty: "Tutaj pojawi się 5 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
@@ -104,6 +101,7 @@ const copy = {
   },
   ru: {
     appTitle: "AUTOGOOD Калькуляторы",
+    navTitle: "Калькуляторы",
     print: "Печать / PDF",
     screenshot: "Скопировать скрин",
     screenshotReady: "Скрин скопирован.",
@@ -113,6 +111,7 @@ const copy = {
     saveCalculationReady: "Расчёт сохранён.",
     saveCalculationEmpty: "Сначала внеси данные расчёта.",
     exchange: "Курс EUR/PLN",
+    avgRate: "Средний курс",
     engine: "Тип двигателя",
     commissionType: "Тип комиссии",
     standard: "Стандарт",
@@ -122,10 +121,6 @@ const copy = {
     total: "Итого",
     totalJoin: "или",
     rateLine: "Расчёт по курсу",
-    ratesTitle: "Курсы продажи",
-    ratesSource: "источник",
-    ratesUpdated: "обновлено",
-    ratesLoading: "Загрузка курсов",
     historyTitle: "История изменений",
     historyEmpty: "Здесь появятся 5 последних расчётов.",
     historyRestore: "Вернуть расчёт",
@@ -531,7 +526,8 @@ function historySignature(item) {
 
 function percentLabel(value) {
   if (value === 0) return "0%";
-  return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
+  const digits = value === 0.0155 ? 2 : 1;
+  return `${(value * 100).toFixed(digits).replace(".", ",")}%`;
 }
 
 function rateLabel(value) {
@@ -751,7 +747,14 @@ function OptionalAmountInput({ label, value, checked, onToggle, onChange, suffix
   );
 }
 
-function RateInput({ label, value, onChange }) {
+function formatAvgRate(value) {
+  return new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(value) ? value : DEFAULT_RATE);
+}
+
+function RateWidget({ c, avgRateLabel, rateDate, value, onChange }) {
   const currentRate = n(value) || DEFAULT_RATE;
   const stepRate = (delta) => {
     const nextRate = Math.max(0, currentRate + delta);
@@ -759,32 +762,30 @@ function RateInput({ label, value, onChange }) {
   };
 
   return (
-    <label className="field rateField">
-      <span>{label}</span>
-      <div className="rateControl">
-        <input
-          inputMode="decimal"
-          type="text"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="4.265"
-        />
-        <div className="rateButtons">
-          <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.01)}>+</button>
-          <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.01)}>−</button>
+    <div className="rateWidget">
+      <span className="rateWidgetEyebrow">{c.exchange}</span>
+      <div className="rateWidgetRow">
+        <div className="rateWidgetAvg">
+          <span>{c.avgRate}: <strong>{avgRateLabel} PLN</strong></span>
+          <em>{rateDate}</em>
         </div>
-        <b>PLN</b>
+        <div className="rateWidgetControl">
+          <input
+            inputMode="decimal"
+            type="text"
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="4.26"
+          />
+          <b>PLN</b>
+          <div className="rateWidgetSteps">
+            <button type="button" aria-label="Zwiększ kurs" onClick={() => stepRate(0.01)}>+</button>
+            <button type="button" aria-label="Zmniejsz kurs" onClick={() => stepRate(-0.01)}>−</button>
+          </div>
+        </div>
       </div>
-    </label>
+    </div>
   );
-}
-
-function formatRate(value, digits = 4) {
-  if (!Number.isFinite(Number(value))) return "—";
-  return new Intl.NumberFormat("pl-PL", {
-    minimumFractionDigits: value >= 1 ? 2 : 4,
-    maximumFractionDigits: digits,
-  }).format(Number(value));
 }
 
 function bestOfferRate(offers, pair) {
@@ -831,32 +832,6 @@ async function loadExchangeRates() {
     if (!response.ok) throw liveError;
     return response.json();
   }
-}
-
-function ExchangeRatesPanel({ data, status, lang }) {
-  const c = copy[lang];
-  const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN"]
-    .map((key) => safeData.rates?.[key])
-    .filter(Boolean);
-
-  return (
-    <section className="ratesPanel" aria-label={c.ratesTitle}>
-      <div className="ratesPanelHead">
-        <strong>{c.ratesTitle}</strong>
-        {status === "loading" && <span>{c.ratesLoading}</span>}
-      </div>
-      <div className="ratesTable">
-        {rows.map((item) => (
-          <React.Fragment key={item.label}>
-            <span>{item.label}</span>
-            <b>{formatRate(item.value)} {item.unit}</b>
-          </React.Fragment>
-        ))}
-      </div>
-      {safeData.effectiveDate && <small>{c.ratesUpdated}: {safeData.effectiveDate}</small>}
-    </section>
-  );
 }
 
 function MobileDeImport({ c, url, status, summary, onUrlChange, onImport }) {
@@ -916,14 +891,11 @@ function MoneyIcon() {
 
 function ProcessFlow({ steps }) {
   return (
-    <footer className="processFlow" aria-label="Informacje">
+    <ol className="processFlow" aria-label="Informacje">
       {steps.map((step, index) => (
-        <React.Fragment key={`${step}-${index}`}>
-          {index > 0 && <span className="processArrow" aria-hidden="true"> → </span>}
-          <span className="processStep">{renderHighlightedText(step)}</span>
-        </React.Fragment>
+        <li key={`${step}-${index}`} className="processStep">{renderHighlightedText(step)}</li>
       ))}
-    </footer>
+    </ol>
   );
 }
 
@@ -1559,6 +1531,12 @@ function App() {
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
   const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission);
   const visibleHistory = isFinalBalance ? finalHistory : history;
+  const avgRateLabel = formatAvgRate(Number(marketRates?.rates?.EUR_PLN?.value));
+  const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : "pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(marketRates?.effectiveDate ? new Date(marketRates.effectiveDate) : new Date());
 
   useEffect(() => {
     let isMounted = true;
@@ -1849,15 +1827,18 @@ function App() {
   };
 
   return (
-    <main className="appShell">
+    <main className={`appShell ${isFinalBalance ? "appShellFinal" : ""}`}>
       <header className="topbar">
-        <a className="logoLink" href="./" aria-label="AUTOGOOD home">
-          <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-        </a>
+        <div className="logoGroup">
+          <a className="logoLink" href="./" aria-label="AUTOGOOD home">
+            <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          </a>
+          <span className="logoDivider" aria-hidden="true" />
+          <span className="logoTitle">{c.navTitle}</span>
+        </div>
         <div className="headerActions">
-          <ExchangeRatesPanel data={marketRates} status={ratesStatus} lang={safeLang} />
-          <RateInput label={c.exchange} value={rate} onChange={setManualRate} />
-          <div className="segmented" aria-label="Language">
+          <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
+          <div className="langSwitch" aria-label="Language">
             <button className={lang === "pl" ? "active" : ""} onClick={() => setLang("pl")}>PL</button>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RU</button>
           </div>
@@ -1889,32 +1870,34 @@ function App() {
       <nav className="tabs" aria-label="Calculators">
         {tabs.map((item) => (
           <button key={item.id} className={item.id === activeTab ? "active" : ""} onClick={() => switchTab(item.id)}>
-            <span>{item.id}</span>
             {calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)}
           </button>
         ))}
       </nav>
 
       <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
-        <aside className={`card sidebar ${isFinalBalance ? "finalSidebar" : ""}`}>
-          <h2>{c.inputs}</h2>
-
+        <aside className={isFinalBalance ? "card sidebar finalSidebar" : "panelData"}>
           {isFinalBalance ? (
-            <FinalBalanceInputs
-              c={c}
-              lang={safeLang}
-              currency={finalCurrency}
-              items={finalItems}
-              customName={finalCustomName}
-              onCustomNameChange={setFinalCustomName}
-              onAddCustom={addCustomFinalItem}
-              onAmountChange={setFinalAmount}
-              onModeChange={setFinalMode}
-              onOffToggle={toggleFinalOff}
-              onDeleteCustom={deleteCustomFinalItem}
-            />
+            <>
+              <h2>{c.inputs}</h2>
+              <FinalBalanceInputs
+                c={c}
+                lang={safeLang}
+                currency={finalCurrency}
+                items={finalItems}
+                customName={finalCustomName}
+                onCustomNameChange={setFinalCustomName}
+                onAddCustom={addCustomFinalItem}
+                onAmountChange={setFinalAmount}
+                onModeChange={setFinalMode}
+                onOffToggle={toggleFinalOff}
+                onDeleteCustom={deleteCustomFinalItem}
+              />
+            </>
           ) : (
             <>
+          <h2 className="panelEyebrow">{c.inputs}</h2>
+
           {activeTab === 0 && (
             <MobileDeImport
               c={c}
@@ -1926,24 +1909,10 @@ function App() {
             />
           )}
 
-          <label className="field">
-            <span>{c.engine}</span>
-            <select value={engineIndex} onChange={(event) => {
-              clearManualOverrides();
-              setEngineIndex(Number(event.target.value));
-            }}>
-              {engineTypes.map((engine, index) => (
-                <option key={engine.label} value={index}>
-                  {engine.label} - {percentLabel(engine.rate)}
-                </option>
-              ))}
-            </select>
-          </label>
-
           {activeTab > 0 && (
             <div className="toggleBlock">
               <span>{c.commissionType}</span>
-              <div className="segmented full">
+              <div className="commissionSegment">
                 <button className={!financed ? "active" : ""} onClick={() => {
                   clearManualOverrides();
                   setFinanced(false);
@@ -1955,6 +1924,20 @@ function App() {
               </div>
             </div>
           )}
+
+          <label className="field">
+            <span>{c.engine}</span>
+            <select value={engineIndex} onChange={(event) => {
+              clearManualOverrides();
+              setEngineIndex(Number(event.target.value));
+            }}>
+              {engineTypes.map((engine, index) => (
+                <option key={engine.label} value={index}>
+                  {engine.label} — {percentLabel(engine.rate)}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <div className="divider" />
 
@@ -1983,7 +1966,7 @@ function App() {
           )}
         </aside>
 
-        <section className={`card results ${isFinalBalance ? "finalResults" : ""}`} ref={resultsRef}>
+        <section className={isFinalBalance ? "card results finalResults" : "panelCalc"} ref={resultsRef}>
           {isFinalBalance ? (
             <FinalBalanceResults
               c={c}
@@ -1996,80 +1979,71 @@ function App() {
             />
           ) : (
             <>
-          <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
+          <h2 className="calcEyebrow">{c.results} — {activeTabName}</h2>
 
-          <div className="resultsTitle">
-            <h2><MoneyIcon />{c.results} — {activeTabName}</h2>
-          </div>
-
-          <div className="rows">
+          <div className="resultsList">
             {calc.rows.map((item, index) => {
               const overrideKey = rowOverrideKey(activeTab, index);
               const isEditing = editingOverride === overrideKey;
+              const isPrimary = index === 0;
 
               return (
-                <div key={`${item.label}-${index}`} className={`resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`}>
-                  <span className={`resultMarker ${index === 0 ? "isCar" : "isPlus"}`} aria-hidden="true">
-                    {index === 0 ? <img src={RESULT_CAR_ICON_SRC} alt="" /> : "+"}
-                  </span>
-                  <div className="rowText">
-                    <span className="rowLabel">{item.label}</span>
-                    {item.sub && <small>{item.sub}</small>}
+                <div key={`${item.label}-${index}`} className={`resultLine ${isPrimary ? "isPrimaryLine" : ""}`}>
+                  <span className="resultLineMarker" aria-hidden="true">{isPrimary ? "" : "+"}</span>
+                  <div className="resultLineBody">
+                    <span className="resultLineLabel">{item.label}</span>
+                    {item.sub && <div className="resultLineSub">{item.sub}</div>}
                   </div>
-                  <div className="rowValue">
-                    <span className={`valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`}>{item.valuePrefix}</span>
-                    {isEditing ? (
-                      <input
-                        className="inlineAmountInput"
-                        autoFocus
-                        inputMode="decimal"
-                        type="text"
-                        value={manualOverrides[overrideKey] ?? rowEditValue(item)}
-                        onChange={(event) => setManualOverride(overrideKey, event.target.value)}
-                        onBlur={() => setEditingOverride("")}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === "Escape") {
-                            event.currentTarget.blur();
-                          }
-                        }}
-                      />
-                    ) : (
-                      <strong
-                        className="editableAmount"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => startManualOverride(overrideKey, item)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            startManualOverride(overrideKey, item);
-                          }
-                        }}
-                      >
-                        {item.exact ? moneyExact(item.value) : money(item.value)}
-                      </strong>
-                    )}
-                    {tagLabel(item.tag)}
-                  </div>
+                  <span className="resultLinePrefix">{item.valuePrefix}</span>
+                  {isEditing ? (
+                    <input
+                      className="resultLineAmount resultLineAmountInput"
+                      autoFocus
+                      inputMode="decimal"
+                      type="text"
+                      value={manualOverrides[overrideKey] ?? rowEditValue(item)}
+                      onChange={(event) => setManualOverride(overrideKey, event.target.value)}
+                      onBlur={() => setEditingOverride("")}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === "Escape") {
+                          event.currentTarget.blur();
+                        }
+                      }}
+                    />
+                  ) : (
+                    <strong
+                      className="resultLineAmount resultLineAmountEdit"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => startManualOverride(overrideKey, item)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          startManualOverride(overrideKey, item);
+                        }
+                      }}
+                    >
+                      {item.exact ? moneyExact(item.value) : money(item.value)}
+                    </strong>
+                  )}
+                  <span className="resultLineTag">{item.tag}</span>
                 </div>
               );
             })}
           </div>
 
-          <div className="totalBox">
-            <span className="totalMarker" aria-hidden="true">=</span>
-            <div className="totalLabel">
-              <span>{c.total}</span>
+          <div className="totalBar">
+            <div className="totalBarLeft">
+              <span className="totalBarMark" aria-hidden="true">=</span>
+              <span className="totalBarLabel">{c.total}</span>
             </div>
-            <div className="totalValue">
-              <strong>{money(calc.total)}</strong>
-              <em>({money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR")})</em>
+            <div className="totalBarRight">
+              <div className="totalBarValueRow">
+                <strong className="totalBarValue">{money(calc.total)}</strong>
+                <em className="totalBarEur">= {money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR")}</em>
+              </div>
+              <div className="totalBarRate">{c.rateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
             </div>
-            <div className="totalRate">{c.rateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
-          </div>
-
-          <div className="deliveryRoad" aria-hidden="true">
-            <span />
           </div>
 
           <ProcessFlow steps={processSteps} />

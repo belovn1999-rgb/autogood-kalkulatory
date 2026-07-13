@@ -25,7 +25,6 @@ const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 5;
 const FINAL_TAB_ID = 5;
-const RESULT_CAR_ICON_SRC = "./assets/delivery-car.png?v=2";
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -41,6 +40,7 @@ const RATES_FALLBACK = {
 const copy = {
   pl: {
     appTitle: "AUTOGOOD Kalkulatory",
+    navTitle: "Kalkulatory",
     print: "Druk / PDF",
     screenshot: "Kopiuj obraz",
     screenshotReady: "Obraz skopiowany.",
@@ -50,6 +50,7 @@ const copy = {
     saveCalculationReady: "Kalkulacja zapisana.",
     saveCalculationEmpty: "Najpierw wpisz dane kalkulacji.",
     exchange: "Kurs EUR/PLN",
+    avgRate: "Średni kurs",
     engine: "Typ silnika",
     commissionType: "Rodzaj prowizji",
     standard: "Standard",
@@ -59,10 +60,6 @@ const copy = {
     total: "Razem",
     totalJoin: "lub",
     rateLine: "Przeliczono po kursie",
-    ratesTitle: "Kursy sprzedaży",
-    ratesSource: "źródło",
-    ratesUpdated: "aktualizacja",
-    ratesLoading: "Ładowanie kursów",
     historyTitle: "Historia zmian",
     historyEmpty: "Tutaj pojawi się 5 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
@@ -112,6 +109,7 @@ const copy = {
   },
   ru: {
     appTitle: "AUTOGOOD Калькуляторы",
+    navTitle: "Калькуляторы",
     print: "Печать / PDF",
     screenshot: "Скопировать скрин",
     screenshotReady: "Скрин скопирован.",
@@ -121,6 +119,7 @@ const copy = {
     saveCalculationReady: "Расчёт сохранён.",
     saveCalculationEmpty: "Сначала внеси данные расчёта.",
     exchange: "Курс EUR/PLN",
+    avgRate: "Средний курс",
     engine: "Тип двигателя",
     commissionType: "Тип комиссии",
     standard: "Стандарт",
@@ -130,10 +129,6 @@ const copy = {
     total: "Итого",
     totalJoin: "или",
     rateLine: "Расчёт по курсу",
-    ratesTitle: "Курсы продажи",
-    ratesSource: "источник",
-    ratesUpdated: "обновлено",
-    ratesLoading: "Загрузка курсов",
     historyTitle: "История изменений",
     historyEmpty: "Здесь появятся 5 последних расчётов.",
     historyRestore: "Вернуть расчёт",
@@ -589,7 +584,8 @@ function historySignature(item) {
 }
 function percentLabel(value) {
   if (value === 0) return "0%";
-  return `${(value * 100).toFixed(value === 0.0155 ? 2 : 1)}%`;
+  const digits = value === 0.0155 ? 2 : 1;
+  return `${(value * 100).toFixed(digits).replace(".", ",")}%`;
 }
 function rateLabel(value) {
   return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(4);
@@ -891,8 +887,16 @@ function OptionalAmountInput({
     placeholder: "0.00"
   }), /*#__PURE__*/React.createElement("b", null, suffix)));
 }
-function RateInput({
-  label,
+function formatAvgRate(value) {
+  return new Intl.NumberFormat("pl-PL", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number.isFinite(value) ? value : DEFAULT_RATE);
+}
+function RateWidget({
+  c,
+  avgRateLabel,
+  rateDate,
   value,
   onChange
 }) {
@@ -901,18 +905,24 @@ function RateInput({
     const nextRate = Math.max(0, currentRate + delta);
     onChange(calculationRateLabel(nextRate));
   };
-  return /*#__PURE__*/React.createElement("label", {
-    className: "field rateField"
-  }, /*#__PURE__*/React.createElement("span", null, label), /*#__PURE__*/React.createElement("div", {
-    className: "rateControl"
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rateWidget"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "rateWidgetEyebrow"
+  }, c.exchange), /*#__PURE__*/React.createElement("div", {
+    className: "rateWidgetRow"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rateWidgetAvg"
+  }, /*#__PURE__*/React.createElement("span", null, c.avgRate, ": ", /*#__PURE__*/React.createElement("strong", null, avgRateLabel, " PLN")), /*#__PURE__*/React.createElement("em", null, rateDate)), /*#__PURE__*/React.createElement("div", {
+    className: "rateWidgetControl"
   }, /*#__PURE__*/React.createElement("input", {
     inputMode: "decimal",
     type: "text",
     value: value,
     onChange: event => onChange(event.target.value),
-    placeholder: "4.265"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "rateButtons"
+    placeholder: "4.26"
+  }), /*#__PURE__*/React.createElement("b", null, "PLN"), /*#__PURE__*/React.createElement("div", {
+    className: "rateWidgetSteps"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": "Zwi\u0119ksz kurs",
@@ -921,14 +931,7 @@ function RateInput({
     type: "button",
     "aria-label": "Zmniejsz kurs",
     onClick: () => stepRate(-0.01)
-  }, "\u2212")), /*#__PURE__*/React.createElement("b", null, "PLN")));
-}
-function formatRate(value, digits = 4) {
-  if (!Number.isFinite(Number(value))) return "—";
-  return new Intl.NumberFormat("pl-PL", {
-    minimumFractionDigits: value >= 1 ? 2 : 4,
-    maximumFractionDigits: digits
-  }).format(Number(value));
+  }, "\u2212")))));
 }
 function bestOfferRate(offers, pair) {
   const offer = offers?.asks?.[0] || offers?.bids?.[0];
@@ -977,25 +980,6 @@ async function loadExchangeRates() {
     if (!response.ok) throw liveError;
     return response.json();
   }
-}
-function ExchangeRatesPanel({
-  data,
-  status,
-  lang
-}) {
-  const c = copy[lang];
-  const safeData = data || RATES_FALLBACK;
-  const rows = ["EUR_PLN"].map(key => safeData.rates?.[key]).filter(Boolean);
-  return /*#__PURE__*/React.createElement("section", {
-    className: "ratesPanel",
-    "aria-label": c.ratesTitle
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "ratesPanelHead"
-  }, /*#__PURE__*/React.createElement("strong", null, c.ratesTitle), status === "loading" && /*#__PURE__*/React.createElement("span", null, c.ratesLoading)), /*#__PURE__*/React.createElement("div", {
-    className: "ratesTable"
-  }, rows.map(item => /*#__PURE__*/React.createElement(React.Fragment, {
-    key: item.label
-  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("b", null, formatRate(item.value), " ", item.unit)))), safeData.effectiveDate && /*#__PURE__*/React.createElement("small", null, c.ratesUpdated, ": ", safeData.effectiveDate));
 }
 function MobileDeImport({
   c,
@@ -1069,17 +1053,13 @@ function MoneyIcon() {
 function ProcessFlow({
   steps
 }) {
-  return /*#__PURE__*/React.createElement("footer", {
+  return /*#__PURE__*/React.createElement("ol", {
     className: "processFlow",
     "aria-label": "Informacje"
-  }, steps.map((step, index) => /*#__PURE__*/React.createElement(React.Fragment, {
-    key: `${step}-${index}`
-  }, index > 0 && /*#__PURE__*/React.createElement("span", {
-    className: "processArrow",
-    "aria-hidden": "true"
-  }, " \u2192 "), /*#__PURE__*/React.createElement("span", {
+  }, steps.map((step, index) => /*#__PURE__*/React.createElement("li", {
+    key: `${step}-${index}`,
     className: "processStep"
-  }, renderHighlightedText(step)))));
+  }, renderHighlightedText(step))));
 }
 function HistoryPanel({
   c,
@@ -1675,6 +1655,12 @@ function App() {
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
   const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission);
   const visibleHistory = isFinalBalance ? finalHistory : history;
+  const avgRateLabel = formatAvgRate(Number(marketRates?.rates?.EUR_PLN?.value));
+  const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : "pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(marketRates?.effectiveDate ? new Date(marketRates.effectiveDate) : new Date());
   useEffect(() => {
     let isMounted = true;
     loadExchangeRates().then(data => {
@@ -1943,9 +1929,11 @@ function App() {
     }
   };
   return /*#__PURE__*/React.createElement("main", {
-    className: "appShell"
+    className: `appShell ${isFinalBalance ? "appShellFinal" : ""}`
   }, /*#__PURE__*/React.createElement("header", {
     className: "topbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "logoGroup"
   }, /*#__PURE__*/React.createElement("a", {
     className: "logoLink",
     href: "./",
@@ -1954,18 +1942,21 @@ function App() {
     className: "logoMark",
     src: "./assets/autogood-logo.png",
     alt: "AUTOGOOD"
-  })), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "logoDivider",
+    "aria-hidden": "true"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "logoTitle"
+  }, c.navTitle)), /*#__PURE__*/React.createElement("div", {
     className: "headerActions"
-  }, /*#__PURE__*/React.createElement(ExchangeRatesPanel, {
-    data: marketRates,
-    status: ratesStatus,
-    lang: safeLang
-  }), /*#__PURE__*/React.createElement(RateInput, {
-    label: c.exchange,
+  }, /*#__PURE__*/React.createElement(RateWidget, {
+    c: c,
+    avgRateLabel: avgRateLabel,
+    rateDate: rateDate,
     value: rate,
     onChange: setManualRate
   }), /*#__PURE__*/React.createElement("div", {
-    className: "segmented",
+    className: "langSwitch",
     "aria-label": "Language"
   }, /*#__PURE__*/React.createElement("button", {
     className: lang === "pl" ? "active" : "",
@@ -2004,11 +1995,11 @@ function App() {
     key: item.id,
     className: item.id === activeTab ? "active" : "",
     onClick: () => switchTab(item.id)
-  }, /*#__PURE__*/React.createElement("span", null, item.id), calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement("section", {
+  }, calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement("section", {
     className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
-    className: `card sidebar ${isFinalBalance ? "finalSidebar" : ""}`
-  }, /*#__PURE__*/React.createElement("h2", null, c.inputs), isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceInputs, {
+    className: isFinalBalance ? "card sidebar finalSidebar" : "panelData"
+  }, isFinalBalance ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", null, c.inputs), /*#__PURE__*/React.createElement(FinalBalanceInputs, {
     c: c,
     lang: safeLang,
     currency: finalCurrency,
@@ -2020,28 +2011,19 @@ function App() {
     onModeChange: setFinalMode,
     onOffToggle: toggleFinalOff,
     onDeleteCustom: deleteCustomFinalItem
-  }) : /*#__PURE__*/React.createElement(React.Fragment, null, activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+    className: "panelEyebrow"
+  }, c.inputs), activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
     c: c,
     url: mobileDeUrl,
     status: mobileDeStatus,
     summary: mobileDeSummary,
     onUrlChange: setMobileDeUrl,
     onImport: loadMobileDeData
-  }), /*#__PURE__*/React.createElement("label", {
-    className: "field"
-  }, /*#__PURE__*/React.createElement("span", null, c.engine), /*#__PURE__*/React.createElement("select", {
-    value: engineIndex,
-    onChange: event => {
-      clearManualOverrides();
-      setEngineIndex(Number(event.target.value));
-    }
-  }, engineTypes.map((engine, index) => /*#__PURE__*/React.createElement("option", {
-    key: engine.label,
-    value: index
-  }, engine.label, " - ", percentLabel(engine.rate))))), activeTab > 0 && /*#__PURE__*/React.createElement("div", {
+  }), activeTab > 0 && /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
   }, /*#__PURE__*/React.createElement("span", null, c.commissionType), /*#__PURE__*/React.createElement("div", {
-    className: "segmented full"
+    className: "commissionSegment"
   }, /*#__PURE__*/React.createElement("button", {
     className: !financed ? "active" : "",
     onClick: () => {
@@ -2054,7 +2036,18 @@ function App() {
       clearManualOverrides();
       setFinanced(true);
     }
-  }, c.financing))), /*#__PURE__*/React.createElement("div", {
+  }, c.financing))), /*#__PURE__*/React.createElement("label", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("span", null, c.engine), /*#__PURE__*/React.createElement("select", {
+    value: engineIndex,
+    onChange: event => {
+      clearManualOverrides();
+      setEngineIndex(Number(event.target.value));
+    }
+  }, engineTypes.map((engine, index) => /*#__PURE__*/React.createElement("option", {
+    key: engine.label,
+    value: index
+  }, engine.label, " \u2014 ", percentLabel(engine.rate))))), /*#__PURE__*/React.createElement("div", {
     className: "divider"
   }), tab.fields.map(field => field.optional ? /*#__PURE__*/React.createElement(OptionalAmountInput, {
     key: field.key,
@@ -2071,7 +2064,7 @@ function App() {
     onChange: value => setField(field.key, value),
     suffix: field.currency
   })))), /*#__PURE__*/React.createElement("section", {
-    className: `card results ${isFinalBalance ? "finalResults" : ""}`,
+    className: isFinalBalance ? "card results finalResults" : "panelCalc",
     ref: resultsRef
   }, isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceResults, {
     c: c,
@@ -2081,36 +2074,30 @@ function App() {
     calc: finalCalc,
     onCurrencyChange: switchFinalCurrency,
     onToggleVat: toggleFinalVat
-  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
-    className: "resultCornerLogo",
-    src: "./assets/ag-opt.svg",
-    alt: "AUTOGOOD"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "resultsTitle"
-  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.results, " \u2014 ", activeTabName)), /*#__PURE__*/React.createElement("div", {
-    className: "rows"
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+    className: "calcEyebrow"
+  }, c.results, " \u2014 ", activeTabName), /*#__PURE__*/React.createElement("div", {
+    className: "resultsList"
   }, calc.rows.map((item, index) => {
     const overrideKey = rowOverrideKey(activeTab, index);
     const isEditing = editingOverride === overrideKey;
+    const isPrimary = index === 0;
     return /*#__PURE__*/React.createElement("div", {
       key: `${item.label}-${index}`,
-      className: `resultRow ${item.highlight ? "vatRow" : ""} ${index === 0 ? "isPrimary" : ""}`
+      className: `resultLine ${isPrimary ? "isPrimaryLine" : ""}`
     }, /*#__PURE__*/React.createElement("span", {
-      className: `resultMarker ${index === 0 ? "isCar" : "isPlus"}`,
+      className: "resultLineMarker",
       "aria-hidden": "true"
-    }, index === 0 ? /*#__PURE__*/React.createElement("img", {
-      src: RESULT_CAR_ICON_SRC,
-      alt: ""
-    }) : "+"), /*#__PURE__*/React.createElement("div", {
-      className: "rowText"
+    }, isPrimary ? "" : "+"), /*#__PURE__*/React.createElement("div", {
+      className: "resultLineBody"
     }, /*#__PURE__*/React.createElement("span", {
-      className: "rowLabel"
-    }, item.label), item.sub && /*#__PURE__*/React.createElement("small", null, item.sub)), /*#__PURE__*/React.createElement("div", {
-      className: "rowValue"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: `valuePrefix ${item.valuePrefix ? "" : "isEmpty"}`
+      className: "resultLineLabel"
+    }, item.label), item.sub && /*#__PURE__*/React.createElement("div", {
+      className: "resultLineSub"
+    }, item.sub)), /*#__PURE__*/React.createElement("span", {
+      className: "resultLinePrefix"
     }, item.valuePrefix), isEditing ? /*#__PURE__*/React.createElement("input", {
-      className: "inlineAmountInput",
+      className: "resultLineAmount resultLineAmountInput",
       autoFocus: true,
       inputMode: "decimal",
       type: "text",
@@ -2123,7 +2110,7 @@ function App() {
         }
       }
     }) : /*#__PURE__*/React.createElement("strong", {
-      className: "editableAmount",
+      className: "resultLineAmount resultLineAmountEdit",
       role: "button",
       tabIndex: 0,
       onClick: () => startManualOverride(overrideKey, item),
@@ -2133,22 +2120,29 @@ function App() {
           startManualOverride(overrideKey, item);
         }
       }
-    }, item.exact ? moneyExact(item.value) : money(item.value)), tagLabel(item.tag)));
+    }, item.exact ? moneyExact(item.value) : money(item.value)), /*#__PURE__*/React.createElement("span", {
+      className: "resultLineTag"
+    }, item.tag));
   })), /*#__PURE__*/React.createElement("div", {
-    className: "totalBox"
+    className: "totalBar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "totalBarLeft"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "totalMarker",
+    className: "totalBarMark",
     "aria-hidden": "true"
-  }, "="), /*#__PURE__*/React.createElement("div", {
-    className: "totalLabel"
-  }, /*#__PURE__*/React.createElement("span", null, c.total)), /*#__PURE__*/React.createElement("div", {
-    className: "totalValue"
-  }, /*#__PURE__*/React.createElement("strong", null, money(calc.total)), /*#__PURE__*/React.createElement("em", null, "(", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"), ")")), /*#__PURE__*/React.createElement("div", {
-    className: "totalRate"
-  }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")), /*#__PURE__*/React.createElement("div", {
-    className: "deliveryRoad",
-    "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("span", null)), /*#__PURE__*/React.createElement(ProcessFlow, {
+  }, "="), /*#__PURE__*/React.createElement("span", {
+    className: "totalBarLabel"
+  }, c.total)), /*#__PURE__*/React.createElement("div", {
+    className: "totalBarRight"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "totalBarValueRow"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "totalBarValue"
+  }, money(calc.total)), /*#__PURE__*/React.createElement("em", {
+    className: "totalBarEur"
+  }, "= ", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"))), /*#__PURE__*/React.createElement("div", {
+    className: "totalBarRate"
+  }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN"))), /*#__PURE__*/React.createElement(ProcessFlow, {
     steps: processSteps
   }))), /*#__PURE__*/React.createElement(HistoryPanel, {
     c: c,
