@@ -4,49 +4,67 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Umowy</title>
-    <link rel="stylesheet" href="./src/tools.css?v=umowy-20260613-2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/tools.css?v=umowy-minimal-20260714" />
   </head>
-  <body>
-    <main class="toolsShell">
-      <header class="toolsHeader">
-        <a class="brand" href="./" aria-label="AUTOGOOD Tools">
-          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>Umowy</span>
-        </a>
-        <a class="repoLink" href="./">Tools</a>
+  <body class="umowyBody">
+    <main class="umowyPage">
+      <header class="umowyHeader">
+        <div class="umowyHeaderLeft">
+          <a class="umowyWordmark" href="./" aria-label="AUTOGOOD Tools">AUTOGOOD</a>
+          <nav class="umowyNav" aria-label="Nawigacja umow">
+            <span data-i18n="navTools">Narzędzia</span>
+            <span class="isActive" data-i18n="navUmowy">Umowy</span>
+          </nav>
+        </div>
+        <div class="umowyLang" aria-label="Język">
+          <button class="isActive" type="button" data-lang="pl">PL</button>
+          <button type="button" data-lang="ru">RU</button>
+        </div>
       </header>
 
-      <section class="intro">
-        <p class="eyebrow">AUTOGOOD documents</p>
-        <h1>Umowy</h1>
-        <p>Выбери тип договора: новый договор поиска автомобиля или договор продажи автомобиля.</p>
+      <section class="umowyIntro">
+        <p class="umowyEyebrow" data-i18n="eyebrow">DOKUMENTY</p>
+        <h1 data-i18n="title">Umowy</h1>
+        <p data-i18n="subtitle">
+          Wybierz typ dokumentu: umowę wyszukiwania, umowę sprzedaży albo wariant eksportowy.
+        </p>
       </section>
 
-      <section class="contractChoiceGrid" aria-label="Typy umow">
-        <a class="contractChoiceCard isReady" href="./pdf.html?v=20260708-6">
-          <span class="toolNumber">01</span>
-          <span class="toolBody">
-            <strong>Umowa wyszukiwania</strong>
+      <section class="umowyGrid" aria-label="Typy umow">
+        <a class="umowyCard" href="./pdf.html?v=20260708-6">
+          <span class="umowyNumber">01</span>
+          <span class="umowyCardBody">
+            <strong data-i18n="searchTitle">Umowa wyszukiwania</strong>
+            <span data-i18n="searchDesc">Zlecenie poszukiwania i zakupu pojazdu na rachunek klienta.</span>
           </span>
-          <span class="toolArrow" aria-hidden="true">→</span>
+          <span class="umowyArrow" aria-hidden="true">→</span>
         </a>
 
-        <a class="contractChoiceCard isReady" href="./umowa-sprzedazy.html">
-          <span class="toolNumber">02</span>
-          <span class="toolBody">
-            <strong>Umowa sprzedaży</strong>
+        <a class="umowyCard" href="./umowa-sprzedazy.html">
+          <span class="umowyNumber">02</span>
+          <span class="umowyCardBody">
+            <strong data-i18n="saleTitle">Umowa sprzedaży</strong>
+            <span data-i18n="saleDesc">Sprzedaż pojazdu klientowi — załącznik do faktury VAT Marża.</span>
           </span>
-          <span class="toolArrow" aria-hidden="true">→</span>
+          <span class="umowyArrow" aria-hidden="true">→</span>
         </a>
 
-        <a class="contractChoiceCard isReady" href="./pdf.html?variant=export&v=20260708-6">
-          <span class="toolNumber">03</span>
-          <span class="toolBody">
-            <strong>Umowa wyszukiwanie Eksport</strong>
+        <a class="umowyCard" href="./pdf.html?variant=export&v=20260708-6">
+          <span class="umowyNumber">03</span>
+          <span class="umowyCardBody">
+            <strong data-i18n="exportTitle">Umowa wyszukiwania (Eksport)</strong>
+            <span data-i18n="exportDesc">Wariant eksportowy zlecenia poszukiwania — na Białoruś.</span>
           </span>
-          <span class="toolArrow" aria-hidden="true">→</span>
+          <span class="umowyArrow" aria-hidden="true">→</span>
         </a>
       </section>
     </main>
+    <script src="./src/umowy.js?v=umowy-minimal-20260714"></script>
   </body>
 </html>

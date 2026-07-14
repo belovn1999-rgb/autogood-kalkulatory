@@ -18,6 +18,193 @@ a {
   text-decoration: none;
 }
 
+.umowyBody {
+  background: #f4f6f8;
+  color: #1a2430;
+  font-family: "Public Sans", Arial, sans-serif;
+}
+
+.umowyPage {
+  width: min(1200px, calc(100% - 40px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 28px 0 64px;
+  font-family: "Public Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.umowyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #e0e6ec;
+}
+
+.umowyHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
+}
+
+.umowyWordmark {
+  color: #14507a;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.umowyNav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #8494a3;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.umowyNav span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-bottom: 2px solid transparent;
+}
+
+.umowyNav .isActive {
+  color: #14507a;
+  font-weight: 700;
+  border-bottom-color: #14507a;
+}
+
+.umowyLang {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #f4f6f8;
+  border: 1px solid #e0e6ec;
+}
+
+.umowyLang button {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #5a6b7b;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.umowyLang button:hover,
+.umowyLang button:focus-visible,
+.umowyLang button.isActive {
+  color: #14507a;
+  outline: none;
+}
+
+.umowyIntro {
+  max-width: 640px;
+  margin-bottom: 28px;
+}
+
+.umowyEyebrow {
+  margin: 0 0 10px;
+  color: #8494a3;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.umowyIntro h1 {
+  margin: 0 0 10px;
+  color: #1a2430;
+  font-size: clamp(20px, 3vw, 25px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.umowyIntro p:last-child {
+  margin: 0;
+  color: #5a6b7b;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.umowyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.umowyCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-height: 136px;
+  border: 1px solid #e0e6ec;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 32px;
+  transition: border-color 0.15s ease;
+}
+
+.umowyCard:hover,
+.umowyCard:focus-visible {
+  border-color: #14507a;
+  outline: none;
+}
+
+.umowyNumber {
+  color: #b0bdc9;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.umowyCardBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.umowyCardBody strong {
+  color: #1a2430;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.umowyCardBody span {
+  color: #8494a3;
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.umowyArrow {
+  color: #14507a;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .toolsShell {
   width: min(1040px, calc(100% - 32px));
   margin: 0 auto;
@@ -1089,6 +1276,47 @@ a {
 }
 
 @media (max-width: 720px) {
+  .umowyPage {
+    width: min(100% - 32px, 1200px);
+    padding-top: 22px;
+  }
+
+  .umowyHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .umowyHeaderLeft {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .umowyNav {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+
+  .umowyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .umowyCard {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 16px;
+    min-height: 120px;
+    padding: 24px;
+  }
+
+  .umowyCardBody strong {
+    font-size: 18px;
+  }
+
+  .umowyCardBody span {
+    font-size: 13.5px;
+  }
+
   .toolsShell {
     width: min(100% - 24px, 1040px);
     padding-top: 18px;
