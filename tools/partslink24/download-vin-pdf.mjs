@@ -230,8 +230,8 @@ async function saveDownload(download, target) {
   }
 }
 
-function makePdfName({ brand, vin, language }) {
-  return `${brand}_${vin}_${language}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+function makePdfName({ brand, vin }) {
+  return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
 }
 
 async function readJson(path) {

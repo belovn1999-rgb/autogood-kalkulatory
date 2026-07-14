@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD VIN → PDF</title>
     <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260709-1" />
+    <style>
+      .partslinkDownloadLink {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        border: 1px solid #005b82;
+        border-radius: 8px;
+        background: #005b82;
+        color: #fff;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .partslinkDownloadLink[hidden] {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <main class="workspaceShell">
@@ -49,6 +69,7 @@
 
           <div class="partslinkActions">
             <button id="partslinkCheckButton" type="button">Проверить VIN</button>
+            <a id="partslinkDownloadLink" class="partslinkDownloadLink" href="#" download hidden>Скачать PDF</a>
             <p id="partslinkStatus" role="status" aria-live="polite"></p>
           </div>
         </div>
@@ -59,6 +80,7 @@
       const brandSelect = document.getElementById("partslinkBrand");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
+      const downloadLink = document.getElementById("partslinkDownloadLink");
       const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
         BMW: { sampleVin: "WBA31AA0905V40977", route: "general_vin_search" },
@@ -93,6 +115,16 @@
         return defaultPartslinkApiBase;
       }
 
+      function makePdfFileName(brand, vin) {
+        return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+      }
+
+      function resetDownloadLink() {
+        downloadLink.hidden = true;
+        downloadLink.removeAttribute("href");
+        downloadLink.removeAttribute("download");
+      }
+
       function renderBrands() {
         brandSelect.innerHTML = "";
         Object.keys(brandRoutes).forEach((brand) => {
@@ -113,11 +145,14 @@
 
       vinInput.addEventListener("input", () => {
         vinInput.value = vinInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 17);
+        resetDownloadLink();
       });
       brandSelect.addEventListener("change", () => {
         vinInput.value = "";
+        resetDownloadLink();
         applyBrandLogic();
       });
+      languageSelect.addEventListener("change", resetDownloadLink);
 
       fetch("./tools/partslink24/brand-routes.json?v=20260708-2")
         .then((response) => response.ok ? response.json() : Promise.reject())
@@ -139,6 +174,7 @@
         }
 
         checkButton.disabled = true;
+        resetDownloadLink();
         statusLine.textContent = "Проверяем VIN в PartsLink...";
 
         try {
@@ -156,12 +192,10 @@
 
           statusLine.textContent = "PDF готов.";
           if (result.downloadUrl) {
-            const link = document.createElement("a");
-            link.href = `${apiBase}${result.downloadUrl}`;
-            link.download = result.fileName || `${vin}.pdf`;
-            document.body.append(link);
-            link.click();
-            link.remove();
+            const fileName = result.fileName || makePdfFileName(brand, vin);
+            downloadLink.href = `${apiBase}${result.downloadUrl}`;
+            downloadLink.download = fileName;
+            downloadLink.hidden = false;
           }
         } catch (error) {
           statusLine.textContent = error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
