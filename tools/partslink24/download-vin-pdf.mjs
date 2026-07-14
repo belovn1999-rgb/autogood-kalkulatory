@@ -97,6 +97,7 @@ async function login(page, credentials) {
 
   await confirmExistingSession(page);
   await waitForLogin(page);
+  await setLanguage(page, credentials.language);
 }
 
 async function confirmExistingSession(page) {
@@ -123,7 +124,7 @@ async function waitForLogin(page) {
       }
       const sessionText = document.body?.textContent || "";
       if (/завершить сеанс|session and log in|zakończyć sesję/i.test(sessionText)) return false;
-      if (!/у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(sessionText)
+      if (!/у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|nie masz jeszcze konta|nazwa użytkownika|hasło|zaloguj|login|password|username/i.test(sessionText)
         && !visibleElements(selectors.form).length) {
         return { ok: true };
       }
@@ -137,14 +138,34 @@ async function waitForLogin(page) {
 }
 
 async function setLanguage(page, language) {
-  const codes = { RU: "ru", PL: "pl" };
+  const codes = { RU: "ru", PL: "pl", ENG: "en" };
+  const labels = { RU: "Русский", PL: "Polski", ENG: "English" };
   const code = codes[language];
   if (!code) return;
 
-  await page.goto(`https://www.partslink24.com/partslink24/relaunch.do?changeLang=${code}`, {
+  await page.goto(`https://www.partslink24.com/${code}/index.html`, {
     waitUntil: "domcontentloaded"
   });
   await page.waitForLoadState("networkidle").catch(() => {});
+  await humanDelay();
+
+  const portalToggle = page.locator('[data-test-id="pl24-portal-ui-desktopLanguageSwitcher-button-toggleMenu"]').first();
+  if (!await portalToggle.isVisible({ timeout: 5000 }).catch(() => false)) return;
+
+  const targetLabel = labels[language];
+  const currentLabel = (await portalToggle.textContent().catch(() => "") || "").trim();
+  if (targetLabel && currentLabel.includes(targetLabel)) return;
+
+  await clickHuman(portalToggle);
+  const targetLanguage = page.locator(`[data-test-id="pl24-portal-ui-desktopLanguageSwitcher-link-language-${code}"]`).first();
+  await Promise.all([
+    page.waitForLoadState("networkidle").catch(() => {}),
+    clickHuman(targetLanguage)
+  ]);
+  await page.waitForFunction((label) => {
+    const text = document.querySelector('[data-test-id="pl24-portal-ui-desktopLanguageSwitcher-button-toggleMenu"]')?.textContent || "";
+    return text.includes(label);
+  }, targetLabel, { timeout: 20000 }).catch(() => {});
   await humanDelay();
 }
 
@@ -175,7 +196,7 @@ async function assertLoggedIn(page) {
   const onLoginPage = await page.evaluate((selectors) => {
     const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     const text = document.body?.textContent || "";
-    return /у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(text)
+    return /у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|nie masz jeszcze konta|nazwa użytkownika|hasło|zaloguj|login|password|username/i.test(text)
       || [...document.querySelectorAll(selectors.form)].some(isVisible);
   }, loginSelectors).catch(() => false);
 

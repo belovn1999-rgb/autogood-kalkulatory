@@ -1,12 +1,77 @@
 {
   "languages": ["RU", "PL", "ENG"],
   "brands": {
+    "Alfa Romeo": {
+      "route": "general_vin_search",
+      "brandTile": "Alfa Romeo"
+    },
+    "Audi": {
+      "route": "general_vin_search",
+      "brandTile": "Audi",
+      "sampleVin": "WAUZZZ4M3RD016484",
+      "sampleLanguage": "PL",
+      "expectedKeywords": ["partslink24", "Audi"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Data produkcji", "Wyposazenie"]
+    },
     "BMW": {
       "route": "general_vin_search",
+      "brandTile": "BMW",
       "sampleVin": "WBA31AA0905V40977",
       "sampleLanguage": "RU",
       "expectedKeywords": ["partslink24", "BMW"],
       "expectedTextAny": ["Идентификация автомобиля", "Серийная комплектация", "Спецоборудование"]
+    },
+    "Citroen": {
+      "route": "general_vin_search",
+      "brandTile": "Citroën"
+    },
+    "Cupra": {
+      "route": "general_vin_search",
+      "brandTile": "Cupra"
+    },
+    "Dacia": {
+      "route": "general_vin_search",
+      "brandTile": "Dacia"
+    },
+    "DS": {
+      "route": "general_vin_search",
+      "brandTile": "DS Automobiles"
+    },
+    "Fiat": {
+      "route": "general_vin_search",
+      "brandTile": "Fiat"
+    },
+    "Ford": {
+      "route": "general_vin_search",
+      "brandTile": "Ford"
+    },
+    "Hyundai": {
+      "route": "general_vin_search",
+      "brandTile": "Hyundai"
+    },
+    "Iveco": {
+      "route": "general_vin_search",
+      "brandTile": "Iveco"
+    },
+    "Jaguar": {
+      "route": "general_vin_search",
+      "brandTile": "Jaguar"
+    },
+    "Jeep": {
+      "route": "general_vin_search",
+      "brandTile": "Jeep"
+    },
+    "Kia": {
+      "route": "general_vin_search",
+      "brandTile": "Kia"
+    },
+    "Land Rover": {
+      "route": "general_vin_search",
+      "brandTile": "Land Rover"
+    },
+    "Lexus": {
+      "route": "general_vin_search",
+      "brandTile": "Lexus"
     },
     "Mercedes-Benz": {
       "route": "brand_first_search",
@@ -16,12 +81,29 @@
       "expectedKeywords": ["partslink24", "Mercedes-Benz"],
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "SAA Numbers"]
     },
-    "Volvo": {
+    "Mercedes Trucks": {
       "route": "general_vin_search",
-      "sampleVin": "YV1ZZK5V2P2106956",
-      "sampleLanguage": "PL",
-      "expectedKeywords": ["partslink24", "Volvo"],
-      "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "Informacje techniczne"]
+      "brandTile": "Trucks"
+    },
+    "Mercedes Vans": {
+      "route": "general_vin_search",
+      "brandTile": "Vans"
+    },
+    "Mini": {
+      "route": "general_vin_search",
+      "brandTile": "MINI"
+    },
+    "Mitsubishi": {
+      "route": "general_vin_search",
+      "brandTile": "Mitsubishi"
+    },
+    "Nissan": {
+      "route": "general_vin_search",
+      "brandTile": "Nissan"
+    },
+    "Opel": {
+      "route": "general_vin_search",
+      "brandTile": "Opel"
     },
     "Peugeot": {
       "route": "brand_first_search",
@@ -32,12 +114,45 @@
       "expectedTextAny": ["Идентификация автомобиля", "Модель", "Оснащение"],
       "notes": ["Дата производства не обязательна."]
     },
-    "Audi": {
+    "Porsche": {
       "route": "general_vin_search",
-      "sampleVin": "WAUZZZ4M3RD016484",
+      "brandTile": "Porsche"
+    },
+    "Renault": {
+      "route": "general_vin_search",
+      "brandTile": "Renault"
+    },
+    "Seat": {
+      "route": "general_vin_search",
+      "brandTile": "SEAT"
+    },
+    "Skoda": {
+      "route": "general_vin_search",
+      "brandTile": "Škoda"
+    },
+    "Smart": {
+      "route": "general_vin_search",
+      "brandTile": "smart"
+    },
+    "Suzuki": {
+      "route": "general_vin_search",
+      "brandTile": "Suzuki"
+    },
+    "Toyota": {
+      "route": "general_vin_search",
+      "brandTile": "Toyota"
+    },
+    "Volvo": {
+      "route": "general_vin_search",
+      "brandTile": "Volvo",
+      "sampleVin": "YV1ZZK5V2P2106956",
       "sampleLanguage": "PL",
-      "expectedKeywords": ["partslink24", "Audi"],
-      "expectedTextAny": ["identyfikacja pojazdu", "Data produkcji", "Wyposazenie"]
+      "expectedKeywords": ["partslink24", "Volvo"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "Informacje techniczne"]
+    },
+    "Vw Nutzfahrzeuge": {
+      "route": "general_vin_search",
+      "brandTile": "Volkswagen Commercial Vehicles"
     }
   }
 }
