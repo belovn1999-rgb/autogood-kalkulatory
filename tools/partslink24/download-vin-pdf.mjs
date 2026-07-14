@@ -102,13 +102,17 @@ async function confirmExistingSession(page) {
 
 async function waitForLogin(page) {
   const loginResult = await page.waitForFunction(() => {
-    const error = document.querySelector("#loginErrorDiv")?.textContent?.trim();
-    if (error) return { ok: false, error };
-    const sessionText = document.body?.textContent || "";
-    if (/завершить сеанс|session and log in|zakończyć sesję/i.test(sessionText)) return false;
-    if (!document.querySelector("#login-id")) return { ok: true };
-    return false;
-  }, null, { timeout: 45000 });
+      const error = document.querySelector("#loginErrorDiv")?.textContent?.trim();
+      if (error) return { ok: false, error };
+      const sessionText = document.body?.textContent || "";
+      if (/завершить сеанс|session and log in|zakończyć sesję/i.test(sessionText)) return false;
+      if (!/у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(sessionText)
+        && !document.querySelector("#login-id, #login-name, #inputPassword, #hidden-login")) {
+        return { ok: true };
+      }
+      return false;
+    }, null, { timeout: 45000 })
+    .catch(() => fail("PartsLink24 login did not complete. Check local credentials or active session before VIN search."));
   const result = await loginResult.jsonValue();
   if (!result.ok) fail(result.error || "PartsLink24 login failed.");
 
@@ -128,6 +132,8 @@ async function setLanguage(page, language) {
 }
 
 async function openVehicle(page, brandConfig, vin) {
+  await assertLoggedIn(page);
+
   if (brandConfig.route === "brand_first_search") {
     await clickHuman(page.getByRole("img", { name: new RegExp(brandConfig.brandTile || "", "i") }).first()).catch(async () => {
       await clickHuman(page.getByText(new RegExp(brandConfig.brandTile || "", "i")).first());
@@ -146,6 +152,18 @@ async function openVehicle(page, brandConfig, vin) {
   ]);
 
   await page.getByText(vin).first().waitFor({ timeout: 45000 });
+}
+
+async function assertLoggedIn(page) {
+  const onLoginPage = await page.evaluate(() => {
+    const text = document.body?.textContent || "";
+    return /у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(text)
+      || Boolean(document.querySelector("#login-id, #login-name, #inputPassword, #hidden-login"));
+  }).catch(() => false);
+
+  if (!onLoginPage) return;
+
+  fail("PartsLink24 login did not complete. Check local credentials or active session before VIN search.");
 }
 
 async function downloadPdf(page, options) {
