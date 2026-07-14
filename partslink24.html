@@ -68,7 +68,7 @@
         Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" }
       };
       let brandRoutes = fallbackBrands;
-      const defaultPartslinkApiBase = "https://elevation-laser-promises-dedicated.trycloudflare.com";
+      const defaultPartslinkApiBase = "https://hitting-dietary-eddie-unique.trycloudflare.com";
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -76,7 +76,6 @@
         if (!value) return "";
         const normalized = value.trim().replace(/\/$/, "");
         if (/^https:\/\/[a-z0-9.-]+/i.test(normalized)) {
-          localStorage.setItem("partslink24ApiBase", normalized);
           return normalized;
         }
         return "";
@@ -91,7 +90,7 @@
         if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
           return "";
         }
-        return localStorage.getItem("partslink24ApiBase") || defaultPartslinkApiBase;
+        return defaultPartslinkApiBase;
       }
 
       function renderBrands() {
