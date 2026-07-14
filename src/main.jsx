@@ -1199,7 +1199,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
       total,
       rows: [
         row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
-        row(t.auctionFee, feePln, "+VAT 23%", "", false, false, conversionPrefix(fee)),
+        row(t.auctionFee, feePln, "+VAT 23%", "\u00a0", false, false, conversionPrefix(fee)),
         row(t.transport, transPln, "+VAT 23%", `${money(transPln * 1.23)} brutto`),
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
         row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(finFix, finPct, base)),
