@@ -68,7 +68,7 @@
         Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" }
       };
       let brandRoutes = fallbackBrands;
-      const defaultPartslinkApiBase = "https://bold-did-today-appreciation.trycloudflare.com";
+      const defaultPartslinkApiBase = "https://elevation-laser-promises-dedicated.trycloudflare.com";
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -165,7 +165,7 @@
             link.remove();
           }
         } catch (error) {
-          statusLine.textContent = "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
+          statusLine.textContent = error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
         } finally {
           checkButton.disabled = false;
         }

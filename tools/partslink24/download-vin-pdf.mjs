@@ -27,6 +27,16 @@ if (!brand) fail("Missing --brand.");
 const companyId = process.env.PARTSLINK24_COMPANY_ID;
 const username = process.env.PARTSLINK24_USERNAME;
 const password = process.env.PARTSLINK24_PASSWORD;
+const loginSelectors = {
+  companyId: '[data-test-id="pl24-login-ui-loginForm-input-companyId"], #login-id',
+  username: '[data-test-id="pl24-login-ui-loginForm-input-username"], #login-name',
+  password: '[data-test-id="pl24-login-ui-loginForm-input-password"], #inputPassword',
+  submit: '[data-test-id="pl24-login-ui-loginForm-button-submitForm"], #hidden-login',
+  error: '[data-test-id="pl24-login-ui-login-errorMessage"], #loginErrorDiv',
+  twoFa: '[data-test-id="pl24-login-ui-loginForm-input-twoFA"]',
+  form: '[data-test-id="pl24-login-ui-loginForm-form"], #login-id, #login-name, #inputPassword, #hidden-login',
+  squeezeOutConfirm: '[data-test-id="pl24-login-ui-sessionSqueezeOut-button-confirm"]'
+};
 
 if (!companyId || !username || !password) {
   fail("Set PARTSLINK24_COMPANY_ID, PARTSLINK24_USERNAME and PARTSLINK24_PASSWORD in the shell environment first.");
@@ -69,20 +79,20 @@ async function login(page, credentials) {
   await humanDelay();
   await setLanguage(page, credentials.language);
 
-  const loginId = page.locator("#login-id");
-  if (!await loginId.isVisible({ timeout: 5000 }).catch(() => false)) {
+  const loginId = page.locator(loginSelectors.companyId).last();
+  if (!await loginId.isVisible({ timeout: 10000 }).catch(() => false)) {
     await page.waitForLoadState("networkidle").catch(() => {});
     return;
   }
 
   await fillHuman(loginId, credentials.companyId);
-  await fillHuman(page.locator("#login-name"), credentials.username);
-  await fillHuman(page.locator("#inputPassword"), credentials.password);
+  await fillHuman(page.locator(loginSelectors.username).last(), credentials.username);
+  await fillHuman(page.locator(loginSelectors.password).last(), credentials.password);
   await humanDelay();
 
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => {}),
-    page.locator("#hidden-login").click()
+    page.locator(loginSelectors.submit).last().click()
   ]);
 
   await confirmExistingSession(page);
@@ -90,7 +100,9 @@ async function login(page, credentials) {
 }
 
 async function confirmExistingSession(page) {
-  const confirmButton = page.getByText(/подтвердить|confirm|potwierdź|potwierdz/i).first();
+  const confirmButton = page.locator(loginSelectors.squeezeOutConfirm)
+    .or(page.getByText(/подтвердить|confirm|potwierdź|potwierdz/i))
+    .first();
   if (!await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) return;
 
   await humanDelay();
@@ -101,17 +113,22 @@ async function confirmExistingSession(page) {
 }
 
 async function waitForLogin(page) {
-  const loginResult = await page.waitForFunction(() => {
-      const error = document.querySelector("#loginErrorDiv")?.textContent?.trim();
+  const loginResult = await page.waitForFunction((selectors) => {
+      const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+      const visibleElements = (selector) => [...document.querySelectorAll(selector)].filter(isVisible);
+      const error = visibleElements(selectors.error).map((element) => element.textContent?.trim()).find(Boolean);
       if (error) return { ok: false, error };
+      if (visibleElements(selectors.twoFa).length) {
+        return { ok: false, error: "PartsLink24 requires a two-factor authentication code." };
+      }
       const sessionText = document.body?.textContent || "";
       if (/завершить сеанс|session and log in|zakończyć sesję/i.test(sessionText)) return false;
       if (!/у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(sessionText)
-        && !document.querySelector("#login-id, #login-name, #inputPassword, #hidden-login")) {
+        && !visibleElements(selectors.form).length) {
         return { ok: true };
       }
       return false;
-    }, null, { timeout: 45000 })
+    }, loginSelectors, { timeout: 45000 })
     .catch(() => fail("PartsLink24 login did not complete. Check local credentials or active session before VIN search."));
   const result = await loginResult.jsonValue();
   if (!result.ok) fail(result.error || "PartsLink24 login failed.");
@@ -155,11 +172,12 @@ async function openVehicle(page, brandConfig, vin) {
 }
 
 async function assertLoggedIn(page) {
-  const onLoginPage = await page.evaluate(() => {
+  const onLoginPage = await page.evaluate((selectors) => {
+    const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     const text = document.body?.textContent || "";
     return /у вас еще нет учетной записи partslink24|имя пользователя|пароль|войти|login|password|username/i.test(text)
-      || Boolean(document.querySelector("#login-id, #login-name, #inputPassword, #hidden-login"));
-  }).catch(() => false);
+      || [...document.querySelectorAll(selectors.form)].some(isVisible);
+  }, loginSelectors).catch(() => false);
 
   if (!onLoginPage) return;
 
@@ -178,7 +196,7 @@ async function downloadPdf(page, options) {
   const download = await downloadPromise;
   if (download) {
     const target = join(options.outDir, makePdfName(options));
-    await download.saveAs(target);
+    await saveDownload(download, target);
     return target;
   }
 
@@ -195,6 +213,21 @@ async function downloadPdf(page, options) {
   }
 
   fail("PDF page opened, but the script could not save its body.");
+}
+
+async function saveDownload(download, target) {
+  const fs = await import("node:fs/promises");
+  await fs.rm(target, { force: true }).catch(() => {});
+
+  try {
+    await download.saveAs(target);
+    return;
+  } catch (error) {
+    const tempPath = await download.path().catch(() => null);
+    if (!tempPath) throw error;
+    const body = await fs.readFile(tempPath);
+    await fs.writeFile(target, body);
+  }
 }
 
 function makePdfName({ brand, vin, language }) {
