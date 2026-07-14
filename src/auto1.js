@@ -20,30 +20,6 @@ let resultUrl = null;
 let resultFileName = "";
 let pdfjsPromise = null;
 
-const cleanupMatchers = [
-  /save cash/i,
-  /export advantage/i,
-  /stock number/i,
-  /in high demand/i,
-  /watchlist/i,
-  /merchants?.*interested/i,
-  /delivery to my address/i,
-  /delivery to closest pickup/i,
-  /pickup at car location/i,
-  /self\s*-\s*pickup/i,
-  /delivery by truck/i,
-  /delivering/i,
-  /buy from/i,
-  /change address/i,
-  /change location/i,
-  /logistikzentrum/i,
-  /payment of invoices/i,
-  /free parking/i,
-  /total pictures/i,
-  /no images were taken/i,
-  /minimum severity threshold/i,
-];
-
 function setStatus(message, progress = null) {
   statusText.textContent = message;
   if (progress !== null) {
@@ -101,24 +77,8 @@ function buildText(textContent) {
   return textContent.items.map((item) => normalizeText(item.str)).filter(Boolean).join("\n");
 }
 
-function hasAny(text, patterns) {
-  return patterns.some((pattern) => pattern.test(text));
-}
-
 function isVideoControlText(text) {
   return /(?:^|\s)\d+:\d+\s*\/\s*\d+:\d+(?:\s|$)|(?:^|\s)0:00(?:\s|$)/i.test(text);
-}
-
-function hasPictureCounter(text) {
-  return /total pictures/i.test(text);
-}
-
-function hasDamageTable(text) {
-  return /damages/i.test(text)
-    && /panel/i.test(text)
-    && /damage/i.test(text)
-    && /severity/i.test(text)
-    && /quantity/i.test(text);
 }
 
 async function renderPageToCanvas(page, scale = 2) {
@@ -270,107 +230,18 @@ function cropRenderedCanvas(canvas, viewport, box, scale) {
   return crop;
 }
 
-function eraseCanvasPdfRect(canvas, viewport, rect) {
-  const [x, y, width, height] = rect;
-  const scaleX = canvas.width / viewport.width;
-  const scaleY = canvas.height / viewport.height;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(
-    x * scaleX,
-    (viewport.height - y - height) * scaleY,
-    width * scaleX,
-    height * scaleY,
-  );
-}
-
-function eraseBlueUiPixels(canvas, viewport) {
-  const scaleX = canvas.width / viewport.width;
-  const scaleY = canvas.height / viewport.height;
-  const context = canvas.getContext("2d");
-  const image = context.getImageData(0, 0, canvas.width, canvas.height);
-
-  for (let y = 0; y < canvas.height; y += 1) {
-    const pdfY = viewport.height - y / scaleY;
-    if (pdfY < 295 || pdfY > 535) continue;
-    for (let x = 0; x < canvas.width; x += 1) {
-      const pdfX = x / scaleX;
-      if (pdfX < 80 || pdfX > 190) continue;
-      const offset = (y * canvas.width + x) * 4;
-      const red = image.data[offset];
-      const green = image.data[offset + 1];
-      const blue = image.data[offset + 2];
-      if (blue > 120 && green > 70 && red < 120 && blue - red > 40) {
-        image.data[offset] = 255;
-        image.data[offset + 1] = 255;
-        image.data[offset + 2] = 255;
-      }
-    }
-  }
-
-  context.putImageData(image, 0, 0);
-}
-
-function cleanRenderedCanvas(canvas, viewport, textContent, pageText) {
-  eraseCanvasPdfRect(canvas, viewport, [552, 0, 43, viewport.height]);
-  eraseCanvasPdfRect(canvas, viewport, [0, 0, 24, viewport.height]);
-  eraseCanvasPdfRect(canvas, viewport, [126, 322, 12, 92]);
-  eraseCanvasPdfRect(canvas, viewport, [125, 295, 10, 45]);
-  eraseBlueUiPixels(canvas, viewport);
-
-  textContent.items.forEach((item) => {
-    const str = normalizeText(item.str);
-    if (!isVideoControlText(str) && !hasAny(str, cleanupMatchers)) return;
-
-    const rawX = item.transform?.[4] ?? 0;
-    const rawY = item.transform?.[5] ?? 0;
-    const rawWidth = item.width || str.length * 5;
-    eraseCanvasPdfRect(canvas, viewport, [rawX - 45, rawY - 42, Math.max(rawWidth + 95, 150), 96]);
-  });
-
-  if (/0:00\s*\/\s*\d+:\d+|0:00\s*\//i.test(pageText)) {
-    eraseCanvasPdfRect(canvas, viewport, [120, 500, 170, 95]);
-  }
-
-  if (hasDamageTable(pageText)) {
-    const rowAnchor = textContent.items.find((item) => /warning light|hood|door|rim|bumper|fender|body/i.test(normalizeText(item.str)));
-    if (rowAnchor) {
-      const rowY = rowAnchor.transform?.[5] ?? 0;
-      eraseCanvasPdfRect(canvas, viewport, [36, rowY + 12, 524, 4]);
-      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 36, 524, 22]);
-      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 50, 524, 14]);
-      eraseCanvasPdfRect(canvas, viewport, [36, rowY - 36, 6, 57]);
-      eraseCanvasPdfRect(canvas, viewport, [554, rowY - 36, 6, 57]);
-    }
-  }
-}
-
-async function drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, pageData) {
+async function drawSeparatePhotoPage(pdfjsLib, pdfDoc, sourcePage, targetPage) {
   const viewport = sourcePage.getViewport({ scale: 1 });
-  const canvas = await renderPageToCanvas(sourcePage, 1.8);
-  cleanRenderedCanvas(canvas, viewport, pageData.textContent, pageData.text);
-  const image = await pdfDoc.embedJpg(canvasJpegBytes(canvas, 0.94));
-  targetPage.drawImage(image, {
-    x: 0,
-    y: 0,
-    width: targetPage.getWidth(),
-    height: targetPage.getHeight(),
-  });
-}
-
-async function drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, pageData) {
-  const viewport = sourcePage.getViewport({ scale: 1 });
-  const renderScale = 4;
-  const sourceCanvas = await renderPageToCanvas(sourcePage, renderScale);
   const placements = (await imagePlacements(pdfjsLib, sourcePage))
     .filter((box) => box.x < 545 && box.width > 35 && box.height > 35 && !isUiImagePlacement(box))
     .sort((a, b) => (viewport.height - b.y) - (viewport.height - a.y) || a.x - b.x);
 
-  if (!placements.length) {
-    await drawRenderedCleanPage(pdfLib, pdfDoc, sourcePage, targetPage, pageData);
-    return;
-  }
+  // No real photos detected: let the caller copy the original page verbatim
+  // instead of rasterizing/masking it (preserves quality and editability).
+  if (!placements.length) return false;
 
+  const renderScale = 4;
+  const sourceCanvas = await renderPageToCanvas(sourcePage, renderScale);
   for (const box of placements) {
     const crop = cropRenderedCanvas(sourceCanvas, viewport, box, renderScale);
     const image = await pdfDoc.embedJpg(canvasJpegBytes(crop, 0.98));
@@ -381,6 +252,7 @@ async function drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targe
       height: box.height,
     });
   }
+  return true;
 }
 
 async function drawCleanCoverMedia(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, pageData) {
@@ -442,13 +314,6 @@ function shouldDropPage(text) {
   ].filter((pattern) => pattern.test(text)).length;
 
   return legalHits >= 3 || isProcessPage(text);
-}
-
-function shouldUseSeparatePhotoObjects(text, pageNumber) {
-  if (pageNumber === 1 || hasDamageTable(text)) return false;
-  if (hasPictureCounter(text)) return true;
-  if (/car highlights|additional photos|car service images|documentation of prior damage|service images/i.test(text)) return true;
-  return normalizeText(text).length < 450;
 }
 
 function stripRightScrollbarBlocks(content) {
@@ -789,8 +654,8 @@ async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData
     if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
       const tailText = pageNumber === 1 && isCoverTailPage(pageData[index + 1]?.text || "") ? pageData[index + 1].text : "";
       await drawCleanFixedPriceCover(pdfLib, pdfjsLib, pdfDoc, targetPage, sourcePage, { ...data, text: [data.text, tailText].filter(Boolean).join("\n") }, fonts);
-    } else if (isCoverTailPage(data.text)) {
-      await drawSeparatePhotoPage(pdfLib, pdfjsLib, pdfDoc, sourcePage, targetPage, data);
+    } else if (isCoverTailPage(data.text) && await drawSeparatePhotoPage(pdfjsLib, pdfDoc, sourcePage, targetPage)) {
+      // photo tail redrawn without the auction text column
     } else {
       pdfDoc.removePage(pdfDoc.getPageCount() - 1);
       const [copiedPage] = await pdfDoc.copyPages(sourcePdfLib, [index]);
