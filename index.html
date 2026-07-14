@@ -4,32 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Tools</title>
-    <link rel="stylesheet" href="./src/tools.css?v=walutomat-eur" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/tools.css?v=home-minimal-20260714" />
   </head>
-  <body>
+  <body class="homeBody">
     <main class="toolsShell">
       <header class="toolsHeader">
         <a class="brand" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span class="brandDivider" aria-hidden="true"></span>
           <span>Tools</span>
         </a>
         <div class="toolsHeaderActions">
           <section class="homeRatesPanel" aria-label="Kursy walut">
+            <p>Kursy walut</p>
             <div class="homeRatesRows" data-home-rates>
-              <span>EUR - PLN</span><b>—</b>
-              <span>SEK - EUR</span><b>—</b>
-              <span>DKK - EUR</span><b>—</b>
+              <span>EUR — PLN</span><b>—</b>
             </div>
             <small data-home-rates-source>źródło: Walutomat</small>
           </section>
-          <span class="userBadge">пользователь: Менеджер по продаже</span>
-          <a class="repoLink" href="https://github.com/belovn1999-rgb/autogood-kalkulatory">GitHub</a>
+          <span class="homeHeaderDivider" aria-hidden="true"></span>
+          <span class="userBadge"><span aria-hidden="true"></span>Пользователь: Менеджер по продажам</span>
         </div>
       </header>
 
       <section class="intro">
-        <p class="eyebrow">AUTOGOOD</p>
-        <p>Инструменты для быстрых расчётов и работы с клиентами.</p>
+        <h1>Инструменты для быстрых расчётов и работы с клиентами</h1>
       </section>
 
       <section class="toolsGrid" aria-label="AUTOGOOD tools">
@@ -71,7 +76,10 @@
       </section>
 
       <section class="archiveTools" aria-label="Архив">
-        <h2>Архив</h2>
+        <div class="archiveTitle">
+          <h2>Архив</h2>
+          <span aria-hidden="true"></span>
+        </div>
         <div class="archiveGrid">
           <a href="./process.html">
             <span>05</span>
@@ -96,6 +104,6 @@
         </div>
       </section>
     </main>
-    <script src="./src/home.js?v=4"></script>
+    <script src="./src/home.js?v=home-minimal-20260714"></script>
   </body>
 </html>

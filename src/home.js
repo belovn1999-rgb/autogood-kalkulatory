@@ -64,7 +64,8 @@
         .map((key) => {
           const item = data.rates?.[key];
           if (!item) return "";
-          return `<span>${item.label}</span><b>${formatRate(item.value)} ${item.unit}</b>`;
+          const label = String(item.label || key).replace(" - ", " — ");
+          return `<span>${label}</span><b>${formatRate(item.value)} ${item.unit}</b>`;
         })
         .join("");
 
