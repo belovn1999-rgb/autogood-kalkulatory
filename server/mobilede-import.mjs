@@ -82,6 +82,14 @@ function firstFinite(...values) {
   return 0;
 }
 
+function firstFiniteInRange(values, { min = 1, max = Number.POSITIVE_INFINITY } = {}) {
+  for (const value of values) {
+    const number = parseNumber(value);
+    if (number >= min && number <= max) return number;
+  }
+  return 0;
+}
+
 function walk(value, visitor) {
   if (!value || typeof value !== "object") return;
   if (Array.isArray(value)) {
@@ -173,6 +181,14 @@ function firstText(...values) {
   return "";
 }
 
+function firstPlausibleText(values, rejectPattern) {
+  for (const value of values.flat()) {
+    const text = stripTags(value);
+    if (text && !rejectPattern.test(text)) return text;
+  }
+  return "";
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -239,18 +255,23 @@ function normalizeMobileDeUrl(sourceUrl) {
     };
   }
 
+  const canonicalUrl = new URL("https://suchen.mobile.de/fahrzeuge/details.html");
+  canonicalUrl.searchParams.set("id", id);
+
   return {
     originalUrl: sourceUrl,
-    requestUrl: parsed.toString(),
+    requestUrl: canonicalUrl.toString(),
     adId: id,
   };
 }
 
 function extractPrice(html, jsonData, text = "") {
-  const candidates = [];
+  const primaryCandidates = [];
+  const secondaryCandidates = [];
 
-  candidates.push(...collectRegexMatches(html, [
+  primaryCandidates.push(...collectRegexMatches(html, [
     /<title[^>]*>[\s\S]*?(?:dla|for|f(?:ü|u)r)\s+€?\s*([\d.,\s\u00a0\u202f]+)\s*€/i,
+    /[?;&]u15=([\d.,\s\u00a0\u202f]+)[;&]/i,
   ]));
 
   jsonData.forEach((item) => {
@@ -262,12 +283,12 @@ function extractPrice(html, jsonData, text = "") {
         "grossprice",
         "grosslistprice",
         "price",
-      ].includes(lower)) candidates.push(value);
-      if (lower === "amount" && /eur/i.test(String(parent?.currency || parent?.priceCurrency || ""))) candidates.push(value);
+      ].includes(lower)) secondaryCandidates.push(value);
+      if (lower === "amount" && /eur/i.test(String(parent?.currency || parent?.priceCurrency || ""))) secondaryCandidates.push(value);
     });
   });
 
-  candidates.push(...collectTextValuesAfterLabels(text, [
+  primaryCandidates.push(...collectTextValuesAfterLabels(text, [
     /^price$/i,
     /^preis$/i,
     /^cena$/i,
@@ -276,7 +297,7 @@ function extractPrice(html, jsonData, text = "") {
     /^gross price$/i,
   ]));
 
-  candidates.push(...collectRegexMatches(html, [
+  primaryCandidates.push(...collectRegexMatches(html, [
     /\\?"consumerPriceGross\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
     /\\?"dealerPriceGross\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
     /\\?"grossPrice\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
@@ -286,26 +307,27 @@ function extractPrice(html, jsonData, text = "") {
     /([\d.,\s\u00a0\u202f]+)\s*€/gi,
   ]));
 
-  return firstFinite(...candidates);
+  return firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 500, max: 500000 });
 }
 
 function extractDisplacement(html, jsonData, text) {
-  const candidates = [];
+  const primaryCandidates = [];
+  const secondaryCandidates = [];
 
   jsonData.forEach((item) => {
     walk(item, (key, value) => {
-      if (/displacement|hubraum|ccm|enginecapacity|cubiccapacity/i.test(key)) candidates.push(value);
+      if (/displacement|hubraum|ccm|enginecapacity|cubiccapacity/i.test(key)) secondaryCandidates.push(value);
     });
   });
 
-  candidates.push(...collectTextValuesAfterLabels(text, [
+  primaryCandidates.push(...collectTextValuesAfterLabels(text, [
     /^cubic capacity$/i,
     /^displacement$/i,
     /^hubraum$/i,
     /^pojemno(?:ść|sc)$/i,
   ]));
 
-  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+  primaryCandidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\?"displacementCcm\\?"\s*:\s*\\?"?([\d. ]+)/gi,
     /\\?"cubicCapacity\\?"\s*:\s*\\?"?([\d. ]+)/gi,
     /\\?"engineCapacity\\?"\s*:\s*\\?"?([\d. ]+)/gi,
@@ -315,7 +337,7 @@ function extractDisplacement(html, jsonData, text) {
     /([\d. ]+)\s*ccm/i,
   ]));
 
-  return Math.round(firstFinite(...candidates));
+  return Math.round(firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 600, max: 9000 }));
 }
 
 function normalizeFuel(value) {
@@ -356,8 +378,10 @@ function extractFuel(html, jsonData, text) {
   const joined = candidates.map(String).join(" ").trim();
   const normalizedCandidate = normalizeFuel(joined);
   if (normalizedCandidate) return normalizedCandidate;
+  const normalizedText = normalizeFuel(text);
+  if (normalizedText) return normalizedText;
   if (joined) return joined;
-  return normalizeFuel(text);
+  return "";
 }
 
 function extractTitle(html, jsonData, text) {
@@ -416,31 +440,32 @@ function extractBodyType(html, jsonData, text) {
     /(?:Kategorie|Kategoria|Category)[^A-Za-zÀ-ž0-9]{0,80}([A-Za-zÀ-ž/ -]+)/i,
   ]));
 
-  return firstText(candidates);
+  return firstPlausibleText(candidates, /^(item|car|vehicle)$/i);
 }
 
 function extractMileage(html, jsonData, text) {
-  const candidates = [];
+  const primaryCandidates = [];
+  const secondaryCandidates = [];
 
   jsonData.forEach((item) => {
     walk(item, (key, value) => {
-      if (/mileage|kilometer|kilometre|odometer|laufleistung/i.test(key)) candidates.push(value);
+      if (/mileage|kilometer|kilometre|odometer|laufleistung/i.test(key)) secondaryCandidates.push(value);
     });
   });
 
-  candidates.push(...collectTextValuesAfterLabels(text, [
+  primaryCandidates.push(...collectTextValuesAfterLabels(text, [
     /^mileage$/i,
     /^kilometerstand$/i,
     /^przebieg$/i,
   ]));
 
-  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+  primaryCandidates.push(...collectRegexMatches(`${html}\n${text}`, [
     /\\"(?:mileage|mileageInKm|odometer)\\"\s*:\s*\\"?([\d. ]+)/gi,
     /(?:Kilometerstand|Przebieg|Mileage)[^0-9]{0,80}([\d. ]+)\s*km/i,
     /([\d. ]+)\s*km\b/i,
   ]));
 
-  return Math.round(firstFinite(...candidates));
+  return Math.round(firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 1000, max: 1000000 }));
 }
 
 function extractFirstRegistration(html, jsonData, text) {
