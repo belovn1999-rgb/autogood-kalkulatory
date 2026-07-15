@@ -277,6 +277,16 @@ const directSellerPayment = {
   ru: "Вы платите за автомобиль продавцу в EUR",
 };
 
+const invoiceVat23 = {
+  pl: "Sprzedajemy na Fakturę VAT 23%",
+  ru: "Продаём по инвойсу VAT 23%",
+};
+
+const invoiceVatMargin = {
+  pl: "Sprzedajemy na Fakturę VAT Marża",
+  ru: "Продаём по инвойсу VAT Marża",
+};
+
 const financingNotes = {
   pl: {
     ownFunds: "Kupujemy pojazd z własnych środków",
@@ -297,28 +307,28 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
       ru: ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru],
     },
     1: {
-      pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, "Sprzedajemy na Fakturę VAT 23%"] : ["Płatność w PLN lub EUR", "Sprzedajemy na Fakturę VAT 23%"],
-      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, "Продаём по Faktura VAT 23%"] : ["Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT 23%"],
+      pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVat23.pl] : ["Płatność w PLN lub EUR", invoiceVat23.pl],
+      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVat23.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru],
     },
     2: {
-      pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, "Sprzedajemy na Fakturę VAT Marża"] : ["Płatność w PLN lub EUR", "Sprzedajemy na Fakturę VAT Marża"],
-      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, "Продаём по Faktura VAT Marża"] : ["Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT Marża"],
+      pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVatMargin.pl] : ["Płatność w PLN lub EUR", invoiceVatMargin.pl],
+      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru],
     },
     3: {
       pl: financed
-        ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, "Sprzedajemy na Fakturę VAT 23%"]
-        : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Płatność w PLN lub EUR", "Sprzedajemy na Fakturę VAT 23%"],
+        ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, invoiceVat23.pl]
+        : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Płatność w PLN lub EUR", invoiceVat23.pl],
       ru: financed
-        ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, "Продаём по Faktura VAT 23%"]
-        : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT 23%"],
+        ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, invoiceVat23.ru]
+        : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru],
     },
     4: {
       pl: financed
-        ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, "Sprzedajemy na Fakturę VAT Marża"]
-        : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Płatność w PLN lub EUR", "Sprzedajemy na Fakturę VAT Marża"],
+        ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVatMargin.pl]
+        : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Płatność w PLN lub EUR", invoiceVatMargin.pl],
       ru: financed
-        ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, "Продаём по Faktura VAT Marża"]
-        : ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете всю сумму в PLN или EUR", "Продаём по Faktura VAT Marża"],
+        ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru]
+        : ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru],
     },
   };
 
@@ -355,12 +365,8 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
 
 const processHighlights = [
   "70% uzyskanego rabatu",
-  "70% полученной скидки",
-  "Вы оплачиваете автомобиль",
-  "Вы платите за автомобиль",
   "do sprzedawcy w EUR",
   "продавцу в EUR",
-  "Вы оплачиваете всю сумму",
   "w PLN lub EUR",
   "PLN lub EUR",
   "PLN или EUR",
@@ -370,14 +376,12 @@ const processHighlights = [
   "na Fakturę VAT Marża",
   "Fakturę VAT Marża",
   "Faktura VAT Marża",
-  "Продаём",
+  "инвойсу VAT 23%",
+  "инвойсу VAT Marża",
   "własnych środków",
   "wkładu własnego",
-  "Вы вносите собственный взнос",
   "Wpłacamy kaucję",
   "wpłacamy kaucję",
-  "Вносим депозит",
-  "вносим депозит",
 ];
 
 function splitHighlightedText(text) {
