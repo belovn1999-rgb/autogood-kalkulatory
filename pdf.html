@@ -90,8 +90,10 @@
 
             <div class="card-head compact">PRZEDMIOT UMOWY:</div>
             <div class="checkbox-group">
-              <label data-subject-option="purchase_by_autogood"><input name="subject" type="checkbox" value="purchase_by_autogood" checked /> <span>wyszukanie ofert pojazdów zgodnie z kryteriami określonymi przez Zleceniodawcę oraz zakup przez Zleceniobiorcę na rachunek Zleceniodawcy w ramach ustalonego budżetu w celu eksportu do Białorusi</span></label>
-              <label data-subject-option="client_indicated_vehicle"><input id="clientIndicatedVehicle" type="checkbox" /> <span>zakupienie pojazdu wskazanego przez Zleceniodawcę (z aukcji lub oferty), w imieniu Zleceniodawcy</span></label>
+              <label data-subject-option="mediation"><input name="subject" type="checkbox" value="mediation" /> <span>wyszukanie ofert oraz pośrednictwo w zakupie</span></label>
+              <label data-subject-option="purchase_by_autogood"><input name="subject" type="checkbox" value="purchase_by_autogood" checked /> <span>wyszukanie ofert oraz zakup przez Zleceniobiorcę</span></label>
+              <label data-subject-option="financing"><input name="subject" type="checkbox" value="financing" /> <span>zakup z finansowania</span></label>
+              <label data-subject-option="client_indicated_vehicle"><input id="clientIndicatedVehicle" type="checkbox" /> <span>pojazd wskazany przez Zleceniodawcę</span></label>
             </div>
 
             <div class="card-head compact">BUDŻET NA ZAKUP</div>
@@ -197,6 +199,6 @@
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-7"></script>
+    <script src="./src/pdf.js?v=20260708-8"></script>
   </body>
 </html>

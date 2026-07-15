@@ -567,6 +567,8 @@ function configureContractVariant() {
 
   const purchaseLabel = document.querySelector('[data-subject-option="purchase_by_autogood"] span');
   if (purchaseLabel) purchaseLabel.textContent = exportSubjectLabels.purchase_by_autogood;
+  const purchaseCheckbox = document.querySelector('[data-subject-option="purchase_by_autogood"] input');
+  if (purchaseCheckbox) purchaseCheckbox.remove();
   const indicatedLabel = document.querySelector('[data-subject-option="client_indicated_vehicle"] span');
   if (indicatedLabel) indicatedLabel.textContent = exportSubjectLabels.client_indicated_vehicle;
   setRadio("commissionOption", exportDefaultCommission);
