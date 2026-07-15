@@ -186,7 +186,7 @@ body.export-contract .brand span::after {
 
 .paste-panel {
   display: grid;
-  grid-template-rows: auto auto minmax(80px, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   min-height: 0;
@@ -197,7 +197,9 @@ body.export-contract .brand span::after {
 
 .input-card {
   display: grid;
+  grid-template-rows: auto minmax(180px, 1fr) auto auto;
   gap: 10px;
+  min-height: 0;
 }
 
 .section-title,
@@ -250,31 +252,40 @@ body.export-contract .brand span::after {
 }
 
 .contract-history {
-  display: grid;
-  align-content: start;
-  gap: 8px;
   min-width: 0;
-  max-width: 100%;
-  min-height: 0;
-  overflow: auto;
-  padding-top: 4px;
 }
 
 .history-list {
-  display: grid;
+  display: flex;
   gap: 8px;
   min-width: 0;
   max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.history-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin: 0 28px 32px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
 .history-empty {
+  white-space: nowrap;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .history-item {
-  width: 100%;
+  width: min(280px, 78vw);
+  flex: 0 0 auto;
   min-width: 0;
   max-width: 100%;
   border: 1px solid var(--line-strong);
@@ -514,6 +525,11 @@ input[type="radio"] {
 
   .workspace {
     padding: 16px;
+  }
+
+  .history-strip {
+    grid-template-columns: 1fr;
+    margin: 0 16px 24px;
   }
 
   .two-fields,

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AUTOGOOD Umowa</title>
-    <link rel="stylesheet" href="./src/pdf.css?v=20260708-5" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260708-6" />
   </head>
   <body>
     <main class="app-shell">
@@ -42,10 +42,6 @@
                 <button id="saveDataBtn" class="ghost-btn save-data-btn" type="button">Zapisz dane</button>
               </div>
               <div id="status" class="status"></div>
-            </div>
-            <div class="contract-history">
-              <div class="history-title">Ostatnie umowy</div>
-              <div id="contractHistoryList" class="history-list"></div>
             </div>
           </aside>
 
@@ -202,10 +198,14 @@
           </section>
         </section>
       </section>
+      <section class="contract-history history-strip">
+        <div class="history-title">Ostatnie umowy</div>
+        <div id="contractHistoryList" class="history-list"></div>
+      </section>
     </main>
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-11"></script>
+    <script src="./src/pdf.js?v=20260708-12"></script>
   </body>
 </html>
