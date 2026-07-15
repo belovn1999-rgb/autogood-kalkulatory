@@ -2090,7 +2090,11 @@ function App() {
     calc: finalCalc,
     onCurrencyChange: switchFinalCurrency,
     onToggleVat: toggleFinalVat
-  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
+    className: "resultCornerLogo",
+    src: "./assets/ag-opt.svg",
+    alt: "AUTOGOOD"
+  }), /*#__PURE__*/React.createElement("h2", {
     className: "calcEyebrow"
   }, c.results, " \u2014 ", activeTabName), /*#__PURE__*/React.createElement("div", {
     className: "resultsList"

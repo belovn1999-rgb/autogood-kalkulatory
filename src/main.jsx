@@ -1994,6 +1994,7 @@ function App() {
             />
           ) : (
             <>
+          <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
           <h2 className="calcEyebrow">{c.results} — {activeTabName}</h2>
 
           <div className="resultsList">
