@@ -1349,10 +1349,12 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const commissionNetto = STD_FIX + 0.01 * carPln + discountCommission;
     const commissionBrutto = commissionNetto * 1.23;
     const discountText = discount > 0 ? ` + (30% × ${money(discount)})` : "";
+    const vatBase = inspection + transport + commissionNetto;
+    const vat = vatBase * VAT;
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION;
     return {
       total,
-      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(STD_FIX, 0.01, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true)]
+      rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(STD_FIX, 0.01, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   if (tabId === 1) {
@@ -1382,10 +1384,12 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const exciseBrutto = excise * 1.23;
     const commissionNetto = finFix + finPct * base;
     const commissionBrutto = commissionNetto * 1.23;
+    const vatBase = feePln + transNetto + excise + commissionNetto + TO_FEE;
+    const vat = vatBase * VAT;
     const total = carPln + feeBrutto + transBrutto + exciseBrutto + commissionBrutto + technicalBrutto;
     return {
       total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "+VAT 23%", `${money(feeBrutto)} brutto`, false, false, conversionPrefix(fee), feeBrutto, 1.23), row(t.transport, transNetto, "+VAT 23%", `${money(transBrutto)} brutto`, false, false, "", transBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(finFix, finPct, base), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23)]
+      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", `${money(feeBrutto)} brutto`, false, false, conversionPrefix(fee), feeBrutto, 1.23), row(t.transport, transNetto, "", `${money(transBrutto)} brutto`, false, false, "", transBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, base), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
     };
   }
   if (tabId === 3) {
@@ -1416,8 +1420,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
   const commissionNetto = finFix + finPct * carPln + discountCommission;
   const commissionBrutto = commissionNetto * 1.23;
   const discountText = discount > 0 ? ` + (30% × ${inputCurrencyLabel(discount)})` : "";
+  const vatBase = inspection + transport + excise + commissionNetto + TO_FEE;
+  const vat = vatBase * VAT;
   const total = carPln + inspectionBrutto + transportBrutto + exciseBrutto + commissionBrutto + technicalBrutto + germanCommissionPln;
-  const rows = [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "+VAT 23%", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(finFix, finPct, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23)];
+  const rows = [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23), row(t.vat, vat, "", `23% × ${money(vatBase)}`)];
   return {
     total,
     rows
