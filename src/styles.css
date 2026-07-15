@@ -1463,6 +1463,7 @@ select {
   grid-template-columns: 20px minmax(0, 1fr) minmax(110px, max-content) minmax(84px, max-content) minmax(60px, max-content);
   align-items: center;
   gap: 4px 8px;
+  min-height: 62px;
   padding: 12px 0;
   border-bottom: 2px solid var(--ag-line-150);
 }
@@ -1472,6 +1473,7 @@ select {
 }
 
 .resultLine.isPrimaryLine {
+  min-height: 66px;
   padding: 14px 0;
   border-bottom: 2px solid var(--ag-primary-line);
 }
