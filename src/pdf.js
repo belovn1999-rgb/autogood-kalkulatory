@@ -915,13 +915,14 @@ function wEl(doc, name, attrs = {}) {
   return el;
 }
 
-function makeRun(doc, text, { size = 18, bold = false, underline = false, breakBefore = false, font = "Calibri" } = {}) {
+function makeRun(doc, text, { size = 18, bold = false, underline = false, breakBefore = false, font = "Calibri", color = "" } = {}) {
   const r = wEl(doc, "r");
   const rPr = wEl(doc, "rPr");
   rPr.append(wEl(doc, "rFonts", { ascii: font, hAnsi: font, cs: font, eastAsia: font }));
   if (bold) rPr.append(wEl(doc, "b"));
   else rPr.append(wEl(doc, "b", { val: "0" }), wEl(doc, "bCs", { val: "0" }));
   if (underline) rPr.append(wEl(doc, "u", { val: "single" }));
+  if (color) rPr.append(wEl(doc, "color", { val: color }));
   rPr.append(wEl(doc, "sz", { val: String(size) }));
   r.append(rPr);
   if (breakBefore) r.append(wEl(doc, "br"));
@@ -1193,21 +1194,16 @@ function setExportClientBlock(rows, data) {
 }
 
 function setExportSubjectBlock(rows, data) {
-  const subjects = new Set(data.agreement.subjects || []);
-  const purchaseChecked = subjects.has("purchase_by_autogood");
   const indicatedChecked = data.agreement.client_indicated_vehicle;
   setCellParagraphs(rows[9][0], [
     {
-      options: { align: "left", left: "360", hanging: "360" },
-      runs: [
-        { text: checkboxText(purchaseChecked), font: "DejaVu Sans" },
-        { text: ` ${exportSubjectLabels.purchase_by_autogood}` },
-      ],
+      options: { align: "left" },
+      runs: [{ text: exportSubjectLabels.purchase_by_autogood }],
     },
     {
-      options: { align: "left", left: "360", hanging: "360" },
+      options: { align: "left" },
       runs: [
-        { text: checkboxText(indicatedChecked), font: "DejaVu Sans" },
+        { text: checkboxText(indicatedChecked), font: "DejaVu Sans", size: 28, color: "0070C0" },
         { text: ` ${exportSubjectLabels.client_indicated_vehicle}` },
       ],
     },
@@ -1350,6 +1346,13 @@ async function generatePdfBlob() {
     y += 5;
   }
 
+  function plainBlock(value) {
+    doc.setFontSize(8.5);
+    const wrapped = doc.splitTextToSize(String(value || ""), pageWidth - margin * 2);
+    doc.text(wrapped, margin, y);
+    y += wrapped.length * 4.4 + 1.5;
+  }
+
   text(polishDateLine(data.contract.date), pageWidth - margin, y, 12, { align: "right" });
   y += 10;
   text(`UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, pageWidth / 2, y, 15, { align: "center" });
@@ -1367,7 +1370,7 @@ async function generatePdfBlob() {
   section("PRZEDMIOT UMOWY");
   const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
   if (isExportContract) {
-    box(exportSubjectLabels.purchase_by_autogood, subjects.has("purchase_by_autogood"));
+    plainBlock(exportSubjectLabels.purchase_by_autogood);
     box(exportSubjectLabels.client_indicated_vehicle, data.agreement.client_indicated_vehicle);
   } else {
     box("wyszukanie ofert oraz pośrednictwo w zakupie", subjects.has("mediation"));
