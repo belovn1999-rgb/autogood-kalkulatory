@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AUTOGOOD Umowa</title>
-    <link rel="stylesheet" href="./src/pdf.css?v=20260708-6" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260708-7" />
   </head>
   <body>
     <main class="app-shell">
@@ -44,6 +44,10 @@
               <div id="status" class="status"></div>
             </div>
           </aside>
+          <section class="contract-history history-strip">
+            <div class="history-title">Ostatnie umowy</div>
+            <div id="contractHistoryList" class="history-list"></div>
+          </section>
 
         </section>
 
@@ -54,10 +58,15 @@
             <div class="card-head">ZLECENIODAWCA:</div>
             <div class="field-row client-kind">
               <label><input type="radio" name="clientType" value="person" checked /> <span>osoba</span></label>
+              <label class="company-only"><input type="radio" name="clientType" value="company" /> <span>firma</span></label>
             </div>
             <label class="field">
               <span>Imię i Nazwisko/Nazwa:</span>
               <input id="clientName" type="text" />
+            </label>
+            <label class="checkbox-line company-only">
+              <input id="clientEntrepreneur" type="checkbox" />
+              <span>Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym</span>
             </label>
             <label class="field">
               <span>Adres:</span>
@@ -198,14 +207,10 @@
           </section>
         </section>
       </section>
-      <section class="contract-history history-strip">
-        <div class="history-title">Ostatnie umowy</div>
-        <div id="contractHistoryList" class="history-list"></div>
-      </section>
     </main>
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-12"></script>
+    <script src="./src/pdf.js?v=20260708-13"></script>
   </body>
 </html>
