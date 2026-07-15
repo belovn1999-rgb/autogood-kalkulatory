@@ -545,6 +545,86 @@ function filenameFor(data, extension) {
 
 function updateDocumentFileName() {
   $("documentFileName").textContent = filenameFor(collectData(), "pdf");
+  renderContractPreview();
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function valueOrDash(value) {
+  return normalizeSpace(value) || "—";
+}
+
+function previewLine(label, value) {
+  return `<p class="preview-line"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(valueOrDash(value))}</p>`;
+}
+
+function subjectPreviewLines(data) {
+  if (isExportContract) {
+    const lines = [`<p class="preview-line">${escapeHtml(exportSubjectLabels.purchase_by_autogood)}</p>`];
+    if (data.agreement.client_indicated_vehicle) lines.push(`<p class="preview-line">☑ ${escapeHtml(exportSubjectLabels.client_indicated_vehicle)}</p>`);
+    else lines.push(`<p class="preview-line">☐ ${escapeHtml(exportSubjectLabels.client_indicated_vehicle)}</p>`);
+    return lines.join("");
+  }
+  const selected = new Set(data.agreement.subjects || []);
+  const rows = [
+    ["mediation", "wyszukanie ofert oraz pośrednictwo w zakupie"],
+    ["purchase_by_autogood", "wyszukanie ofert oraz zakup przez Zleceniobiorcę"],
+    ["financing", "zakup z finansowania"],
+  ];
+  const lines = rows.map(([key, label]) => `<p class="preview-line">${selected.has(key) ? "☑" : "☐"} ${escapeHtml(label)}</p>`);
+  lines.push(`<p class="preview-line">${data.agreement.client_indicated_vehicle ? "☑" : "☐"} pojazd wskazany przez Zleceniodawcę</p>`);
+  return lines.join("");
+}
+
+function renderContractPreview() {
+  const preview = $("contractPreview");
+  if (!preview) return;
+  const data = collectData();
+  const badge = $("contractBadge");
+  if (badge) badge.textContent = isExportContract ? "Eksport do Białorusi" : "Polska";
+  const vehicleBits = [
+    data.vehicle.make_model,
+    data.vehicle.fuel?.join(", "),
+    data.vehicle.gearbox?.join(", "),
+    data.vehicle.euro_standard ? `Euro ${data.vehicle.euro_standard}` : "",
+    data.vehicle.first_registration ? `wiek ${data.vehicle.first_registration}` : "",
+    data.vehicle.mileage_to ? `przebieg do ${data.vehicle.mileage_to}` : "",
+    bodyLabel(data.vehicle.body),
+  ].filter(Boolean);
+  preview.innerHTML = `
+    <h2 class="preview-title">Umowa zamówienia pojazdu</h2>
+    <div class="preview-meta">${escapeHtml(polishDateLine(data.contract.date))} · nr ${escapeHtml(contractNumber(data.contract.date, data.contract.sequence))}</div>
+    <section class="preview-section">
+      <h3>Zleceniodawca</h3>
+      ${previewLine("Imię i Nazwisko/Nazwa", data.client.name)}
+      ${previewLine("Adres", data.client.address)}
+      ${previewLine(isExportContract ? "Dokument" : data.client.type === "company" ? "NIP" : "PESEL", isExportContract ? data.client.document : data.client.nip || data.client.pesel)}
+      ${previewLine("Telefon", data.client.phone)}
+      ${previewLine("E-mail", data.client.email)}
+    </section>
+    <section class="preview-section">
+      <h3>Przedmiot umowy</h3>
+      ${subjectPreviewLines(data)}
+    </section>
+    <section class="preview-section">
+      <h3>Budżet i wynagrodzenie</h3>
+      ${previewLine("Budżet", data.budget.total)}
+      ${previewLine("Zaliczka", data.budget.advance)}
+      ${isExportContract ? previewLine("Wynagrodzenie", data.compensation.commission) : ""}
+    </section>
+    <section class="preview-section">
+      <h3>Kryteria poszukiwań</h3>
+      <p class="preview-line ${vehicleBits.length ? "" : "preview-muted"}">${escapeHtml(vehicleBits.join(", ") || "Brak danych pojazdu.")}</p>
+      ${previewLine("Wymagane", data.vehicle.required_equipment)}
+      ${previewLine("Oczekiwane", data.vehicle.expected_equipment)}
+    </section>
+  `;
 }
 
 function setDefaultSelectValues() {
@@ -1512,5 +1592,10 @@ $("resetBtn").addEventListener("click", resetForm);
 $("saveDataBtn").addEventListener("click", saveCurrentContractData);
 document.querySelectorAll('input[name="clientType"]').forEach((node) => node.addEventListener("change", syncClientTypeRules));
 $("vehicleMakeModel").addEventListener("input", updateDocumentFileName);
+document.querySelectorAll("input, textarea, select").forEach((node) => {
+  const eventName = node.type === "checkbox" || node.type === "radio" || node.tagName === "SELECT" ? "change" : "input";
+  node.addEventListener(eventName, renderContractPreview);
+});
 
 syncClientTypeRules();
+renderContractPreview();

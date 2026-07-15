@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AUTOGOOD Umowa</title>
-    <link rel="stylesheet" href="./src/pdf.css?v=20260708-2" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260708-3" />
   </head>
   <body>
     <main class="app-shell">
@@ -30,23 +30,39 @@
       </header>
 
       <section class="workspace">
-        <aside class="paste-panel">
-          <div class="section-title">Dane wejściowe</div>
-          <textarea id="rawClient" spellcheck="false"></textarea>
-          <div class="example-actions">
-            <button id="resetBtn" class="ghost-btn" type="button">Wyzeruj</button>
-          </div>
-          <button id="parseBtn" class="secondary-btn" type="button">Rozpoznaj dane</button>
-          <button id="saveDataBtn" class="ghost-btn save-data-btn" type="button">Zapisz dane</button>
-          <div id="status" class="status"></div>
-          <div class="contract-history">
-            <div class="history-title">Ostatnie umowy</div>
-            <div id="contractHistoryList" class="history-list"></div>
-          </div>
-        </aside>
+        <section class="top-workspace">
+          <aside class="paste-panel">
+            <div class="section-title">Dane wejściowe</div>
+            <div class="input-card">
+              <div class="panel-title">Dane do rozpoznania</div>
+              <textarea id="rawClient" spellcheck="false"></textarea>
+              <div class="example-actions">
+                <button id="resetBtn" class="ghost-btn" type="button">Wyzeruj</button>
+                <button id="parseBtn" class="secondary-btn" type="button">Rozpoznaj dane</button>
+                <button id="saveDataBtn" class="ghost-btn save-data-btn" type="button">Zapisz dane</button>
+              </div>
+              <div id="status" class="status"></div>
+            </div>
+            <div class="contract-history">
+              <div class="history-title">Ostatnie umowy</div>
+              <div id="contractHistoryList" class="history-list"></div>
+            </div>
+          </aside>
 
-        <section class="contract-grid">
-          <div id="documentFileName" class="document-file-name">Umowa_Zamówienia_Pojazdu_AUTO.pdf</div>
+          <section class="preview-card">
+            <div class="preview-toolbar">
+              <div>
+                <div class="section-title">Podgląd</div>
+                <div id="documentFileName" class="document-file-name">Umowa_Zamówienia_Pojazdu_AUTO.pdf</div>
+              </div>
+              <span id="contractBadge" class="contract-badge"></span>
+            </div>
+            <article id="contractPreview" class="contract-preview" aria-live="polite"></article>
+          </section>
+        </section>
+
+        <section class="form-section">
+          <section class="contract-grid">
 
           <div class="contract-card">
             <div class="card-head">ZLECENIODAWCA:</div>
@@ -193,12 +209,13 @@
               <textarea id="expectedEquipment"></textarea>
             </label>
           </div>
+          </section>
         </section>
       </section>
     </main>
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260708-8"></script>
+    <script src="./src/pdf.js?v=20260708-9"></script>
   </body>
 </html>
