@@ -23,7 +23,7 @@ const readMobileDeApiUrl = () => {
 const MOBILEDE_API_URL = readMobileDeApiUrl();
 const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
-const HISTORY_LIMIT = 5;
+const HISTORY_LIMIT = 8;
 const FINAL_TAB_ID = 5;
 const RATES_FALLBACK = {
   source: "Walutomat",
@@ -61,9 +61,9 @@ const copy = {
     totalJoin: "lub",
     rateLine: "Przeliczono po kursie",
     historyTitle: "Historia zmian",
-    historyEmpty: "Tutaj pojawi się 5 ostatnich kalkulacji.",
+    historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
-    finalHistoryEmpty: "Tutaj pojawi się 5 ostatnich rozliczeń.",
+    finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
     finalBalance: "Finalne rozliczenie",
     finalCurrency: "Waluta rozliczenia",
     finalFixedCosts: "Aktywne pozycje",
@@ -130,9 +130,9 @@ const copy = {
     totalJoin: "или",
     rateLine: "Расчёт по курсу",
     historyTitle: "История изменений",
-    historyEmpty: "Здесь появятся 5 последних расчётов.",
+    historyEmpty: "Здесь появятся 8 последних расчётов.",
     historyRestore: "Вернуть расчёт",
-    finalHistoryEmpty: "Здесь появятся 5 последних финальных расчётов.",
+    finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
     finalFixedCosts: "Активные позиции",
