@@ -1208,10 +1208,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
       total,
       rows: [
         row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
-        row(t.auctionFee, feePln, "+VAT 23%", `${money(feePln * 1.23)} brutto`, false, false, conversionPrefix(fee)),
-        row(t.transport, transPln, "+VAT 23%", `${money(transPln * 1.23)} brutto`),
+        row(t.auctionFee, feePln, "", `${money(feePln * 1.23)} brutto`, false, false, conversionPrefix(fee)),
+        row(t.transport, transPln, "", `${money(transPln * 1.23)} brutto`),
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
-        row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(finFix, finPct, commissionBase)),
+        row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, commissionBase)),
         row(t.to, TO_FEE, "", "", false, true),
         row(t.vat, vat, "", `23% × ${money(vatBase)}`),
       ],
@@ -1261,10 +1261,10 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const rows = [
       row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)),
       ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []),
-      row(t.inspection, inspection, "+VAT 23%", `${money(inspectionBrutto)} brutto`),
-      row(t.transport, transport, "+VAT 23%", `${money(transport * 1.23)} brutto`),
+      row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`),
+      row(t.transport, transport, "", `${money(transport * 1.23)} brutto`),
       row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
-      row(t.commission, commissionNetto, "+VAT 23%", commissionFormula(finFix, finPct, bruttoBase, discountText)),
+      row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, bruttoBase, discountText)),
       row(t.to, TO_FEE, "", "", false, true),
       row(t.vat, vat, "", `23% × ${money(vatBase)}`),
     ];
