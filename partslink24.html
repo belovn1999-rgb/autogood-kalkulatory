@@ -86,36 +86,36 @@
         "Alfa Romeo": { route: "general_vin_search" },
         Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" },
         BMW: { sampleVin: "WBA31AA0905V40977", route: "general_vin_search" },
-        Citroen: { route: "general_vin_search" },
+        Citroen: { route: "brand_first_search" },
         Cupra: { route: "general_vin_search" },
         Dacia: { route: "general_vin_search" },
-        DS: { route: "general_vin_search" },
+        DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
-        Ford: { route: "general_vin_search" },
-        Hyundai: { route: "general_vin_search" },
-        Iveco: { route: "general_vin_search" },
+        Ford: { route: "pending_demo" },
+        Hyundai: { route: "pending_demo" },
+        Iveco: { route: "pending_demo" },
         Jaguar: { route: "general_vin_search" },
         Jeep: { route: "general_vin_search" },
-        Kia: { route: "general_vin_search" },
+        Kia: { route: "pending_demo" },
         "Land Rover": { route: "general_vin_search" },
         Lexus: { route: "general_vin_search" },
         "Mercedes-Benz": { sampleVin: "WDD2120481A322032", route: "brand_first_search" },
-        "Mercedes Trucks": { route: "general_vin_search" },
-        "Mercedes Vans": { route: "general_vin_search" },
+        "Mercedes Trucks": { route: "brand_first_search" },
+        "Mercedes Vans": { route: "brand_first_search" },
         Mini: { route: "general_vin_search" },
         Mitsubishi: { route: "general_vin_search" },
-        Nissan: { route: "general_vin_search" },
-        Opel: { route: "general_vin_search" },
+        Nissan: { route: "pending_demo" },
+        Opel: { route: "brand_first_search" },
         Peugeot: { sampleVin: "VF3MCYHZUMS121613", route: "brand_first_search" },
         Porsche: { route: "general_vin_search" },
-        Renault: { route: "general_vin_search" },
+        Renault: { route: "brand_first_search" },
         Seat: { route: "general_vin_search" },
         Skoda: { route: "general_vin_search" },
         Smart: { route: "general_vin_search" },
         Suzuki: { route: "general_vin_search" },
         Toyota: { route: "general_vin_search" },
         Volvo: { sampleVin: "YV1ZZK5V2P2106956", route: "general_vin_search" },
-        "Vw Nutzfahrzeuge": { route: "general_vin_search" }
+        "Vw Nutzfahrzeuge": { route: "brand_first_search" }
       };
       let brandRoutes = fallbackBrands;
       const defaultPartslinkApiBase = "https://hitting-dietary-eddie-unique.trycloudflare.com";
@@ -182,7 +182,7 @@
       });
       languageSelect.addEventListener("change", resetDownloadLink);
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260714-1")
+      fetch("./tools/partslink24/brand-routes.json?v=20260715-1")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;

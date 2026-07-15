@@ -22,8 +22,9 @@
       "expectedTextAny": ["Идентификация автомобиля", "Серийная комплектация", "Спецоборудование"]
     },
     "Citroen": {
-      "route": "general_vin_search",
-      "brandTile": "Citroën"
+      "route": "brand_first_search",
+      "brandTile": "Citroën",
+      "brandTileAliases": ["Citroen"]
     },
     "Cupra": {
       "route": "general_vin_search",
@@ -34,24 +35,28 @@
       "brandTile": "Dacia"
     },
     "DS": {
-      "route": "general_vin_search",
-      "brandTile": "DS Automobiles"
+      "route": "brand_first_search",
+      "brandTile": "DS Automobiles",
+      "brandTileAliases": ["Citroën DS", "DS"]
     },
     "Fiat": {
       "route": "general_vin_search",
       "brandTile": "Fiat"
     },
     "Ford": {
-      "route": "general_vin_search",
-      "brandTile": "Ford"
+      "route": "pending_demo",
+      "brandTile": "Ford",
+      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Hyundai": {
-      "route": "general_vin_search",
-      "brandTile": "Hyundai"
+      "route": "pending_demo",
+      "brandTile": "Hyundai",
+      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Iveco": {
-      "route": "general_vin_search",
-      "brandTile": "Iveco"
+      "route": "pending_demo",
+      "brandTile": "Iveco",
+      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Jaguar": {
       "route": "general_vin_search",
@@ -62,8 +67,9 @@
       "brandTile": "Jeep"
     },
     "Kia": {
-      "route": "general_vin_search",
-      "brandTile": "Kia"
+      "route": "pending_demo",
+      "brandTile": "Kia",
+      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Land Rover": {
       "route": "general_vin_search",
@@ -82,12 +88,14 @@
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "SAA Numbers"]
     },
     "Mercedes Trucks": {
-      "route": "general_vin_search",
-      "brandTile": "Trucks"
+      "route": "brand_first_search",
+      "brandTile": "Trucks",
+      "brandTileAliases": ["Mercedes-Benz Trucks", "Mercedes Trucks"]
     },
     "Mercedes Vans": {
-      "route": "general_vin_search",
-      "brandTile": "Vans"
+      "route": "brand_first_search",
+      "brandTile": "Vans",
+      "brandTileAliases": ["Mercedes-Benz Vans", "Mercedes Vans"]
     },
     "Mini": {
       "route": "general_vin_search",
@@ -98,11 +106,12 @@
       "brandTile": "Mitsubishi"
     },
     "Nissan": {
-      "route": "general_vin_search",
-      "brandTile": "Nissan"
+      "route": "pending_demo",
+      "brandTile": "Nissan",
+      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Opel": {
-      "route": "general_vin_search",
+      "route": "brand_first_search",
       "brandTile": "Opel"
     },
     "Peugeot": {
@@ -119,7 +128,7 @@
       "brandTile": "Porsche"
     },
     "Renault": {
-      "route": "general_vin_search",
+      "route": "brand_first_search",
       "brandTile": "Renault"
     },
     "Seat": {
@@ -151,8 +160,9 @@
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "Informacje techniczne"]
     },
     "Vw Nutzfahrzeuge": {
-      "route": "general_vin_search",
-      "brandTile": "Volkswagen Commercial Vehicles"
+      "route": "brand_first_search",
+      "brandTile": "Volkswagen Commercial Vehicles",
+      "brandTileAliases": ["Volkswagen Nutzfahrzeuge", "VW Nutzfahrzeuge", "Nutzfahrzeuge"]
     }
   }
 }

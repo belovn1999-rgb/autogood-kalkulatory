@@ -172,10 +172,12 @@ async function setLanguage(page, language) {
 async function openVehicle(page, brandConfig, vin) {
   await assertLoggedIn(page);
 
+  if (brandConfig.route === "pending_demo") {
+    fail(`Для марки ${brand} нужен отдельный сценарий PartsLink. Запишите демонстрацию экрана перед включением загрузки.`);
+  }
+
   if (brandConfig.route === "brand_first_search") {
-    await clickHuman(page.getByRole("img", { name: new RegExp(brandConfig.brandTile || "", "i") }).first()).catch(async () => {
-      await clickHuman(page.getByText(new RegExp(brandConfig.brandTile || "", "i")).first());
-    });
+    await clickBrandTile(page, brandConfig);
     await page.waitForLoadState("networkidle").catch(() => {});
     await humanDelay();
   }
@@ -190,6 +192,28 @@ async function openVehicle(page, brandConfig, vin) {
   ]);
 
   await page.getByText(vin).first().waitFor({ timeout: 45000 });
+}
+
+async function clickBrandTile(page, brandConfig) {
+  const names = [brandConfig.brandTile, ...(brandConfig.brandTileAliases || [])].filter(Boolean);
+
+  for (const name of names) {
+    const escapedName = escapeRegExp(name);
+    const candidates = [
+      page.getByRole("button", { name: new RegExp(escapedName, "i") }).first(),
+      page.getByRole("img", { name: new RegExp(escapedName, "i") }).first(),
+      page.locator(`[title="${cssString(name)}"]`).first(),
+      page.getByText(new RegExp(escapedName, "i")).first()
+    ];
+
+    for (const candidate of candidates) {
+      if (!await candidate.isVisible({ timeout: 1200 }).catch(() => false)) continue;
+      await clickHuman(candidate);
+      return;
+    }
+  }
+
+  fail(`Не удалось найти логотип марки ${brandConfig.brandTile || brand}. Нужна демонстрация экрана для этой марки.`);
 }
 
 async function assertLoggedIn(page) {
@@ -280,6 +304,14 @@ function randomInt(min, max) {
   const low = Math.max(0, Math.floor(min));
   const high = Math.max(low, Math.floor(max));
   return low + Math.floor(Math.random() * (high - low + 1));
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function cssString(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 function readOption(values, name) {
