@@ -160,15 +160,22 @@ body.export-contract .brand span::after {
 
 .workspace {
   display: grid;
+  grid-template-columns: minmax(280px, 25%) minmax(0, 1fr);
   gap: 18px;
+  align-items: start;
   padding: 22px 28px 32px;
 }
 
-.top-workspace {
+.utility-column {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-  gap: 18px;
-  align-items: stretch;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  min-height: calc(100vh - 130px);
+  align-self: stretch;
+}
+
+.form-section {
+  min-width: 0;
 }
 
 .paste-panel,
@@ -181,10 +188,12 @@ body.export-contract .brand span::after {
 
 .paste-panel {
   display: grid;
-  grid-template-rows: auto auto minmax(120px, 1fr);
+  grid-template-rows: auto auto minmax(80px, 1fr);
   gap: 12px;
   min-width: 0;
+  min-height: 0;
   padding: 14px;
+  overflow: hidden;
 }
 
 .input-card {
@@ -207,7 +216,7 @@ body.export-contract .brand span::after {
 
 #rawClient {
   width: 100%;
-  min-height: 178px;
+  min-height: 120px;
   resize: vertical;
   padding: 11px;
   line-height: 1.4;
@@ -247,6 +256,8 @@ body.export-contract .brand span::after {
   gap: 8px;
   min-width: 0;
   max-width: 100%;
+  min-height: 0;
+  overflow: auto;
   padding-top: 4px;
 }
 
@@ -296,15 +307,16 @@ body.export-contract .brand span::after {
 
 .preview-card {
   display: grid;
-  grid-template-rows: auto minmax(320px, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
+  min-height: 0;
   padding: 14px;
 }
 
 .preview-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
@@ -319,6 +331,7 @@ body.export-contract .brand span::after {
 
 .contract-badge {
   align-self: start;
+  justify-self: start;
   white-space: nowrap;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -330,19 +343,22 @@ body.export-contract .brand span::after {
 }
 
 .contract-preview {
-  max-height: 430px;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
-  padding: 22px 26px;
+  overflow-x: hidden;
+  padding: 18px 14px;
   background: #fff;
   color: #1a2430;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .preview-title {
   margin: 0 0 14px;
   color: var(--brand-dark);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   text-align: center;
 }
@@ -374,14 +390,11 @@ body.export-contract .brand span::after {
   color: var(--soft);
 }
 
-.form-section {
-  min-width: 0;
-}
-
 .contract-grid {
   display: grid;
-  grid-template-columns: minmax(340px, 1fr) minmax(340px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
 .contract-card {
@@ -557,9 +570,18 @@ input[type="radio"] {
 }
 
 @media (max-width: 1100px) {
-  .top-workspace,
+  .workspace,
   .contract-grid {
     grid-template-columns: 1fr;
+  }
+
+  .utility-column {
+    grid-template-rows: auto auto;
+    min-height: 0;
+  }
+
+  .preview-card {
+    min-height: 360px;
   }
 }
 
@@ -584,7 +606,6 @@ input[type="radio"] {
     padding: 16px;
   }
 
-  .preview-toolbar,
   .two-fields,
   .document-control {
     grid-template-columns: 1fr;
