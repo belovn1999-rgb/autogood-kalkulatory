@@ -8,12 +8,15 @@ const generateButton = document.querySelector("#generateSaleDocx");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
+const saleHistoryList = document.querySelector("#saleHistoryList");
 const damageCanvas = document.querySelector("#damageMapCanvas");
 const damageMarksInput = document.querySelector("#damageMarks");
 const clearDamageButton = document.querySelector("#clearDamageMarks");
 const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx?v=20260613-3";
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
+const saleHistoryKey = "autogoodSaleContractHistory.v1";
+const saleHistoryLimit = 5;
 
 let currentDownloadUrl = null;
 
@@ -267,6 +270,77 @@ function applySaleContract(data) {
   updateSummary();
 }
 
+function readSaleHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(saleHistoryKey) || "[]");
+    return Array.isArray(parsed) ? parsed.slice(0, saleHistoryLimit) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSaleHistory(items) {
+  localStorage.setItem(saleHistoryKey, JSON.stringify(items.slice(0, saleHistoryLimit)));
+}
+
+function saleHistoryTitle(entry) {
+  const data = entry.data || {};
+  const buyer = normalizeSpace(data.buyerName || "Bez kupującego");
+  const vehicle = normalizeSpace(data.vehicleMakeModel || "AUTO");
+  return `${buyer} · ${vehicle}`;
+}
+
+function saleHistoryMeta(entry) {
+  const data = entry.data || {};
+  const date = polishDate(data.contractDate) || "bez daty";
+  const price = formatGrossAmount(data.salePrice, data.saleCurrency) || "bez ceny";
+  const savedAt = entry.savedAt ? new Date(entry.savedAt) : null;
+  const savedLabel = savedAt && !Number.isNaN(savedAt.getTime()) ? savedAt.toLocaleDateString("pl-PL") : "";
+  return `${date} · ${price}${savedLabel ? ` · zapisano ${savedLabel}` : ""}`;
+}
+
+function renderSaleHistory() {
+  if (!saleHistoryList) return;
+  saleHistoryList.innerHTML = "";
+  const history = readSaleHistory();
+  if (!history.length) {
+    const empty = document.createElement("div");
+    empty.className = "history-empty";
+    empty.textContent = "Brak zapisanych zmian.";
+    saleHistoryList.append(empty);
+    return;
+  }
+
+  history.forEach((entry, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "history-item";
+    button.dataset.index = String(index);
+
+    const title = document.createElement("strong");
+    title.textContent = saleHistoryTitle(entry);
+    const meta = document.createElement("span");
+    meta.textContent = saleHistoryMeta(entry);
+    button.append(title, meta);
+    button.addEventListener("click", () => {
+      applySaleContract(entry.data || {});
+      setStatus("Dane z historii wczytane.");
+    });
+    saleHistoryList.append(button);
+  });
+}
+
+function saveSaleHistoryEntry(data) {
+  const history = readSaleHistory().filter((entry) => JSON.stringify(entry.data) !== JSON.stringify(data));
+  history.unshift({
+    id: `${Date.now()}`,
+    savedAt: new Date().toISOString(),
+    data,
+  });
+  writeSaleHistory(history);
+  renderSaleHistory();
+}
+
 function valueOrFallback(value) {
   return String(value || "").trim() || "Nie wskazano";
 }
@@ -385,10 +459,12 @@ function addDamageMark(event) {
 }
 
 function saveSaleContract() {
-  localStorage.setItem(saleStorageKey, JSON.stringify(collectSaleContract(), null, 2));
-  saveButton.textContent = "Сохранено";
+  const data = collectSaleContract();
+  localStorage.setItem(saleStorageKey, JSON.stringify(data, null, 2));
+  saveSaleHistoryEntry(data);
+  saveButton.textContent = "Zapisano";
   window.setTimeout(() => {
-    saveButton.textContent = "Сохранить";
+    saveButton.textContent = "Zapisz";
   }, 1200);
 }
 
@@ -847,3 +923,4 @@ applyDefaultFieldValues();
 loadSavedSaleContract();
 restoreDamageMarks(damageMarksInput.value);
 updateSummary();
+renderSaleHistory();

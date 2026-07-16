@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/pdf.css?v=20260715-1" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=20260716-2" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260716-3" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -30,18 +30,25 @@
       </header>
 
       <section class="workspace">
-        <aside class="paste-panel paste-panel-top">
-          <div class="section-title">Dane wejściowe</div>
-          <div class="input-card">
-            <div class="panel-title">Dane do rozpoznania</div>
-            <textarea id="rawSaleData" spellcheck="false" placeholder="Np. klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
-            <div class="example-actions">
-              <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
-              <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
+        <section class="utility-column">
+          <aside class="paste-panel paste-panel-top">
+            <div class="section-title">Dane wejściowe</div>
+            <div class="input-card">
+              <div class="panel-title">Dane do rozpoznania</div>
+              <textarea id="rawSaleData" spellcheck="false" placeholder="Np. klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
+              <div class="example-actions">
+                <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
+                <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
+              </div>
+              <div id="saleStatus" class="status" aria-live="polite"></div>
             </div>
-            <div id="saleStatus" class="status" aria-live="polite"></div>
-          </div>
-        </aside>
+          </aside>
+
+          <section class="contract-history history-strip">
+            <div class="history-title">Historia zmian</div>
+            <div id="saleHistoryList" class="history-list"></div>
+          </section>
+        </section>
 
         <section class="form-section">
           <form id="saleContractForm">
@@ -220,6 +227,6 @@
     </main>
 
     <script src="./vendor/jszip.min.js"></script>
-    <script src="./src/sale-contract.js?v=20260716-2"></script>
+    <script src="./src/sale-contract.js?v=20260716-3"></script>
   </body>
 </html>
