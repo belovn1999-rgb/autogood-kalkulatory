@@ -1,0 +1,407 @@
+# AUTOGOOD: DOCX to PDF conversion export
+
+Дата выгрузки: 2026-07-16  
+Назначение: отдельно зафиксировать весь код и настройки, которые сейчас отвечают за подготовку договора DOCX и конвертацию DOCX в PDF.
+
+## Что решает этот блок
+
+Пользователь заполняет форму договора в браузере. Программа:
+
+1. Берет Word-шаблон `.docx`.
+2. Заполняет его данными из формы.
+3. Показывает ссылку на подготовленный DOCX.
+4. При нажатии `PDF` отправляет DOCX на backend-конвертер.
+5. Backend через LibreOffice конвертирует DOCX в PDF.
+6. PDF возвращается в браузер и скачивается автоматически.
+
+## Файлы, которые нужны для работы
+
+Копировать как комплект:
+
+```text
+pdf.html
+src/pdf.js
+src/pdf-config.js
+vendor/jszip.min.js
+converter/server.py
+converter/Dockerfile
+render.yaml
+contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx
+assets/autogood-stamp.jpg
+assets/arial.ttf
+```
+
+Дополнительно для старого fallback-PDF через jsPDF, который сейчас не является основным путем:
+
+```text
+vendor/jspdf.umd.min.js
+```
+
+## Точки подключения в HTML
+
+Источник: `pdf.html`
+
+Ключевые элементы:
+
+```html
+<button id="generateBtn" class="secondary-top-btn" type="button">DOCX</button>
+<button id="printBtn" class="primary-btn" type="button">PDF</button>
+
+<script src="./vendor/jszip.min.js"></script>
+<script src="./vendor/jspdf.umd.min.js"></script>
+<script src="./src/pdf-config.js?v=20260616-4"></script>
+<script src="./src/pdf.js?v=20260708-13"></script>
+```
+
+`generateBtn` готовит DOCX без автоматического скачивания.  
+`printBtn` готовит DOCX, отправляет его на backend и автоматически скачивает готовый PDF.
+
+## Frontend: основные переменные
+
+Источник: `src/pdf.js`
+
+Ключевые строки:
+
+```js
+const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260622-1";
+const stampUrl = "./assets/autogood-stamp.jpg";
+const fontUrl = "./assets/arial.ttf";
+const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
+
+let currentDownloadUrls = [];
+```
+
+Шаблон договора берется из `templateUrl`.  
+PDF-конвертер берется из `src/pdf-config.js`, если задан внешний адрес.
+
+## Frontend: настройка адреса конвертера
+
+Источник: `src/pdf-config.js`
+
+```js
+window.AUTOGOOD_PDF_CONVERTER_URL =
+  window.AUTOGOOD_PDF_CONVERTER_URL || "https://autogood-pdf-converter.onrender.com/api/convert-docx-to-pdf";
+```
+
+Именно этот URL используется на GitHub Pages.
+
+## Frontend: показ готовых файлов
+
+Источник: `src/pdf.js`, функция `showDownloads`.
+
+Логика:
+
+```js
+function showDownloads(items) {
+  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+  currentDownloadUrls = [];
+  statusEl.innerHTML = "";
+
+  const list = document.createElement("div");
+  list.className = "download-list";
+  items.forEach(({ blob, filename, readyText, autoDownload = false }) => {
+    const url = URL.createObjectURL(blob);
+    currentDownloadUrls.push(url);
+
+    const row = document.createElement("div");
+    row.className = "download-row";
+    const label = document.createElement("span");
+    label.textContent = `${readyText} `;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.textContent = filename;
+    row.append(label, link);
+    list.append(row);
+
+    if (autoDownload) link.click();
+  });
+  statusEl.append(list);
+}
+```
+
+Практический смысл:
+
+- DOCX может быть только подготовлен и показан ссылкой.
+- PDF может быть подготовлен, показан ссылкой и скачан автоматически.
+- При PDF-генерации показываются две строки: DOCX сверху, PDF снизу.
+
+## Frontend: генерация DOCX
+
+Источник: `src/pdf.js`, функция `generateDocx`.
+
+Что делает функция:
+
+1. Проверяет наличие `JSZip`.
+2. Собирает данные из формы через `collectData()`.
+3. Загружает Word-шаблон.
+4. Открывает `word/document.xml`.
+5. Находит таблицу договора.
+6. Заполняет поля клиента, бюджета, авто, чекбоксы.
+7. Для экспортного договора применяет отдельную раскладку.
+8. Уплотняет приложение, чтобы PDF оставался в 2 страницах.
+9. Возвращает готовый DOCX как `Blob`.
+
+Ключевой каркас:
+
+```js
+async function generateDocx() {
+  if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
+  const data = collectData();
+  const response = await fetch(templateUrl);
+  if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
+  const zip = await JSZip.loadAsync(await response.arrayBuffer());
+  const xmlText = await zip.file("word/document.xml").async("text");
+  const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+  const root = xml.documentElement;
+  const rows = tableRows(root);
+
+  // Заполнение полей договора...
+  setDocxCheckboxes(root, data);
+  if (isExportContract) applyExportContractLayout(rows, data);
+  compactAppendixLayout(root);
+
+  const serialized = new XMLSerializer().serializeToString(xml);
+  zip.file("word/document.xml", serialized);
+  return new Blob([await zip.generateAsync({ type: "arraybuffer" })], {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
+}
+```
+
+## Frontend: конвертация DOCX в PDF
+
+Источник: `src/pdf.js`, функция `convertDocxBlobToPdf`.
+
+```js
+async function convertDocxBlobToPdf(docxBlob, filename) {
+  const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
+  const endpoint = configuredEndpoint || defaultPdfConverterUrl;
+  if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
+    throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
+  }
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "X-Filename": encodeURIComponent(filename),
+    },
+    body: docxBlob,
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    if (response.status === 404 && /onrender\.com/i.test(endpoint)) {
+      throw new Error("Backend Render dla konwertera PDF nie jest jeszcze wdrożony pod wskazanym adresem.");
+    }
+    throw new Error(message || "Konwerter PDF nie jest dostępny.");
+  }
+
+  return await response.blob();
+}
+```
+
+## Frontend: кнопка DOCX
+
+Источник: `src/pdf.js`, функция `generateContract`.
+
+```js
+async function generateContract() {
+  try {
+    setStatus("Przygotowuję DOCX...");
+    const blob = await generateDocx();
+    showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.", { autoDownload: false });
+  } catch (error) {
+    setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
+  }
+}
+```
+
+Важно: DOCX не скачивается автоматически.
+
+## Frontend: кнопка PDF
+
+Источник: `src/pdf.js`, функция `generatePdf`.
+
+```js
+async function generatePdf() {
+  try {
+    setStatus("Przygotowuję DOCX do konwersji PDF...");
+    const data = collectData();
+    const docxBlob = await generateDocx();
+    setStatus("Konwertuję DOCX do PDF...");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
+    showDownloads([
+      { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
+      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
+    ]);
+  } catch (error) {
+    const message = String(error.message || error);
+    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+      : message;
+    setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
+  }
+}
+```
+
+## Backend: сервер конвертации
+
+Источник: `converter/server.py`
+
+Ключевые обязанности:
+
+- принять `POST /api/convert-docx-to-pdf`;
+- проверить размер файла;
+- проверить, что тело запроса похоже на DOCX;
+- сохранить DOCX во временную папку;
+- вызвать LibreOffice/soffice в headless-режиме;
+- проверить, что PDF реально создан и начинается с `%PDF-`;
+- вернуть PDF с правильным `Content-Disposition`;
+- отдать healthcheck по `/api/health`;
+- обработать CORS для GitHub Pages.
+
+Главная функция конвертации:
+
+```python
+def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
+    soffice = find_soffice()
+    if not soffice:
+        raise RuntimeError("LibreOffice/soffice is not available.")
+
+    profile = pdf_path.parent / "lo-profile"
+    profile.mkdir(parents=True, exist_ok=True)
+    generated = pdf_path.with_name(f"{docx_path.stem}.pdf")
+    generated.unlink(missing_ok=True)
+
+    result = subprocess.run(
+        [
+            soffice,
+            f"-env:UserInstallation=file://{profile}",
+            "--headless",
+            "--norestore",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            str(pdf_path.parent),
+            str(docx_path),
+        ],
+        text=True,
+        capture_output=True,
+        timeout=conversion_timeout_seconds(),
+        check=False,
+    )
+
+    if result.returncode != 0:
+        details = " ".join((result.stderr or result.stdout or "unknown error").split())
+        raise RuntimeError(f"LibreOffice conversion failed: {details}")
+    if not generated.exists() or generated.stat().st_size == 0:
+        details = " ".join((result.stderr or result.stdout or "PDF was not created").split())
+        raise RuntimeError(f"LibreOffice did not create PDF: {details}")
+    if generated != pdf_path:
+        generated.replace(pdf_path)
+    if not pdf_path.read_bytes().startswith(b"%PDF-"):
+        raise RuntimeError("LibreOffice output is not a valid PDF file.")
+```
+
+Главный endpoint:
+
+```python
+def do_POST(self) -> None:
+    if self.path.split("?", 1)[0] != "/api/convert-docx-to-pdf":
+        self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint")
+        return
+
+    length = int(self.headers.get("content-length", "0"))
+    if length <= 0:
+        self.send_error(HTTPStatus.BAD_REQUEST, "Missing DOCX body")
+        return
+    if length > max_upload_bytes():
+        self.send_error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "DOCX is too large")
+        return
+
+    body = self.rfile.read(length)
+    with tempfile.TemporaryDirectory(prefix="autogood-docx-pdf-") as temp_name:
+        temp = Path(temp_name)
+        docx_path = temp / "contract.docx"
+        pdf_path = temp / "contract.pdf"
+        docx_path.write_bytes(body)
+
+        if not is_probable_docx(docx_path):
+            raise ValueError("Request body is not a valid DOCX file.")
+        convert_docx_to_pdf(docx_path, pdf_path)
+        pdf = pdf_path.read_bytes()
+```
+
+## Docker
+
+Источник: `converter/Dockerfile`
+
+```dockerfile
+FROM python:3.12-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        libreoffice-writer \
+        fonts-crosextra-carlito \
+        fonts-dejavu \
+        fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . /app
+
+ENV HOST=0.0.0.0
+ENV PORT=8787
+EXPOSE 8787
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
+
+CMD ["python", "converter/server.py"]
+```
+
+## Render deploy
+
+Источник: `render.yaml`
+
+```yaml
+services:
+  - type: web
+    name: autogood-pdf-converter
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: .
+    dockerfilePath: ./converter/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://belovn1999-rgb.github.io
+      - key: MAX_UPLOAD_BYTES
+        value: 15728640
+      - key: CONVERSION_TIMEOUT_SECONDS
+        value: 120
+```
+
+## Проверка текущей работы
+
+Проверенные факты на момент разработки:
+
+- frontend отправляет DOCX на `https://autogood-pdf-converter.onrender.com/api/convert-docx-to-pdf`;
+- Render backend возвращает PDF;
+- PDF скачивается автоматически только при кнопке `PDF`;
+- DOCX при кнопке `DOCX` только готовится и показывается ссылкой;
+- готовый PDF остается в 2 страницах за счет `compactAppendixLayout()`.
+
+## Что важно не потерять при переносе
+
+1. `src/pdf-config.js` должен грузиться до `src/pdf.js`.
+2. `vendor/jszip.min.js` обязателен для сборки DOCX в браузере.
+3. Backend должен иметь LibreOffice.
+4. В Render должен быть разрешен origin `https://belovn1999-rgb.github.io`.
+5. `X-Filename` нужен, чтобы backend вернул PDF с правильным именем.
+6. Если менять шаблон DOCX, надо заново проверить номера строк/ячеек таблицы в `generateDocx()`.
