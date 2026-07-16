@@ -5,6 +5,7 @@ const saveButton = document.querySelector("#saveSaleContract");
 const exportButton = document.querySelector("#exportSaleContract");
 const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
+const generatePdfButton = document.querySelector("#generateSalePdf");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -13,12 +14,13 @@ const damageCanvas = document.querySelector("#damageMapCanvas");
 const damageMarksInput = document.querySelector("#damageMarks");
 const clearDamageButton = document.querySelector("#clearDamageMarks");
 const saleTemplateUrl = "./contract-pdf-work/templates/Umowa_Sprzedazy_AG_template.docx?v=20260613-3";
+const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
 const saleHistoryKey = "autogoodSaleContractHistory.v1";
 const saleHistoryLimit = 5;
 
-let currentDownloadUrl = null;
+let currentDownloadUrls = [];
 
 const checklistGroups = {
   documentsChecklist: [
@@ -373,42 +375,308 @@ function normalizeSpace(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function setField(name, value) {
   const field = form.querySelector(`[name="${name}"]`);
   if (!field || !value) return;
   field.value = value;
 }
 
-function labeledValue(text, labels) {
-  const alternatives = labels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-  const pattern = new RegExp(`(?:^|\\n)\\s*(?:${alternatives})\\s*(?::|-)?\\s*([^\\n]+)`, "i");
-  const match = text.match(pattern);
-  return match ? normalizeSpace(match[1]) : "";
+function stripKnownNoise(value) {
+  return normalizeSpace(String(value || "").replace(/^[-–—•*]+/, "").replace(/^[/:;,.\s-]+|[/:;,.\s-]+$/g, ""));
+}
+
+const saleRecognitionLabels = {
+  buyer: ["Kupujący", "Nabywca", "Klient", "Client", "Клиент", "Firma", "Nazwa", "Imię i nazwisko", "Imie i nazwisko", "Imię i nazwisko / Nazwa"],
+  buyerType: ["Rodzaj klienta", "Typ klienta", "Тип клиента"],
+  address: ["Adres", "Адрес", "Address", "Siedziba", "Miejsce zamieszkania"],
+  pesel: ["PESEL"],
+  nip: ["NIP"],
+  document: ["Dokument", "Документ", "Dowód", "Dowod", "DO", "Paszport", "Karta pobytu"],
+  phone: ["Telefon", "Nr. tel", "Nr tel", "Телефон", "Tel", "Phone"],
+  email: ["Email", "E-mail", "Mail", "Adres email", "Adres e-mail", "Имейл"],
+  vehicleMarker: ["Auto", "Pojazd", "Samochód", "Samochod", "Авто", "Автомобиль"],
+  makeModel: ["Marka i model", "Marka model", "Auto", "Pojazd", "Samochód", "Samochod"],
+  make: ["Marka", "Марка"],
+  model: ["Model", "Модель"],
+  vin: ["VIN", "Nr VIN", "Numer VIN"],
+  mileage: ["Przebieg", "Stan licznika", "Licznik", "Пробег"],
+  price: ["Cena", "Cena sprzedaży", "Cena pojazdu", "Kwota", "Budżet", "Budzet", "Бюджет"],
+  discount: ["Rabat", "Zniżka", "Znizka", "Korzyść", "Korzyść po negocjacjach"],
+  firstRegistration: ["Pierwsza rejestracja", "Data pierwszej rejestracji", "Rok pierwszej rejestracji", "Rocznik", "Rok"],
+  fuel: ["Paliwo", "Топливо", "Napęd", "Naped"],
+  technicalInspection: ["Badanie techniczne", "Data badania technicznego", "Data ostatniego badania technicznego", "Przegląd", "Przeglad"],
+};
+
+const saleAllLabels = Object.values(saleRecognitionLabels).flat();
+const saleLooseStopLabels = saleAllLabels.filter((label) => !saleRecognitionLabels.vehicleMarker.includes(label));
+const plus48PhonePattern = /\+48[\s-]?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g;
+
+function extractLabeled(text, variants) {
+  const labelPattern = variants.map(escapeRegExp).join("|");
+  const separatedNextPattern = saleAllLabels.map(escapeRegExp).join("|");
+  const looseNextPattern = saleLooseStopLabels.map(escapeRegExp).join("|");
+  const pattern = new RegExp(
+    `(?:^|[\\s,;|\\n])(?:${labelPattern})\\s*(?::|=|–|-)?\\s*(.*?)(?=(?:[\\s,;|\\n]+(?:${separatedNextPattern})\\s*(?::|=|–|-)\\s*)|(?:[\\s,;|\\n]+(?:${looseNextPattern})\\s+)|$)`,
+    "is"
+  );
+  return normalizeSpace(text.match(pattern)?.[1] || "");
+}
+
+function withoutPlus48Phones(value) {
+  return String(value || "").replace(plus48PhonePattern, " ");
+}
+
+function linesFromText(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map(normalizeSpace)
+    .filter(Boolean);
+}
+
+function isAddressStreetLine(line) {
+  const clean = stripKnownNoise(line);
+  return /^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)?\s*[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[/-]\d+[A-Z]?)?$/u.test(clean);
+}
+
+function isPostalCityLine(line) {
+  return /^\d{2}-\d{3}\s+[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}$/u.test(stripKnownNoise(line));
+}
+
+function isClientDataMarkerLine(line) {
+  return /^(?:PESEL|NIP|DO|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Mail|Auto|Pojazd|Marka|Model|Cena|Rabat|VIN|Przebieg)\b/i.test(line);
+}
+
+const polishCityPattern =
+  /\b(?:Warszawa|Krak[oó]w|Ł[oó]d[zź]|Lodz|Wrocław|Wroclaw|Pozna[nń]|Gda[nń]sk|Szczecin|Bydgoszcz|Lublin|Białystok|Bialystok|Katowice|Gdynia|Częstochowa|Czestochowa|Radom|Toru[nń]|Torun|Kielce|Rzesz[oó]w|Gliwice|Zabrze|Olsztyn|Bielsko(?:-| )Biała|Bielsko(?:-| )Biala|Bytom|Opole|Tychy|Płock|Plock|Kalisz|Łomianki|Lomianki)\b/i;
+
+function isPolishAddressLine(line) {
+  const clean = stripKnownNoise(line);
+  if (!clean || isClientDataMarkerLine(clean)) return false;
+  if (!polishCityPattern.test(clean) && !/\d{2}-\d{3}/.test(clean)) return false;
+  if (/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/.test(clean)) return false;
+  if (/\b(?:PESEL|NIP|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Auto|Pojazd|Marka|Model|Cena|Rabat|VIN)\b/i.test(clean)) return false;
+  return /\d{2}-\d{3}|\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\b|\b\d+[A-Z]?(?:[/-]\d+[A-Z]?)?\b|,/.test(clean);
+}
+
+function addressFallback(text) {
+  const lines = linesFromText(text);
+  for (const line of lines) {
+    if (isPolishAddressLine(line)) return line;
+  }
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!isAddressStreetLine(line)) continue;
+    const nextLine = lines[index + 1] || "";
+    if (isPostalCityLine(nextLine)) return `${line}, ${nextLine}`;
+    return line;
+  }
+  const compact = normalizeSpace(text);
+  const postalAddress = compact.match(
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+  );
+  return stripKnownNoise(postalAddress?.[0] || "");
+}
+
+function parseDocumentValue(text) {
+  const compact = normalizeSpace(text);
+  const shorthand = compact.match(/\b(?:DO|D\.O\.)\s*(?::|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (shorthand) return normalizeSpace(`dowód osobisty ${shorthand[1]}`);
+  const exact = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?::|nr|numer|seria|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
+  if (exact) return normalizeSpace(`${exact[1]} ${exact[2]}`);
+  return extractLabeled(compact, saleRecognitionLabels.document);
+}
+
+function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = "", document = "" } = {}) {
+  let cleaned = ` ${normalizeSpace(value)} `;
+  for (const token of [phone, email, pesel, nip, document].filter(Boolean)) {
+    cleaned = cleaned.replace(new RegExp(escapeRegExp(token), "gi"), " ");
+  }
+  cleaned = cleaned
+    .replace(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/g, " ")
+    .replace(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g, " ")
+    .replace(/\b\d{11}\b/g, " ")
+    .replace(/\b(?:PESEL|NIP|Telefon|Tel\.?|Phone|Email|E-mail|Mail|Dokument|Dow[oó]d osobisty|Paszport|Karta pobytu)\b.*$/i, " ");
+  const postalAddress = normalizeSpace(cleaned).match(
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+  );
+  return stripKnownNoise(postalAddress?.[0] || cleaned);
+}
+
+function parseMoneyValue(value) {
+  const raw = normalizeSpace(value);
+  const currencyMatch = raw.match(/\b(EUR|PLN)\b|€|zł|zl/i);
+  let currency = "PLN";
+  if (currencyMatch) {
+    const token = currencyMatch[0].toUpperCase();
+    currency = token === "EUR" || token === "€" ? "EUR" : "PLN";
+  }
+  const amount = stripKnownNoise(raw.replace(/\b(EUR|PLN)\b|€|zł|zl|\bbrutto\b|\bnetto\b/gi, ""));
+  return { amount, currency };
+}
+
+function moneyMatch(value) {
+  return normalizeSpace(value.match(/\b\d[\d\s.,]{2,}\s*(?:PLN|EUR|zł|zl|€)(?:\s*brutto|\s*netto)?\b/i)?.[0] || "");
+}
+
+function vehicleContext(text) {
+  const compact = normalizeSpace(text);
+  const marker = saleRecognitionLabels.vehicleMarker.map(escapeRegExp).join("|");
+  const strictMatches = [...compact.matchAll(new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s*(?::|=|–|-)\\s*(.*)$`, "gis"))];
+  if (strictMatches.length) return normalizeSpace(strictMatches.at(-1)[1]);
+  const looseMatches = [...compact.matchAll(new RegExp(`(?:^|[\\s,;|])(?:${marker})\\s+(.*)$`, "gis"))];
+  return looseMatches.length ? normalizeSpace(looseMatches.at(-1)[1]) : compact;
+}
+
+function makeModelFallback(text) {
+  const context = vehicleContext(text)
+    .replace(/\b(?:VIN|Rok|Rocznik|Pierwsza rejestracja|Paliwo|Przebieg|Licznik|Cena|Rabat)\b.*$/i, "");
+  const cleaned = stripKnownNoise(
+    context
+      .replace(/\b(?:Marka i model|Marka|Model|Auto|Pojazd|Samoch[oó]d)\s*(?::|=|–|-)?\s*/gi, " ")
+      .replace(/\b(?:19|20)\d{2}(?:\s*-\s*(?:19|20)\d{2}|\+)?\b/g, " ")
+  );
+  const words = cleaned.match(/[A-ZŁŚŻŹĆŃÓĘĄ0-9][\w.+-]*/gi) || [];
+  const filtered = words.filter((word) => !/^(auto|pojazd|samoch[oó]d|vin|rok|paliwo|benzyna|diesel|hybryda|elektryk|przebieg|cena|pln|eur)$/i.test(word));
+  return normalizeSpace(filtered.slice(0, 4).join(" "));
+}
+
+function parseBuyerType(text, { pesel = "", nip = "" } = {}) {
+  const compact = normalizeSpace(text);
+  const lower = compact.toLowerCase();
+  const labeled = extractLabeled(compact, saleRecognitionLabels.buyerType).toLowerCase();
+  const companyMarkers = ["firma", "фирм", "jdg", "sp. z o.o", "sp z oo", "spółka", "spolka", "s.a.", "krs", "regon"];
+  if (labeled.includes("firma") || labeled.includes("фирм") || labeled.includes("jdg")) return "company";
+  if (labeled.includes("osoba") || labeled.includes("fizycz") || labeled.includes("физ")) return "person";
+  if (companyMarkers.some((marker) => lower.includes(marker))) return "company";
+  if (pesel) return "person";
+  if (nip) return "company";
+  return "";
+}
+
+function parseBuyerName(text, isCompany) {
+  const lines = linesFromText(text);
+  const compact = normalizeSpace(text);
+  const labeled = extractLabeled(compact, saleRecognitionLabels.buyer);
+  if (labeled) {
+    const cleanLabeled = stripKnownNoise(labeled);
+    if (!isCompany) {
+      const personName = cleanLabeled.match(/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
+      if (personName) return stripKnownNoise(personName);
+    }
+    return cleanLabeled;
+  }
+  if (isCompany) {
+    const company = compact.match(/\b[A-Z0-9ĄĆĘŁŃÓŚŹŻ][A-Z0-9ĄĆĘŁŃÓŚŹŻ .&-]{2,}?(?:JDG|sp\.?\s*z\.?\s*o\.?o\.?|spółka|spolka|s\.a\.)\b/i)?.[0];
+    if (company) return stripKnownNoise(company);
+  }
+  const firstNameLine = lines.find((line) => {
+    const candidate = stripKnownNoise(line.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    if (!candidate || isPolishAddressLine(candidate) || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
+    if (/@|\+48|\d{2}-\d{3}|\b\d{10,11}\b/.test(candidate)) return false;
+    const words = candidate.match(/[\p{L}'-]+/gu) || [];
+    return words.length >= 2 && words.length <= 5;
+  });
+  return firstNameLine ? stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "")) : "";
+}
+
+function parseFuelType(value) {
+  const lower = normalizeSpace(value).toLowerCase();
+  if (/\blpg\b|gaz/.test(lower)) return "LPG";
+  if (/\bhybryd|hybrid\b/.test(lower)) return "H";
+  if (/\belektryk|electric|ev\b/.test(lower)) return "EL";
+  if (/\bdiesel|olej nap[eę]dowy|\bon\b/.test(lower)) return "ON";
+  if (/\bbenzyn|gasolin|petrol\b|\bb\b/.test(lower)) return "B";
+  return "";
+}
+
+function firstRegistrationFallback(text) {
+  return (
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\s*-\s*(?:19|20)\d{2}\b/)?.[0] || "") ||
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\+\b/)?.[0] || "") ||
+    normalizeSpace(text.match(/\b(?:19|20)\d{2}\b/)?.[0] || "")
+  );
+}
+
+function mileageFallback(text) {
+  return normalizeSpace(text.match(/\b\d[\d\s.,]{2,}\s*(?:km|км)\b/i)?.[0] || "");
 }
 
 function parseSaleData() {
-  const text = document.querySelector("#rawSaleData").value;
-  if (!text.trim()) return;
+  const text = rawSaleDataInput.value;
+  if (!text.trim()) {
+    setStatus("Brak danych.");
+    return;
+  }
 
-  const phone = text.match(/\+48[\s-]?\d{3}[\s-]?\d{3}[\s-]?\d{3}/);
-  const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  const vin = text.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i);
-  const nip = text.match(/\b(?:NIP|nip)\s*:?\s*([0-9\-\s]{10,})/);
+  const compact = normalizeSpace(text);
+  const joined =
+    text
+      .split(/\r?\n/)
+      .map(normalizeSpace)
+      .filter(Boolean)
+      .join("\n") || compact;
+  const vehicleText = vehicleContext(compact);
 
-  setField("buyerName", labeledValue(text, ["Kupujący", "Nabywca", "Klient", "Firma", "Nazwa", "Imię i nazwisko"]));
-  setField("buyerAddress", labeledValue(text, ["Adres", "Ulica", "Siedziba"]));
-  setField("buyerIdentifier", nip ? normalizeSpace(nip[1]) : labeledValue(text, ["PESEL", "NIP"]));
-  setField("buyerPhone", labeledValue(text, ["Telefon", "Tel", "Nr tel"]) || (phone ? normalizeSpace(phone[0]) : ""));
-  setField("buyerEmail", email ? email[0] : labeledValue(text, ["Email", "E-mail", "Mail"]));
-  setField("vehicleMakeModel", labeledValue(text, ["Marka i model", "Auto", "Pojazd", "Samochód"]));
-  setField("vehicleVin", vin ? vin[0].toUpperCase() : labeledValue(text, ["VIN"]));
-  setField("vehicleMileage", labeledValue(text, ["Przebieg", "Stan licznika"]));
-  const parsedPrice = labeledValue(text, ["Cena", "Cena sprzedaży", "Kwota"]);
-  setField("salePrice", parsedPrice.replace(/\b(?:PLN|EUR)\b/gi, "").replace(/\bbrutto\b/gi, "").trim());
-  if (/\bEUR\b/i.test(parsedPrice)) setField("saleCurrency", "EUR");
-  if (/\bPLN\b/i.test(parsedPrice)) setField("saleCurrency", "PLN");
-  setField("firstRegistration", labeledValue(text, ["Pierwsza rejestracja", "Rok pierwszej rejestracji"]));
-  setField("lastTechnicalInspection", labeledValue(text, ["Badanie techniczne", "Data ostatniego badania technicznego"]));
+  let email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || extractLabeled(compact, saleRecognitionLabels.email);
+  email = stripKnownNoise(email);
+
+  let phone = "";
+  const labeledPhone = extractLabeled(compact, saleRecognitionLabels.phone);
+  const labeledPlus48Phone = labeledPhone.match(plus48PhonePattern) || [];
+  const plus48Phones = joined.match(plus48PhonePattern) || [];
+  const phoneMatches = labeledPhone ? (labeledPlus48Phone.length ? labeledPlus48Phone : [labeledPhone]) : plus48Phones.length ? plus48Phones : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
+  for (const candidate of phoneMatches) {
+    const digits = candidate.replace(/\D/g, "");
+    if (digits.startsWith("48") || digits.length === 9) {
+      phone = candidate;
+      break;
+    }
+  }
+
+  const compactWithoutPhones = normalizeSpace(withoutPlus48Phones(compact));
+  const joinedWithoutPhones = normalizeSpace(withoutPlus48Phones(joined));
+  const peselValue = extractLabeled(compactWithoutPhones, saleRecognitionLabels.pesel);
+  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joinedWithoutPhones.match(/\b\d{11}\b/)?.[0] || "";
+  const nipRaw =
+    extractLabeled(compactWithoutPhones, saleRecognitionLabels.nip) ||
+    joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] ||
+    "";
+  const nip = nipRaw.replace(/\D/g, "");
+  const buyerType = parseBuyerType(compact, { pesel, nip });
+  const isCompany = buyerType === "company";
+  const documentValue = parseDocumentValue(compact);
+  const rawAddressValue = extractLabeled(compact, saleRecognitionLabels.address) || addressFallback(joined);
+  const addressValue = cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue });
+  const make = stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.make));
+  const model = stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.model));
+  const makeModel = normalizeSpace(`${make} ${model}`) || stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.makeModel)) || makeModelFallback(vehicleText);
+  const vin = (extractLabeled(compact, saleRecognitionLabels.vin) || compact).match(/\b[A-HJ-NPR-Z0-9]{17}\b/i)?.[0] || "";
+  const priceMoney = parseMoneyValue(extractLabeled(compact, saleRecognitionLabels.price) || moneyMatch(compact));
+  const discountValue = extractLabeled(compact, saleRecognitionLabels.discount);
+  const discountMoney = parseMoneyValue(discountValue);
+  const fuelType = parseFuelType(extractLabeled(compact, saleRecognitionLabels.fuel) || vehicleText);
+
+  setField("buyerName", parseBuyerName(joined, isCompany));
+  setField("buyerAddress", addressValue);
+  setField("buyerIdentifier", isCompany ? nip : pesel || nip);
+  setField("buyerPhone", normalizeSpace(phone));
+  setField("buyerEmail", email);
+  if (buyerType === "company") setField("buyerProfessional", "tak");
+  if (buyerType === "person") setField("buyerProfessional", "nie");
+  setField("vehicleMakeModel", makeModel);
+  setField("vehicleVin", vin.toUpperCase());
+  setField("vehicleMileage", extractLabeled(compact, saleRecognitionLabels.mileage) || mileageFallback(vehicleText));
+  setField("salePrice", priceMoney.amount);
+  setField("saleCurrency", priceMoney.currency);
+  setField("discountBenefit", discountMoney.amount ? formatGrossAmount(discountMoney.amount, discountMoney.currency) : discountValue);
+  setField("firstRegistration", extractLabeled(compact, saleRecognitionLabels.firstRegistration) || firstRegistrationFallback(vehicleText));
+  setField("fuelType", fuelType);
+  setField("lastTechnicalInspection", extractLabeled(compact, saleRecognitionLabels.technicalInspection));
+  setStatus("Dane rozpoznane. Sprawdź pola.");
   updateSummary();
 }
 
@@ -504,27 +772,41 @@ function saleFilename(data, extension) {
 }
 
 function setStatus(text) {
-  if (currentDownloadUrl) {
-    URL.revokeObjectURL(currentDownloadUrl);
-    currentDownloadUrl = null;
-  }
+  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+  currentDownloadUrls = [];
   statusEl.innerHTML = "";
   statusEl.textContent = text;
 }
 
-function showDownload(blob, filename, readyText) {
-  if (currentDownloadUrl) URL.revokeObjectURL(currentDownloadUrl);
-  currentDownloadUrl = URL.createObjectURL(blob);
+function showDownloads(items) {
+  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+  currentDownloadUrls = [];
   statusEl.innerHTML = "";
 
-  const label = document.createElement("span");
-  label.textContent = `${readyText} `;
-  const link = document.createElement("a");
-  link.href = currentDownloadUrl;
-  link.download = filename;
-  link.textContent = filename;
-  statusEl.append(label, link);
-  link.click();
+  const list = document.createElement("div");
+  list.className = "download-list";
+  items.forEach(({ blob, filename, readyText, autoDownload = false }) => {
+    const url = URL.createObjectURL(blob);
+    currentDownloadUrls.push(url);
+
+    const row = document.createElement("div");
+    row.className = "download-row";
+    const label = document.createElement("span");
+    label.textContent = `${readyText} `;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.textContent = filename;
+    row.append(label, link);
+    list.append(row);
+
+    if (autoDownload) link.click();
+  });
+  statusEl.append(list);
+}
+
+function showDownload(blob, filename, readyText, options = {}) {
+  showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
 }
 
 function all(root, namespace, tagName) {
@@ -869,9 +1151,55 @@ async function generateSaleDocx() {
     setStatus("Przygotowuję DOCX...");
     const data = collectSaleContract();
     const blob = await generateDocxBlob();
-    showDownload(blob, saleFilename(data, "docx"), "DOCX gotowy.");
+    showDownload(blob, saleFilename(data, "docx"), "DOCX gotowy.", { autoDownload: false });
   } catch (error) {
     setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
+  }
+}
+
+async function convertDocxBlobToPdf(docxBlob, filename) {
+  const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
+  const endpoint = configuredEndpoint || defaultPdfConverterUrl;
+  if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
+    throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
+  }
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "X-Filename": encodeURIComponent(filename),
+    },
+    body: docxBlob,
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    if (response.status === 404 && /onrender\.com/i.test(endpoint)) {
+      throw new Error("Backend Render dla konwertera PDF nie jest jeszcze wdrożony pod wskazanym adresem.");
+    }
+    throw new Error(message || "Konwerter PDF nie jest dostępny.");
+  }
+
+  return await response.blob();
+}
+
+async function generateSalePdf() {
+  try {
+    setStatus("Przygotowuję DOCX do konwersji PDF...");
+    const data = collectSaleContract();
+    const docxBlob = await generateDocxBlob();
+    setStatus("Konwertuję DOCX do PDF...");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
+    showDownloads([
+      { blob: docxBlob, filename: saleFilename(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
+      { blob: pdfBlob, filename: saleFilename(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
+    ]);
+  } catch (error) {
+    const message = String(error.message || error);
+    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+      : message;
+    setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
   }
 }
 
@@ -917,6 +1245,7 @@ clearDamageButton.addEventListener("click", () => {
   renderDamageMarks();
 });
 generateButton.addEventListener("click", generateSaleDocx);
+generatePdfButton.addEventListener("click", generateSalePdf);
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();
