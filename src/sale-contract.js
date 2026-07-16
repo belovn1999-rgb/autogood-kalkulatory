@@ -6,6 +6,7 @@ const exportButton = document.querySelector("#exportSaleContract");
 const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
+const printButton = document.querySelector("#printSaleContract");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -21,6 +22,7 @@ const saleHistoryKey = "autogoodSaleContractHistory.v1";
 const saleHistoryLimit = 5;
 
 let currentDownloadUrls = [];
+let currentPrintUrl = null;
 
 const checklistGroups = {
   documentsChecklist: [
@@ -809,6 +811,60 @@ function showDownload(blob, filename, readyText, options = {}) {
   showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
 }
 
+function clearPrintUrl() {
+  if (currentPrintUrl) {
+    URL.revokeObjectURL(currentPrintUrl);
+    currentPrintUrl = null;
+  }
+}
+
+function createPrintWindow() {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) return null;
+  printWindow.document.write("<!doctype html><title>Drukowanie umowy</title><p>Przygotowuję dokument do druku...</p>");
+  printWindow.document.close();
+  return printWindow;
+}
+
+function printPdfBlob(pdfBlob, printWindow) {
+  clearPrintUrl();
+  currentPrintUrl = URL.createObjectURL(pdfBlob);
+
+  if (printWindow && !printWindow.closed) {
+    printWindow.location.href = currentPrintUrl;
+    window.setTimeout(() => {
+      try {
+        printWindow.focus();
+        printWindow.print();
+      } catch {
+        setStatus("PDF gotowy do druku. Użyj polecenia drukowania w otwartym oknie.");
+      }
+    }, 1200);
+    return;
+  }
+
+  const frame = document.createElement("iframe");
+  frame.style.position = "fixed";
+  frame.style.right = "0";
+  frame.style.bottom = "0";
+  frame.style.width = "0";
+  frame.style.height = "0";
+  frame.style.border = "0";
+  frame.src = currentPrintUrl;
+  frame.addEventListener("load", () => {
+    window.setTimeout(() => {
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } catch {
+        setStatus("PDF gotowy do druku, ale przeglądarka zablokowała automatyczne drukowanie.");
+      }
+    }, 400);
+  });
+  document.body.appendChild(frame);
+  window.setTimeout(() => frame.remove(), 120000);
+}
+
 function all(root, namespace, tagName) {
   return [...root.getElementsByTagNameNS(namespace, tagName)];
 }
@@ -1203,6 +1259,26 @@ async function generateSalePdf() {
   }
 }
 
+async function generateSalePrint() {
+  const printWindow = createPrintWindow();
+  try {
+    setStatus("Przygotowuję dokument do druku...");
+    const data = collectSaleContract();
+    const docxBlob = await generateDocxBlob();
+    setStatus("Konwertuję dokument do PDF przed drukiem...");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
+    showDownload(pdfBlob, saleFilename(data, "pdf"), "PDF gotowy do druku.", { autoDownload: false });
+    printPdfBlob(pdfBlob, printWindow);
+  } catch (error) {
+    if (printWindow && !printWindow.closed) printWindow.close();
+    const message = String(error.message || error);
+    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+      : message;
+    setStatus(`Nie udało się przygotować druku: ${converterMessage}`);
+  }
+}
+
 function resetSaleContract() {
   localStorage.removeItem(saleStorageKey);
   rawSaleDataInput.value = "";
@@ -1244,6 +1320,7 @@ clearDamageButton.addEventListener("click", () => {
 });
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
+printButton.addEventListener("click", generateSalePrint);
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();
