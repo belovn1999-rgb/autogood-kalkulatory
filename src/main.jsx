@@ -462,7 +462,7 @@ function applyManualOverrides(calc, overrides, tabId) {
     hasOverrides = true;
     const manualValue = n(overrides[key]);
     const multiplier = Number(item.manualMultiplier);
-    const safeMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1;
+    const safeMultiplier = Number.isFinite(multiplier) && multiplier >= 0 ? multiplier : 1;
     return {
       ...item,
       value: manualValue,
@@ -1188,7 +1188,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
         row(t.commission, commissionNetto, "", commissionFormula(STD_FIX, 0.01, carPln, discountText), false, false, "", commissionBrutto, 1.23),
         row(t.to, TO_FEE, "", "", false, true),
         row(t.doc, DOC_TRANSLATION, "", "", false, true),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
       ],
     };
   }
@@ -1213,7 +1213,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
         row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`),
         row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, commissionBase)),
         row(t.to, TO_FEE, "", "", false, true),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
       ],
     };
   }
@@ -1296,7 +1296,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23),
     row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, carPln, discountText), false, false, "", commissionBrutto, 1.23),
     row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23),
-    row(t.vat, vat, "", `23% × ${money(vatBase)}`),
+    row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
   ];
 
   return {
