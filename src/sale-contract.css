@@ -1,0 +1,272 @@
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  margin-left: 10px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--brand);
+  background: #f7fafc;
+  font-size: 12px;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+.saleWorkspace .workspace {
+  display: block;
+  padding: 22px 28px 32px;
+}
+
+.paste-panel-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 18px;
+  height: auto;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  overflow: visible;
+}
+
+.paste-panel-top .section-title {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.paste-panel-top .input-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.paste-panel-top .panel-title {
+  display: none;
+}
+
+.paste-panel-top #rawSaleData {
+  min-height: 46px;
+}
+
+.paste-panel-top .example-actions {
+  grid-template-columns: auto auto;
+  gap: 8px;
+}
+
+.paste-panel-top .secondary-btn,
+.paste-panel-top .ghost-btn {
+  width: auto;
+}
+
+.paste-panel-top .status {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .paste-panel-top,
+  .paste-panel-top .input-card {
+    grid-template-columns: 1fr;
+  }
+
+  .paste-panel-top .example-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.contract-card-wide {
+  grid-column: 1 / -1;
+}
+
+#rawSaleData {
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 11px;
+  line-height: 1.4;
+}
+
+.status a {
+  color: var(--brand-dark);
+  font-weight: 800;
+}
+
+.saleSummaryList {
+  display: grid;
+  gap: 10px;
+  margin: 12px;
+}
+
+.saleSummaryList > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.saleSummaryList > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.saleSummaryList dt {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.saleSummaryList dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.yesNoChecklist {
+  display: grid;
+  gap: 8px;
+  margin: 12px;
+}
+
+.yesNoRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 62px 62px 46px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--field);
+  padding: 8px 10px;
+}
+
+.yesNoRow > span {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.yesNoRow label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.yesNoRow input {
+  width: auto;
+}
+
+.saleChecklistGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px;
+  align-items: start;
+}
+
+.saleChecklistGroup {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fbfcfd;
+  padding: 12px;
+}
+
+.saleChecklistGroup h3 {
+  margin: 0 0 2px;
+  color: var(--brand-dark);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.damageMap {
+  display: grid;
+  gap: 10px;
+  margin: 12px;
+}
+
+.damageMapHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: underline;
+}
+
+.damageMapHead button {
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--brand-dark);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.damageMapCanvas {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.damageMapCanvas img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+.damageMark {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #b42318;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #b42318;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .saleChecklistGroups {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .yesNoRow {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    font-size: 12px;
+  }
+}

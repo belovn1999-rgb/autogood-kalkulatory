@@ -7,6 +7,7 @@ const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
+const rawSaleDataInput = document.querySelector("#rawSaleData");
 const damageCanvas = document.querySelector("#damageMapCanvas");
 const damageMarksInput = document.querySelector("#damageMarks");
 const clearDamageButton = document.querySelector("#clearDamageMarks");
@@ -800,6 +801,7 @@ async function generateSaleDocx() {
 
 function resetSaleContract() {
   localStorage.removeItem(saleStorageKey);
+  rawSaleDataInput.value = "";
   fields.forEach((field) => {
     if (field.type === "radio" || field.type === "checkbox") field.checked = false;
     else field.value = "";

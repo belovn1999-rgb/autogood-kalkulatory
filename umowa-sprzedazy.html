@@ -4,243 +4,222 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Umowa Sprzedaży</title>
-    <link rel="stylesheet" href="./src/tools.css?v=umowa-sprzedazy-20260613-9" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260715-1" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260716-2" />
   </head>
   <body>
-    <main class="workspaceShell">
-      <header class="workspaceHeader">
-        <a class="brand compact" href="./umowy.html" aria-label="AUTOGOOD Umowy">
-          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>Umowa sprzedaży</span>
-        </a>
-        <nav class="workspaceNav" aria-label="Workspace navigation">
-          <a href="./">Tools</a>
-          <a href="./umowy.html">Umowy</a>
-          <a href="./pdf.html?v=20260611-1">Umowa wyszukiwania</a>
-        </nav>
+    <main class="app-shell saleWorkspace">
+      <header class="topbar">
+        <div class="brand">
+          <a href="./umowy.html" aria-label="AUTOGOOD Umowy">
+            <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          </a>
+          <span>Umowa<span class="badge-pill">Sprzedaż</span></span>
+        </div>
+        <div class="actions">
+          <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
+          <button id="exportSaleContract" class="ghost-btn" type="button">Eksportuj dane</button>
+          <button id="generateSaleDocx" class="primary-btn" type="button">DOCX</button>
+        </div>
       </header>
 
-      <section class="dealHero">
-        <div>
-          <p class="eyebrow">Załącznik do faktury</p>
-          <h1>Umowa sprzedaży pojazdu</h1>
-        </div>
-        <div class="dealActions">
-          <button id="saveSaleContract" type="button">Сохранить</button>
-          <button id="exportSaleContract" type="button">Экспорт данных</button>
-          <button id="resetSaleContract" type="button">Wyzeruj dane</button>
-          <button id="generateSaleDocx" type="button">DOCX</button>
-          <div id="saleStatus" class="saleStatus" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <form id="saleContractForm" class="dealLayout">
-        <section class="dealForm">
-          <div class="dealPanel dealPanelWide">
-            <h2>Данные входа</h2>
-            <label>
-              Быстрая вставка данных клиента и автомобиля
-              <textarea id="rawSaleData" name="rawSaleData" placeholder="Например: klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
-            </label>
+      <section class="workspace">
+        <aside class="paste-panel paste-panel-top">
+          <div class="section-title">Dane wejściowe</div>
+          <div class="input-card">
+            <div class="panel-title">Dane do rozpoznania</div>
+            <textarea id="rawSaleData" spellcheck="false" placeholder="Np. klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
             <div class="example-actions">
+              <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
               <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
             </div>
+            <div id="saleStatus" class="status" aria-live="polite"></div>
           </div>
-
-          <div class="dealPanel contractMetaPanel">
-            <h2>Umowa sprzedaży</h2>
-            <div class="contractMetaGrid">
-              <label>
-                Data zawarcia
-                <input name="contractDate" type="date" />
-              </label>
-              <label>
-                Miejsce zawarcia
-                <select name="contractPlace">
-                  <option value="seller" selected>U sprzedawcy - lokal lub plac sprzedaży</option>
-                  <option value="buyer">U kupującego / inne miejsce / na odległość</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <div class="dealPanel">
-            <h2>Nabywca / Покупатель</h2>
-            <label>
-              Imię i nazwisko / Nazwa
-              <input name="buyerName" type="text" />
-            </label>
-            <label>
-              Adres
-              <input name="buyerAddress" type="text" />
-            </label>
-            <div class="dealFieldsTwo">
-              <label>
-                PESEL / NIP
-                <input name="buyerIdentifier" type="text" />
-              </label>
-              <label>
-                Telefon
-                <input name="buyerPhone" type="text" />
-              </label>
-            </div>
-            <div class="dealFieldsTwo">
-              <label>
-                E-mail
-                <input name="buyerEmail" type="email" />
-              </label>
-            </div>
-            <label>
-              Kupuje przedsiębiorca zawierając umowę o charakterze zawodowym
-              <select name="buyerProfessional">
-                <option value="">Nie wskazano</option>
-                <option value="tak">Tak</option>
-                <option value="nie">Nie</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="dealPanel">
-            <h2>Przedmiot umowy</h2>
-            <label>
-              Marka i model
-              <input name="vehicleMakeModel" type="text" />
-            </label>
-            <div class="dealFieldsTwo">
-              <label>
-                VIN
-                <input name="vehicleVin" type="text" />
-              </label>
-              <label>
-                Stan licznika
-                <input name="vehicleMileage" type="text" />
-              </label>
-            </div>
-          </div>
-
-          <div class="dealPanel">
-            <h2>Cena</h2>
-            <div class="dealFieldsTwo">
-              <label>
-                Cena sprzedaży
-                <input name="salePrice" type="text" placeholder="np. 124 700" />
-              </label>
-              <label>
-                Waluta
-                <select name="saleCurrency">
-                  <option value="PLN" selected>PLN</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </label>
-            </div>
-            <label>
-              Zniżka lub dodatkowa korzyść po negocjacjach
-              <textarea name="discountBenefit" placeholder="Wpisz kwotę rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
-            </label>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Oznaczenie i historia pojazdu</h2>
-            <div class="dealFieldsTwo">
-              <label>
-                Data pierwszej rejestracji
-                <input name="firstRegistration" type="text" />
-              </label>
-            </div>
-            <div class="dealFieldsTwo">
-              <label>
-                Typ paliwa
-                <select name="fuelType">
-                  <option value="">Nie wskazano</option>
-                  <option value="ON">ON</option>
-                  <option value="LPG">LPG</option>
-                  <option value="B">B</option>
-                  <option value="H">H</option>
-                  <option value="EL">EL</option>
-                </select>
-              </label>
-              <label>
-                Data ostatniego badania technicznego
-                <input name="lastTechnicalInspection" type="text" />
-              </label>
-            </div>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Stan pojazdu</h2>
-            <label>
-              Ogólne zużycie
-              <select name="generalWear">
-                <option value="">Nie wskazano</option>
-                <option value="brak">Brak</option>
-                <option value="przecietne">Przeciętne</option>
-                <option value="skrajne">Skrajne</option>
-              </select>
-            </label>
-            <div class="damageMap">
-              <div class="damageMapHead">
-                <span>Oznaczenia miejsc korekt lakieru, napraw, uszkodzeń</span>
-                <button id="clearDamageMarks" type="button">Wyczyść X</button>
-              </div>
-              <div id="damageMapCanvas" class="damageMapCanvas" aria-label="Mapa uszkodzeń pojazdu">
-                <img src="./assets/sale-car-damage-map.png?v=20260613-3" alt="Schemat pojazdu do oznaczenia uszkodzeń" />
-              </div>
-              <input id="damageMarks" name="damageMarks" type="hidden" />
-            </div>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Dokumenty i emisje</h2>
-            <div id="documentsChecklist" class="yesNoChecklist"></div>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Nabycie i sprawdzenie pojazdu</h2>
-            <div id="purchaseChecklist" class="yesNoChecklist"></div>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Stan techniczny i wyposażenie</h2>
-            <div id="technicalChecklists" class="saleChecklistGroups"></div>
-          </div>
-
-          <div class="dealPanel dealPanelWide">
-            <h2>Uwagi</h2>
-            <label>
-              Informacje dodatkowe do umowy
-              <textarea name="notes"></textarea>
-            </label>
-          </div>
-        </section>
-
-        <aside class="dealSidebar">
-          <section class="dealSummary">
-            <h2>Podsumowanie</h2>
-            <dl>
-              <div>
-                <dt>Kupujący</dt>
-                <dd id="saleSummaryBuyer">Nie wskazano</dd>
-              </div>
-              <div>
-                <dt>Auto</dt>
-                <dd id="saleSummaryVehicle">Nie wskazano</dd>
-              </div>
-              <div>
-                <dt>VIN</dt>
-                <dd id="saleSummaryVin">Nie wskazano</dd>
-              </div>
-              <div>
-                <dt>Cena</dt>
-                <dd id="saleSummaryPrice">Nie wskazano</dd>
-              </div>
-            </dl>
-          </section>
-
         </aside>
-      </form>
+
+        <section class="form-section">
+          <form id="saleContractForm">
+            <section class="contract-grid">
+              <div class="contract-card">
+                <div class="card-head">UMOWA SPRZEDAŻY:</div>
+                <div class="two-fields">
+                  <label class="field">
+                    <span>Data zawarcia:</span>
+                    <input name="contractDate" type="date" />
+                  </label>
+                  <label class="field">
+                    <span>Miejsce zawarcia:</span>
+                    <select name="contractPlace">
+                      <option value="seller" selected>U sprzedawcy - lokal lub plac sprzedaży</option>
+                      <option value="buyer">U kupującego / inne miejsce / na odległość</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="card-head compact">NABYWCA:</div>
+                <label class="field">
+                  <span>Imię i nazwisko / Nazwa:</span>
+                  <input name="buyerName" type="text" />
+                </label>
+                <label class="field">
+                  <span>Adres:</span>
+                  <input name="buyerAddress" type="text" />
+                </label>
+                <div class="two-fields">
+                  <label class="field">
+                    <span>PESEL / NIP:</span>
+                    <input name="buyerIdentifier" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Telefon:</span>
+                    <input name="buyerPhone" type="text" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>E-mail:</span>
+                  <input name="buyerEmail" type="email" />
+                </label>
+                <label class="field">
+                  <span>Kupuje przedsiębiorca zawierając umowę o charakterze zawodowym:</span>
+                  <select name="buyerProfessional">
+                    <option value="">Nie wskazano</option>
+                    <option value="tak">Tak</option>
+                    <option value="nie">Nie</option>
+                  </select>
+                </label>
+
+                <div class="card-head compact">PRZEDMIOT UMOWY:</div>
+                <label class="field">
+                  <span>Marka i model:</span>
+                  <input name="vehicleMakeModel" type="text" />
+                </label>
+                <div class="two-fields">
+                  <label class="field">
+                    <span>VIN:</span>
+                    <input name="vehicleVin" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Stan licznika:</span>
+                    <input name="vehicleMileage" type="text" />
+                  </label>
+                </div>
+
+                <div class="card-head compact">CENA:</div>
+                <label class="field">
+                  <span>Cena sprzedaży:</span>
+                  <div class="amount-control">
+                    <input name="salePrice" type="text" inputmode="decimal" placeholder="np. 124 700" />
+                    <select name="saleCurrency">
+                      <option value="PLN" selected>PLN</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </label>
+                <label class="field">
+                  <span>Zniżka lub dodatkowa korzyść po negocjacjach:</span>
+                  <textarea name="discountBenefit" placeholder="Kwota rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
+                </label>
+              </div>
+
+              <div class="contract-card">
+                <div class="card-head">OZNACZENIE I HISTORIA POJAZDU:</div>
+                <label class="field">
+                  <span>Data pierwszej rejestracji:</span>
+                  <input name="firstRegistration" type="text" />
+                </label>
+                <div class="two-fields">
+                  <label class="field">
+                    <span>Typ paliwa:</span>
+                    <select name="fuelType">
+                      <option value="">Nie wskazano</option>
+                      <option value="ON">ON</option>
+                      <option value="LPG">LPG</option>
+                      <option value="B">B</option>
+                      <option value="H">H</option>
+                      <option value="EL">EL</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Data ostatniego badania technicznego:</span>
+                    <input name="lastTechnicalInspection" type="text" />
+                  </label>
+                </div>
+
+                <div class="card-head compact">STAN POJAZDU:</div>
+                <label class="field">
+                  <span>Ogólne zużycie:</span>
+                  <select name="generalWear">
+                    <option value="">Nie wskazano</option>
+                    <option value="brak">Brak</option>
+                    <option value="przecietne">Przeciętne</option>
+                    <option value="skrajne">Skrajne</option>
+                  </select>
+                </label>
+                <div class="damageMap">
+                  <div class="damageMapHead">
+                    <span>Oznaczenia miejsc korekt lakieru, napraw, uszkodzeń:</span>
+                    <button id="clearDamageMarks" type="button">Wyczyść X</button>
+                  </div>
+                  <div id="damageMapCanvas" class="damageMapCanvas" aria-label="Mapa uszkodzeń pojazdu">
+                    <img src="./assets/sale-car-damage-map.png?v=20260613-3" alt="Schemat pojazdu do oznaczenia uszkodzeń" />
+                  </div>
+                  <input id="damageMarks" name="damageMarks" type="hidden" />
+                </div>
+
+                <div class="card-head compact">DOKUMENTY I EMISJE:</div>
+                <div id="documentsChecklist" class="yesNoChecklist"></div>
+
+                <div class="card-head compact">NABYCIE I SPRAWDZENIE POJAZDU:</div>
+                <div id="purchaseChecklist" class="yesNoChecklist"></div>
+              </div>
+
+              <div class="contract-card contract-card-wide">
+                <div class="card-head">STAN TECHNICZNY I WYPOSAŻENIE:</div>
+                <div id="technicalChecklists" class="saleChecklistGroups"></div>
+              </div>
+
+              <div class="contract-card contract-card-wide">
+                <div class="card-head">UWAGI:</div>
+                <label class="field">
+                  <span>Informacje dodatkowe do umowy:</span>
+                  <textarea name="notes"></textarea>
+                </label>
+              </div>
+
+              <div class="contract-card contract-card-wide">
+                <div class="card-head">PODSUMOWANIE:</div>
+                <dl class="saleSummaryList">
+                  <div>
+                    <dt>Kupujący</dt>
+                    <dd id="saleSummaryBuyer">Nie wskazano</dd>
+                  </div>
+                  <div>
+                    <dt>Auto</dt>
+                    <dd id="saleSummaryVehicle">Nie wskazano</dd>
+                  </div>
+                  <div>
+                    <dt>VIN</dt>
+                    <dd id="saleSummaryVin">Nie wskazano</dd>
+                  </div>
+                  <div>
+                    <dt>Cena</dt>
+                    <dd id="saleSummaryPrice">Nie wskazano</dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+          </form>
+        </section>
+      </section>
     </main>
 
     <script src="./vendor/jszip.min.js"></script>
-    <script src="./src/sale-contract.js?v=20260619-1"></script>
+    <script src="./src/sale-contract.js?v=20260716-2"></script>
   </body>
 </html>
