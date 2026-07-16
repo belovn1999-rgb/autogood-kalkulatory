@@ -1213,8 +1213,6 @@ function resetSaleContract() {
   damageMarks = [];
   writeDamageMarks();
   renderDamageMarks();
-  applyDefaultChecklistValues();
-  applyDefaultFieldValues();
   setStatus("");
   updateSummary();
 }
