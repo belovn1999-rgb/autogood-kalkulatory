@@ -402,10 +402,14 @@ async function markTwoFilePrintRoot(page, mode, expectedVin) {
         if (area < 50000) return false;
         const hasIdentification = /identyfikacja pojazdu|Идентификация автомобиля|vehicle identification/i.test(text);
         const hasVehicle = /parametry pojazdu|Nr nadwozia|Данные автомобиля/i.test(text) || text.includes(expectedVinValue);
-        const hasEquipment = /Wyposażenie|Wyposazenie|Cecha\s+Nazwa|Оснащение/i.test(text);
+        const hasEquipment = /Wyposażenie|Wyposazenie|Cecha\s+Nazwa|Оснащение|Equipment/i.test(text);
         return hasIdentification && (needsEquipment ? hasEquipment : hasVehicle);
       })
-      .sort((a, b) => a.area - b.area);
+      .map((candidate) => ({
+        ...candidate,
+        score: /The FI results|Wyniki FI|Результаты/i.test(candidate.text) ? 0 : 1
+      }))
+      .sort((a, b) => a.score - b.score || a.area - b.area);
 
     const chosen = candidates[0]?.element;
     if (!chosen) return false;

@@ -97,7 +97,7 @@
         Dacia: { route: "general_vin_search" },
         DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
-        Ford: { route: "two_file_print" },
+        Ford: { sampleVin: "WF0MXXGBWMEL10535", route: "two_file_print" },
         Hyundai: { sampleVin: "KMHS5811DMU002130", route: "two_file_print" },
         Iveco: { route: "two_file_print" },
         Jaguar: { route: "general_vin_search" },
@@ -204,7 +204,7 @@
       });
       languageSelect.addEventListener("change", resetDownloadLink);
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260720-4")
+      fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;

@@ -47,6 +47,10 @@
       "route": "two_file_print",
       "brandTile": "Ford",
       "brandTileAliases": ["Ford"],
+      "sampleVin": "WF0MXXGBWMEL10535",
+      "sampleLanguage": "ENG",
+      "expectedKeywords": ["partslink24", "Ford"],
+      "expectedTextAny": ["Vehicle identification", "Vehicle data", "Equipment"],
       "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Hyundai": {
