@@ -184,7 +184,7 @@ async function openVehicle(page, brandConfig, vin) {
     fail(`Для марки ${brand} нужен отдельный сценарий PartsLink. Запишите демонстрацию экрана перед включением загрузки.`);
   }
 
-  if (["brand_first_search", "hyundai_two_file_print"].includes(brandConfig.route)) {
+  if (["brand_first_search", "hyundai_two_file_print", "two_file_print"].includes(brandConfig.route)) {
     await clickBrandTile(page, brandConfig);
     await page.waitForLoadState("networkidle").catch(() => {});
     await humanDelay();
@@ -218,8 +218,8 @@ async function waitForVehicleLoaded(page, vin) {
 }
 
 async function downloadVehiclePdfs(page, brandConfig, options) {
-  if (brandConfig.route === "hyundai_two_file_print") {
-    return downloadHyundaiPdfs(page, options);
+  if (["hyundai_two_file_print", "two_file_print"].includes(brandConfig.route)) {
+    return downloadTwoFilePrintPdfs(page, options);
   }
 
   return [await downloadPdf(page, options)];
@@ -315,21 +315,21 @@ async function downloadPdf(page, options) {
   fail("PDF page opened, but the script could not save a valid PDF body.");
 }
 
-async function downloadHyundaiPdfs(page, options) {
+async function downloadTwoFilePrintPdfs(page, options) {
   await waitForVehicleLoaded(page, options.vin);
   await humanDelay();
 
   const vehiclePath = join(options.outDir, makePdfName({ ...options, suffix: "vehicle" }));
-  await saveHyundaiPanelPdf(page, vehiclePath, "vehicle");
+  await saveTwoFilePanelPdf(page, vehiclePath, "vehicle");
 
-  await openHyundaiEquipmentTab(page);
+  await openTwoFileEquipmentTab(page);
   const equipmentPath = join(options.outDir, makePdfName({ ...options, suffix: "equipment" }));
-  await saveHyundaiPanelPdf(page, equipmentPath, "equipment");
+  await saveTwoFilePanelPdf(page, equipmentPath, "equipment");
 
   return [vehiclePath, equipmentPath];
 }
 
-async function openHyundaiEquipmentTab(page) {
+async function openTwoFileEquipmentTab(page) {
   const candidates = [
     page.getByText(/Wyposażenie|Wyposazenie|Оснащение|Equipment/i).first(),
     page.locator('a, button, [role="tab"]').filter({ hasText: /Wyposażenie|Wyposazenie|Оснащение|Equipment/i }).first()
@@ -347,12 +347,12 @@ async function openHyundaiEquipmentTab(page) {
     return;
   }
 
-  fail("Не удалось открыть вкладку оснащения Hyundai для второго PDF.");
+  fail("Не удалось открыть вкладку оснащения для второго PDF.");
 }
 
-async function saveHyundaiPanelPdf(page, target, mode) {
-  const marked = await markHyundaiPrintRoot(page, mode, vin);
-  if (!marked) fail(`Не удалось подготовить Hyundai ${mode} к печати.`);
+async function saveTwoFilePanelPdf(page, target, mode) {
+  const marked = await markTwoFilePrintRoot(page, mode, vin);
+  if (!marked) fail(`Не удалось подготовить ${mode} к печати.`);
 
   await savePagePdf(page, target);
   await page.evaluate(() => {
@@ -360,7 +360,7 @@ async function saveHyundaiPanelPdf(page, target, mode) {
   }).catch(() => {});
 }
 
-async function markHyundaiPrintRoot(page, mode, expectedVin) {
+async function markTwoFilePrintRoot(page, mode, expectedVin) {
   return page.evaluate(({ printMode, expectedVinValue }) => {
     document.querySelector("[data-autogood-print-style]")?.remove();
     document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");

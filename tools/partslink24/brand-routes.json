@@ -44,12 +44,13 @@
       "brandTile": "Fiat"
     },
     "Ford": {
-      "route": "pending_demo",
+      "route": "two_file_print",
       "brandTile": "Ford",
-      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
+      "brandTileAliases": ["Ford"],
+      "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Hyundai": {
-      "route": "hyundai_two_file_print",
+      "route": "two_file_print",
       "brandTile": "Hyundai",
       "sampleVin": "KMHS5811DMU002130",
       "sampleLanguage": "PL",
@@ -58,9 +59,10 @@
       "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Iveco": {
-      "route": "pending_demo",
+      "route": "two_file_print",
       "brandTile": "Iveco",
-      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
+      "brandTileAliases": ["IVECO"],
+      "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Jaguar": {
       "route": "general_vin_search",
@@ -71,9 +73,10 @@
       "brandTile": "Jeep"
     },
     "Kia": {
-      "route": "pending_demo",
+      "route": "two_file_print",
       "brandTile": "Kia",
-      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
+      "brandTileAliases": ["KIA"],
+      "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Land Rover": {
       "route": "general_vin_search",
@@ -110,9 +113,9 @@
       "brandTile": "Mitsubishi"
     },
     "Nissan": {
-      "route": "pending_demo",
+      "route": "two_file_print",
       "brandTile": "Nissan",
-      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
+      "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Opel": {
       "route": "brand_first_search",

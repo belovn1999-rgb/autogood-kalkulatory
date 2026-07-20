@@ -97,12 +97,12 @@
         Dacia: { route: "general_vin_search" },
         DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
-        Ford: { route: "pending_demo" },
-        Hyundai: { sampleVin: "KMHS5811DMU002130", route: "hyundai_two_file_print" },
-        Iveco: { route: "pending_demo" },
+        Ford: { route: "two_file_print" },
+        Hyundai: { sampleVin: "KMHS5811DMU002130", route: "two_file_print" },
+        Iveco: { route: "two_file_print" },
         Jaguar: { route: "general_vin_search" },
         Jeep: { route: "general_vin_search" },
-        Kia: { route: "pending_demo" },
+        Kia: { route: "two_file_print" },
         "Land Rover": { route: "general_vin_search" },
         Lexus: { route: "general_vin_search" },
         "Mercedes-Benz": { sampleVin: "WDD2120481A322032", route: "brand_first_search" },
@@ -110,7 +110,7 @@
         "Mercedes Vans": { route: "brand_first_search" },
         Mini: { route: "general_vin_search" },
         Mitsubishi: { route: "general_vin_search" },
-        Nissan: { route: "pending_demo" },
+        Nissan: { route: "two_file_print" },
         Opel: { route: "brand_first_search" },
         Peugeot: { sampleVin: "VR3FPHNSTPY610770", route: "brand_first_search" },
         Porsche: { route: "general_vin_search" },
@@ -204,7 +204,7 @@
       });
       languageSelect.addEventListener("change", resetDownloadLink);
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260720-3")
+      fetch("./tools/partslink24/brand-routes.json?v=20260720-4")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;
