@@ -199,7 +199,22 @@ async function openVehicle(page, brandConfig, vin) {
     page.keyboard.press("Enter")
   ]);
 
-  await page.getByText(vin).first().waitFor({ timeout: 45000 });
+  await waitForVehicleLoaded(page, vin);
+}
+
+async function waitForVehicleLoaded(page, vin) {
+  const result = await page.waitForFunction((expectedVin) => {
+    const bodyText = document.body?.innerText || "";
+    const url = window.location.href || "";
+    const hasVin = bodyText.includes(expectedVin) || url.includes(expectedVin);
+    const hasVehicleContext = /Идентификация автомобиля|identyfikacja pojazdu|vehicle identification|Данные автомобиля|parametry pojazdu/i.test(bodyText);
+
+    return hasVin && hasVehicleContext;
+  }, vin, { timeout: 45000 }).catch(() => null);
+
+  if (result) return;
+
+  await page.getByText(vin).first().waitFor({ timeout: 5000 });
 }
 
 async function clickBrandTile(page, brandConfig) {

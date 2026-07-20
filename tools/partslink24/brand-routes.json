@@ -117,7 +117,7 @@
     "Peugeot": {
       "route": "brand_first_search",
       "brandTile": "Peugeot",
-      "sampleVin": "VF3MCYHZUMS121613",
+      "sampleVin": "VR3FPHNSTPY610770",
       "sampleLanguage": "RU",
       "expectedKeywords": ["partslink24", "Peugeot"],
       "expectedTextAny": ["Идентификация автомобиля", "Модель", "Оснащение"],

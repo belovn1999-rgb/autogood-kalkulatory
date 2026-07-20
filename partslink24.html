@@ -106,7 +106,7 @@
         Mitsubishi: { route: "general_vin_search" },
         Nissan: { route: "pending_demo" },
         Opel: { route: "brand_first_search" },
-        Peugeot: { sampleVin: "VF3MCYHZUMS121613", route: "brand_first_search" },
+        Peugeot: { sampleVin: "VR3FPHNSTPY610770", route: "brand_first_search" },
         Porsche: { route: "general_vin_search" },
         Renault: { route: "brand_first_search" },
         Seat: { route: "general_vin_search" },
@@ -182,7 +182,7 @@
       });
       languageSelect.addEventListener("change", resetDownloadLink);
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260715-1")
+      fetch("./tools/partslink24/brand-routes.json?v=20260720-2")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;
