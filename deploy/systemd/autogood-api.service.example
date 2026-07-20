@@ -1,0 +1,16 @@
+[Unit]
+Description=AUTOGOOD API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/autogood-services/autogood-kalkulatory
+EnvironmentFile=/opt/autogood-services/autogood-kalkulatory/server/.env
+ExecStart=/usr/bin/env npm run api
+Restart=always
+RestartSec=5
+User=autogood
+Group=autogood
+
+[Install]
+WantedBy=multi-user.target

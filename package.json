@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "python3 -m http.server 4173",
+    "api": "node server/autogood-api.mjs",
     "partslink24": "node server/partslink24-api.mjs",
     "mobilede": "node server/mobilede-import.mjs",
     "converter": "python3 converter/server.py"

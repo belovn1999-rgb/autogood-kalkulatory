@@ -1,12 +1,13 @@
 import http from "node:http";
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, normalize, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const routesPath = join(repoRoot, "tools/partslink24/brand-routes.json");
+loadLocalEnv(join(repoRoot, "server/.env"));
 loadLocalEnv(join(repoRoot, "tools/partslink24/.env"));
 const routes = JSON.parse(readFileSync(routesPath, "utf8"));
 const outputDir = resolve(repoRoot, "output/partslink24");
@@ -25,7 +26,7 @@ const mimeTypes = {
   ".webp": "image/webp"
 };
 
-const server = http.createServer(async (request, response) => {
+export async function handlePartslink24Request(request, response) {
   try {
     if (request.method === "OPTIONS") return sendNoContent(response);
     if (request.method === "POST" && request.url === "/api/partslink24/check-vin") {
@@ -41,11 +42,14 @@ const server = http.createServer(async (request, response) => {
   } catch (error) {
     return sendJson(response, 500, { ok: false, error: errorMessage(error) });
   }
-});
+}
 
-server.listen(port, () => {
-  process.stdout.write(`PartsLink24 VIN server: http://127.0.0.1:${port}/partslink24.html\n`);
-});
+if (isDirectRun()) {
+  const server = http.createServer(handlePartslink24Request);
+  server.listen(port, () => {
+    process.stdout.write(`PartsLink24 VIN server: http://127.0.0.1:${port}/partslink24.html\n`);
+  });
+}
 
 async function handleVinCheck(request, response) {
   const payload = await readJsonBody(request);
@@ -252,4 +256,8 @@ function corsHeaders() {
 
 function errorMessage(error) {
   return error instanceof Error ? error.message : "Unknown error.";
+}
+
+function isDirectRun() {
+  return import.meta.url === pathToFileURL(process.argv[1] || "").href;
 }

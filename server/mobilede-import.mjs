@@ -1,6 +1,7 @@
 import http from "node:http";
 import { existsSync } from "node:fs";
 import { execFile } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
 const PORT = Number(process.env.PORT || 8788);
@@ -969,7 +970,7 @@ async function loadListing(urlInfo) {
   }
 }
 
-const server = http.createServer(async (request, response) => {
+export async function handleMobiledeImport(request, response) {
   if (request.method === "OPTIONS") return sendJson(response, 204, {});
 
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
@@ -1043,8 +1044,15 @@ const server = http.createServer(async (request, response) => {
       adId: urlInfo.adId,
     });
   }
-});
+}
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Mobile.de import backend: http://127.0.0.1:${PORT}/mobilede/import?url=...`);
-});
+if (isDirectRun()) {
+  const server = http.createServer(handleMobiledeImport);
+  server.listen(PORT, "127.0.0.1", () => {
+    console.log(`Mobile.de import backend: http://127.0.0.1:${PORT}/mobilede/import?url=...`);
+  });
+}
+
+function isDirectRun() {
+  return import.meta.url === pathToFileURL(process.argv[1] || "").href;
+}
