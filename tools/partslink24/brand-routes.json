@@ -49,9 +49,13 @@
       "notes": ["Нужна демонстрация отдельного принципа скачивания."]
     },
     "Hyundai": {
-      "route": "pending_demo",
+      "route": "hyundai_two_file_print",
       "brandTile": "Hyundai",
-      "notes": ["Нужна демонстрация отдельного принципа скачивания."]
+      "sampleVin": "KMHS5811DMU002130",
+      "sampleLanguage": "PL",
+      "expectedKeywords": ["partslink24", "Hyundai"],
+      "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "parametry pojazdu"],
+      "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Iveco": {
       "route": "pending_demo",

@@ -66,14 +66,25 @@ async function handleVinCheck(request, response) {
   const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin }));
   if (!result.ok) return sendJson(response, 500, result);
 
-  const fileName = basename(result.pdfPath || "");
+  const pdfPaths = Array.isArray(result.pdfPaths) && result.pdfPaths.length
+    ? result.pdfPaths
+    : [result.pdfPath].filter(Boolean);
+  const files = pdfPaths.map((pdfPath) => {
+    const fileName = basename(pdfPath || "");
+    return {
+      fileName,
+      downloadUrl: `/api/partslink24/pdf/${encodeURIComponent(fileName)}`
+    };
+  });
+  const firstFile = files[0] || {};
   return sendJson(response, 200, {
     ok: true,
     brand,
     language,
     vin,
-    fileName,
-    downloadUrl: `/api/partslink24/pdf/${encodeURIComponent(fileName)}`
+    fileName: firstFile.fileName,
+    downloadUrl: firstFile.downloadUrl,
+    files
   });
 }
 

@@ -24,6 +24,12 @@
       .partslinkDownloadLink[hidden] {
         display: none;
       }
+
+      .partslinkDownloadLinks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
     </style>
   </head>
   <body>
@@ -69,7 +75,7 @@
 
           <div class="partslinkActions">
             <button id="partslinkCheckButton" type="button">Проверить VIN</button>
-            <a id="partslinkDownloadLink" class="partslinkDownloadLink" href="#" download hidden>Скачать VIN спецификацию</a>
+            <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
             <p id="partslinkStatus" role="status" aria-live="polite"></p>
           </div>
         </div>
@@ -80,7 +86,7 @@
       const brandSelect = document.getElementById("partslinkBrand");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
-      const downloadLink = document.getElementById("partslinkDownloadLink");
+      const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
         "Alfa Romeo": { route: "general_vin_search" },
@@ -92,7 +98,7 @@
         DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
         Ford: { route: "pending_demo" },
-        Hyundai: { route: "pending_demo" },
+        Hyundai: { sampleVin: "KMHS5811DMU002130", route: "hyundai_two_file_print" },
         Iveco: { route: "pending_demo" },
         Jaguar: { route: "general_vin_search" },
         Jeep: { route: "general_vin_search" },
@@ -148,9 +154,25 @@
       }
 
       function resetDownloadLink() {
-        downloadLink.hidden = true;
-        downloadLink.removeAttribute("href");
-        downloadLink.removeAttribute("download");
+        downloadLinks.hidden = true;
+        downloadLinks.replaceChildren();
+      }
+
+      function renderDownloadLinks(files, apiBase, brand, vin) {
+        downloadLinks.replaceChildren();
+        files.forEach((file, index) => {
+          if (!file.downloadUrl) return;
+          const link = document.createElement("a");
+          const fileName = file.fileName || makePdfFileName(brand, vin);
+          link.className = "partslinkDownloadLink";
+          link.href = `${apiBase}${file.downloadUrl}`;
+          link.download = fileName;
+          link.textContent = files.length > 1
+            ? `Скачать VIN спецификацию ${index + 1}`
+            : "Скачать VIN спецификацию";
+          downloadLinks.append(link);
+        });
+        downloadLinks.hidden = downloadLinks.children.length === 0;
       }
 
       function renderBrands() {
@@ -182,7 +204,7 @@
       });
       languageSelect.addEventListener("change", resetDownloadLink);
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260720-2")
+      fetch("./tools/partslink24/brand-routes.json?v=20260720-3")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;
@@ -218,13 +240,11 @@
             throw new Error(result.error || "Сервер проверки VIN недоступен.");
           }
 
-          statusLine.textContent = "VIN спецификация готова.";
-          if (result.downloadUrl) {
-            const fileName = result.fileName || makePdfFileName(brand, vin);
-            downloadLink.href = `${apiBase}${result.downloadUrl}`;
-            downloadLink.download = fileName;
-            downloadLink.hidden = false;
-          }
+          const files = Array.isArray(result.files) && result.files.length
+            ? result.files
+            : [{ fileName: result.fileName, downloadUrl: result.downloadUrl }];
+          statusLine.textContent = files.length > 1 ? "VIN спецификации готовы." : "VIN спецификация готова.";
+          renderDownloadLinks(files, apiBase, brand, vin);
         } catch (error) {
           statusLine.textContent = error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
         } finally {

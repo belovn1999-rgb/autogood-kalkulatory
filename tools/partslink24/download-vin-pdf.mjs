@@ -70,8 +70,8 @@ try {
   page = context.pages()[0] || await context.newPage();
   await login(page, { companyId, username, password, language });
   await openVehicle(page, brandConfig, vin);
-  const pdfPath = await downloadPdf(page, { brand, vin, language, outDir });
-  process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath }, null, 2)}\n`);
+  const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
+  process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
 } catch (error) {
   const screenshotPath = join(outDir, `${brand}_${vin}_${language}_error.png`.replace(/[^A-Za-z0-9_.-]/g, "_"));
   await page?.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
@@ -184,7 +184,7 @@ async function openVehicle(page, brandConfig, vin) {
     fail(`Для марки ${brand} нужен отдельный сценарий PartsLink. Запишите демонстрацию экрана перед включением загрузки.`);
   }
 
-  if (brandConfig.route === "brand_first_search") {
+  if (["brand_first_search", "hyundai_two_file_print"].includes(brandConfig.route)) {
     await clickBrandTile(page, brandConfig);
     await page.waitForLoadState("networkidle").catch(() => {});
     await humanDelay();
@@ -215,6 +215,14 @@ async function waitForVehicleLoaded(page, vin) {
   if (result) return;
 
   await page.getByText(vin).first().waitFor({ timeout: 5000 });
+}
+
+async function downloadVehiclePdfs(page, brandConfig, options) {
+  if (brandConfig.route === "hyundai_two_file_print") {
+    return downloadHyundaiPdfs(page, options);
+  }
+
+  return [await downloadPdf(page, options)];
 }
 
 async function clickBrandTile(page, brandConfig) {
@@ -307,6 +315,123 @@ async function downloadPdf(page, options) {
   fail("PDF page opened, but the script could not save a valid PDF body.");
 }
 
+async function downloadHyundaiPdfs(page, options) {
+  await waitForVehicleLoaded(page, options.vin);
+  await humanDelay();
+
+  const vehiclePath = join(options.outDir, makePdfName({ ...options, suffix: "vehicle" }));
+  await saveHyundaiPanelPdf(page, vehiclePath, "vehicle");
+
+  await openHyundaiEquipmentTab(page);
+  const equipmentPath = join(options.outDir, makePdfName({ ...options, suffix: "equipment" }));
+  await saveHyundaiPanelPdf(page, equipmentPath, "equipment");
+
+  return [vehiclePath, equipmentPath];
+}
+
+async function openHyundaiEquipmentTab(page) {
+  const candidates = [
+    page.getByText(/Wyposażenie|Wyposazenie|Оснащение|Equipment/i).first(),
+    page.locator('a, button, [role="tab"]').filter({ hasText: /Wyposażenie|Wyposazenie|Оснащение|Equipment/i }).first()
+  ];
+
+  for (const candidate of candidates) {
+    if (!await candidate.isVisible({ timeout: 2000 }).catch(() => false)) continue;
+    await clickHuman(candidate);
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return /Cecha\s+Nazwa|Cechy\s+Nazwa|Wyposażenie|Wyposazenie|Equipment/i.test(text);
+    }, undefined, { timeout: 20000 }).catch(() => {});
+    await humanDelay();
+    return;
+  }
+
+  fail("Не удалось открыть вкладку оснащения Hyundai для второго PDF.");
+}
+
+async function saveHyundaiPanelPdf(page, target, mode) {
+  const marked = await markHyundaiPrintRoot(page, mode, vin);
+  if (!marked) fail(`Не удалось подготовить Hyundai ${mode} к печати.`);
+
+  await savePagePdf(page, target);
+  await page.evaluate(() => {
+    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
+  }).catch(() => {});
+}
+
+async function markHyundaiPrintRoot(page, mode, expectedVin) {
+  return page.evaluate(({ printMode, expectedVinValue }) => {
+    document.querySelector("[data-autogood-print-style]")?.remove();
+    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
+
+    const style = document.createElement("style");
+    style.dataset.autogoodPrintStyle = "true";
+    style.textContent = `
+      @media print {
+        body * {
+          visibility: hidden !important;
+        }
+        [data-autogood-print-root],
+        [data-autogood-print-root] * {
+          visibility: visible !important;
+        }
+        [data-autogood-print-root] {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          max-width: none !important;
+          height: auto !important;
+          max-height: none !important;
+          overflow: visible !important;
+          background: #fff !important;
+        }
+      }
+    `;
+    document.head.append(style);
+
+    const needsEquipment = printMode === "equipment";
+    const candidates = [...document.querySelectorAll("div, section, article, table, form")]
+      .map((element) => {
+        const text = element.innerText || "";
+        const rect = element.getBoundingClientRect();
+        return { element, text, area: rect.width * rect.height };
+      })
+      .filter(({ text, area }) => {
+        if (area < 50000) return false;
+        const hasIdentification = /identyfikacja pojazdu|Идентификация автомобиля|vehicle identification/i.test(text);
+        const hasVehicle = /parametry pojazdu|Nr nadwozia|Данные автомобиля/i.test(text) || text.includes(expectedVinValue);
+        const hasEquipment = /Wyposażenie|Wyposazenie|Cecha\s+Nazwa|Оснащение/i.test(text);
+        return hasIdentification && (needsEquipment ? hasEquipment : hasVehicle);
+      })
+      .sort((a, b) => a.area - b.area);
+
+    const chosen = candidates[0]?.element;
+    if (!chosen) return false;
+    chosen.setAttribute("data-autogood-print-root", "true");
+    return true;
+  }, { printMode: mode, expectedVinValue: expectedVin }).catch(() => false);
+}
+
+async function savePagePdf(page, target) {
+  await page.emulateMedia({ media: "print" }).catch(() => {});
+  await page.pdf({
+    path: target,
+    format: "A4",
+    printBackground: true,
+    preferCSSPageSize: true,
+    margin: {
+      top: "8mm",
+      right: "8mm",
+      bottom: "8mm",
+      left: "8mm"
+    }
+  });
+  await assertPdfFile(target);
+  await page.emulateMedia({ media: "screen" }).catch(() => {});
+}
+
 async function saveDownload(download, target) {
   const fs = await import("node:fs/promises");
   await fs.rm(target, { force: true }).catch(() => {});
@@ -380,8 +505,8 @@ async function settleWithin(promise, timeout) {
   ]);
 }
 
-function makePdfName({ brand, vin }) {
-  return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+function makePdfName({ brand, vin, suffix = "" }) {
+  return `${brand}_${vin}${suffix ? `_${suffix}` : ""}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
 }
 
 async function closeContext(contextToClose) {
