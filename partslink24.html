@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AUTOGOOD VIN → PDF</title>
+    <title>AUTOGOOD VIN спецификация</title>
     <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260709-1" />
     <style>
       .partslinkDownloadLink {
@@ -31,7 +31,7 @@
       <header class="workspaceHeader">
         <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>VIN → PDF</span>
+          <span>VIN спецификация</span>
         </a>
         <nav class="workspaceNav" aria-label="Workspace navigation">
           <a href="./">Tools</a>
@@ -43,7 +43,7 @@
 
       <section class="workspaceHero">
         <p class="eyebrow">04 / Проверка VIN</p>
-        <h1>VIN → PDF</h1>
+        <h1>VIN спецификация</h1>
       </section>
 
       <section class="dealForm partslinkVinForm" aria-label="VIN PDF form">
@@ -63,13 +63,13 @@
           </label>
 
           <label>
-            3. Строка для ввода VIN для проверки и загрузки через партслинк
+            3. Строка для ввода VIN для проверки и загрузки VIN спецификации через партслинк
             <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
           </label>
 
           <div class="partslinkActions">
             <button id="partslinkCheckButton" type="button">Проверить VIN</button>
-            <a id="partslinkDownloadLink" class="partslinkDownloadLink" href="#" download hidden>Скачать PDF</a>
+            <a id="partslinkDownloadLink" class="partslinkDownloadLink" href="#" download hidden>Скачать VIN спецификацию</a>
             <p id="partslinkStatus" role="status" aria-live="polite"></p>
           </div>
         </div>
@@ -218,7 +218,7 @@
             throw new Error(result.error || "Сервер проверки VIN недоступен.");
           }
 
-          statusLine.textContent = "PDF готов.";
+          statusLine.textContent = "VIN спецификация готова.";
           if (result.downloadUrl) {
             const fileName = result.fileName || makePdfFileName(brand, vin);
             downloadLink.href = `${apiBase}${result.downloadUrl}`;
