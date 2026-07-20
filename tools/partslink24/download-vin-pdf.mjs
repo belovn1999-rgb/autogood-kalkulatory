@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,11 @@ const outDir = resolve(readOption(args, "--out-dir") || join(repoRoot, "output/p
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
 const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 350);
+const systemChromePaths = [
+  process.env.PARTSLINK24_CHROME_PATH,
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+].filter(Boolean);
 
 if (!vin) fail("Missing --vin.");
 if (!brand) fail("Missing --brand.");
@@ -50,28 +55,31 @@ if (!routes.languages.includes(language)) fail(`Unsupported language: ${language
 mkdirSync(outDir, { recursive: true });
 mkdirSync(userDataDir, { recursive: true });
 
-const { chromium } = await import("playwright");
-const context = await chromium.launchPersistentContext(userDataDir, {
-  acceptDownloads: true,
-  headless,
-  slowMo,
-  viewport: { width: 1280, height: 720 }
-});
-const page = context.pages()[0] || await context.newPage();
-
+let context;
+let page;
 try {
+  const { chromium } = await import("playwright");
+  const executablePath = systemChromePaths.find((path) => existsSync(path));
+  context = await chromium.launchPersistentContext(userDataDir, {
+    acceptDownloads: true,
+    headless,
+    slowMo,
+    viewport: { width: 1280, height: 720 },
+    ...(executablePath ? { executablePath } : {})
+  });
+  page = context.pages()[0] || await context.newPage();
   await login(page, { companyId, username, password, language });
   await openVehicle(page, brandConfig, vin);
   const pdfPath = await downloadPdf(page, { brand, vin, language, outDir });
   process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath }, null, 2)}\n`);
 } catch (error) {
   const screenshotPath = join(outDir, `${brand}_${vin}_${language}_error.png`.replace(/[^A-Za-z0-9_.-]/g, "_"));
-  await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
+  await page?.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
   const message = error instanceof Error ? error.message : "Unknown error.";
   process.stderr.write(`${JSON.stringify({ ok: false, brand, vin, language, error: message, screenshotPath }, null, 2)}\n`);
   process.exitCode = 1;
 } finally {
-  await context.close();
+  await closeContext(context);
 }
 
 async function login(page, credentials) {
@@ -230,34 +238,58 @@ async function assertLoggedIn(page) {
 }
 
 async function downloadPdf(page, options) {
+  const target = join(options.outDir, makePdfName(options));
   const pdfButton = page.locator('[title*="PDF" i], [aria-label*="PDF" i]')
     .or(page.getByText(/PDF/i))
     .first();
-  const pagePromise = page.context().waitForEvent("page").catch(() => null);
-  const downloadPromise = page.waitForEvent("download").catch(() => null);
+  const context = page.context();
+  const pdfResponsePromise = waitForPdfResponse(context);
+  const pagePromise = context.waitForEvent("page", { timeout: 45000 }).catch(() => null);
+  const downloadPromise = page.waitForEvent("download", { timeout: 45000 }).catch(() => null);
 
   await clickHuman(pdfButton);
 
-  const download = await downloadPromise;
+  const firstResult = await Promise.race([
+    downloadPromise.then((download) => download ? { type: "download", download } : null),
+    pdfResponsePromise.then((pdfResponse) => pdfResponse ? { type: "pdfResponse", pdfResponse } : null),
+    pagePromise.then((pdfPage) => pdfPage ? { type: "pdfPage", pdfPage } : null),
+    delay(45000).then(() => null)
+  ]);
+
+  const download = firstResult?.type === "download" ? firstResult.download : await settleWithin(downloadPromise, 1500);
   if (download) {
-    const target = join(options.outDir, makePdfName(options));
     await saveDownload(download, target);
+    await assertPdfFile(target);
     return target;
   }
 
-  const pdfPage = await pagePromise;
+  const pdfResponse = firstResult?.type === "pdfResponse" ? firstResult.pdfResponse : await settleWithin(pdfResponsePromise, 5000);
+  if (pdfResponse?.body) {
+    await writePdfBuffer(target, pdfResponse.body);
+    return target;
+  }
+
+  const pdfPage = firstResult?.type === "pdfPage" ? firstResult.pdfPage : await settleWithin(pagePromise, 1500);
   if (!pdfPage) fail("PDF did not open as a download or new page.");
 
   await pdfPage.waitForLoadState("domcontentloaded").catch(() => {});
-  const target = join(options.outDir, makePdfName(options));
-  const response = await pdfPage.goto(pdfPage.url()).catch(() => null);
-  if (response) {
-    const body = await response.body();
-    await import("node:fs").then((fs) => fs.writeFileSync(target, body));
+  const latePdfResponse = await settleWithin(pdfResponsePromise, 8000);
+  if (latePdfResponse?.body) {
+    await writePdfBuffer(target, latePdfResponse.body);
     return target;
   }
 
-  fail("PDF page opened, but the script could not save its body.");
+  const pdfSourceUrl = extractChromePdfSource(pdfPage.url());
+  if (pdfSourceUrl) {
+    const response = await context.request.get(pdfSourceUrl).catch(() => null);
+    const body = await response?.body().catch(() => null);
+    if (body) {
+      await writePdfBuffer(target, body);
+      return target;
+    }
+  }
+
+  fail("PDF page opened, but the script could not save a valid PDF body.");
 }
 
 async function saveDownload(download, target) {
@@ -275,8 +307,83 @@ async function saveDownload(download, target) {
   }
 }
 
+function waitForPdfResponse(context, timeout = 45000) {
+  return new Promise((resolveResponse) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      context.off("response", onResponse);
+    };
+    const finish = (value) => {
+      cleanup();
+      resolveResponse(value);
+    };
+    const onResponse = async (response) => {
+      const headers = response.headers();
+      const contentType = headers["content-type"] || "";
+      const disposition = headers["content-disposition"] || "";
+      const responseUrl = response.url();
+      const looksLikePdf = /application\/pdf/i.test(contentType)
+        || /\.pdf(?:[?#]|$)/i.test(responseUrl)
+        || /filename=.*\.pdf/i.test(disposition);
+
+      if (!looksLikePdf) return;
+
+      const body = await response.body().catch(() => null);
+      if (!body || !isPdfBody(body)) return;
+      finish({ body, url: responseUrl });
+    };
+    const timer = setTimeout(() => finish(null), timeout);
+    context.on("response", onResponse);
+  });
+}
+
+async function writePdfBuffer(target, body) {
+  if (!isPdfBody(body)) fail("PartsLink24 returned a PDF viewer page instead of a valid PDF file.");
+  await import("node:fs/promises").then((fs) => fs.writeFile(target, body));
+}
+
+async function assertPdfFile(path) {
+  const body = await import("node:fs/promises").then((fs) => fs.readFile(path));
+  if (!isPdfBody(body)) fail("PartsLink24 returned a PDF viewer page instead of a valid PDF file.");
+}
+
+function isPdfBody(body) {
+  return Buffer.from(body).subarray(0, 5).toString("ascii") === "%PDF-";
+}
+
+function extractChromePdfSource(url) {
+  if (!String(url).startsWith("chrome-extension://")) return "";
+
+  const parsed = new URL(url);
+  return parsed.searchParams.get("src") || parsed.searchParams.get("file") || "";
+}
+
+async function settleWithin(promise, timeout) {
+  return Promise.race([
+    promise,
+    delay(timeout).then(() => null)
+  ]);
+}
+
 function makePdfName({ brand, vin }) {
   return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+}
+
+async function closeContext(contextToClose) {
+  if (!contextToClose) return;
+
+  let timedOut = false;
+  await Promise.race([
+    contextToClose.close().catch(() => {}),
+    new Promise((resolveClose) => setTimeout(() => {
+      timedOut = true;
+      resolveClose();
+    }, 5000))
+  ]);
+
+  if (timedOut) {
+    setTimeout(() => process.exit(process.exitCode || 0), 0);
+  }
 }
 
 async function readJson(path) {
@@ -298,6 +405,10 @@ async function clickHuman(locator) {
 
 async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || 650), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || 1600)) {
   await new Promise((resolveDelay) => setTimeout(resolveDelay, randomInt(min, max)));
+}
+
+function delay(ms) {
+  return new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 }
 
 function randomInt(min, max) {
