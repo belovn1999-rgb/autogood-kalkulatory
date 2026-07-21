@@ -133,7 +133,7 @@ button {
 
 .logoMark {
   display: block;
-  width: 160px;
+  width: 164px;
   max-width: 42vw;
   height: auto;
   object-fit: contain;
@@ -153,9 +153,11 @@ button {
 }
 
 .logoTitle {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--ag-ink-900);
+  color: var(--ag-blue-900);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .logoLinkStartup {

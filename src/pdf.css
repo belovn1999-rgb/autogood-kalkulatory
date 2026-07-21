@@ -63,6 +63,7 @@ button {
   color: var(--brand-dark);
   font-size: 18px;
   font-weight: 800;
+  line-height: 1;
 }
 
 .brand img {
@@ -72,7 +73,22 @@ button {
   display: block;
 }
 
-body.export-contract .brand span::after {
+.brandDivider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 26px;
+  background: var(--line-strong);
+}
+
+.brandTitle {
+  color: var(--brand-dark);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.export-contract .brandTitle::after {
   content: "Eksport do Białorusi";
   display: inline-flex;
   align-items: center;

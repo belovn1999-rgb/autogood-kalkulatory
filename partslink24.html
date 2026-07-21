@@ -54,22 +54,29 @@
       .partslinkWordmark {
         display: inline-flex;
         align-items: center;
-        gap: var(--ag-space-sm);
+        gap: 14px;
         min-width: 0;
         color: var(--ag-color-ink);
         text-decoration: none;
       }
 
       .partslinkWordmark img {
-        width: var(--ag-logo-width);
+        width: 164px;
         max-width: var(--ag-logo-max-width);
         height: auto;
         display: block;
       }
 
-      .partslinkWordmark span {
-        color: var(--ag-color-ink);
-        font-size: var(--ag-text-lg);
+      .partslinkWordmarkDivider {
+        flex: 0 0 auto;
+        width: 1px;
+        height: 26px;
+        background: var(--ag-color-rule-2);
+      }
+
+      .partslinkWordmark span:not(.partslinkWordmarkDivider) {
+        color: var(--ag-color-accent-dark);
+        font-size: 18px;
         font-weight: 800;
         line-height: 1;
         white-space: nowrap;
@@ -431,6 +438,7 @@
       <header class="partslinkTopbar">
         <a class="partslinkWordmark" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span class="partslinkWordmarkDivider" aria-hidden="true"></span>
           <span>VIN Check</span>
         </a>
         <nav class="partslinkNav" aria-label="Workspace navigation">

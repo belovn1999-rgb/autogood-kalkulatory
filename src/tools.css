@@ -297,16 +297,16 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 13px;
+  gap: 14px;
   min-width: 0;
 }
 
 .brand.compact img {
-  width: 190px;
+  width: 164px;
 }
 
 .brand img {
-  width: 160px;
+  width: 164px;
   max-width: 58vw;
   height: auto;
   display: block;
@@ -321,10 +321,11 @@ a {
 }
 
 .brand > span:not(.brandDivider) {
-  color: #1a2430;
-  font-size: 25px;
-  font-weight: 700;
+  color: #0f3d5e;
+  font-size: 18px;
+  font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .repoLink {
@@ -574,17 +575,20 @@ a {
 }
 
 .workspaceShell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1200px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 24px 0 56px;
+  padding: 28px 0 64px;
+  font-family: "Public Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 .workspaceHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 48px;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
 }
 
 .workspaceNav {

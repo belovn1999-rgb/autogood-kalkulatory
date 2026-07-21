@@ -10,18 +10,16 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/tools.css?v=umowy-minimal-20260714" />
+    <link rel="stylesheet" href="./src/tools.css?v=header-unified-20260721" />
   </head>
   <body class="umowyBody">
     <main class="umowyPage">
       <header class="umowyHeader">
-        <div class="umowyHeaderLeft">
-          <a class="umowyWordmark" href="./" aria-label="AUTOGOOD Tools">AUTOGOOD</a>
-          <nav class="umowyNav" aria-label="Nawigacja umow">
-            <span data-i18n="navTools">Narzędzia</span>
-            <span class="isActive" data-i18n="navUmowy">Umowy</span>
-          </nav>
-        </div>
+        <a class="brand" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span class="brandDivider" aria-hidden="true"></span>
+          <span data-i18n="navUmowy">Umowy</span>
+        </a>
         <div class="umowyLang" aria-label="Język">
           <button class="isActive" type="button" data-lang="pl">PL</button>
           <button type="button" data-lang="ru">RU</button>
