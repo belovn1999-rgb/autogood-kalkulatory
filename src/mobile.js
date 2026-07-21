@@ -3,23 +3,22 @@ const DEFAULT_MOBILEDE_API_URL = "https://listprice-program-recognition-conventi
 const copy = {
   pl: {
     eyebrow: "LINK MOBILE.DE",
-    title: "Rozpoznaj ogłoszenie",
     lead: "Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.",
     inputLabel: "Link ogłoszenia",
     loadButton: "Rozpoznaj",
     loadingButton: "Pobieram",
-    helper: "Backend mobile.de musi być dostępny pod adresem skonfigurowanym dla strony.",
+    helper: "",
     loading: "Pobieram dane z mobile.de. To może chwilę potrwać.",
     ready: "Dane gotowe. Wybierz scenariusz zakupu na dole strony.",
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     calcEyebrow: "KWOTY DO KALKULATORA",
     actionsTitle: "Wybierz ścieżkę zakupu",
-    actionsLead: "Każda ścieżka otwiera właściwy kalkulator z danymi z ogłoszenia.",
     footer: "Mobile.de → kalkulatory operacyjne",
     emptyTitle: "—",
     emptyValue: "—",
     price: "Cena z ogłoszenia",
+    purchaseType: "Typ zakupu",
     fuel: "Paliwo",
     engine: "Akcyza",
     body: "Nadwozie",
@@ -33,30 +32,29 @@ const copy = {
     tariff: "Reguła taryfy",
     warning: "Dla VAT 23% sprawdź w ogłoszeniu, czy cena jest netto czy brutto.",
     scenarios: [
-      { key: "direct", number: "01", tab: 0, title: "Osoba prywatna", note: "Zakup bezpośredni" },
-      { key: "ag", number: "02", tab: 4, title: "Przez AUTOGOOD", note: "Dealerzy VAT Marża" },
-      { key: "company", number: "03", tab: 3, title: "Na firmę", note: "Dealerzy VAT 23%" },
+      { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
+      { key: "company", number: "02", tab: 3, title: "Dealerzy VAT 23%" },
+      { key: "ag", number: "03", tab: 4, title: "Dealerzy VAT Marża" },
     ],
   },
   ru: {
     eyebrow: "ССЫЛКА MOBILE.DE",
-    title: "Распознать объявление",
     lead: "Вставь ссылку, проверь данные авто и выбери сценарий покупки. Калькулятор получит цену, доставку, осмотр и акциз.",
     inputLabel: "Ссылка объявления",
     loadButton: "Распознать",
     loadingButton: "Загружаю",
-    helper: "Backend mobile.de должен быть доступен по адресу, заданному для страницы.",
+    helper: "",
     loading: "Загружаю данные с mobile.de. Это может занять время.",
     ready: "Данные готовы. Выбери сценарий покупки внизу страницы.",
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     calcEyebrow: "СУММЫ ДЛЯ КАЛЬКУЛЯТОРА",
     actionsTitle: "Выбери путь покупки",
-    actionsLead: "Каждый путь откроет нужный калькулятор с данными из объявления.",
     footer: "Mobile.de → рабочие калькуляторы",
     emptyTitle: "—",
     emptyValue: "—",
     price: "Цена из объявления",
+    purchaseType: "Тип закупа",
     fuel: "Топливо",
     engine: "Акциз",
     body: "Кузов",
@@ -70,9 +68,9 @@ const copy = {
     tariff: "Правило тарифа",
     warning: "Для VAT 23% проверь в объявлении, цена netto или brutto.",
     scenarios: [
-      { key: "direct", number: "01", tab: 0, title: "Физ лицо напрямую", note: "Прямая покупка" },
-      { key: "ag", number: "02", tab: 4, title: "Через AUTOGOOD", note: "Дилеры VAT Маржа" },
-      { key: "company", number: "03", tab: 3, title: "На фирму", note: "Дилеры VAT 23%" },
+      { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
+      { key: "company", number: "02", tab: 3, title: "Dealerzy VAT 23%" },
+      { key: "ag", number: "03", tab: 4, title: "Dealerzy VAT Marża" },
     ],
   },
 };
@@ -143,6 +141,23 @@ function moneyRow(label, value, primary = false) {
   return `<div class="mobileMoneyRow ${primary ? "isPrimary" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
 }
 
+function purchaseTypeLabel(data) {
+  const rawValue = [
+    data?.purchaseType,
+    data?.taxType,
+    data?.vatType,
+    data?.priceType,
+    data?.priceTaxType,
+    data?.price?.type,
+    data?.price?.taxType,
+    data?.price?.vatType,
+  ].find((value) => value !== null && value !== undefined && String(value).trim() !== "");
+  const normalized = String(rawValue || "").toLowerCase();
+  if (/marża|marza|margin|marge|differenz/.test(normalized)) return "Marża";
+  if (/vat|mwst|ust|tax|netto|deduct/.test(normalized)) return "VAT";
+  return rawValue ? String(rawValue) : copy[state.lang].emptyValue;
+}
+
 function calculatorUrl(scenario) {
   if (!state.data) return "#";
   const params = new URLSearchParams();
@@ -168,7 +183,6 @@ function renderScenarios() {
         <b>${escapeHtml(scenario.number)}</b>
         <span>
           <strong>${escapeHtml(scenario.title)}</strong>
-          <em>${escapeHtml(scenario.note)}</em>
         </span>
         <i aria-hidden="true">→</i>
       </a>
@@ -187,6 +201,7 @@ function renderData() {
   els.price.textContent = formatAmount(data.carBruttoEur, "EUR");
   els.details.innerHTML = [
     detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
+    detailRow(c.purchaseType, purchaseTypeLabel(data)),
     detailRow(c.fuel, text(data.fuel)),
     detailRow(c.engine, text(data.engineTypeLabel)),
     detailRow(c.body, text(data.bodyType)),

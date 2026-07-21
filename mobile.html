@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=header-unified-20260721" />
+    <link rel="stylesheet" href="./src/mobile.css?v=mobile-copy-20260721" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -32,11 +32,10 @@
       <section class="mobileIntro">
         <div>
           <p class="mobileEyebrow" data-i18n="eyebrow">LINK MOBILE.DE</p>
-          <h1 data-i18n="title">Rozpoznaj ogłoszenie</h1>
+          <p class="mobileIntroLead" data-i18n="lead">
+            Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.
+          </p>
         </div>
-        <p data-i18n="lead">
-          Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.
-        </p>
       </section>
 
       <form class="mobileSearch" data-mobile-form>
@@ -56,9 +55,7 @@
             <span data-i18n="loadButton">Rozpoznaj</span>
           </button>
         </div>
-        <p id="mobile-helper" class="mobileHelper" data-mobile-status data-i18n="helper">
-          Backend mobile.de musi być dostępny pod adresem skonfigurowanym dla strony.
-        </p>
+        <p id="mobile-helper" class="mobileHelper" data-mobile-status></p>
       </form>
 
       <section class="mobileWorkbench" aria-live="polite">
@@ -82,7 +79,6 @@
       <section class="mobileActions" aria-label="Scenariusze zakupu">
         <div class="mobileActionsHead">
           <h2 data-i18n="actionsTitle">Wybierz ścieżkę zakupu</h2>
-          <p data-i18n="actionsLead">Każda ścieżka otwiera właściwy kalkulator z danymi z ogłoszenia.</p>
         </div>
         <div class="mobileScenarioGrid" data-mobile-scenarios></div>
       </section>
@@ -92,6 +88,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=mobile-page-20260721"></script>
+    <script src="./src/mobile.js?v=mobile-copy-20260721"></script>
   </body>
 </html>

@@ -322,6 +322,30 @@ function extractPrice(html, jsonData, text = "") {
   return firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 500, max: 500000 });
 }
 
+function extractPurchaseType(html, jsonData, text = "") {
+  const candidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/vat|tax|mwst|margin|marge|priceType|taxType|vatType|description|feature/i.test(key)) {
+        candidates.push(value);
+      }
+    });
+  });
+
+  const source = normalizeTariffText([...candidates, text, html].join(" "));
+
+  if (/differenzbesteuerung|mehrwertsteuer nicht ausweisbar|mwst\.?\s+nicht ausweisbar|nicht ausweisbare mwst|vat margin|margin scheme|marge|marza/.test(source)) {
+    return "Marża";
+  }
+
+  if (/mehrwertsteuer ausweisbar|mwst\.?\s+ausweisbar|vat deductible|vat reclaimable|vat recoverable|19\s*%\s*mwst|inkl\.?\s*mwst|net price|netto/.test(source)) {
+    return "VAT";
+  }
+
+  return "";
+}
+
 function extractDisplacement(html, jsonData, text) {
   const primaryCandidates = [];
   const secondaryCandidates = [];
@@ -1121,6 +1145,7 @@ export async function handleMobiledeImport(request, response) {
 
     const jsonData = [...readJsonLd(html), ...readJsonBlocks(html)];
     const carBruttoEur = extractPrice(html, jsonData, text);
+    const purchaseType = extractPurchaseType(html, jsonData, text);
     const displacementCcm = extractDisplacement(html, jsonData, text);
     const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
@@ -1139,6 +1164,7 @@ export async function handleMobiledeImport(request, response) {
       adId: urlInfo.adId,
       importMode: mode,
       carBruttoEur,
+      purchaseType,
       title,
       bodyType,
       fuel,
