@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD Mobile.de</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/mobile.css?v=mobile-page-20260721" />
+  </head>
+  <body class="mobileBody">
+    <main class="mobileShell">
+      <header class="mobileTopbar">
+        <a class="mobileBrand" href="./" aria-label="AUTOGOOD Tools">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span class="mobileBrandDivider" aria-hidden="true"></span>
+          <span>Mobile</span>
+        </a>
+        <div class="mobileTopActions">
+          <a class="mobileGhostLink" href="./calculators.html">Kalkulatory</a>
+          <div class="mobileLang" aria-label="Language">
+            <button type="button" data-lang-button="pl" class="isActive">PL</button>
+            <button type="button" data-lang-button="ru">RU</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="mobileIntro">
+        <div>
+          <p class="mobileEyebrow" data-i18n="eyebrow">LINK MOBILE.DE</p>
+          <h1 data-i18n="title">Rozpoznaj ogłoszenie</h1>
+        </div>
+        <p data-i18n="lead">
+          Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.
+        </p>
+      </section>
+
+      <form class="mobileSearch" data-mobile-form>
+        <label for="mobile-url" data-i18n="inputLabel">Link ogłoszenia</label>
+        <div class="mobileSearchControl">
+          <input
+            id="mobile-url"
+            name="url"
+            type="url"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="https://suchen.mobile.de/..."
+            aria-describedby="mobile-helper"
+            data-mobile-url
+          />
+          <button type="submit" data-mobile-submit>
+            <span data-i18n="loadButton">Rozpoznaj</span>
+          </button>
+        </div>
+        <p id="mobile-helper" class="mobileHelper" data-mobile-status data-i18n="helper">
+          Backend mobile.de musi być dostępny pod adresem skonfigurowanym dla strony.
+        </p>
+      </form>
+
+      <section class="mobileWorkbench" aria-live="polite">
+        <article class="mobilePanel mobileListingPanel">
+          <div class="mobilePanelHead">
+            <p data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</p>
+            <strong data-mobile-title>—</strong>
+          </div>
+          <dl class="mobileDataGrid" data-mobile-details></dl>
+        </article>
+
+        <article class="mobilePanel mobileCalcPanel">
+          <div class="mobilePanelHead">
+            <p data-i18n="calcEyebrow">KWOTY DO KALKULATORA</p>
+            <strong data-mobile-price>—</strong>
+          </div>
+          <div class="mobileMoneyRows" data-mobile-money></div>
+        </article>
+      </section>
+
+      <section class="mobileActions" aria-label="Scenariusze zakupu">
+        <div class="mobileActionsHead">
+          <h2 data-i18n="actionsTitle">Wybierz ścieżkę zakupu</h2>
+          <p data-i18n="actionsLead">Każda ścieżka otwiera właściwy kalkulator z danymi z ogłoszenia.</p>
+        </div>
+        <div class="mobileScenarioGrid" data-mobile-scenarios></div>
+      </section>
+
+      <footer class="mobileFooter">
+        <span>AUTOGOOD Tools</span>
+        <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
+      </footer>
+    </main>
+    <script src="./src/mobile.js?v=mobile-page-20260721"></script>
+  </body>
+</html>

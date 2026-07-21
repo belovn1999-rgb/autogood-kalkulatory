@@ -53,18 +53,28 @@ Domyslny endpoint importu:
 http://127.0.0.1:8788/mobilede/import
 ```
 
+Strona operacyjna Mobile.de:
+
+```text
+https://belovn1999-rgb.github.io/autogood-kalkulatory/mobile.html
+```
+
 Zakres importu Mobile.de:
 
 ```text
 link -> ID ogloszenia -> cena brutto EUR -> paliwo -> pojemnosc -> typ akcyzy
      -> tytul ogloszenia -> typ nadwozia -> przebieg -> pierwsza rejestracja
-     -> miasto/adres sprzedawcy -> transport netto PLN, jesli pasuje regula taryfowa
+     -> miasto/adres sprzedawcy -> transport netto PLN -> ogladziny netto PLN
+     -> przekierowanie do kalkulatora z parametrami tab/car/transport/inspection/engine
 ```
 
-Tymczasowa regula testowa:
+Reguly taryfowe w backendzie:
 
-- `Van/Minibus` z regionu `DE-17xxx` -> `3400 PLN netto` transportu.
-- Regula jest demonstracyjna. Docelowo trzeba zastapic ja tabela regionow i stawek.
+- Niemcy, Belgia, Holandia, Francja, Wlochy polnocne, Hiszpania, Baltics,
+  Szwecja poludnie/Stockholm oraz fallback `other_europe`.
+- Backend zwraca osobno `transportNettoPln`, `inspectionNettoPln` i szczegoly w
+  `deliveryInspectionEstimate`.
+- Dla duzych nadwozi backend dolicza surcharge transportowy.
 
 Mobile.de czesto blokuje zwykly HTTP request. W takim przypadku backend automatycznie
 przechodzi na tryb przegladarki przez Playwright. Do realnej pracy importu wymagane jest

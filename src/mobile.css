@@ -1,0 +1,526 @@
+/* Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V4
+ * Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: AUTOGOOD Minimal · enrichment: none · nav: N9 · footer: Ft2
+ */
+@import url("../tokens.css");
+
+html,
+body {
+  overflow-x: clip;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.mobileBody {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.mobileShell {
+  width: min(1200px, calc(100% - 40px));
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: var(--space-2xl) 0 4rem;
+}
+
+.mobileTopbar,
+.mobileTopActions,
+.mobileBrand,
+.mobileLang,
+.mobileSearchControl,
+.mobileFooter {
+  display: flex;
+  align-items: center;
+}
+
+.mobileTopbar {
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3xl);
+}
+
+.mobileBrand {
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.mobileBrand img {
+  display: block;
+  width: 160px;
+  max-width: 58vw;
+  height: auto;
+}
+
+.mobileBrandDivider {
+  flex: 0 0 auto;
+  width: var(--rule-thin);
+  height: 26px;
+  background: var(--color-field);
+}
+
+.mobileBrand span:last-child {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mobileTopActions {
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.mobileGhostLink,
+.mobileLang {
+  min-height: 36px;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.mobileGhostLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileLang {
+  gap: 2px;
+  padding: 3px;
+}
+
+.mobileLang button {
+  min-width: 42px;
+  min-height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1;
+  transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileLang button.isActive {
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+}
+
+.mobileIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.72fr);
+  gap: var(--space-xl);
+  align-items: end;
+  margin-bottom: var(--space-xl);
+}
+
+.mobileEyebrow,
+.mobilePanelHead p {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.mobileIntro h1 {
+  margin: 0;
+  max-width: 14ch;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.mobileIntro > p {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--color-muted);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+.mobileSearch {
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+}
+
+.mobileSearch label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mobileSearchControl {
+  gap: var(--space-sm);
+}
+
+.mobileSearchControl input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  padding: 0 var(--space-md);
+  font-size: var(--text-base);
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.mobileSearchControl input::placeholder {
+  color: var(--color-soft);
+}
+
+.mobileSearchControl button,
+.mobileScenarioCard {
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileSearchControl button {
+  flex: 0 0 auto;
+  border: 0;
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+  padding: 0 var(--space-lg);
+}
+
+.mobileSearchControl button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mobileHelper {
+  min-height: 1lh;
+  margin: var(--space-xs) 0 0;
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.mobileHelper.isError {
+  color: var(--color-error);
+}
+
+.mobileHelper.isSuccess {
+  color: var(--color-success);
+}
+
+.mobileWorkbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: var(--space-lg);
+  align-items: stretch;
+}
+
+.mobilePanel,
+.mobileActions {
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-xl);
+}
+
+.mobilePanelHead {
+  min-height: 66px;
+  padding-bottom: var(--space-md);
+  border-bottom: var(--rule-thick) solid var(--color-rule-soft);
+}
+
+.mobilePanelHead strong {
+  display: block;
+  color: var(--color-brand-pressed);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.mobileDataGrid,
+.mobileMoneyRows {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.mobileDataRow,
+.mobileMoneyRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.75fr) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: baseline;
+  min-height: 46px;
+  padding: var(--space-sm) 0;
+  border-bottom: var(--rule-thick) solid var(--color-rule-soft);
+}
+
+.mobileDataRow:last-child,
+.mobileMoneyRow:last-child {
+  border-bottom: 0;
+}
+
+.mobileDataRow dt,
+.mobileMoneyRow span {
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mobileDataRow dd,
+.mobileMoneyRow strong {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.mobileMoneyRow.isPrimary strong {
+  color: var(--color-brand-pressed);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.mobileActions {
+  margin-top: var(--space-lg);
+}
+
+.mobileActionsHead {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(260px, 0.75fr);
+  gap: var(--space-lg);
+  align-items: end;
+  padding-bottom: var(--space-md);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileActionsHead h2,
+.mobileActionsHead p {
+  margin: 0;
+}
+
+.mobileActionsHead h2 {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.16;
+}
+
+.mobileActionsHead p {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.mobileScenarioGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+}
+
+.mobileScenarioCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: center;
+  border: var(--rule-thin) solid var(--color-field);
+  background: var(--color-surface-tint);
+  color: var(--color-ink);
+  padding: var(--space-md);
+}
+
+.mobileScenarioCard[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.52;
+}
+
+.mobileScenarioCard b {
+  color: var(--color-faint);
+  font-size: var(--text-base);
+  font-weight: 800;
+}
+
+.mobileScenarioCard span {
+  display: grid;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.mobileScenarioCard strong {
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.mobileScenarioCard em {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.mobileScenarioCard i {
+  color: var(--color-brand);
+  font-size: var(--text-lg);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.mobileFooter {
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-md);
+  border-top: var(--rule-thin) solid var(--color-rule);
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+}
+
+.mobileFooter span:first-child {
+  color: var(--color-brand);
+  font-weight: 800;
+}
+
+.mobileGhostLink:focus-visible,
+.mobileLang button:focus-visible,
+.mobileSearchControl input:focus-visible,
+.mobileSearchControl button:focus-visible,
+.mobileScenarioCard:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mobileGhostLink:hover,
+  .mobileScenarioCard:hover {
+    border-color: var(--color-brand);
+    transform: translateY(-1px);
+  }
+
+  .mobileLang button:hover {
+    color: var(--color-brand);
+  }
+
+  .mobileSearchControl input:hover {
+    background: var(--color-surface-tint);
+  }
+
+  .mobileSearchControl button:hover {
+    background: var(--color-brand-pressed);
+    transform: translateY(-1px);
+  }
+}
+
+.mobileGhostLink:active,
+.mobileLang button:active,
+.mobileSearchControl button:active,
+.mobileScenarioCard:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 60rem) {
+  .mobileIntro,
+  .mobileWorkbench,
+  .mobileActionsHead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileScenarioGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 40rem) {
+  .mobileShell {
+    width: min(100% - 28px, 1200px);
+    padding-top: var(--space-lg);
+  }
+
+  .mobileTopbar {
+    margin-bottom: var(--space-xl);
+  }
+
+  .mobileSearch,
+  .mobilePanel,
+  .mobileActions {
+    padding: var(--space-md);
+  }
+
+  .mobileSearchControl {
+    display: grid;
+  }
+
+  .mobileSearchControl button {
+    width: 100%;
+  }
+
+  .mobileDataRow,
+  .mobileMoneyRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2xs);
+  }
+
+  .mobileScenarioCard {
+    min-height: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+}

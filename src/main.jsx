@@ -517,6 +517,51 @@ function hasCalculationInput(values) {
   return Object.values(values || {}).some((value) => n(value) > 0);
 }
 
+function readCalculatorPrefill() {
+  if (typeof window === "undefined") {
+    return {
+      lang: "pl",
+      activeTab: 0,
+      rate: DEFAULT_RATE,
+      rateTouched: false,
+      engineIndex: 3,
+      financed: false,
+      values: {},
+      mobileDeUrl: "",
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const tabId = Number(params.get("tab"));
+  const nextTab = Number.isInteger(tabId) && tabs.some((tab) => tab.id === tabId) ? tabId : 0;
+  const engineParam = Number(params.get("engine") ?? params.get("engineIndex"));
+  const rateParam = params.get("rate");
+  const nextRate = n(rateParam);
+  const values = {};
+
+  ["car", "fee", "transport", "inspection", "discount", "germanCommission"].forEach((key) => {
+    const value = params.get(key);
+    if (value !== null && String(value).trim() !== "") {
+      values[key] = value;
+    }
+  });
+
+  if (values.germanCommission) {
+    values.germanCommissionEnabled = true;
+  }
+
+  return {
+    lang: params.get("lang") === "ru" ? "ru" : "pl",
+    activeTab: nextTab,
+    rate: nextRate > 0 ? calculationRateLabel(nextRate) : DEFAULT_RATE,
+    rateTouched: nextRate > 0,
+    engineIndex: Number.isInteger(engineParam) && engineTypes[engineParam] ? engineParam : 3,
+    financed: nextTab > 0 && params.get("financed") === "1",
+    values,
+    mobileDeUrl: params.get("mobileUrl") || params.get("url") || "",
+  };
+}
+
 function historySignature(item) {
   return JSON.stringify({
     activeTab: item.activeTab,
@@ -1505,15 +1550,16 @@ async function waitForCaptureAssets(root) {
 }
 
 function App() {
-  const [lang, setLang] = useState("pl");
-  const [activeTab, setActiveTab] = useState(0);
-  const [rate, setRate] = useState(DEFAULT_RATE);
+  const initialPrefill = useMemo(() => readCalculatorPrefill(), []);
+  const [lang, setLang] = useState(initialPrefill.lang);
+  const [activeTab, setActiveTab] = useState(initialPrefill.activeTab);
+  const [rate, setRate] = useState(initialPrefill.rate);
   const [marketRates, setMarketRates] = useState(RATES_FALLBACK);
   const [ratesStatus, setRatesStatus] = useState("loading");
-  const [engineIndex, setEngineIndex] = useState(3);
-  const [financed, setFinanced] = useState(false);
-  const [values, setValues] = useState({});
-  const [mobileDeUrl, setMobileDeUrl] = useState("");
+  const [engineIndex, setEngineIndex] = useState(initialPrefill.engineIndex);
+  const [financed, setFinanced] = useState(initialPrefill.financed);
+  const [values, setValues] = useState(initialPrefill.values);
+  const [mobileDeUrl, setMobileDeUrl] = useState(initialPrefill.mobileDeUrl);
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
@@ -1525,7 +1571,7 @@ function App() {
   const [manualOverrides, setManualOverrides] = useState({});
   const [editingOverride, setEditingOverride] = useState("");
   const resultsRef = useRef(null);
-  const rateTouchedRef = useRef(false);
+  const rateTouchedRef = useRef(initialPrefill.rateTouched);
 
   const safeLang = lang || "pl";
   const c = copy[safeLang];
@@ -1769,6 +1815,11 @@ function App() {
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
       const transportNettoPln = Number(data?.transportNettoPln);
+      const inspectionNettoPln = Number(
+        data?.inspectionNettoPln
+        ?? data?.deliveryInspectionEstimate?.inspection
+        ?? data?.transportEstimate?.inspection
+      );
       const nextEngineIndex = Number(data?.engineTypeIndex);
 
       if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
@@ -1777,6 +1828,10 @@ function App() {
 
       if (Number.isFinite(transportNettoPln) && transportNettoPln > 0) {
         setField("transport", String(Math.round(transportNettoPln)));
+      }
+
+      if (Number.isFinite(inspectionNettoPln) && inspectionNettoPln > 0) {
+        setField("inspection", String(Math.round(inspectionNettoPln)));
       }
 
       if (Number.isInteger(nextEngineIndex) && engineTypes[nextEngineIndex]) {
@@ -1792,6 +1847,9 @@ function App() {
       if (data?.engineTypeLabel) summaryParts.push(data.engineTypeLabel);
       if (Number.isFinite(transportNettoPln) && transportNettoPln > 0) {
         summaryParts.push(`${formatPlainAmount(transportNettoPln, "PLN")} transport netto`);
+      }
+      if (Number.isFinite(inspectionNettoPln) && inspectionNettoPln > 0) {
+        summaryParts.push(`${formatPlainAmount(inspectionNettoPln, "PLN")} inspection netto`);
       }
       if (data?.mileageKm) summaryParts.push(`${data.mileageKm.toLocaleString("pl-PL")} km`);
       if (data?.firstRegistration) summaryParts.push(data.firstRegistration);

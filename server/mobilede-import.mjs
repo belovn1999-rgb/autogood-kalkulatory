@@ -18,7 +18,12 @@ const MOBILEDE_CDP_PROFILE = process.env.MOBILEDE_CDP_PROFILE
   || `${USER_HOME}/Library/Application Support/AUTOGOOD/mobilede-chrome-profile`;
 
 const MOBILEDE_CANONICAL_ORIGIN = "https://suchen.mobile.de";
-const DEMO_BUS_TRANSPORT_NETTO_PLN = 3400;
+const OTHER_EUROPE_TARIFF = {
+  transport: 5000,
+  inspection: 2500,
+  rule: "other_europe",
+  note: "Fallback tariff for other European countries.",
+};
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -204,16 +209,22 @@ function delay(ms) {
 
 function cleanTitleCandidate(value) {
   return stripTags(value)
-    .replace(/\s+f(?:ü|u)r\s+€[\d., ]+.*$/i, "")
-    .replace(/\s+for\s+€[\d., ]+.*$/i, "")
+    .replace(/\s+f(?:ü|u)r\s+€?\s*[\d.,\s\u00a0\u202f]+€?.*$/i, "")
+    .replace(/\s+for\s+€?\s*[\d.,\s\u00a0\u202f]+€?.*$/i, "")
     .replace(/\s+dla\s+[\d.,\s\u00a0\u202f]+€.*$/i, "")
     .replace(/\s+\|\s*mobile\.de.*$/i, "")
     .trim();
 }
 
+function isMarketingTitle(value) {
+  const text = cleanTitleCandidate(value);
+  return /charge faster|enjoy more|brand portal|jetzt entdecken|discover|advertising|sponsored/i.test(text);
+}
+
 function isPlausibleVehicleTitle(value) {
   const text = cleanTitleCandidate(value);
   if (!text || text.length < 3 || text.length > 160) return false;
+  if (isMarketingTitle(text)) return false;
   if (/^(price|imprint|privacy|cookie|technical data|vehicle condition|dealer|seller)$/i.test(text)) return false;
   if (/imprint|additional information|privacy policy|cookie/i.test(text)) return false;
   return /[A-Za-zÀ-ž]/.test(text);
@@ -411,8 +422,8 @@ function extractTitle(html, jsonData, text) {
   ]);
 
   const candidates = [
-    ...headingCandidates,
     ...documentTitleCandidates,
+    ...headingCandidates,
     ...textLineCandidates,
     ...jsonCandidates,
     ...escapedJsonCandidates,
@@ -492,12 +503,33 @@ function extractFirstRegistration(html, jsonData, text) {
   return firstText(candidates);
 }
 
+function extractVisiblePostalCity(text) {
+  const lines = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const match = line.match(/^(?:DE[-\s])?(\d{5})[\s\u00a0]+([A-ZÄÖÜ][A-Za-zÄÖÜäöüßąćęłńóśźżĄĆĘŁŃÓŚŹŻ .'-]{2,60})$/);
+    if (match) {
+      return {
+        postalCode: match[1],
+        city: match[2].trim(),
+        address: `${match[1]}, ${match[2].trim()}`,
+      };
+    }
+  }
+
+  return null;
+}
+
 function extractLocation(html, jsonData, text) {
   const localityCandidates = [];
   const postalCandidates = [];
   const streetCandidates = [];
   const addressCandidates = [];
   const sellerCandidates = [];
+  const countryCandidates = [];
 
   jsonData.forEach((item) => {
     walk(item, (key, value) => {
@@ -507,6 +539,7 @@ function extractLocation(html, jsonData, text) {
       if (/streetaddress|street|strasse|straße/i.test(key)) streetCandidates.push(value);
       if (/address/i.test(key)) addressCandidates.push(value);
       if (/seller|dealer|vendor|anbieter|company|name/i.test(key)) sellerCandidates.push(value);
+      if (/addresscountry|country|land/i.test(key)) countryCandidates.push(value);
     });
   });
 
@@ -516,12 +549,14 @@ function extractLocation(html, jsonData, text) {
   ]);
   const postalCity = firstText(postalCityMatches);
   const postalCityMatch = postalCity.match(/^(\d{5})\s+(.+)$/);
+  const visiblePostalCity = extractVisiblePostalCity(text);
 
-  const city = firstText(localityCandidates, postalCityMatch?.[2] || "");
-  const postalCode = firstText(postalCandidates, postalCityMatch?.[1] || "");
+  const city = firstText(visiblePostalCity?.city, localityCandidates, postalCityMatch?.[2] || "");
+  const postalCode = firstText(visiblePostalCity?.postalCode, postalCandidates, postalCityMatch?.[1] || "");
   const street = firstText(streetCandidates);
-  const address = firstText(addressCandidates, [street, postalCode, city].filter(Boolean).join(", "));
+  const address = firstText(visiblePostalCity?.address, addressCandidates, [street, postalCode, city].filter(Boolean).join(", "));
   const sellerName = firstText(sellerCandidates);
+  const country = firstText(countryCandidates, countryFromText(`${address} ${city} ${text}`));
 
   return {
     sellerName,
@@ -529,6 +564,7 @@ function extractLocation(html, jsonData, text) {
     postalCode,
     city,
     address,
+    country,
   };
 }
 
@@ -546,23 +582,117 @@ function classifyEngine(fuel, displacementCcm) {
   return isOver2000 ? 4 : 3;
 }
 
-function estimateTransportNettoPln(bodyType, location) {
-  const normalizedBody = String(bodyType || "").toLowerCase();
-  const postalCode = String(location?.postalCode || "");
-  const isBus = /van|minibus|bus/.test(normalizedBody);
-  const isDemoRegion = /^17/.test(postalCode);
+function normalizeTariffText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
-  if (isBus && isDemoRegion) {
-    return {
-      amount: DEMO_BUS_TRANSPORT_NETTO_PLN,
-      currency: "PLN",
-      netto: true,
-      rule: "demo_bus_de_17xxx",
-      note: "Temporary demo tariff: Van/Minibus from DE-17xxx region."
-    };
+function countryFromText(value) {
+  const text = normalizeTariffText(value);
+  if (/\b(germany|deutschland|niemcy|allemagne|alemania)\b/.test(text)) return "DE";
+  if (/\b(belgium|belgie|belgia|belgique)\b/.test(text)) return "BE";
+  if (/\b(france|frankreich|francja|francia)\b/.test(text)) return "FR";
+  if (/\b(italy|italien|wlochy|włochy|italia)\b/.test(text)) return "IT";
+  if (/\b(spain|spanien|hiszpania|espana|españa)\b/.test(text)) return "ES";
+  if (/\b(netherlands|niederlande|holandia|holland|nederland)\b/.test(text)) return "NL";
+  if (/\b(lithuania|litauen|litwa|lietuva|latvia|lettland|lotwa|łotwa|latvija|estonia|estland|estonska|eesti)\b/.test(text)) return "BALTICS";
+  if (/\b(sweden|schweden|szwecja|sverige)\b/.test(text)) return "SE";
+  return "";
+}
+
+function countryCode(location) {
+  const rawCountry = normalizeTariffText(location?.country);
+  if (/^(de|deu)$/.test(rawCountry)) return "DE";
+  if (/^(be|bel)$/.test(rawCountry)) return "BE";
+  if (/^(fr|fra)$/.test(rawCountry)) return "FR";
+  if (/^(it|ita)$/.test(rawCountry)) return "IT";
+  if (/^(es|esp)$/.test(rawCountry)) return "ES";
+  if (/^(nl|nld)$/.test(rawCountry)) return "NL";
+  if (/^(se|swe)$/.test(rawCountry)) return "SE";
+  const detected = countryFromText(rawCountry);
+  if (detected) return detected;
+
+  const postalCode = String(location?.postalCode || "");
+  if (/^\d{5}$/.test(postalCode)) return "DE";
+
+  return countryFromText(`${location?.address || ""} ${location?.city || ""}`);
+}
+
+function isSouthGermany(location) {
+  const postalCode = String(location?.postalCode || "");
+  const city = normalizeTariffText(location?.city);
+  if (/^[6789]/.test(postalCode)) return true;
+  return /\b(bayern|bavaria|baden|wurttemberg|munich|munchen|muenchen|stuttgart|nurnberg|nuernberg|augsburg|ulm|freiburg|konstanz)\b/.test(city);
+}
+
+function isParisOrEastFrance(location) {
+  const postalCode = String(location?.postalCode || "");
+  const city = normalizeTariffText(location?.city);
+  if (/^(75|77|78|91|92|93|94|95|02|08|10|21|25|39|51|52|54|55|57|58|67|68|70|71|88|89|90)/.test(postalCode)) return true;
+  return /\b(paris|ile de france|alsace|lorraine|strasbourg|metz|nancy|reims|dijon|besancon|mulhouse|colmar)\b/.test(city);
+}
+
+function isNorthItaly(location) {
+  const city = normalizeTariffText(location?.city);
+  return /\b(milano|milan|torino|turin|genova|genua|venezia|venice|verona|bologna|brescia|bergamo|padova|parma|modena|trento|bolzano|trieste|lombardia|piemonte|veneto|liguria|emilia|friuli|trentino)\b/.test(city);
+}
+
+function isSwedenSouthOrStockholm(location) {
+  const city = normalizeTariffText(location?.city);
+  return /\b(stockholm|malmo|malmö|goteborg|gothenburg|helsingborg|lund|jonkoping|jönköping|linkoping|linköping|norrkoping|norrköping|uppsala|orebro|örebro|vasteras|västerås)\b/.test(city);
+}
+
+function bodySurcharge(bodyType) {
+  const normalizedBody = String(bodyType || "").toLowerCase();
+  if (/camper|camping|motorhome|wohnmobil|bus|buss|autobus/.test(normalizedBody)) return 400;
+  if (/suv|off-road|offroad|gel[aä]nde|terenowy|minibus|van|mpv|minivan/.test(normalizedBody)) return 200;
+  return 0;
+}
+
+function baseTariff(location) {
+  const country = countryCode(location);
+
+  if (country === "BE") return { transport: 2500, inspection: 1500, rule: "belgium" };
+  if (country === "NL") return { transport: 2500, inspection: 1500, rule: "netherlands" };
+  if (country === "ES") return { transport: 4500, inspection: 2000, rule: "spain" };
+  if (country === "BALTICS") return { transport: 2000, inspection: 1500, rule: "baltics" };
+
+  if (country === "DE") {
+    return isSouthGermany(location)
+      ? { transport: 2700, inspection: 1500, rule: "germany_south" }
+      : { transport: 2500, inspection: 1300, rule: "germany_north_middle_east_west" };
   }
 
-  return null;
+  if (country === "FR") {
+    return isParisOrEastFrance(location)
+      ? { transport: 2750, inspection: 1800, rule: "france_paris_border_east" }
+      : { transport: 3000, inspection: 2200, rule: "france_other" };
+  }
+
+  if (country === "IT" && isNorthItaly(location)) return { transport: 3500, inspection: 2000, rule: "italy_north" };
+
+  if (country === "SE" && isSwedenSouthOrStockholm(location)) {
+    return { transport: 2500, inspection: 1500, rule: "sweden_south_stockholm" };
+  }
+
+  return OTHER_EUROPE_TARIFF;
+}
+
+function estimateDeliveryAndInspectionNettoPln(bodyType, location) {
+  const tariff = baseTariff(location);
+  const surcharge = bodySurcharge(bodyType);
+
+  return {
+    transport: tariff.transport + surcharge,
+    inspection: tariff.inspection,
+    currency: "PLN",
+    netto: true,
+    rule: tariff.rule,
+    surcharge,
+    note: tariff.note || (surcharge ? "Transport includes body-size surcharge." : ""),
+  };
 }
 
 async function fetchListing(url, originalUrl = url) {
@@ -999,7 +1129,7 @@ export async function handleMobiledeImport(request, response) {
     const mileageKm = extractMileage(html, jsonData, text);
     const firstRegistration = extractFirstRegistration(html, jsonData, text);
     const location = extractLocation(html, jsonData, text);
-    const transportEstimate = estimateTransportNettoPln(bodyType, location);
+    const deliveryInspectionEstimate = estimateDeliveryAndInspectionNettoPln(bodyType, location);
 
     if (!carBruttoEur) throw new Error("Price not found");
 
@@ -1016,8 +1146,10 @@ export async function handleMobiledeImport(request, response) {
       mileageKm,
       firstRegistration,
       location,
-      transportNettoPln: transportEstimate?.amount || null,
-      transportEstimate,
+      transportNettoPln: deliveryInspectionEstimate?.transport || null,
+      inspectionNettoPln: deliveryInspectionEstimate?.inspection || null,
+      transportEstimate: deliveryInspectionEstimate,
+      deliveryInspectionEstimate,
       engineTypeIndex,
       engineTypeLabel: [
         "EL / PHEV <=2000cm³",
