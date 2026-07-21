@@ -1,0 +1,14 @@
+{
+  "date": "2026-07-21",
+  "framework": "vanilla-html",
+  "font_stack": "Public Sans via Google Fonts for partslink24.html; shared src/tools.css still contains legacy Arial and Public Sans surfaces",
+  "palette": "AUTOGOOD Wariant B Minimal design specification from Downloads",
+  "motion": "motion-cut with button microinteractions only",
+  "spacing": "4px-based AUTOGOOD scale",
+  "preserve": [
+    "partslink24.html route",
+    "tools/partslink24/brand-routes.json routing source",
+    "existing VIN PDF endpoint",
+    "backend override query params ?api= and ?backend="
+  ]
+}

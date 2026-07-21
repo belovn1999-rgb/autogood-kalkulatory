@@ -4,21 +4,267 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD VIN спецификация</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./tokens.css?v=partslink24-20260721-1" />
     <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260709-1" />
     <style>
+      /* Hallmark · macrostructure: Workbench · tone: utilitarian · anchor hue: AUTOGOOD blue · nav: N9 · footer: Ft2 · contrast: pass (40–41) · mobile: pass (34, 49, 50–57) */
+      html,
+      body {
+        overflow-x: clip;
+      }
+
+      body.partslinkPage {
+        min-width: 320px;
+        background: var(--ag-color-paper);
+        color: var(--ag-color-ink);
+        font-family: var(--ag-font-body);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .partslinkPage :focus {
+        outline: none;
+      }
+
+      .partslinkPage :focus-visible {
+        outline: 2px solid var(--ag-color-focus);
+        outline-offset: 2px;
+      }
+
+      .partslinkShell {
+        display: flex;
+        flex-direction: column;
+        width: min(1200px, calc(100% - 40px));
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: var(--ag-space-2xl) 0 var(--ag-space-page-bottom);
+      }
+
+      .partslinkTopbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ag-space-lg);
+        padding-bottom: var(--ag-space-md);
+        border-bottom: var(--ag-rule-card);
+      }
+
+      .partslinkWordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ag-space-sm);
+        min-width: 0;
+        color: var(--ag-color-ink);
+        text-decoration: none;
+      }
+
+      .partslinkWordmark img {
+        width: var(--ag-logo-width);
+        max-width: var(--ag-logo-max-width);
+        height: auto;
+        display: block;
+      }
+
+      .partslinkWordmark span {
+        color: var(--ag-color-ink);
+        font-size: var(--ag-text-lg);
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .partslinkNav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--ag-space-md);
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+
+      .partslinkNav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--ag-size-nav-link);
+        border-bottom: 2px solid transparent;
+        color: var(--ag-color-muted);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out);
+      }
+
+      .partslinkNav a:hover,
+      .partslinkNav a:focus-visible,
+      .partslinkNav a[aria-current="page"] {
+        color: var(--ag-color-accent);
+        border-bottom-color: var(--ag-color-accent);
+      }
+
+      .partslinkHero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.86fr) minmax(var(--ag-hero-copy-min-width), 0.5fr);
+        gap: var(--ag-space-xl);
+        align-items: end;
+        padding: var(--ag-space-2xl) 0 var(--ag-space-lg);
+      }
+
+      .partslinkEyebrow,
+      .partslinkPanelTitle {
+        margin: 0;
+        color: var(--ag-color-muted);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      .partslinkHero h1 {
+        max-width: 22ch;
+        min-width: 0;
+        margin: var(--ag-space-xs) 0 0;
+        color: var(--ag-color-ink);
+        font-family: var(--ag-font-display);
+        font-size: var(--ag-text-display);
+        font-style: normal;
+        font-weight: 800;
+        letter-spacing: 0;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+
+      .partslinkHero p:last-child {
+        max-width: 46ch;
+        margin: 0;
+        color: var(--ag-color-ink-2);
+        font-size: var(--ag-text-base);
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+      .partslinkWorkbench {
+        display: grid;
+        grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+        gap: var(--ag-space-lg);
+        align-items: stretch;
+      }
+
+      .partslinkCard,
+      .partslinkResultCard {
+        border: var(--ag-rule-card);
+        border-radius: var(--ag-radius-card);
+        background: var(--ag-color-surface);
+        padding: var(--ag-space-xl);
+      }
+
+      .partslinkCard {
+        display: grid;
+        gap: var(--ag-space-sm);
+      }
+
+      .partslinkField {
+        display: grid;
+        gap: var(--ag-space-label-gap);
+        color: var(--ag-color-ink-2);
+        font-size: var(--ag-text-sm);
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .partslinkField span {
+        display: block;
+      }
+
+      .partslinkField input,
+      .partslinkField select {
+        width: 100%;
+        min-height: var(--ag-size-action);
+        border: var(--ag-rule-field);
+        border-radius: var(--ag-radius-input);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-ink);
+        padding: var(--ag-space-control-y) var(--ag-space-field-x);
+        font: inherit;
+        font-size: var(--ag-text-base);
+        font-weight: 600;
+        letter-spacing: 0;
+        transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out);
+      }
+
+      .partslinkField input:hover,
+      .partslinkField select:hover {
+        background: var(--ag-color-surface-tint);
+      }
+
+      .partslinkField input:focus-visible,
+      .partslinkField select:focus-visible {
+        border-color: var(--ag-color-accent);
+      }
+
+      .partslinkHint {
+        min-height: 1lh;
+        color: var(--ag-color-muted);
+        font-size: var(--ag-text-xs);
+        font-weight: 400;
+        line-height: 1.35;
+      }
+
+      .partslinkActions {
+        display: flex;
+        align-items: center;
+        gap: var(--ag-space-xs);
+        flex-wrap: wrap;
+        padding-top: var(--ag-space-xs);
+      }
+
+      .partslinkActions button,
       .partslinkDownloadLink {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 40px;
-        border: 1px solid #005b82;
-        border-radius: 8px;
-        background: #005b82;
-        color: #fff;
-        padding: 10px 16px;
-        font-size: 14px;
-        font-weight: 800;
+        min-height: var(--ag-size-download-action);
+        border: 1px solid var(--ag-color-accent);
+        border-radius: var(--ag-radius-control);
+        background: var(--ag-color-accent);
+        color: var(--ag-color-accent-ink);
+        padding: var(--ag-space-control-y) var(--ag-space-button-x);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
         text-decoration: none;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
+      }
+
+      .partslinkActions button:nth-child(2) {
+        background: var(--ag-color-surface);
+        color: var(--ag-color-ink);
+        border-color: var(--ag-color-rule-2);
+        font-weight: 600;
+      }
+
+      .partslinkActions button:hover,
+      .partslinkDownloadLink:hover {
+        transform: translateY(-1px);
+      }
+
+      .partslinkActions button:active,
+      .partslinkDownloadLink:active {
+        transform: translateY(1px);
+      }
+
+      .partslinkActions button:disabled {
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-rule);
+        color: var(--ag-color-muted);
+        cursor: wait;
+        transform: none;
       }
 
       .partslinkDownloadLink[hidden] {
@@ -30,16 +276,173 @@
         flex-wrap: wrap;
         gap: 10px;
       }
+
+      .partslinkResultCard {
+        display: grid;
+        align-content: start;
+        gap: var(--ag-space-md);
+      }
+
+      .partslinkSpecRows {
+        display: grid;
+        gap: 0;
+      }
+
+      .partslinkSpecRow {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(var(--ag-result-min-width), 0.72fr);
+        gap: var(--ag-space-md);
+        align-items: center;
+        min-height: calc(var(--ag-size-action) + var(--ag-space-sm));
+        border-bottom: 2px solid var(--ag-color-rule);
+        padding: var(--ag-space-sm) 0;
+      }
+
+      .partslinkSpecRow:first-child {
+        border-bottom-color: var(--ag-color-soft);
+      }
+
+      .partslinkSpecRow:last-child {
+        border-bottom: 0;
+      }
+
+      .partslinkSpecRow span {
+        color: var(--ag-color-ink);
+        font-size: var(--ag-text-base);
+        font-weight: 600;
+      }
+
+      .partslinkSpecRow strong,
+      .partslinkReadonlyField {
+        color: var(--ag-color-accent-dark);
+        font-size: var(--ag-text-md);
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .partslinkReadonlyField {
+        width: 100%;
+        min-height: var(--ag-size-action);
+        border: var(--ag-rule-field);
+        border-radius: var(--ag-radius-input);
+        background: var(--ag-color-surface-tint);
+        padding: var(--ag-space-control-y) var(--ag-space-field-x);
+        font-family: var(--ag-font-body);
+      }
+
+      .partslinkReadonlyField::placeholder {
+        color: var(--ag-color-muted);
+      }
+
+      .partslinkStatus {
+        min-height: 20px;
+        margin: 0;
+        color: var(--ag-color-ink-2);
+        font-size: var(--ag-text-sm);
+        line-height: 1.4;
+      }
+
+      .partslinkStatus[data-tone="success"] {
+        color: var(--ag-color-success);
+        font-weight: 700;
+      }
+
+      .partslinkStatus[data-tone="error"] {
+        color: var(--ag-color-error);
+        font-weight: 700;
+      }
+
+      .partslinkFooter {
+        margin-top: auto;
+        padding-top: var(--ag-space-3xl);
+      }
+
+      .partslinkFooter p {
+        margin: 0;
+        border-top: var(--ag-rule-card);
+        padding-top: var(--ag-space-md);
+        color: var(--ag-color-muted);
+        font-size: var(--ag-text-xs);
+        line-height: 1.4;
+      }
+
+      @media (max-width: 780px) {
+        .partslinkShell {
+          width: min(100% - 32px, 1200px);
+          padding-top: var(--ag-space-xl);
+        }
+
+        .partslinkTopbar,
+        .partslinkHero,
+        .partslinkWorkbench {
+          grid-template-columns: 1fr;
+        }
+
+        .partslinkTopbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .partslinkNav {
+          justify-content: flex-start;
+        }
+
+        .partslinkHero {
+          gap: var(--ag-space-md);
+        }
+
+        .partslinkCard,
+        .partslinkResultCard {
+          padding: var(--ag-space-lg);
+        }
+      }
+
+      @media (max-width: 420px) {
+        .partslinkShell {
+          width: min(100% - 24px, 1200px);
+        }
+
+        .partslinkWordmark {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .partslinkActions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .partslinkActions button,
+        .partslinkDownloadLink {
+          width: 100%;
+          min-height: var(--ag-size-action);
+        }
+
+        .partslinkSpecRow {
+          grid-template-columns: 1fr;
+          gap: var(--ag-space-xs);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 150ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 150ms !important;
+        }
+      }
     </style>
   </head>
-  <body>
-    <main class="workspaceShell">
-      <header class="workspaceHeader">
-        <a class="brand compact" href="./" aria-label="AUTOGOOD Tools">
+  <body class="partslinkPage">
+    <main class="partslinkShell">
+      <header class="partslinkTopbar">
+        <a class="partslinkWordmark" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
           <span>VIN спецификация</span>
         </a>
-        <nav class="workspaceNav" aria-label="Workspace navigation">
+        <nav class="partslinkNav" aria-label="Workspace navigation">
           <a href="./">Tools</a>
           <a href="./calculators.html">Kalkulatory</a>
           <a href="./umowy.html">Umowy PDF</a>
@@ -47,46 +450,77 @@
         </nav>
       </header>
 
-      <section class="workspaceHero">
-        <p class="eyebrow">04 / Проверка VIN</p>
-        <h1>VIN спецификация</h1>
+      <section class="partslinkHero">
+        <div>
+          <p class="partslinkEyebrow">PartsLink24 / Проверка VIN</p>
+          <h1>VIN спецификация и дата производства</h1>
+        </div>
+        <p>Выберите язык, марку и VIN. Один сценарий скачивает PDF-спецификацию, второй проходит тот же путь и возвращает дату производства без файла.</p>
       </section>
 
-      <section class="dealForm partslinkVinForm" aria-label="VIN PDF form">
-        <div class="dealPanel dealPanelWide partslinkVinPanel">
-          <label>
-            1. Выбор языка: RU / PL / ENG
+      <section class="partslinkWorkbench" aria-label="VIN PDF and production date form">
+        <div class="partslinkCard">
+          <p class="partslinkPanelTitle">Данные проверки</p>
+          <label class="partslinkField">
+            <span>1. Язык</span>
             <select id="partslinkLanguage" name="language">
               <option value="RU">RU</option>
               <option value="PL">PL</option>
               <option value="ENG">ENG</option>
             </select>
+            <small class="partslinkHint">Язык меняется внутри авторизованного PartsLink24.</small>
           </label>
 
-          <label>
-            2. Выбор Марки авто
+          <label class="partslinkField">
+            <span>2. Марка авто</span>
             <select id="partslinkBrand" name="brand"></select>
           </label>
 
-          <label>
-            3. Строка для ввода VIN для проверки и загрузки VIN спецификации через партслинк
+          <label class="partslinkField">
+            <span>3. VIN</span>
             <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
+            <small class="partslinkHint">17 символов, только латиница и цифры.</small>
           </label>
 
           <div class="partslinkActions">
             <button id="partslinkCheckButton" type="button">Проверить VIN</button>
-            <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
-            <p id="partslinkStatus" role="status" aria-live="polite"></p>
+            <button id="partslinkProductionDateButton" type="button">Проверить дату производства</button>
           </div>
         </div>
+
+        <aside class="partslinkResultCard" aria-label="PartsLink24 result">
+          <p class="partslinkPanelTitle">Результат</p>
+          <div class="partslinkSpecRows">
+            <div class="partslinkSpecRow">
+              <span>Статус</span>
+              <strong id="partslinkResultState">Ожидает VIN</strong>
+            </div>
+            <label class="partslinkSpecRow" for="partslinkProductionDate">
+              <span>Дата производства</span>
+              <input id="partslinkProductionDate" class="partslinkReadonlyField" name="productionDate" type="text" readonly placeholder="—" />
+            </label>
+            <div class="partslinkSpecRow">
+              <span>Файл VIN</span>
+              <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
+            </div>
+          </div>
+          <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
+        </aside>
       </section>
+
+      <footer class="partslinkFooter">
+        <p>AUTOGOOD Tools · backend PartsLink24 можно заменить параметром <strong>?api=</strong> или <strong>?backend=</strong>.</p>
+      </footer>
     </main>
     <script>
       const languageSelect = document.getElementById("partslinkLanguage");
       const brandSelect = document.getElementById("partslinkBrand");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
+      const productionDateButton = document.getElementById("partslinkProductionDateButton");
+      const productionDateInput = document.getElementById("partslinkProductionDate");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
+      const resultState = document.getElementById("partslinkResultState");
       const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
         "Alfa Romeo": { route: "general_vin_search" },
@@ -158,6 +592,33 @@
         downloadLinks.replaceChildren();
       }
 
+      function resetProductionDate() {
+        productionDateInput.value = "";
+      }
+
+      function resetResults() {
+        resetDownloadLink();
+        resetProductionDate();
+        resultState.textContent = "Ожидает VIN";
+        statusLine.textContent = "";
+        statusLine.removeAttribute("data-tone");
+      }
+
+      function setStatus(message, tone = "") {
+        statusLine.textContent = message;
+        if (tone) {
+          statusLine.dataset.tone = tone;
+        } else {
+          statusLine.removeAttribute("data-tone");
+        }
+      }
+
+      function setBusy(isBusy, stateText) {
+        checkButton.disabled = isBusy;
+        productionDateButton.disabled = isBusy;
+        resultState.textContent = stateText;
+      }
+
       function renderDownloadLinks(files, apiBase, brand, vin) {
         downloadLinks.replaceChildren();
         files.forEach((file, index) => {
@@ -195,14 +656,14 @@
 
       vinInput.addEventListener("input", () => {
         vinInput.value = vinInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 17);
-        resetDownloadLink();
+        resetResults();
       });
       brandSelect.addEventListener("change", () => {
         vinInput.value = "";
-        resetDownloadLink();
+        resetResults();
         applyBrandLogic();
       });
-      languageSelect.addEventListener("change", resetDownloadLink);
+      languageSelect.addEventListener("change", resetResults);
 
       fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
         .then((response) => response.ok ? response.json() : Promise.reject())
@@ -212,27 +673,34 @@
         })
         .catch(renderBrands);
 
-      checkButton.addEventListener("click", async () => {
+      function readPayload() {
         const vin = vinInput.value.trim().toUpperCase();
         const brand = brandSelect.value;
         const language = languageSelect.value;
 
         if (!/^[A-Z0-9]{17}$/.test(vin)) {
-          statusLine.textContent = "VIN должен содержать 17 символов.";
+          setStatus("VIN должен содержать 17 символов: проверьте ввод и повторите.", "error");
+          resultState.textContent = "Неверный VIN";
           vinInput.focus();
-          return;
+          return null;
         }
 
-        checkButton.disabled = true;
-        resetDownloadLink();
-        statusLine.textContent = "Проверяем VIN в PartsLink...";
+        return { brand, vin, language };
+      }
 
+      checkButton.addEventListener("click", async () => {
+        const payload = readPayload();
+        if (!payload) return;
+
+        setBusy(true, "Проверка VIN");
+        resetDownloadLink();
+        setStatus("Проверяем VIN в PartsLink24...");
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ brand, vin, language })
+            body: JSON.stringify(payload)
           });
           const result = await response.json().catch(() => ({}));
 
@@ -243,12 +711,46 @@
           const files = Array.isArray(result.files) && result.files.length
             ? result.files
             : [{ fileName: result.fileName, downloadUrl: result.downloadUrl }];
-          statusLine.textContent = files.length > 1 ? "VIN спецификации готовы." : "VIN спецификация готова.";
-          renderDownloadLinks(files, apiBase, brand, vin);
+          resultState.textContent = files.length > 1 ? "PDF готовы" : "PDF готов";
+          setStatus(files.length > 1 ? "VIN спецификации готовы." : "VIN спецификация готова.", "success");
+          renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
         } catch (error) {
-          statusLine.textContent = error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.";
+          resultState.textContent = "Ошибка";
+          setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {
-          checkButton.disabled = false;
+          setBusy(false, resultState.textContent);
+        }
+      });
+
+      productionDateButton.addEventListener("click", async () => {
+        const payload = readPayload();
+        if (!payload) return;
+
+        setBusy(true, "Проверка даты");
+        resetDownloadLink();
+        resetProductionDate();
+        setStatus("Ищем дату производства в PartsLink24...");
+        try {
+          const apiBase = getPartslinkApiBase();
+          const response = await fetch(`${apiBase}/api/partslink24/production-date`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json().catch(() => ({}));
+
+          if (!response.ok || !result.ok) {
+            throw new Error(result.error || "Сервер проверки даты производства недоступен.");
+          }
+
+          productionDateInput.value = result.productionDate || "";
+          resultState.textContent = productionDateInput.value ? "Дата найдена" : "Дата не найдена";
+          setStatus(productionDateInput.value ? "Дата производства получена без выгрузки PDF." : "PartsLink24 не вернул дату производства.", productionDateInput.value ? "success" : "error");
+        } catch (error) {
+          resultState.textContent = "Ошибка";
+          setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
+        } finally {
+          setBusy(false, resultState.textContent);
         }
       });
     </script>

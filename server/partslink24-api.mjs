@@ -32,6 +32,9 @@ export async function handlePartslink24Request(request, response) {
     if (request.method === "POST" && request.url === "/api/partslink24/check-vin") {
       return handleVinCheck(request, response);
     }
+    if (request.method === "POST" && request.url === "/api/partslink24/production-date") {
+      return handleProductionDateCheck(request, response);
+    }
     if (request.method === "GET" && request.url?.startsWith("/api/partslink24/pdf/")) {
       return sendPdf(request, response);
     }
@@ -52,22 +55,11 @@ if (isDirectRun()) {
 }
 
 async function handleVinCheck(request, response) {
-  const payload = await readJsonBody(request);
-  const brand = String(payload.brand || "").trim();
-  const language = String(payload.language || "").trim().toUpperCase();
-  const vin = String(payload.vin || "").trim().toUpperCase();
+  const payload = await readPartslinkPayload(request, response);
+  if (!payload) return;
+  const { brand, language, vin } = payload;
 
-  if (!routes.brands[brand]) return sendJson(response, 400, { ok: false, error: "Выберите поддерживаемую марку." });
-  if (!routes.languages.includes(language)) return sendJson(response, 400, { ok: false, error: "Выберите поддерживаемый язык." });
-  if (!/^[A-Z0-9]{17}$/.test(vin)) return sendJson(response, 400, { ok: false, error: "VIN должен содержать 17 символов." });
-  if (!process.env.PARTSLINK24_COMPANY_ID || !process.env.PARTSLINK24_USERNAME || !process.env.PARTSLINK24_PASSWORD) {
-    return sendJson(response, 500, {
-      ok: false,
-      error: "На сервере не настроены данные входа PartsLink24."
-    });
-  }
-
-  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin }));
+  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "pdf" }));
   if (!result.ok) return sendJson(response, 500, result);
 
   const pdfPaths = Array.isArray(result.pdfPaths) && result.pdfPaths.length
@@ -81,15 +73,68 @@ async function handleVinCheck(request, response) {
     };
   });
   const firstFile = files[0] || {};
+	  return sendJson(response, 200, {
+	    ok: true,
+	    brand,
+	    language,
+	    vin,
+	    fileName: firstFile.fileName,
+	    downloadUrl: firstFile.downloadUrl,
+	    files
+  });
+}
+
+async function handleProductionDateCheck(request, response) {
+  const payload = await readPartslinkPayload(request, response);
+  if (!payload) return;
+  const { brand, language, vin } = payload;
+
+  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "production-date" }));
+  if (!result.ok) return sendJson(response, 500, result);
+  if (!result.productionDate) {
+    return sendJson(response, 500, {
+      ok: false,
+      error: "PartsLink24 не вернул дату производства для этого VIN."
+    });
+  }
+
   return sendJson(response, 200, {
     ok: true,
     brand,
     language,
     vin,
-    fileName: firstFile.fileName,
-    downloadUrl: firstFile.downloadUrl,
-    files
+    productionDate: result.productionDate,
+    productionDateLabel: result.productionDateLabel || ""
   });
+}
+
+async function readPartslinkPayload(request, response) {
+  const payload = await readJsonBody(request);
+  const brand = String(payload.brand || "").trim();
+  const language = String(payload.language || "").trim().toUpperCase();
+  const vin = String(payload.vin || "").trim().toUpperCase();
+
+  if (!routes.brands[brand]) {
+    sendJson(response, 400, { ok: false, error: "Выберите поддерживаемую марку." });
+    return null;
+  }
+  if (!routes.languages.includes(language)) {
+    sendJson(response, 400, { ok: false, error: "Выберите поддерживаемый язык." });
+    return null;
+  }
+  if (!/^[A-Z0-9]{17}$/.test(vin)) {
+    sendJson(response, 400, { ok: false, error: "VIN должен содержать 17 символов." });
+    return null;
+  }
+  if (!process.env.PARTSLINK24_COMPANY_ID || !process.env.PARTSLINK24_USERNAME || !process.env.PARTSLINK24_PASSWORD) {
+    sendJson(response, 500, {
+      ok: false,
+      error: "На сервере не настроены данные входа PartsLink24."
+    });
+    return null;
+  }
+
+  return { brand, language, vin };
 }
 
 function enqueuePartslinkRun(run) {
@@ -108,13 +153,14 @@ function enqueuePartslinkRun(run) {
   return queued;
 }
 
-function runPartslinkScript({ brand, language, vin }) {
+function runPartslinkScript({ brand, language, vin, mode }) {
   const scriptPath = join(repoRoot, "tools/partslink24/download-vin-pdf.mjs");
   const args = [
     scriptPath,
     "--brand", brand,
     "--vin", vin,
     "--language", language,
+    "--mode", mode,
     "--out-dir", outputDir
   ];
 
@@ -131,12 +177,12 @@ function runPartslinkScript({ brand, language, vin }) {
     child.stderr.on("data", (chunk) => { stderr += chunk; });
     child.on("close", (code) => {
       const parsed = parseLastJson(stdout) || parseLastJson(stderr);
-      if (code === 0 && parsed?.ok) return resolveRun(parsed);
-      return resolveRun({
-        ok: false,
-        error: parsed?.error || "PartsLink24 не вернул PDF.",
-        details: parsed || undefined
-      });
+	      if (code === 0 && parsed?.ok) return resolveRun(parsed);
+	      return resolveRun({
+	        ok: false,
+	        error: parsed?.error || (mode === "production-date" ? "PartsLink24 не вернул дату производства." : "PartsLink24 не вернул PDF."),
+	        details: parsed || undefined
+	      });
     });
     child.on("error", (error) => {
       resolveRun({ ok: false, error: errorMessage(error) });

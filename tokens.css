@@ -1,0 +1,121 @@
+/* Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V4
+ * Hallmark · tokens: AUTOGOOD Minimal · source: Wariant B design specification
+ */
+:root {
+  --color-brand: oklch(41.5% 0.088 240);
+  --color-brand-pressed: oklch(33.5% 0.073 240);
+  --color-ink: oklch(25.5% 0.024 248);
+  --color-muted: oklch(50.5% 0.032 248);
+  --color-soft: oklch(67.8% 0.024 248);
+  --color-faint: oklch(79.5% 0.019 248);
+  --color-paper: oklch(97.2% 0.006 248);
+  --color-surface: oklch(99.4% 0.003 248);
+  --color-surface-tint: oklch(98.8% 0.005 248);
+  --color-rule: oklch(90.7% 0.013 248);
+  --color-rule-soft: oklch(94.2% 0.01 248);
+  --color-field: oklch(87.8% 0.017 248);
+  --color-primary-rule: oklch(84.2% 0.031 248);
+  --color-error: oklch(48.7% 0.113 31);
+  --color-success: oklch(44.8% 0.091 164);
+  --color-accent-ink: oklch(100% 0.003 248);
+  --color-focus: oklch(41.5% 0.088 240);
+  --font-display: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-tabular: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.25rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 1.75rem;
+  --space-3xl: 2.5rem;
+  --text-xs: 0.71875rem;
+  --text-sm: 0.78125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.25rem, 3vw, 1.5625rem);
+  --text-display: clamp(1.75rem, 3.4vw, 2.375rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 180ms;
+  --dur-long: 420ms;
+  --rule-thin: 1px;
+  --rule-thick: 2px;
+  --radius-sm: 6px;
+  --radius-md: 7px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-card: 12px;
+
+  --ag-color-paper: var(--color-paper);
+  --ag-color-surface: var(--color-surface);
+  --ag-color-surface-tint: var(--color-surface-tint);
+  --ag-color-ink: var(--color-ink);
+  --ag-color-ink-2: var(--color-muted);
+  --ag-color-muted: var(--color-soft);
+  --ag-color-soft: var(--color-faint);
+  --ag-color-rule: var(--color-rule);
+  --ag-color-rule-2: var(--color-field);
+  --ag-color-accent: var(--color-brand);
+  --ag-color-accent-dark: var(--color-brand-pressed);
+  --ag-color-accent-ink: var(--color-accent-ink);
+  --ag-color-success: var(--color-success);
+  --ag-color-error: var(--color-error);
+  --ag-color-focus: var(--color-focus);
+
+  --ag-font-display: var(--font-display);
+  --ag-font-body: var(--font-body);
+  --ag-font-mono: var(--font-tabular);
+
+  --ag-space-2xs: var(--space-2xs);
+  --ag-space-xs: var(--space-xs);
+  --ag-space-sm: var(--space-sm);
+  --ag-space-md: var(--space-md);
+  --ag-space-lg: var(--space-lg);
+  --ag-space-xl: var(--space-xl);
+  --ag-space-2xl: var(--space-2xl);
+  --ag-space-3xl: var(--space-3xl);
+  --ag-space-label-gap: 7px;
+  --ag-space-control-y: 10px;
+  --ag-space-field-x: 12px;
+  --ag-space-button-x: 18px;
+  --ag-space-page-bottom: 64px;
+
+  --ag-text-xs: var(--text-xs);
+  --ag-text-sm: var(--text-sm);
+  --ag-text-base: var(--text-base);
+  --ag-text-md: var(--text-md);
+  --ag-text-lg: var(--text-lg);
+  --ag-text-xl: var(--text-xl);
+  --ag-text-display: var(--text-display);
+
+  --ag-ease-out: var(--ease-out);
+  --ag-ease-in: var(--ease-in);
+  --ag-ease-in-out: var(--ease-in-out);
+  --ag-dur-micro: var(--dur-micro);
+  --ag-dur-short: var(--dur-short);
+  --ag-dur-long: var(--dur-long);
+
+  --ag-rule-card: var(--rule-thin) solid var(--color-rule);
+  --ag-rule-field: var(--rule-thin) solid var(--color-field);
+  --ag-radius-control: var(--radius-md);
+  --ag-radius-input: var(--radius-lg);
+  --ag-radius-card: var(--radius-card);
+  --ag-radius-total: var(--radius-xl);
+
+  --ag-size-action: 44px;
+  --ag-size-download-action: 40px;
+  --ag-size-nav-link: 32px;
+  --ag-logo-width: 190px;
+  --ag-logo-max-width: 58vw;
+  --ag-panel-form-width: 400px;
+  --ag-result-min-width: 160px;
+  --ag-hero-copy-min-width: 280px;
+  --ag-breakpoint-stack: 780px;
+  --ag-breakpoint-phone: 420px;
+}

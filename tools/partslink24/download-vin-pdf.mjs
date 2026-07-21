@@ -16,6 +16,7 @@ if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
 const vin = readOption(args, "--vin");
 const brand = readOption(args, "--brand");
 const language = readOption(args, "--language") || process.env.PARTSLINK24_DEFAULT_LANGUAGE || "RU";
+const mode = readOption(args, "--mode") || (args.includes("--production-date-only") ? "production-date" : "pdf");
 const outDir = resolve(readOption(args, "--out-dir") || join(repoRoot, "output/partslink24"));
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
@@ -28,6 +29,7 @@ const systemChromePaths = [
 
 if (!vin) fail("Missing --vin.");
 if (!brand) fail("Missing --brand.");
+if (!["pdf", "production-date"].includes(mode)) fail(`Unsupported --mode: ${mode}`);
 
 const companyId = process.env.PARTSLINK24_COMPANY_ID;
 const username = process.env.PARTSLINK24_USERNAME;
@@ -70,8 +72,13 @@ try {
   page = context.pages()[0] || await context.newPage();
   await login(page, { companyId, username, password, language });
   await openVehicle(page, brandConfig, vin);
-  const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
-  process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
+  if (mode === "production-date") {
+    const productionDate = await extractProductionDate(page);
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, productionDate: productionDate.value, productionDateLabel: productionDate.label }, null, 2)}\n`);
+  } else {
+    const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
+  }
 } catch (error) {
   const screenshotPath = join(outDir, `${brand}_${vin}_${language}_error.png`.replace(/[^A-Za-z0-9_.-]/g, "_"));
   await page?.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
@@ -223,6 +230,58 @@ async function downloadVehiclePdfs(page, brandConfig, options) {
   }
 
   return [await downloadPdf(page, options)];
+}
+
+async function extractProductionDate(page) {
+  const result = await page.evaluate(() => {
+    const labelPattern = /(?:data\s+produkcji|дата\s+(?:производства|изготовления)|production\s+date|date\s+of\s+production|manufactur(?:e|ing)\s+date|build\s+date)/i;
+    const monthPattern = [
+      "stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "wrzesnia", "października", "pazdziernika", "listopada", "grudnia",
+      "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря",
+      "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"
+    ].join("|");
+    const datePattern = new RegExp([
+      "\\b\\d{1,2}[.\\/-]\\d{1,2}[.\\/-]\\d{2,4}\\b",
+      "\\b\\d{4}[.\\/-]\\d{1,2}[.\\/-]\\d{1,2}\\b",
+      `\\b\\d{1,2}\\s+(?:${monthPattern})\\s+\\d{4}\\b`
+    ].join("|"), "i");
+    const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
+    const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+    const pickDate = (value) => normalize(value).match(datePattern)?.[0] || "";
+    const labelText = (value) => normalize(value).match(labelPattern)?.[0] || "";
+    const rowSelectors = "tr, [role='row'], li, dl, div, section, article";
+
+    for (const element of [...document.querySelectorAll(rowSelectors)].filter(isVisible)) {
+      const text = normalize(element.innerText || element.textContent || "");
+      if (!labelPattern.test(text)) continue;
+      const label = labelText(text);
+      const afterLabel = text.replace(labelPattern, " ");
+      const value = pickDate(afterLabel) || pickDate(text);
+      if (value) return { value, label };
+    }
+
+    const lines = String(document.body?.innerText || "")
+      .split(/\r?\n/)
+      .map(normalize)
+      .filter(Boolean);
+
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!labelPattern.test(lines[index])) continue;
+      const label = labelText(lines[index]);
+      const windowText = lines.slice(index, index + 4).join(" ");
+      const afterLabel = windowText.replace(labelPattern, " ");
+      const value = pickDate(afterLabel) || pickDate(windowText);
+      if (value) return { value, label };
+    }
+
+    return { value: "", label: "" };
+  });
+
+  if (!result.value) {
+    fail("Дата производства не найдена на странице PartsLink24 для этого VIN.");
+  }
+
+  return result;
 }
 
 async function clickBrandTile(page, brandConfig) {
@@ -581,6 +640,7 @@ function fail(message) {
 function printHelp() {
   process.stdout.write(`Usage:
   node tools/partslink24/download-vin-pdf.mjs --brand BMW --vin WBA31AA0905V40977 --language RU
+  node tools/partslink24/download-vin-pdf.mjs --brand Audi --vin WAUZZZ4M3RD016484 --language PL --mode production-date
 
 Required environment variables:
   PARTSLINK24_COMPANY_ID
