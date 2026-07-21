@@ -26,7 +26,6 @@ const copy = {
     registration: "Pierwsza rejestracja",
     location: "Lokalizacja",
     seller: "Sprzedawca",
-    importMode: "Tryb importu",
     delivery: "Transport netto",
     inspection: "Oględziny netto",
     tariff: "Reguła taryfy",
@@ -62,15 +61,14 @@ const copy = {
     registration: "Первая регистрация",
     location: "Локация",
     seller: "Продавец",
-    importMode: "Режим импорта",
     delivery: "Доставка netto",
     inspection: "Осмотр netto",
     tariff: "Правило тарифа",
     warning: "Для VAT 23% проверь в объявлении, цена netto или brutto.",
     scenarios: [
-      { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
-      { key: "company", number: "02", tab: 3, title: "Dealerzy VAT 23%" },
-      { key: "ag", number: "03", tab: 4, title: "Dealerzy VAT Marża" },
+      { key: "direct", number: "01", tab: 0, title: "Прямая покупка" },
+      { key: "company", number: "02", tab: 3, title: "Дилеры VAT 23%" },
+      { key: "ag", number: "03", tab: 4, title: "Дилеры VAT Маржа" },
     ],
   },
 };
@@ -209,7 +207,6 @@ function renderData() {
     detailRow(c.registration, text(data.firstRegistration)),
     detailRow(c.location, text(location.address || location.city)),
     detailRow(c.seller, text(location.sellerName)),
-    detailRow(c.importMode, text(data.importMode)),
   ].join("");
 
   els.money.innerHTML = [
