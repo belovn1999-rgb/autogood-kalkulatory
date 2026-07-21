@@ -482,15 +482,16 @@
             <button id="partslinkCheckButton" type="button">Проверить VIN</button>
             <button id="partslinkProductionDateButton" type="button">Проверить дату производства</button>
           </div>
+          <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
 
         <aside class="partslinkResultCard" aria-label="PartsLink24 result">
           <p class="partslinkPanelTitle">Результат</p>
           <div class="partslinkSpecRows">
-            <div class="partslinkSpecRow">
-              <span>Статус</span>
-              <strong id="partslinkResultState">Ожидает VIN</strong>
-            </div>
+            <label class="partslinkSpecRow" for="partslinkVehicleDescription">
+              <span>Марка и модель авто</span>
+              <input id="partslinkVehicleDescription" class="partslinkReadonlyField" name="vehicleDescription" type="text" readonly placeholder="—" />
+            </label>
             <label class="partslinkSpecRow" for="partslinkProductionDate">
               <span>Дата производства</span>
               <input id="partslinkProductionDate" class="partslinkReadonlyField" name="productionDate" type="text" readonly placeholder="—" />
@@ -500,7 +501,6 @@
               <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
             </div>
           </div>
-          <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </aside>
       </section>
 
@@ -514,9 +514,9 @@
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
       const productionDateButton = document.getElementById("partslinkProductionDateButton");
+      const vehicleDescriptionInput = document.getElementById("partslinkVehicleDescription");
       const productionDateInput = document.getElementById("partslinkProductionDate");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
-      const resultState = document.getElementById("partslinkResultState");
       const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
         "Alfa Romeo": { route: "general_vin_search" },
@@ -603,10 +603,14 @@
         productionDateInput.value = "";
       }
 
+      function setVehicleDescription(value) {
+        vehicleDescriptionInput.value = value || "";
+      }
+
       function resetResults() {
         resetDownloadLink();
         resetProductionDate();
-        resultState.textContent = "Ожидает VIN";
+        setVehicleDescription("");
         statusLine.textContent = "";
         statusLine.removeAttribute("data-tone");
       }
@@ -620,10 +624,9 @@
         }
       }
 
-      function setBusy(isBusy, stateText) {
+      function setBusy(isBusy) {
         checkButton.disabled = isBusy;
         productionDateButton.disabled = isBusy;
-        resultState.textContent = stateText;
       }
 
       function renderDownloadLinks(files, apiBase, brand, vin) {
@@ -697,7 +700,6 @@
 
         if (!/^[A-Z0-9]{17}$/.test(vin)) {
           setStatus("VIN должен содержать 17 символов: проверьте ввод и повторите.", "error");
-          resultState.textContent = "Неверный VIN";
           vinInput.focus();
           return null;
         }
@@ -709,8 +711,9 @@
         const payload = readPayload();
         if (!payload) return;
 
-        setBusy(true, "Проверка VIN");
+        setBusy(true);
         resetDownloadLink();
+        setVehicleDescription("");
         setStatus("Проверяем VIN в PartsLink24...");
         try {
           const apiBase = getPartslinkApiBase();
@@ -728,14 +731,13 @@
           const files = Array.isArray(result.files) && result.files.length
             ? result.files
             : [{ fileName: result.fileName, downloadUrl: result.downloadUrl }];
-          resultState.textContent = files.length > 1 ? "PDF готовы" : "PDF готов";
+          setVehicleDescription(result.vehicleDescription || "");
           setStatus(files.length > 1 ? "VIN спецификации готовы." : "VIN спецификация готова.", "success");
           renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
         } catch (error) {
-          resultState.textContent = "Ошибка";
           setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {
-          setBusy(false, resultState.textContent);
+          setBusy(false);
         }
       });
 
@@ -743,9 +745,10 @@
         const payload = readPayload();
         if (!payload) return;
 
-        setBusy(true, "Проверка даты");
+        setBusy(true);
         resetDownloadLink();
         resetProductionDate();
+        setVehicleDescription("");
         setStatus("Ищем дату производства в PartsLink24...");
         try {
           const apiBase = getPartslinkApiBase();
@@ -761,13 +764,12 @@
           }
 
           productionDateInput.value = result.productionDate || "";
-          resultState.textContent = productionDateInput.value ? "Дата найдена" : "Дата не найдена";
+          setVehicleDescription(result.vehicleDescription || "");
           setStatus(productionDateInput.value ? "Дата производства получена без выгрузки PDF." : "PartsLink24 не вернул дату производства.", productionDateInput.value ? "success" : "error");
         } catch (error) {
-          resultState.textContent = "Ошибка";
           setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {
-          setBusy(false, resultState.textContent);
+          setBusy(false);
         }
       });
     </script>

@@ -72,12 +72,13 @@ try {
   page = context.pages()[0] || await context.newPage();
   await login(page, { companyId, username, password, language });
   await openVehicle(page, brandConfig, vin);
+  const vehicleDescription = await extractVehicleDescription(page);
   if (mode === "production-date") {
     const productionDate = await extractProductionDate(page);
-    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, productionDate: productionDate.value, productionDateLabel: productionDate.label }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: productionDate.value, productionDateLabel: productionDate.label }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
-    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   }
 } catch (error) {
   const screenshotPath = join(outDir, `${brand}_${vin}_${language}_error.png`.replace(/[^A-Za-z0-9_.-]/g, "_"));
@@ -230,6 +231,75 @@ async function downloadVehiclePdfs(page, brandConfig, options) {
   }
 
   return [await downloadPdf(page, options)];
+}
+
+async function extractVehicleDescription(page) {
+  return page.evaluate(() => {
+    const normalize = (value) => String(value || "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const cleanValue = (value) => normalize(value)
+      .replace(/^[\s:;|/\\-]+/, "")
+      .replace(/[\s:;|/\\-]+$/, "");
+    const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+    const brandLabelPattern = /^(?:marka|марка|make|manufacturer|producent)$/i;
+    const modelLabelPattern = /^(?:model|модель|model pojazdu|vehicle model)$/i;
+    const blockedValuePattern = /^(?:marka|марка|make|manufacturer|producent|model|модель|vin|data|date|production|vehicle identification|identyfikacja pojazdu|идентификация автомобиля)$/i;
+
+    function directLabelValue(labelPattern) {
+      const labelSource = labelPattern.source.replace(/^\^/, "").replace(/\$$/, "");
+      const textNodes = [...document.querySelectorAll("td, th, dt, dd, label, span, div, p")]
+        .filter(isVisible)
+        .map((element) => ({ element, text: normalize(element.innerText || element.textContent || "") }))
+        .filter((item) => item.text);
+
+      for (const item of textNodes) {
+        const inlineMatch = item.text.match(new RegExp(`^(?:${labelSource})\\s*[:\\-]?\\s+(.{2,80})$`, "i"));
+        if (inlineMatch) {
+          const value = cleanValue(inlineMatch[1]);
+          if (value && !blockedValuePattern.test(value)) return value;
+        }
+
+        if (!labelPattern.test(item.text)) continue;
+
+        const siblings = [
+          item.element.nextElementSibling,
+          item.element.parentElement?.nextElementSibling,
+          ...[...(item.element.parentElement?.children || [])].filter((child) => child !== item.element)
+        ].filter(Boolean);
+
+        for (const sibling of siblings) {
+          if (!isVisible(sibling)) continue;
+          const value = cleanValue(sibling.innerText || sibling.textContent || "");
+          if (value && value.length <= 80 && !blockedValuePattern.test(value)) return value;
+        }
+      }
+
+      return "";
+    }
+
+    function rowLabelValue(labelPattern) {
+      const labelSource = labelPattern.source.replace(/^\^/, "").replace(/\$$/, "");
+      const looseLabelPattern = new RegExp(`\\b(?:${labelSource})\\b`, "i");
+      const rows = [...document.querySelectorAll("tr, [role='row'], dl, li, section, article, div")]
+        .filter(isVisible);
+      for (const row of rows) {
+        const text = normalize(row.innerText || row.textContent || "");
+        if (!text || !looseLabelPattern.test(text)) continue;
+        const parts = text.split(/[:\n\r\t]/).map(cleanValue).filter(Boolean);
+        if (parts.length >= 2 && labelPattern.test(parts[0])) {
+          const value = parts.slice(1).join(" ");
+          if (value && value.length <= 80 && !blockedValuePattern.test(value)) return value;
+        }
+      }
+      return "";
+    }
+
+    const brand = directLabelValue(brandLabelPattern) || rowLabelValue(brandLabelPattern);
+    const model = directLabelValue(modelLabelPattern) || rowLabelValue(modelLabelPattern);
+    return [brand, model].filter(Boolean).join(" ");
+  }).catch(() => "");
 }
 
 async function extractProductionDate(page) {

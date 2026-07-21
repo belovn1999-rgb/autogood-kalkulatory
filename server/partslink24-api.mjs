@@ -73,14 +73,15 @@ async function handleVinCheck(request, response) {
     };
   });
   const firstFile = files[0] || {};
-	  return sendJson(response, 200, {
-	    ok: true,
-	    brand,
-	    language,
-	    vin,
-	    fileName: firstFile.fileName,
-	    downloadUrl: firstFile.downloadUrl,
-	    files
+  return sendJson(response, 200, {
+    ok: true,
+    brand,
+    language,
+    vin,
+    vehicleDescription: result.vehicleDescription || "",
+    fileName: firstFile.fileName,
+    downloadUrl: firstFile.downloadUrl,
+    files
   });
 }
 
@@ -103,6 +104,7 @@ async function handleProductionDateCheck(request, response) {
     brand,
     language,
     vin,
+    vehicleDescription: result.vehicleDescription || "",
     productionDate: result.productionDate,
     productionDateLabel: result.productionDateLabel || ""
   });
