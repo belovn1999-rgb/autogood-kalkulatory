@@ -596,7 +596,8 @@ function readCalculatorPrefill() {
   const params = new URLSearchParams(window.location.search);
   const tabId = Number(params.get("tab"));
   const nextTab = Number.isInteger(tabId) && tabs.some(tab => tab.id === tabId) ? tabId : 0;
-  const engineParam = Number(params.get("engine") ?? params.get("engineIndex"));
+  const engineRaw = params.get("engine") ?? params.get("engineIndex");
+  const engineParam = engineRaw === null ? NaN : Number(engineRaw);
   const rateParam = params.get("rate");
   const nextRate = n(rateParam);
   const values = {};
