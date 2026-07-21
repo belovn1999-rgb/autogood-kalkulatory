@@ -138,15 +138,6 @@
         overflow-wrap: anywhere;
       }
 
-      .partslinkHero p:last-child {
-        max-width: 46ch;
-        margin: 0;
-        color: var(--ag-color-ink-2);
-        font-size: var(--ag-text-base);
-        font-weight: 500;
-        line-height: 1.5;
-      }
-
       .partslinkWorkbench {
         display: grid;
         grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
@@ -440,7 +431,7 @@
       <header class="partslinkTopbar">
         <a class="partslinkWordmark" href="./" aria-label="AUTOGOOD Tools">
           <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
-          <span>VIN спецификация</span>
+          <span>VIN Check</span>
         </a>
         <nav class="partslinkNav" aria-label="Workspace navigation">
           <a href="./">Tools</a>
@@ -453,9 +444,7 @@
       <section class="partslinkHero">
         <div>
           <p class="partslinkEyebrow">PartsLink24 / Проверка VIN</p>
-          <h1>VIN спецификация и дата производства</h1>
         </div>
-        <p>Выберите язык, марку и VIN. Один сценарий скачивает PDF-спецификацию, второй проходит тот же путь и возвращает дату производства без файла.</p>
       </section>
 
       <section class="partslinkWorkbench" aria-label="VIN PDF and production date form">
@@ -479,7 +468,7 @@
           <label class="partslinkField">
             <span>3. VIN</span>
             <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
-            <small class="partslinkHint">17 символов, только латиница и цифры.</small>
+            <small class="partslinkHint">17 символов.</small>
           </label>
 
           <div class="partslinkActions">
