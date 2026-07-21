@@ -457,7 +457,6 @@
               <option value="PL">PL</option>
               <option value="ENG">ENG</option>
             </select>
-            <small class="partslinkHint">Язык меняется внутри авторизованного PartsLink24.</small>
           </label>
 
           <label class="partslinkField">
@@ -547,6 +546,17 @@
         "Vw Nutzfahrzeuge": { route: "brand_first_search" }
       };
       let brandRoutes = fallbackBrands;
+      const favoriteBrands = [
+        { value: "Audi", label: "Audi" },
+        { value: "BMW", label: "BMW" },
+        { value: "Ford", label: "Ford" },
+        { value: "Mercedes-Benz", label: "Mercedes-Benz" },
+        { value: "Peugeot", label: "Peugeot" },
+        { value: "Renault", label: "Renault" },
+        { value: "Toyota", label: "Toyota" },
+        { value: "Volvo", label: "Volvo" },
+        { value: "Vw Nutzfahrzeuge", label: "Vw" }
+      ];
       const defaultPartslinkApiBase = "https://protocols-vocals-concern-ctrl.trycloudflare.com";
 
       function readApiBaseFromUrl() {
@@ -627,10 +637,20 @@
 
       function renderBrands() {
         brandSelect.innerHTML = "";
-        Object.keys(brandRoutes).forEach((brand) => {
+        const favoriteValues = new Set(favoriteBrands.map((brand) => brand.value));
+        const favorites = favoriteBrands.filter((brand) => brandRoutes[brand.value]);
+        const regularBrands = Object.keys(brandRoutes)
+          .filter((brand) => !favoriteValues.has(brand))
+          .sort((left, right) => left.localeCompare(right, "ru"));
+        const options = [
+          ...favorites.map((brand) => ({ value: brand.value, label: `★ ${brand.label}` })),
+          ...regularBrands.map((brand) => ({ value: brand, label: brand }))
+        ];
+
+        options.forEach((brand) => {
           const option = document.createElement("option");
-          option.value = brand;
-          option.textContent = brand;
+          option.value = brand.value;
+          option.textContent = brand.label;
           brandSelect.append(option);
         });
         applyBrandLogic();
