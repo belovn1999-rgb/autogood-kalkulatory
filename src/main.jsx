@@ -20,6 +20,7 @@ const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 8;
 const FINAL_TAB_ID = 5;
+const SCREENSHOT_EDGE_PADDING = 2;
 const RATES_FALLBACK = {
   source: "Walutomat",
   sourceUrl: "https://www.walutomat.pl/kursy-walut/",
@@ -1536,6 +1537,23 @@ function canvasToBlob(canvas) {
   });
 }
 
+function frameScreenshotCanvas(canvas, paddingCssPx, scale, color) {
+  const padding = Math.max(0, Math.ceil(paddingCssPx * scale));
+  if (!padding) return canvas;
+
+  const framedCanvas = document.createElement("canvas");
+  framedCanvas.width = canvas.width + padding * 2;
+  framedCanvas.height = canvas.height + padding * 2;
+
+  const context = framedCanvas.getContext("2d");
+  if (!context) return canvas;
+
+  context.fillStyle = color;
+  context.fillRect(0, 0, framedCanvas.width, framedCanvas.height);
+  context.drawImage(canvas, padding, padding);
+  return framedCanvas;
+}
+
 async function waitForCaptureAssets(root) {
   const images = Array.from(root.querySelectorAll("img"));
   await Promise.all(
@@ -1873,15 +1891,17 @@ function App() {
       if (!window.html2canvas || !resultsRef.current) throw new Error("Screenshot tool not available");
       await waitForCaptureAssets(resultsRef.current);
       const rect = resultsRef.current.getBoundingClientRect();
-      const canvas = await window.html2canvas(resultsRef.current, {
+      const scale = Math.min(2, window.devicePixelRatio || 1);
+      const rawCanvas = await window.html2canvas(resultsRef.current, {
         backgroundColor: "#ffffff",
-        width: rect.width,
-        height: rect.height,
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
         windowWidth: document.documentElement.scrollWidth,
         windowHeight: document.documentElement.scrollHeight,
-        scale: Math.min(2, window.devicePixelRatio || 1),
+        scale,
         useCORS: true,
       });
+      const canvas = frameScreenshotCanvas(rawCanvas, SCREENSHOT_EDGE_PADDING, scale, "#ffffff");
       const blob = await canvasToBlob(canvas);
       if (!blob) throw new Error("Image was not created");
 
