@@ -333,17 +333,17 @@ function extractPurchaseType(html, jsonData, text = "") {
     });
   });
 
-  const source = normalizeTariffText([...candidates, text, html].join(" "));
+  const source = normalizeTariffText([...candidates, text].join(" "));
 
   if (/differenzbesteuerung|mehrwertsteuer nicht ausweisbar|mwst\.?\s+nicht ausweisbar|nicht ausweisbare mwst|vat margin|margin scheme|marge|marza/.test(source)) {
     return "Marża";
   }
 
-  if (/mehrwertsteuer ausweisbar|mwst\.?\s+ausweisbar|vat deductible|vat reclaimable|vat recoverable|19\s*%\s*mwst|inkl\.?\s*mwst|net price|netto/.test(source)) {
+  if (/mehrwertsteuer ausweisbar|mwst\.?\s+ausweisbar|vat deductible|vat reclaimable|vat recoverable/.test(source)) {
     return "VAT";
   }
 
-  return "";
+  return "Marża";
 }
 
 function extractDisplacement(html, jsonData, text) {
