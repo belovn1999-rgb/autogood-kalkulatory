@@ -184,7 +184,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  width: 258px;
+  width: 286px;
   flex: 0 0 auto;
 }
 
@@ -242,12 +242,12 @@ button {
 }
 
 .rateWidgetControl input {
-  width: 48px;
+  width: 62px;
   min-width: 0;
   border: 0;
-  padding: 6px 8px;
+  padding: 6px 9px;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--ag-blue-700);
   text-align: right;
@@ -1366,7 +1366,7 @@ select {
   }
 
   .rateWidget {
-    width: min(258px, 100%);
+    width: min(286px, 100%);
   }
 
   .printBtn,
