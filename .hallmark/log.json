@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-07-22",
+    "macrostructure": "Workbench",
+    "theme": "AUTOGOOD Wariant B Minimal",
+    "theme_axes": "light / single-family corporate sans / cool brand-blue",
+    "enrichment": "none",
+    "nav": "N9 Edge-aligned minimal",
+    "footer": "none (app tool)",
+    "scope": "single-page app tool",
+    "brief": "Calculators page Wariant B Minimal redesign from supplied AUTOGOOD design specification"
+  },
+  {
     "date": "2026-07-21",
     "macrostructure": "Workbench",
     "theme": "AUTOGOOD Wariant B Minimal",
