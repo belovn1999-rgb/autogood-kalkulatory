@@ -5,31 +5,35 @@
 @import url("../tokens.css");
 
 :root {
-  --ag-blue-900: var(--color-brand-pressed);
-  --ag-blue-700: var(--color-brand);
-  --ag-blue-600: oklch(41.3% 0.083 255);
-  --ag-violet-600: oklch(39.3% 0.098 283);
-  --ag-violet-500: oklch(42.2% 0.119 304);
+  --ag-blue-900: #053b58;
+  --ag-blue-700: #0f5176;
+  --ag-blue-600: #2a4c77;
+  --ag-violet-600: #403d78;
+  --ag-violet-500: #5c3981;
 
-  --ag-ink-900: var(--color-ink);
-  --ag-ink-600: var(--color-muted);
-  --ag-ink-400: var(--color-soft);
-  --ag-ink-300: var(--color-faint);
+  --ag-ink-900: #1a242e;
+  --ag-ink-600: #576776;
+  --ag-ink-400: #8c99a6;
+  --ag-ink-300: #b3bec8;
 
-  --ag-line-200: var(--color-rule);
-  --ag-line-150: var(--color-rule-soft);
-  --ag-line-100: oklch(95.2% 0.009 248);
-  --ag-field-border: var(--color-field);
+  --ag-line-200: #dae1e9;
+  --ag-line-150: #e7edf2;
+  --ag-line-100: #ebf0f5;
+  --ag-field-border: #ced8e2;
 
-  --ag-surface: var(--color-surface);
-  --ag-bg: var(--color-paper);
-  --ag-fill-subtle: var(--color-paper);
-  --ag-fill-tint: var(--color-surface-tint);
+  --ag-surface: #fcfdff;
+  --ag-bg: #f3f6fa;
+  --ag-fill-subtle: #f3f6fa;
+  --ag-fill-tint: #f9fbfe;
 
-  --ag-primary-line: var(--color-primary-rule);
+  --ag-primary-line: #bccddf;
+  --ag-color-accent-ink: #feffff;
+  --ag-color-error: #954336;
+  --ag-color-success: #0d6447;
+  --ag-color-focus: #0f5176;
 
   --gradient-total: linear-gradient(100deg, var(--ag-blue-700) 0%, var(--ag-blue-600) 45%, var(--ag-violet-600) 80%, var(--ag-violet-500) 100%);
-  --gradient-total-overpaid: linear-gradient(100deg, oklch(44.8% 0.091 164) 0%, oklch(49.6% 0.108 164) 60%, oklch(48.4% 0.086 145) 100%);
+  --gradient-total-overpaid: linear-gradient(100deg, #0d6447 0%, #007551 60%, #3d6b3f 100%);
 
   --radius-sm: 6px;
   --radius-md: 7px;
@@ -803,7 +807,7 @@ select {
   place-items: center;
   width: 30px;
   height: 26px;
-  border: 1px solid oklch(82% 0.05 31);
+  border: 1px solid #e3b9b1;
   border-radius: var(--radius-lg);
   background: var(--ag-surface);
   color: var(--ag-color-error);
@@ -1093,8 +1097,8 @@ select {
 
 .finalVatToggle.active {
   color: var(--ag-color-success);
-  border-color: oklch(75% 0.08 164);
-  background: oklch(96% 0.02 164);
+  border-color: #7dbea0;
+  background: #e6f6ee;
 }
 
 .finalRowValue {
@@ -1155,7 +1159,7 @@ select {
   align-items: center;
   justify-content: center;
   width: 22px;
-  color: oklch(100% 0.003 248 / 0.92);
+  color: rgba(254, 255, 255, 0.92);
   font-size: 24px !important;
   font-weight: 900 !important;
   line-height: 1;
@@ -1195,7 +1199,7 @@ select {
 .totalRate {
   grid-column: 1 / -1;
   padding-right: 22px;
-  color: oklch(100% 0.003 248 / 0.82);
+  color: rgba(254, 255, 255, 0.82);
   font-size: 13px;
   font-style: normal;
   text-align: right;
@@ -1612,7 +1616,7 @@ select {
   font-size: clamp(25px, 3.2vw, 30px);
   font-weight: 600;
   line-height: 1;
-  color: oklch(100% 0.003 248 / 0.85);
+  color: rgba(254, 255, 255, 0.85);
 }
 
 .totalBarLabel {
