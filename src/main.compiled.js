@@ -13,7 +13,7 @@ const STD_FIX = 1829.27;
 const FIN_FIX = 2642.28;
 const RATES_URL = "./data/exchange-rates.json";
 const WALUTOMAT_API_URL = "https://api.walutomat.pl/api/v2.0.0/market_fx/best_offers";
-const DEFAULT_MOBILEDE_API_URL = "https://listprice-program-recognition-conventional.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://compiler-come-retreat-pierce.trycloudflare.com/mobilede/import";
 const readMobileDeApiUrl = () => {
   const configuredUrl = window.AUTOGOOD_MOBILEDE_API_URL;
   const params = new URLSearchParams(window.location.search);

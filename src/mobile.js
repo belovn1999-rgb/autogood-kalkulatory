@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://listprice-program-recognition-conventional.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://compiler-come-retreat-pierce.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
