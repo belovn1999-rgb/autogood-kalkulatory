@@ -28,7 +28,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -322,6 +323,46 @@ button {
   margin-top: var(--space-lg);
 }
 
+.mobileManualPanel {
+  margin-top: var(--space-lg);
+}
+
+.mobileManualGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+}
+
+.mobileField {
+  display: grid;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.mobileField span {
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mobileField input,
+.mobileField select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  padding: 0 var(--space-sm);
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
 .mobileActionsHead {
   padding-bottom: var(--space-md);
   border-bottom: var(--rule-thin) solid var(--color-rule);
@@ -422,6 +463,8 @@ button {
 .mobileGhostLink:focus-visible,
 .mobileLang button:focus-visible,
 .mobileSearchControl input:focus-visible,
+.mobileField input:focus-visible,
+.mobileField select:focus-visible,
 .mobileSearchControl button:focus-visible,
 .mobileScenarioCard:focus-visible {
   outline: 2px solid var(--color-focus);
@@ -440,6 +483,11 @@ button {
   }
 
   .mobileSearchControl input:hover {
+    background: var(--color-surface-tint);
+  }
+
+  .mobileField input:hover,
+  .mobileField select:hover {
     background: var(--color-surface-tint);
   }
 
@@ -465,6 +513,10 @@ button {
 
   .mobileScenarioGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileManualGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -500,6 +552,10 @@ button {
 
   .mobileScenarioCard {
     min-height: 72px;
+  }
+
+  .mobileManualGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

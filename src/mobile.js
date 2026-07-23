@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://pdf-ads-connector-pastor.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://albuquerque-junior-favourites-assist.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
@@ -13,6 +13,15 @@ const copy = {
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     calcEyebrow: "KWOTY DO KALKULATORA",
+    manualEyebrow: "DANE DO KOREKTY",
+    manualTitle: "Auto z ogłoszenia",
+    brandLabel: "Marka",
+    modelLabel: "Model",
+    fuelLabel: "Paliwo",
+    pluginLabel: "Plugin",
+    bodyLabel: "Nadwozie",
+    yearFromLabel: "Rok od",
+    yearToLabel: "Rok do",
     actionsTitle: "Wybierz ścieżkę zakupu",
     footer: "Mobile.de → kalkulatory operacyjne",
     emptyTitle: "—",
@@ -30,6 +39,10 @@ const copy = {
     inspection: "Oględziny netto",
     tariff: "Reguła taryfy",
     warning: "Dla VAT 23% sprawdź w ogłoszeniu, czy cena jest netto czy brutto.",
+    selectEmpty: "Wybierz",
+    pluginUnknown: "Nie wybrano",
+    pluginYes: "Tak",
+    pluginNo: "Nie",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
       { key: "company", number: "02", tab: 3, title: "Dealerzy VAT 23%" },
@@ -48,6 +61,15 @@ const copy = {
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     calcEyebrow: "СУММЫ ДЛЯ КАЛЬКУЛЯТОРА",
+    manualEyebrow: "ДАННЫЕ ДЛЯ ПРАВКИ",
+    manualTitle: "Авто из объявления",
+    brandLabel: "Марка",
+    modelLabel: "Модель",
+    fuelLabel: "Топливо",
+    pluginLabel: "Plugin",
+    bodyLabel: "Кузов",
+    yearFromLabel: "Год от",
+    yearToLabel: "Год до",
     actionsTitle: "Выбери путь покупки",
     footer: "Mobile.de → рабочие калькуляторы",
     emptyTitle: "—",
@@ -65,6 +87,10 @@ const copy = {
     inspection: "Осмотр netto",
     tariff: "Правило тарифа",
     warning: "Для VAT 23% проверь в объявлении, цена netto или brutto.",
+    selectEmpty: "Выбери",
+    pluginUnknown: "Не выбрано",
+    pluginYes: "Да",
+    pluginNo: "Нет",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Прямая покупка" },
       { key: "company", number: "02", tab: 3, title: "Дилеры VAT 23%" },
@@ -73,11 +99,86 @@ const copy = {
   },
 };
 
+const fallbackBrands = {
+  "Alfa Romeo": {},
+  Audi: {},
+  BMW: {},
+  Citroen: {},
+  Cupra: {},
+  Dacia: {},
+  DS: {},
+  Fiat: {},
+  Ford: {},
+  Hyundai: {},
+  Iveco: {},
+  Jaguar: {},
+  Jeep: {},
+  Kia: {},
+  "Land Rover": {},
+  Lexus: {},
+  "Mercedes-Benz": {},
+  "Mercedes Trucks": {},
+  "Mercedes Vans": {},
+  Mini: {},
+  Mitsubishi: {},
+  Nissan: {},
+  Opel: {},
+  Peugeot: {},
+  Porsche: {},
+  Renault: {},
+  Seat: {},
+  Skoda: {},
+  Smart: {},
+  Suzuki: {},
+  Toyota: {},
+  Volvo: {},
+  "Vw Nutzfahrzeuge": {},
+};
+
+const favoriteBrands = [
+  { value: "Audi", label: "Audi" },
+  { value: "BMW", label: "BMW" },
+  { value: "Ford", label: "Ford" },
+  { value: "Mercedes-Benz", label: "Mercedes-Benz" },
+  { value: "Peugeot", label: "Peugeot" },
+  { value: "Renault", label: "Renault" },
+  { value: "Toyota", label: "Toyota" },
+  { value: "Volvo", label: "Volvo" },
+  { value: "Vw Nutzfahrzeuge", label: "Volkswagen" },
+];
+
+const brandAliases = {
+  Citroen: ["Citroën"],
+  "Mercedes-Benz": ["Mercedes Benz", "Mercedes"],
+  "Vw Nutzfahrzeuge": ["Volkswagen", "VW", "Vw"],
+};
+
+const fuelOptions = [
+  { value: "petrol", pl: "Benzyna", ru: "Бензин" },
+  { value: "diesel", pl: "Diesel", ru: "Дизель" },
+  { value: "hybrid_diesel", pl: "Hybryda diesel", ru: "Гибрид дизель" },
+  { value: "hybrid_petrol", pl: "Hybryda benzyna", ru: "Гибрид бензин" },
+  { value: "electric", pl: "Elektryk", ru: "Электрик" },
+];
+
+const bodyOptions = [
+  { value: "limousine", pl: "Limousine / Sedan", ru: "Седан / Limousine" },
+  { value: "estate", pl: "Kombi", ru: "Универсал" },
+  { value: "suv", pl: "SUV / Terenowy", ru: "SUV / Внедорожник" },
+  { value: "hatchback", pl: "Hatchback", ru: "Хэтчбек" },
+  { value: "coupe", pl: "Coupe", ru: "Купе" },
+  { value: "cabrio", pl: "Cabrio", ru: "Кабрио" },
+  { value: "van_minibus", pl: "Van / Minibus", ru: "Van / Minibus" },
+  { value: "pickup", pl: "Pickup", ru: "Пикап" },
+  { value: "other", pl: "Inne", ru: "Другое" },
+];
+
 const state = {
   lang: new URLSearchParams(window.location.search).get("lang") === "ru" ? "ru" : "pl",
   data: null,
   status: "idle",
   error: "",
+  brandRoutes: fallbackBrands,
 };
 
 const els = {
@@ -90,6 +191,14 @@ const els = {
   title: document.querySelector("[data-mobile-title]"),
   price: document.querySelector("[data-mobile-price]"),
   scenarios: document.querySelector("[data-mobile-scenarios]"),
+  brand: document.querySelector("[data-mobile-brand]"),
+  model: document.querySelector("[data-mobile-model]"),
+  modelOptions: document.querySelector("[data-mobile-model-options]"),
+  fuel: document.querySelector("[data-mobile-fuel]"),
+  plugin: document.querySelector("[data-mobile-plugin]"),
+  body: document.querySelector("[data-mobile-body]"),
+  yearFrom: document.querySelector("[data-mobile-year-from]"),
+  yearTo: document.querySelector("[data-mobile-year-to]"),
 };
 
 function readMobileDeApiUrl() {
@@ -117,6 +226,19 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function optionHtml(value, label, selected = false) {
+  return `<option value="${escapeHtml(value)}"${selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
+}
+
+function normalizeToken(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function renderI18n() {
   const c = copy[state.lang];
   document.documentElement.lang = state.lang;
@@ -129,6 +251,7 @@ function renderI18n() {
   });
   const label = els.submit?.querySelector("span");
   if (label) label.textContent = state.status === "loading" ? c.loadingButton : c.loadButton;
+  renderManualOptions(false);
 }
 
 function detailRow(label, value) {
@@ -154,6 +277,173 @@ function purchaseTypeLabel(data) {
   if (/marża|marza|margin|marge|differenz/.test(normalized)) return "Marża";
   if (/vat|mwst|ust|tax|netto|deduct/.test(normalized)) return "VAT";
   return rawValue ? String(rawValue) : copy[state.lang].emptyValue;
+}
+
+function brandDisplayOptions() {
+  const favoriteValues = new Set(favoriteBrands.map((brand) => brand.value));
+  const favorites = favoriteBrands.filter((brand) => state.brandRoutes[brand.value]);
+  const regularBrands = Object.keys(state.brandRoutes)
+    .filter((brand) => !favoriteValues.has(brand))
+    .sort((left, right) => left.localeCompare(right, "pl"));
+  return [
+    ...favorites.map((brand) => ({ value: brand.value, label: `★ ${brand.label}` })),
+    ...regularBrands.map((brand) => ({ value: brand, label: brand })),
+  ];
+}
+
+function yearOptions() {
+  const currentYear = new Date().getFullYear() + 1;
+  const years = [];
+  for (let year = currentYear; year >= 1990; year -= 1) years.push(year);
+  return years;
+}
+
+function renderManualOptions(keepValues = true) {
+  const c = copy[state.lang];
+  const current = keepValues ? readManualFields() : {
+    brand: els.brand.value,
+    model: els.model.value,
+    fuel: els.fuel.value,
+    plugin: els.plugin.value,
+    body: els.body.value,
+    yearFrom: els.yearFrom.value,
+    yearTo: els.yearTo.value,
+  };
+
+  els.brand.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...brandDisplayOptions().map((brand) => optionHtml(brand.value, brand.label, brand.value === current.brand)),
+  ].join("");
+
+  els.fuel.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...fuelOptions.map((fuel) => optionHtml(fuel.value, fuel[state.lang], fuel.value === current.fuel)),
+  ].join("");
+
+  els.plugin.innerHTML = [
+    optionHtml("", c.pluginUnknown, current.plugin === ""),
+    optionHtml("yes", c.pluginYes, current.plugin === "yes"),
+    optionHtml("no", c.pluginNo, current.plugin === "no"),
+  ].join("");
+
+  els.body.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...bodyOptions.map((body) => optionHtml(body.value, body[state.lang], body.value === current.body)),
+  ].join("");
+
+  const years = yearOptions();
+  els.yearFrom.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...years.map((year) => optionHtml(String(year), String(year), String(year) === current.yearFrom)),
+  ].join("");
+  els.yearTo.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...years.map((year) => optionHtml(String(year), String(year), String(year) === current.yearTo)),
+  ].join("");
+
+  els.model.value = current.model || "";
+}
+
+function readManualFields() {
+  return {
+    brand: els.brand?.value || "",
+    model: els.model?.value || "",
+    fuel: els.fuel?.value || "",
+    plugin: els.plugin?.value || "",
+    body: els.body?.value || "",
+    yearFrom: els.yearFrom?.value || "",
+    yearTo: els.yearTo?.value || "",
+  };
+}
+
+function matchBrand(title) {
+  const normalizedTitle = normalizeToken(title);
+  const options = brandDisplayOptions().map((brand) => {
+    const aliases = [brand.value, brand.label.replace(/^★\s*/, ""), ...(brandAliases[brand.value] || [])];
+    const score = aliases.some((alias) => normalizedTitle.startsWith(normalizeToken(alias)))
+      ? Math.max(...aliases.map((alias) => normalizeToken(alias).length))
+      : 0;
+    return { value: brand.value, score, aliases };
+  }).filter((brand) => brand.score > 0);
+
+  options.sort((left, right) => right.score - left.score);
+  return options[0] || null;
+}
+
+function extractModel(title, brandMatch) {
+  let model = String(title || "").trim();
+  if (!model || !brandMatch) return model;
+  const aliases = [brandMatch.value, ...(brandAliases[brandMatch.value] || [])]
+    .sort((left, right) => right.length - left.length);
+  for (const alias of aliases) {
+    const pattern = new RegExp(`^${alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+`, "i");
+    if (pattern.test(model)) {
+      model = model.replace(pattern, "").trim();
+      break;
+    }
+  }
+  return model.replace(/\s{2,}/g, " ");
+}
+
+function normalizeFuel(value, title = "") {
+  const normalized = normalizeToken(`${value} ${title}`);
+  const hasPlugin = /plug in|plugin|phev/.test(normalized);
+  const hasHybrid = /hybrid|hybryd|hev|phev/.test(normalized);
+  if (/electric|elektro|elektryk|bev/.test(normalized)) return "electric";
+  if (/diesel|olej napedowy/.test(normalized) && hasHybrid) return "hybrid_diesel";
+  if (/(petrol|benzin|benzyna|gasoline)/.test(normalized) && hasHybrid) return "hybrid_petrol";
+  if (/diesel|olej napedowy/.test(normalized)) return "diesel";
+  if (/petrol|benzin|benzyna|gasoline/.test(normalized)) return "petrol";
+  return "";
+}
+
+function normalizePlugin(value, title = "") {
+  const normalized = normalizeToken(`${value} ${title}`);
+  return /plug in|plugin|phev/.test(normalized) ? "yes" : "";
+}
+
+function normalizeBody(value) {
+  const normalized = normalizeToken(value);
+  if (/kombi|estate|touring|avant|variant|wagon/.test(normalized)) return "estate";
+  if (/suv|teren|off road|offroad|gelande/.test(normalized)) return "suv";
+  if (/hatch|compact|small car|kleinwagen/.test(normalized)) return "hatchback";
+  if (/coupe|coup/.test(normalized)) return "coupe";
+  if (/cabrio|convertible|roadster/.test(normalized)) return "cabrio";
+  if (/van|minibus|bus|mpv/.test(normalized)) return "van_minibus";
+  if (/pickup|pick up/.test(normalized)) return "pickup";
+  if (/limousine|sedan|saloon/.test(normalized)) return "limousine";
+  return value ? "other" : "";
+}
+
+function registrationYear(value) {
+  const match = String(value || "").match(/\b(19\d{2}|20\d{2})\b/);
+  return match ? match[1] : "";
+}
+
+function applyRecognizedManualFields(data) {
+  const title = data?.title || "";
+  const brandMatch = matchBrand(title);
+  const model = extractModel(title, brandMatch);
+  const year = registrationYear(data?.firstRegistration);
+  const next = {
+    brand: brandMatch?.value || "",
+    model,
+    fuel: normalizeFuel(data?.fuel, title),
+    plugin: normalizePlugin(data?.fuel, title),
+    body: normalizeBody(data?.bodyType),
+    yearFrom: year,
+    yearTo: year,
+  };
+
+  els.brand.value = next.brand;
+  els.model.value = next.model;
+  els.fuel.value = next.fuel;
+  els.plugin.value = next.plugin;
+  els.body.value = next.body;
+  els.yearFrom.value = next.yearFrom;
+  els.yearTo.value = next.yearTo;
+
+  els.modelOptions.innerHTML = next.model ? optionHtml(next.model, next.model) : "";
 }
 
 function calculatorUrl(scenario) {
@@ -250,6 +540,7 @@ async function loadMobileDeData(sourceUrl) {
     }
     state.data = await response.json();
     setStatus("ready");
+    applyRecognizedManualFields(state.data);
     renderData();
   } catch (error) {
     setStatus("error", error.message || "");
@@ -279,8 +570,17 @@ if (initialUrl) {
   els.url.value = initialUrl;
 }
 
+renderManualOptions(false);
 renderI18n();
 renderData();
+
+fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
+  .then((response) => response.ok ? response.json() : Promise.reject())
+  .then((data) => {
+    state.brandRoutes = data.brands || fallbackBrands;
+    renderManualOptions(true);
+  })
+  .catch(() => renderManualOptions(true));
 
 if (initialUrl) {
   loadMobileDeData(initialUrl);
