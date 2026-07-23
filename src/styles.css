@@ -2045,7 +2045,7 @@ body {
   font-weight: 800;
   color: var(--ag-blue-700);
   /* widen the U+00A0 thousands separator at display size */
-  word-spacing: 0.22em;
+  word-spacing: 0.1em;
 }
 
 /* single-line primary heading only where there is room for it */
@@ -2061,7 +2061,8 @@ body {
   margin-top: var(--fib-13);
   background: var(--ag-blue-700);
   border-radius: var(--radius-xl);
-  padding: 20px 24px;
+  /* tighter right padding so the total sits closer to the amounts column above */
+  padding: 20px 14px 20px 24px;
   gap: var(--fib-21);
 }
 
@@ -2081,14 +2082,14 @@ body {
 
 .totalBarValue {
   font-size: clamp(30px, 3.4vw, 38px);
-  word-spacing: 0.22em;
+  word-spacing: 0.1em;
 }
 
 .totalBarEur {
   font-size: 26px;
   font-weight: 700;
   opacity: 0.92;
-  word-spacing: 0.18em;
+  word-spacing: 0.08em;
 }
 
 .totalBarRate {
