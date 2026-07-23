@@ -323,13 +323,9 @@ button {
   margin-top: var(--space-lg);
 }
 
-.mobileManualPanel {
-  margin-top: var(--space-lg);
-}
-
 .mobileManualGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
   padding-top: var(--space-md);
 }
@@ -346,7 +342,7 @@ button {
   font-weight: 700;
 }
 
-.mobileField input,
+.mobileField input:not([type="checkbox"]),
 .mobileField select {
   width: 100%;
   min-width: 0;
@@ -361,6 +357,35 @@ button {
   font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
   transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.mobileCheckboxField {
+  align-content: end;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: var(--space-sm);
+  min-height: 68px;
+}
+
+.mobileCheckboxField input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.mobileSourceBlock {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileSourceBlock p {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
 }
 
 .mobileActionsHead {
@@ -463,7 +488,8 @@ button {
 .mobileGhostLink:focus-visible,
 .mobileLang button:focus-visible,
 .mobileSearchControl input:focus-visible,
-.mobileField input:focus-visible,
+.mobileField input:not([type="checkbox"]):focus-visible,
+.mobileCheckboxField input:focus-visible,
 .mobileField select:focus-visible,
 .mobileSearchControl button:focus-visible,
 .mobileScenarioCard:focus-visible {
@@ -486,7 +512,7 @@ button {
     background: var(--color-surface-tint);
   }
 
-  .mobileField input:hover,
+  .mobileField input:not([type="checkbox"]):hover,
   .mobileField select:hover {
     background: var(--color-surface-tint);
   }
@@ -515,9 +541,6 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .mobileManualGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 40rem) {

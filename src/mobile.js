@@ -13,15 +13,16 @@ const copy = {
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     calcEyebrow: "KWOTY DO KALKULATORA",
-    manualEyebrow: "DANE DO KOREKTY",
-    manualTitle: "Auto z ogłoszenia",
     brandLabel: "Marka",
     modelLabel: "Model",
     fuelLabel: "Paliwo",
-    pluginLabel: "Plugin",
+    pluginLabel: "Plug-in",
     bodyLabel: "Nadwozie",
-    yearFromLabel: "Rok od",
-    yearToLabel: "Rok do",
+    mileageFromLabel: "Przebieg od",
+    mileageToLabel: "Przebieg do",
+    registrationFromLabel: "Pierwsza rejestracja od",
+    registrationToLabel: "Pierwsza rejestracja do",
+    sourceEyebrow: "SPRZEDAWCA",
     actionsTitle: "Wybierz ścieżkę zakupu",
     footer: "Mobile.de → kalkulatory operacyjne",
     emptyTitle: "—",
@@ -40,9 +41,6 @@ const copy = {
     tariff: "Reguła taryfy",
     warning: "Dla VAT 23% sprawdź w ogłoszeniu, czy cena jest netto czy brutto.",
     selectEmpty: "Wybierz",
-    pluginUnknown: "Nie wybrano",
-    pluginYes: "Tak",
-    pluginNo: "Nie",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
       { key: "company", number: "02", tab: 3, title: "Dealerzy VAT 23%" },
@@ -61,15 +59,16 @@ const copy = {
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     calcEyebrow: "СУММЫ ДЛЯ КАЛЬКУЛЯТОРА",
-    manualEyebrow: "ДАННЫЕ ДЛЯ ПРАВКИ",
-    manualTitle: "Авто из объявления",
     brandLabel: "Марка",
     modelLabel: "Модель",
     fuelLabel: "Топливо",
-    pluginLabel: "Plugin",
+    pluginLabel: "Plug-in",
     bodyLabel: "Кузов",
-    yearFromLabel: "Год от",
-    yearToLabel: "Год до",
+    mileageFromLabel: "Пробег от",
+    mileageToLabel: "Пробег до",
+    registrationFromLabel: "Pierwsza rejestracja от",
+    registrationToLabel: "Pierwsza rejestracja до",
+    sourceEyebrow: "ПРОДАВЕЦ",
     actionsTitle: "Выбери путь покупки",
     footer: "Mobile.de → рабочие калькуляторы",
     emptyTitle: "—",
@@ -88,9 +87,6 @@ const copy = {
     tariff: "Правило тарифа",
     warning: "Для VAT 23% проверь в объявлении, цена netto или brutto.",
     selectEmpty: "Выбери",
-    pluginUnknown: "Не выбрано",
-    pluginYes: "Да",
-    pluginNo: "Нет",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Прямая покупка" },
       { key: "company", number: "02", tab: 3, title: "Дилеры VAT 23%" },
@@ -186,7 +182,7 @@ const els = {
   url: document.querySelector("[data-mobile-url]"),
   submit: document.querySelector("[data-mobile-submit]"),
   status: document.querySelector("[data-mobile-status]"),
-  details: document.querySelector("[data-mobile-details]"),
+  source: document.querySelector("[data-mobile-source]"),
   money: document.querySelector("[data-mobile-money]"),
   title: document.querySelector("[data-mobile-title]"),
   price: document.querySelector("[data-mobile-price]"),
@@ -197,6 +193,8 @@ const els = {
   fuel: document.querySelector("[data-mobile-fuel]"),
   plugin: document.querySelector("[data-mobile-plugin]"),
   body: document.querySelector("[data-mobile-body]"),
+  mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
+  mileageTo: document.querySelector("[data-mobile-mileage-to]"),
   yearFrom: document.querySelector("[data-mobile-year-from]"),
   yearTo: document.querySelector("[data-mobile-year-to]"),
 };
@@ -298,14 +296,31 @@ function yearOptions() {
   return years;
 }
 
+function mileageOptions() {
+  const values = [];
+  for (let value = 0; value <= 500000; value += 10000) values.push(value);
+  return values;
+}
+
+function mileageBucket(value, mode) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0) return "";
+  const bucket = mode === "to"
+    ? Math.ceil(amount / 10000) * 10000
+    : Math.floor(amount / 10000) * 10000;
+  return String(Math.min(Math.max(bucket, 0), 500000));
+}
+
 function renderManualOptions(keepValues = true) {
   const c = copy[state.lang];
   const current = keepValues ? readManualFields() : {
     brand: els.brand.value,
     model: els.model.value,
     fuel: els.fuel.value,
-    plugin: els.plugin.value,
+    plugin: els.plugin.checked ? "yes" : "",
     body: els.body.value,
+    mileageFrom: els.mileageFrom.value,
+    mileageTo: els.mileageTo.value,
     yearFrom: els.yearFrom.value,
     yearTo: els.yearTo.value,
   };
@@ -320,11 +335,7 @@ function renderManualOptions(keepValues = true) {
     ...fuelOptions.map((fuel) => optionHtml(fuel.value, fuel[state.lang], fuel.value === current.fuel)),
   ].join("");
 
-  els.plugin.innerHTML = [
-    optionHtml("", c.pluginUnknown, current.plugin === ""),
-    optionHtml("yes", c.pluginYes, current.plugin === "yes"),
-    optionHtml("no", c.pluginNo, current.plugin === "no"),
-  ].join("");
+  els.plugin.checked = current.plugin === "yes";
 
   els.body.innerHTML = [
     optionHtml("", c.selectEmpty),
@@ -332,6 +343,15 @@ function renderManualOptions(keepValues = true) {
   ].join("");
 
   const years = yearOptions();
+  const mileages = mileageOptions();
+  els.mileageFrom.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...mileages.map((value) => optionHtml(String(value), `${value.toLocaleString("pl-PL")} km`, String(value) === current.mileageFrom)),
+  ].join("");
+  els.mileageTo.innerHTML = [
+    optionHtml("", c.selectEmpty),
+    ...mileages.map((value) => optionHtml(String(value), `${value.toLocaleString("pl-PL")} km`, String(value) === current.mileageTo)),
+  ].join("");
   els.yearFrom.innerHTML = [
     optionHtml("", c.selectEmpty),
     ...years.map((year) => optionHtml(String(year), String(year), String(year) === current.yearFrom)),
@@ -349,8 +369,10 @@ function readManualFields() {
     brand: els.brand?.value || "",
     model: els.model?.value || "",
     fuel: els.fuel?.value || "",
-    plugin: els.plugin?.value || "",
+    plugin: els.plugin?.checked ? "yes" : "",
     body: els.body?.value || "",
+    mileageFrom: els.mileageFrom?.value || "",
+    mileageTo: els.mileageTo?.value || "",
     yearFrom: els.yearFrom?.value || "",
     yearTo: els.yearTo?.value || "",
   };
@@ -431,6 +453,8 @@ function applyRecognizedManualFields(data) {
     fuel: normalizeFuel(data?.fuel, title),
     plugin: normalizePlugin(data?.fuel, title),
     body: normalizeBody(data?.bodyType),
+    mileageFrom: mileageBucket(data?.mileageKm, "from"),
+    mileageTo: mileageBucket(data?.mileageKm, "to"),
     yearFrom: year,
     yearTo: year,
   };
@@ -438,8 +462,10 @@ function applyRecognizedManualFields(data) {
   els.brand.value = next.brand;
   els.model.value = next.model;
   els.fuel.value = next.fuel;
-  els.plugin.value = next.plugin;
+  els.plugin.checked = next.plugin === "yes";
   els.body.value = next.body;
+  els.mileageFrom.value = next.mileageFrom;
+  els.mileageTo.value = next.mileageTo;
   els.yearFrom.value = next.yearFrom;
   els.yearTo.value = next.yearTo;
 
@@ -487,20 +513,15 @@ function renderData() {
 
   els.title.textContent = title;
   els.price.textContent = formatAmount(data.carBruttoEur, "EUR");
-  els.details.innerHTML = [
-    detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
-    detailRow(c.purchaseType, purchaseTypeLabel(data)),
-    detailRow(c.fuel, text(data.fuel)),
-    detailRow(c.engine, text(data.engineTypeLabel)),
-    detailRow(c.body, text(data.bodyType)),
-    detailRow(c.mileage, data.mileageKm ? `${Number(data.mileageKm).toLocaleString("pl-PL")} km` : c.emptyValue),
-    detailRow(c.registration, text(data.firstRegistration)),
+  els.source.innerHTML = [
     detailRow(c.location, text(location.address || location.city)),
     detailRow(c.seller, text(location.sellerName)),
   ].join("");
 
   els.money.innerHTML = [
     moneyRow(c.price, formatAmount(data.carBruttoEur, "EUR"), true),
+    moneyRow(c.purchaseType, purchaseTypeLabel(data)),
+    moneyRow(c.engine, text(data.engineTypeLabel)),
     moneyRow(c.delivery, formatAmount(data.transportNettoPln ?? estimate.transport, "PLN")),
     moneyRow(c.inspection, formatAmount(data.inspectionNettoPln ?? estimate.inspection, "PLN")),
     moneyRow(c.tariff, text(estimate.rule)),

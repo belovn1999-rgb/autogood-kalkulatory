@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=mobile-manual-fields-20260723" />
+    <link rel="stylesheet" href="./src/mobile.css?v=mobile-merged-fields-20260723" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -64,7 +64,45 @@
             <p data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</p>
             <strong data-mobile-title>—</strong>
           </div>
-          <dl class="mobileDataGrid" data-mobile-details></dl>
+          <div class="mobileManualGrid">
+            <label class="mobileField">
+              <span data-i18n="brandLabel">Marka</span>
+              <select data-mobile-brand></select>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="modelLabel">Model</span>
+              <input data-mobile-model list="mobile-model-options" type="text" autocomplete="off" />
+              <datalist id="mobile-model-options" data-mobile-model-options></datalist>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="fuelLabel">Paliwo</span>
+              <select data-mobile-fuel></select>
+            </label>
+            <label class="mobileField mobileCheckboxField">
+              <input data-mobile-plugin type="checkbox" />
+              <span data-i18n="pluginLabel">Plug-in</span>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="bodyLabel">Nadwozie</span>
+              <select data-mobile-body></select>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="mileageFromLabel">Przebieg od</span>
+              <select data-mobile-mileage-from></select>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="mileageToLabel">Przebieg do</span>
+              <select data-mobile-mileage-to></select>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="registrationFromLabel">Pierwsza rejestracja od</span>
+              <select data-mobile-year-from></select>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="registrationToLabel">Pierwsza rejestracja do</span>
+              <select data-mobile-year-to></select>
+            </label>
+          </div>
         </article>
 
         <article class="mobilePanel mobileCalcPanel">
@@ -73,45 +111,11 @@
             <strong data-mobile-price>—</strong>
           </div>
           <div class="mobileMoneyRows" data-mobile-money></div>
+          <div class="mobileSourceBlock">
+            <p data-i18n="sourceEyebrow">SPRZEDAWCA</p>
+            <dl class="mobileDataGrid" data-mobile-source></dl>
+          </div>
         </article>
-      </section>
-
-      <section class="mobilePanel mobileManualPanel" aria-label="Dane auta do korekty">
-        <div class="mobilePanelHead">
-          <p data-i18n="manualEyebrow">DANE DO KOREKTY</p>
-          <strong data-i18n="manualTitle">Auto z ogłoszenia</strong>
-        </div>
-        <div class="mobileManualGrid">
-          <label class="mobileField">
-            <span data-i18n="brandLabel">Marka</span>
-            <select data-mobile-brand></select>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="modelLabel">Model</span>
-            <input data-mobile-model list="mobile-model-options" type="text" autocomplete="off" />
-            <datalist id="mobile-model-options" data-mobile-model-options></datalist>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="fuelLabel">Paliwo</span>
-            <select data-mobile-fuel></select>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="pluginLabel">Plugin</span>
-            <select data-mobile-plugin></select>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="bodyLabel">Nadwozie</span>
-            <select data-mobile-body></select>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="yearFromLabel">Rok od</span>
-            <select data-mobile-year-from></select>
-          </label>
-          <label class="mobileField">
-            <span data-i18n="yearToLabel">Rok do</span>
-            <select data-mobile-year-to></select>
-          </label>
-        </div>
       </section>
 
       <section class="mobileActions" aria-label="Scenariusze zakupu">
@@ -126,6 +130,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=mobile-manual-fields-20260723"></script>
+    <script src="./src/mobile.js?v=mobile-merged-fields-20260723"></script>
   </body>
 </html>
