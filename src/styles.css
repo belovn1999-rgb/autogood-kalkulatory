@@ -2007,13 +2007,15 @@ body {
   grid-template-columns: 24px minmax(0, 1fr) auto auto auto;
   gap: 4px 14px;
   min-height: 0;
-  padding: 15px 0;
+  /* right inset matches the Razem bar's inner padding so every amount on the
+     card — rows, primary line and the total — ends on one vertical line */
+  padding: 15px 14px 15px 0;
   border-bottom: 1px solid var(--ag-line-150);
 }
 
 .resultLine.isPrimaryLine {
   min-height: 0;
-  padding: 21px 0;
+  padding: 21px 14px 21px 0;
   border-bottom: 2px solid var(--ag-primary-line);
 }
 
