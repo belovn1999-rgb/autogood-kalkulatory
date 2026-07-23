@@ -272,6 +272,10 @@ button {
   overflow-wrap: anywhere;
 }
 
+.mobileManualPanel .mobilePanelHead {
+  min-height: 0;
+}
+
 .mobileDataGrid,
 .mobileMoneyRows {
   display: grid;
@@ -501,6 +505,22 @@ button {
 
 .mobileListingDetails {
   padding-top: var(--space-md);
+}
+
+.mobileCalculatorDataBlock {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: var(--rule-thick) solid var(--color-rule-soft);
+}
+
+.mobileCalculatorDataBlock p {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-soft);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .mobileCheckboxField input {

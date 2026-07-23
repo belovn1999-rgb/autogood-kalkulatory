@@ -13,7 +13,7 @@ const copy = {
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     manualEyebrow: "WPISZ DANE RĘCZNIE",
-    manualTitle: "Wpisz dane ręcznie",
+    calculatorDataEyebrow: "DANE DO KALKULATORA",
     brandLabel: "Marka",
     modelLabel: "Model",
     fuelLabel: "Paliwo",
@@ -74,7 +74,7 @@ const copy = {
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
-    manualTitle: "Ввести данные вручную",
+    calculatorDataEyebrow: "ДАННЫЕ ДЛЯ КАЛЬКУЛЯТОРА",
     brandLabel: "Марка",
     modelLabel: "Модель",
     fuelLabel: "Топливо",
@@ -651,7 +651,7 @@ function renderData() {
   const powerValue = data.powerHp ?? data.horsepower ?? data.powerPs;
 
   els.title.textContent = title;
-  els.listingDetails.innerHTML = [
+  const listingRows = [
     detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
     detailRow(c.purchaseType, purchaseTypeLabel(data)),
     detailRow(c.fuel, text(data.fuel)),
@@ -661,6 +661,8 @@ function renderData() {
     detailRow(c.displacement, formatNumberWithUnit(data.displacementCcm, "ccm")),
     detailRow(c.power, formatNumberWithUnit(powerValue, "KM")),
     detailRow(c.gearbox, listingGearboxLabel(data.gearbox)),
+  ].join("");
+  const calculatorRows = [
     detailRow(c.engine, text(data.engineTypeLabel)),
     detailRow(c.delivery, formatAmount(data.transportNettoPln ?? estimate.transport, "PLN")),
     detailRow(c.inspection, formatAmount(data.inspectionNettoPln ?? estimate.inspection, "PLN")),
@@ -669,6 +671,13 @@ function renderData() {
     detailRow(c.seller, text(location.sellerName)),
     detailRow(c.warning, state.data ? "VAT 23%" : c.emptyValue),
   ].join("");
+  els.listingDetails.innerHTML = `
+    <dl class="mobileDataGrid">${listingRows}</dl>
+    <section class="mobileCalculatorDataBlock">
+      <p>${escapeHtml(c.calculatorDataEyebrow)}</p>
+      <dl class="mobileDataGrid">${calculatorRows}</dl>
+    </section>
+  `;
 
   renderScenarios();
 }
