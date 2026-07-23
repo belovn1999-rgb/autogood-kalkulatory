@@ -336,13 +336,14 @@ button {
   min-width: 0;
 }
 
-.mobileField span {
+.mobileField span,
+.mobileChoiceField legend {
   color: var(--color-soft);
   font-size: var(--text-sm);
   font-weight: 700;
 }
 
-.mobileField input:not([type="checkbox"]),
+.mobileField input:not([type="checkbox"]):not([type="radio"]),
 .mobileField select {
   width: 100%;
   min-width: 0;
@@ -357,6 +358,139 @@ button {
   font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
   transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.mobileWideField {
+  grid-column: 1 / -1;
+}
+
+.mobileRangeField {
+  min-width: 0;
+}
+
+.mobileRangePair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.mobileComboControl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 34px;
+  align-items: center;
+  min-width: 0;
+  min-height: 42px;
+  overflow: hidden;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.mobileComboControl input {
+  min-width: 0;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  outline: 0;
+  padding: 0 var(--space-sm);
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileComboControl input::placeholder {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.mobileComboControl em {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mobileComboControl i {
+  position: relative;
+  width: 34px;
+  height: 40px;
+  border-left: var(--rule-thin) solid var(--color-field);
+  background: var(--color-surface-tint);
+}
+
+.mobileComboControl i::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--color-ink);
+  transform: translate(-50%, -35%);
+}
+
+.mobileChoiceField {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mobileChoiceField legend {
+  display: block;
+  margin: 0 0 var(--space-xs);
+  padding: 0;
+}
+
+.mobileChoiceGroup {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.mobileChoiceGroupTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 420px;
+}
+
+.mobileChoiceOption {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  min-height: 42px;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 0 var(--space-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.mobileChoiceOption input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.mobileChoiceOption span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileChoiceOption:has(input:checked) {
+  border-color: var(--color-brand);
+  background: var(--color-surface-tint);
 }
 
 .mobileCheckboxField {
@@ -488,8 +622,9 @@ button {
 .mobileGhostLink:focus-visible,
 .mobileLang button:focus-visible,
 .mobileSearchControl input:focus-visible,
-.mobileField input:not([type="checkbox"]):focus-visible,
+.mobileField input:not([type="checkbox"]):not([type="radio"]):focus-visible,
 .mobileCheckboxField input:focus-visible,
+.mobileChoiceOption:focus-within,
 .mobileField select:focus-visible,
 .mobileSearchControl button:focus-visible,
 .mobileScenarioCard:focus-visible {
@@ -512,7 +647,9 @@ button {
     background: var(--color-surface-tint);
   }
 
-  .mobileField input:not([type="checkbox"]):hover,
+  .mobileField input:not([type="checkbox"]):not([type="radio"]):hover,
+  .mobileComboControl:hover,
+  .mobileChoiceOption:hover,
   .mobileField select:hover {
     background: var(--color-surface-tint);
   }
@@ -579,6 +716,15 @@ button {
 
   .mobileManualGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileChoiceGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobileChoiceGroupTwo {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
   }
 }
 

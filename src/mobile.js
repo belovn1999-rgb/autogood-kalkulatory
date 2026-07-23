@@ -18,8 +18,20 @@ const copy = {
     fuelLabel: "Paliwo",
     pluginLabel: "Plug-in",
     bodyLabel: "Nadwozie",
-    mileageFromLabel: "Przebieg od",
-    mileageToLabel: "Przebieg do",
+    mileageRangeLabel: "Przebieg",
+    yearRangeLabel: "Rok",
+    displacementRangeLabel: "Pojemność silnika",
+    powerRangeLabel: "Moc silnika (KM)",
+    driveLabel: "Napęd",
+    driveAny: "Dowolny",
+    driveAwd: "AWD",
+    driveFwd: "FWD",
+    driveRwd: "RWD",
+    gearboxLabel: "Skrzynia biegów",
+    gearboxAutomatic: "Automatyczna",
+    gearboxManual: "Manualna",
+    fromPlaceholder: "od",
+    toPlaceholder: "do",
     sourceEyebrow: "SPRZEDAWCA",
     actionsTitle: "Wybierz ścieżkę zakupu",
     footer: "Mobile.de → kalkulatory operacyjne",
@@ -62,8 +74,20 @@ const copy = {
     fuelLabel: "Топливо",
     pluginLabel: "Plug-in",
     bodyLabel: "Кузов",
-    mileageFromLabel: "Пробег от",
-    mileageToLabel: "Пробег до",
+    mileageRangeLabel: "Пробег",
+    yearRangeLabel: "Год",
+    displacementRangeLabel: "Объём двигателя",
+    powerRangeLabel: "Мощность двигателя (л.с.)",
+    driveLabel: "Привод",
+    driveAny: "Любой",
+    driveAwd: "Полный",
+    driveFwd: "Передний",
+    driveRwd: "Задний",
+    gearboxLabel: "Коробка передач",
+    gearboxAutomatic: "Автоматическая",
+    gearboxManual: "Механическая",
+    fromPlaceholder: "от",
+    toPlaceholder: "до",
     sourceEyebrow: "ПРОДАВЕЦ",
     actionsTitle: "Выбери путь покупки",
     footer: "Mobile.de → рабочие калькуляторы",
@@ -165,6 +189,9 @@ const bodyOptions = [
   { value: "other", pl: "Inne", ru: "Другое" },
 ];
 
+const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
+const powerOptions = ["75", "90", "101", "118", "131", "150", "200", "252", "303", "358", "402", "452"];
+
 const state = {
   lang: new URLSearchParams(window.location.search).get("lang") === "ru" ? "ru" : "pl",
   data: null,
@@ -191,6 +218,18 @@ const els = {
   body: document.querySelector("[data-mobile-body]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
   mileageTo: document.querySelector("[data-mobile-mileage-to]"),
+  mileageOptions: document.querySelector("[data-mobile-mileage-options]"),
+  yearFrom: document.querySelector("[data-mobile-year-from]"),
+  yearTo: document.querySelector("[data-mobile-year-to]"),
+  yearOptions: document.querySelector("[data-mobile-year-options]"),
+  displacementFrom: document.querySelector("[data-mobile-displacement-from]"),
+  displacementTo: document.querySelector("[data-mobile-displacement-to]"),
+  displacementOptions: document.querySelector("[data-mobile-displacement-options]"),
+  powerFrom: document.querySelector("[data-mobile-power-from]"),
+  powerTo: document.querySelector("[data-mobile-power-to]"),
+  powerOptions: document.querySelector("[data-mobile-power-options]"),
+  drive: Array.from(document.querySelectorAll("[data-mobile-drive]")),
+  gearbox: Array.from(document.querySelectorAll("[data-mobile-gearbox]")),
 };
 
 function readMobileDeApiUrl() {
@@ -222,6 +261,10 @@ function optionHtml(value, label, selected = false) {
   return `<option value="${escapeHtml(value)}"${selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
 }
 
+function datalistOptionHtml(value) {
+  return `<option value="${escapeHtml(value)}"></option>`;
+}
+
 function normalizeToken(value) {
   return String(value || "")
     .toLowerCase()
@@ -243,6 +286,7 @@ function renderI18n() {
   });
   const label = els.submit?.querySelector("span");
   if (label) label.textContent = state.status === "loading" ? c.loadingButton : c.loadButton;
+  setRangePlaceholders();
   renderManualOptions(false);
 }
 
@@ -289,6 +333,44 @@ function mileageOptions() {
   return values;
 }
 
+function yearOptions() {
+  const currentYear = new Date().getFullYear();
+  const values = [];
+  for (let year = currentYear + 1; year >= 1990; year -= 1) values.push(String(year));
+  return values;
+}
+
+function renderDatalist(el, values) {
+  if (!el) return;
+  el.innerHTML = values.map((value) => datalistOptionHtml(String(value))).join("");
+}
+
+function checkedValue(radios) {
+  return radios.find((radio) => radio.checked)?.value || "";
+}
+
+function setCheckedValue(radios, value) {
+  radios.forEach((radio) => {
+    radio.checked = radio.value === value;
+  });
+}
+
+function setRangePlaceholders() {
+  const c = copy[state.lang];
+  [
+    [els.mileageFrom, c.fromPlaceholder],
+    [els.yearFrom, c.fromPlaceholder],
+    [els.displacementFrom, c.fromPlaceholder],
+    [els.powerFrom, c.fromPlaceholder],
+    [els.mileageTo, c.toPlaceholder],
+    [els.yearTo, c.toPlaceholder],
+    [els.displacementTo, c.toPlaceholder],
+    [els.powerTo, c.toPlaceholder],
+  ].forEach(([input, placeholder]) => {
+    if (input) input.placeholder = placeholder;
+  });
+}
+
 function mileageBucket(value, mode) {
   const amount = Number(value);
   if (!Number.isFinite(amount) || amount < 0) return "";
@@ -296,6 +378,16 @@ function mileageBucket(value, mode) {
     ? Math.ceil(amount / 10000) * 10000
     : Math.floor(amount / 10000) * 10000;
   return String(Math.min(Math.max(bucket, 0), 500000));
+}
+
+function extractYear(value) {
+  const match = String(value || "").match(/\b(19\d{2}|20\d{2})\b/);
+  return match ? match[1] : "";
+}
+
+function compactNumber(value) {
+  const match = String(value || "").replace(/\s+/g, "").match(/\d+/);
+  return match ? match[0] : "";
 }
 
 function renderManualOptions(keepValues = true) {
@@ -308,6 +400,14 @@ function renderManualOptions(keepValues = true) {
     body: els.body.value,
     mileageFrom: els.mileageFrom.value,
     mileageTo: els.mileageTo.value,
+    yearFrom: els.yearFrom.value,
+    yearTo: els.yearTo.value,
+    displacementFrom: els.displacementFrom.value,
+    displacementTo: els.displacementTo.value,
+    powerFrom: els.powerFrom.value,
+    powerTo: els.powerTo.value,
+    drive: checkedValue(els.drive) || "any",
+    gearbox: checkedValue(els.gearbox),
   };
 
   els.brand.innerHTML = [
@@ -327,16 +427,21 @@ function renderManualOptions(keepValues = true) {
     ...bodyOptions.map((body) => optionHtml(body.value, body[state.lang], body.value === current.body)),
   ].join("");
 
-  const mileages = mileageOptions();
-  els.mileageFrom.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...mileages.map((value) => optionHtml(String(value), `${value.toLocaleString("pl-PL")} km`, String(value) === current.mileageFrom)),
-  ].join("");
-  els.mileageTo.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...mileages.map((value) => optionHtml(String(value), `${value.toLocaleString("pl-PL")} km`, String(value) === current.mileageTo)),
-  ].join("");
   els.model.value = current.model || "";
+  renderDatalist(els.mileageOptions, mileageOptions());
+  renderDatalist(els.yearOptions, yearOptions());
+  renderDatalist(els.displacementOptions, displacementOptions);
+  renderDatalist(els.powerOptions, powerOptions);
+  els.mileageFrom.value = current.mileageFrom || "";
+  els.mileageTo.value = current.mileageTo || "";
+  els.yearFrom.value = current.yearFrom || "";
+  els.yearTo.value = current.yearTo || "";
+  els.displacementFrom.value = current.displacementFrom || "";
+  els.displacementTo.value = current.displacementTo || "";
+  els.powerFrom.value = current.powerFrom || "";
+  els.powerTo.value = current.powerTo || "";
+  setCheckedValue(els.drive, current.drive || "any");
+  setCheckedValue(els.gearbox, current.gearbox || "");
 }
 
 function readManualFields() {
@@ -348,6 +453,14 @@ function readManualFields() {
     body: els.body?.value || "",
     mileageFrom: els.mileageFrom?.value || "",
     mileageTo: els.mileageTo?.value || "",
+    yearFrom: els.yearFrom?.value || "",
+    yearTo: els.yearTo?.value || "",
+    displacementFrom: els.displacementFrom?.value || "",
+    displacementTo: els.displacementTo?.value || "",
+    powerFrom: els.powerFrom?.value || "",
+    powerTo: els.powerTo?.value || "",
+    drive: checkedValue(els.drive),
+    gearbox: checkedValue(els.gearbox),
   };
 }
 
@@ -414,6 +527,9 @@ function applyRecognizedManualFields(data) {
   const title = data?.title || "";
   const brandMatch = matchBrand(title);
   const model = extractModel(title, brandMatch);
+  const registrationYear = extractYear(data?.firstRegistration);
+  const displacementCcm = compactNumber(data?.displacementCcm);
+  const powerHp = compactNumber(data?.powerHp ?? data?.horsepower ?? data?.powerPs);
   const next = {
     brand: brandMatch?.value || "",
     model,
@@ -422,6 +538,12 @@ function applyRecognizedManualFields(data) {
     body: normalizeBody(data?.bodyType),
     mileageFrom: mileageBucket(data?.mileageKm, "from"),
     mileageTo: mileageBucket(data?.mileageKm, "to"),
+    yearFrom: registrationYear,
+    yearTo: registrationYear,
+    displacementFrom: displacementCcm,
+    displacementTo: displacementCcm,
+    powerFrom: powerHp,
+    powerTo: powerHp,
   };
 
   els.brand.value = next.brand;
@@ -431,6 +553,14 @@ function applyRecognizedManualFields(data) {
   els.body.value = next.body;
   els.mileageFrom.value = next.mileageFrom;
   els.mileageTo.value = next.mileageTo;
+  els.yearFrom.value = next.yearFrom;
+  els.yearTo.value = next.yearTo;
+  els.displacementFrom.value = next.displacementFrom;
+  els.displacementTo.value = next.displacementTo;
+  els.powerFrom.value = next.powerFrom;
+  els.powerTo.value = next.powerTo;
+  setCheckedValue(els.drive, "any");
+  setCheckedValue(els.gearbox, "");
 
   els.modelOptions.innerHTML = next.model ? optionHtml(next.model, next.model) : "";
 }

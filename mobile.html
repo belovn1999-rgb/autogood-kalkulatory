@@ -86,14 +86,104 @@
               <span data-i18n="bodyLabel">Nadwozie</span>
               <select data-mobile-body></select>
             </label>
-            <label class="mobileField">
-              <span data-i18n="mileageFromLabel">Przebieg od</span>
-              <select data-mobile-mileage-from></select>
-            </label>
-            <label class="mobileField">
-              <span data-i18n="mileageToLabel">Przebieg do</span>
-              <select data-mobile-mileage-to></select>
-            </label>
+            <div class="mobileField mobileRangeField mobileWideField">
+              <span data-i18n="mileageRangeLabel">Przebieg</span>
+              <div class="mobileRangePair">
+                <label class="mobileComboControl">
+                  <input data-mobile-mileage-from list="mobile-mileage-options" inputmode="numeric" autocomplete="off" />
+                  <em>km</em>
+                  <i aria-hidden="true"></i>
+                </label>
+                <label class="mobileComboControl">
+                  <input data-mobile-mileage-to list="mobile-mileage-options" inputmode="numeric" autocomplete="off" />
+                  <em>km</em>
+                  <i aria-hidden="true"></i>
+                </label>
+              </div>
+              <datalist id="mobile-mileage-options" data-mobile-mileage-options></datalist>
+            </div>
+            <div class="mobileField mobileRangeField mobileWideField">
+              <span data-i18n="yearRangeLabel">Rok</span>
+              <div class="mobileRangePair">
+                <label class="mobileComboControl">
+                  <input data-mobile-year-from list="mobile-year-options" inputmode="numeric" autocomplete="off" />
+                  <em aria-hidden="true"></em>
+                  <i aria-hidden="true"></i>
+                </label>
+                <label class="mobileComboControl">
+                  <input data-mobile-year-to list="mobile-year-options" inputmode="numeric" autocomplete="off" />
+                  <em aria-hidden="true"></em>
+                  <i aria-hidden="true"></i>
+                </label>
+              </div>
+              <datalist id="mobile-year-options" data-mobile-year-options></datalist>
+            </div>
+            <div class="mobileField mobileRangeField mobileWideField">
+              <span data-i18n="displacementRangeLabel">Pojemność silnika</span>
+              <div class="mobileRangePair">
+                <label class="mobileComboControl">
+                  <input data-mobile-displacement-from list="mobile-displacement-options" inputmode="numeric" autocomplete="off" />
+                  <em>ccm</em>
+                  <i aria-hidden="true"></i>
+                </label>
+                <label class="mobileComboControl">
+                  <input data-mobile-displacement-to list="mobile-displacement-options" inputmode="numeric" autocomplete="off" />
+                  <em>ccm</em>
+                  <i aria-hidden="true"></i>
+                </label>
+              </div>
+              <datalist id="mobile-displacement-options" data-mobile-displacement-options></datalist>
+            </div>
+            <div class="mobileField mobileRangeField mobileWideField">
+              <span data-i18n="powerRangeLabel">Moc silnika (KM)</span>
+              <div class="mobileRangePair">
+                <label class="mobileComboControl">
+                  <input data-mobile-power-from list="mobile-power-options" inputmode="numeric" autocomplete="off" />
+                  <em>KM</em>
+                  <i aria-hidden="true"></i>
+                </label>
+                <label class="mobileComboControl">
+                  <input data-mobile-power-to list="mobile-power-options" inputmode="numeric" autocomplete="off" />
+                  <em>KM</em>
+                  <i aria-hidden="true"></i>
+                </label>
+              </div>
+              <datalist id="mobile-power-options" data-mobile-power-options></datalist>
+            </div>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend data-i18n="driveLabel">Napęd</legend>
+              <div class="mobileChoiceGroup">
+                <label class="mobileChoiceOption">
+                  <input data-mobile-drive name="mobile-drive" type="radio" value="any" checked />
+                  <span data-i18n="driveAny">Dowolny</span>
+                </label>
+                <label class="mobileChoiceOption">
+                  <input data-mobile-drive name="mobile-drive" type="radio" value="awd" />
+                  <span data-i18n="driveAwd">AWD</span>
+                </label>
+                <label class="mobileChoiceOption">
+                  <input data-mobile-drive name="mobile-drive" type="radio" value="fwd" />
+                  <span data-i18n="driveFwd">FWD</span>
+                </label>
+                <label class="mobileChoiceOption">
+                  <input data-mobile-drive name="mobile-drive" type="radio" value="rwd" />
+                  <span data-i18n="driveRwd">RWD</span>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend data-i18n="gearboxLabel">Skrzynia biegów</legend>
+              <div class="mobileChoiceGroup mobileChoiceGroupTwo">
+                <label class="mobileChoiceOption">
+                  <input data-mobile-gearbox name="mobile-gearbox" type="radio" value="automatic" />
+                  <span data-i18n="gearboxAutomatic">Automatyczna</span>
+                </label>
+                <label class="mobileChoiceOption">
+                  <input data-mobile-gearbox name="mobile-gearbox" type="radio" value="manual" />
+                  <span data-i18n="gearboxManual">Manualna</span>
+                </label>
+              </div>
+            </fieldset>
           </div>
         </article>
 
@@ -122,6 +212,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=mobile-no-registration-fields-20260723"></script>
+    <script src="./src/mobile.js?v=mobile-filter-fields-20260723"></script>
   </body>
 </html>
