@@ -20,8 +20,6 @@ const copy = {
     bodyLabel: "Nadwozie",
     mileageFromLabel: "Przebieg od",
     mileageToLabel: "Przebieg do",
-    registrationFromLabel: "Pierwsza rejestracja od",
-    registrationToLabel: "Pierwsza rejestracja do",
     sourceEyebrow: "SPRZEDAWCA",
     actionsTitle: "Wybierz ścieżkę zakupu",
     footer: "Mobile.de → kalkulatory operacyjne",
@@ -66,8 +64,6 @@ const copy = {
     bodyLabel: "Кузов",
     mileageFromLabel: "Пробег от",
     mileageToLabel: "Пробег до",
-    registrationFromLabel: "Pierwsza rejestracja от",
-    registrationToLabel: "Pierwsza rejestracja до",
     sourceEyebrow: "ПРОДАВЕЦ",
     actionsTitle: "Выбери путь покупки",
     footer: "Mobile.de → рабочие калькуляторы",
@@ -195,8 +191,6 @@ const els = {
   body: document.querySelector("[data-mobile-body]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
   mileageTo: document.querySelector("[data-mobile-mileage-to]"),
-  yearFrom: document.querySelector("[data-mobile-year-from]"),
-  yearTo: document.querySelector("[data-mobile-year-to]"),
 };
 
 function readMobileDeApiUrl() {
@@ -289,13 +283,6 @@ function brandDisplayOptions() {
   ];
 }
 
-function yearOptions() {
-  const currentYear = new Date().getFullYear() + 1;
-  const years = [];
-  for (let year = currentYear; year >= 1990; year -= 1) years.push(year);
-  return years;
-}
-
 function mileageOptions() {
   const values = [];
   for (let value = 0; value <= 500000; value += 10000) values.push(value);
@@ -321,8 +308,6 @@ function renderManualOptions(keepValues = true) {
     body: els.body.value,
     mileageFrom: els.mileageFrom.value,
     mileageTo: els.mileageTo.value,
-    yearFrom: els.yearFrom.value,
-    yearTo: els.yearTo.value,
   };
 
   els.brand.innerHTML = [
@@ -342,7 +327,6 @@ function renderManualOptions(keepValues = true) {
     ...bodyOptions.map((body) => optionHtml(body.value, body[state.lang], body.value === current.body)),
   ].join("");
 
-  const years = yearOptions();
   const mileages = mileageOptions();
   els.mileageFrom.innerHTML = [
     optionHtml("", c.selectEmpty),
@@ -352,15 +336,6 @@ function renderManualOptions(keepValues = true) {
     optionHtml("", c.selectEmpty),
     ...mileages.map((value) => optionHtml(String(value), `${value.toLocaleString("pl-PL")} km`, String(value) === current.mileageTo)),
   ].join("");
-  els.yearFrom.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...years.map((year) => optionHtml(String(year), String(year), String(year) === current.yearFrom)),
-  ].join("");
-  els.yearTo.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...years.map((year) => optionHtml(String(year), String(year), String(year) === current.yearTo)),
-  ].join("");
-
   els.model.value = current.model || "";
 }
 
@@ -373,8 +348,6 @@ function readManualFields() {
     body: els.body?.value || "",
     mileageFrom: els.mileageFrom?.value || "",
     mileageTo: els.mileageTo?.value || "",
-    yearFrom: els.yearFrom?.value || "",
-    yearTo: els.yearTo?.value || "",
   };
 }
 
@@ -437,16 +410,10 @@ function normalizeBody(value) {
   return value ? "other" : "";
 }
 
-function registrationYear(value) {
-  const match = String(value || "").match(/\b(19\d{2}|20\d{2})\b/);
-  return match ? match[1] : "";
-}
-
 function applyRecognizedManualFields(data) {
   const title = data?.title || "";
   const brandMatch = matchBrand(title);
   const model = extractModel(title, brandMatch);
-  const year = registrationYear(data?.firstRegistration);
   const next = {
     brand: brandMatch?.value || "",
     model,
@@ -455,8 +422,6 @@ function applyRecognizedManualFields(data) {
     body: normalizeBody(data?.bodyType),
     mileageFrom: mileageBucket(data?.mileageKm, "from"),
     mileageTo: mileageBucket(data?.mileageKm, "to"),
-    yearFrom: year,
-    yearTo: year,
   };
 
   els.brand.value = next.brand;
@@ -466,8 +431,6 @@ function applyRecognizedManualFields(data) {
   els.body.value = next.body;
   els.mileageFrom.value = next.mileageFrom;
   els.mileageTo.value = next.mileageTo;
-  els.yearFrom.value = next.yearFrom;
-  els.yearTo.value = next.yearTo;
 
   els.modelOptions.innerHTML = next.model ? optionHtml(next.model, next.model) : "";
 }
