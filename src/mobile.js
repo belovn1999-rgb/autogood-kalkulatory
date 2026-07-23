@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://albuquerque-junior-favourites-assist.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://bruce-arms-pine-demonstrate.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
