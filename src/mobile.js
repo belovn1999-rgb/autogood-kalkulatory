@@ -53,8 +53,7 @@ const copy = {
     seller: "Sprzedawca",
     delivery: "Transport netto",
     inspection: "Oględziny netto",
-    tariff: "Reguła taryfy",
-    warning: "Dla VAT 23% sprawdź w ogłoszeniu, czy cena jest netto czy brutto.",
+    tariff: "Typ zakupu",
     selectEmpty: "Wybierz",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
@@ -114,8 +113,7 @@ const copy = {
     seller: "Продавец",
     delivery: "Доставка netto",
     inspection: "Осмотр netto",
-    tariff: "Правило тарифа",
-    warning: "Для VAT 23% проверь в объявлении, цена netto или brutto.",
+    tariff: "Тип закупа",
     selectEmpty: "Выбери",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Прямая покупка" },
@@ -669,7 +667,6 @@ function renderData() {
     detailRow(c.tariff, text(estimate.rule)),
     detailRow(c.location, text(location.address || location.city)),
     detailRow(c.seller, text(location.sellerName)),
-    detailRow(c.warning, state.data ? "VAT 23%" : c.emptyValue),
   ].join("");
   els.listingDetails.innerHTML = `
     <dl class="mobileDataGrid">${listingRows}</dl>
