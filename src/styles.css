@@ -1832,13 +1832,18 @@ button:disabled {
   --fib-21: 21px;
   --fib-34: 34px;
   --fib-55: 55px;
+
+  /* sRGB mirror of --color-page (oklch(94.5% 0.008 248)).
+     html2canvas cannot parse oklch(), so every value that lands on a rendered
+     element must be hex here — same reason as the :root block at the top. */
+  --ag-page: #e9edf2;
 }
 
 /* --- page + app-shell card --- */
 body {
   min-height: 100vh;
   padding: var(--fib-34) var(--fib-21) var(--fib-55);
-  background: var(--color-page);
+  background: var(--ag-page);
 }
 
 .appShell {
