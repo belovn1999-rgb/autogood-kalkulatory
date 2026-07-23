@@ -1817,3 +1817,322 @@ button:disabled {
     transition-duration: 150ms !important;
   }
 }
+
+/* ============================================================
+   φ (golden-ratio) layout — appended override block.
+   Kept as one contiguous block at the end of the file so it wins
+   on source order and survives upstream edits above it.
+   Scope: calculator tabs 0-4. Finalne rozliczenie keeps finalGrid.
+   ============================================================ */
+
+:root {
+  /* Fibonacci spacing — single geometric rhythm */
+  --fib-8: 8px;
+  --fib-13: 13px;
+  --fib-21: 21px;
+  --fib-34: 34px;
+  --fib-55: 55px;
+}
+
+/* --- page + app-shell card --- */
+body {
+  min-height: 100vh;
+  padding: var(--fib-34) var(--fib-21) var(--fib-55);
+  background: var(--color-page);
+}
+
+.appShell {
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-line-200);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 2px rgba(26, 36, 48, 0.04),
+    0 12px 40px rgba(26, 36, 48, 0.06);
+}
+
+.appShellFinal {
+  max-width: 1320px;
+}
+
+/* --- header row 1: brand + actions --- */
+.topbar {
+  gap: var(--fib-21);
+  padding: 16px 28px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--ag-line-150);
+}
+
+.logoTitle {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ag-ink-600);
+}
+
+/* --- header row 2: tabs (major) + rate block (minor) --- */
+.tabsRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--fib-21);
+  flex-wrap: wrap;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--ag-line-200);
+}
+
+.tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 26px;
+  border-bottom: 0;
+  margin-bottom: -1px;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs button {
+  padding: 15px 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-bottom-width: 3px;
+}
+
+.tabs button.active {
+  font-weight: 700;
+}
+
+/* compact rate block: text column + chip, right-aligned, one line */
+.tabsRow .rateWidget {
+  width: auto;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    "eyebrow control"
+    "avg     control";
+  align-items: center;
+  gap: 1px var(--fib-13);
+  padding: var(--fib-8) 0;
+}
+
+.tabsRow .rateWidgetEyebrow {
+  grid-area: eyebrow;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.tabsRow .rateWidgetRow {
+  display: contents;
+}
+
+.tabsRow .rateWidgetAvg {
+  grid-area: avg;
+  align-items: flex-end;
+  text-align: right;
+  gap: 0;
+  line-height: 1.35;
+}
+
+.tabsRow .rateWidgetAvg span {
+  font-size: 11px;
+}
+
+.tabsRow .rateWidgetAvg em {
+  font-size: 10px;
+}
+
+.tabsRow .rateWidgetControl {
+  grid-area: control;
+  align-self: center;
+}
+
+/* --- main: φ grid --- */
+.grid {
+  padding: var(--fib-34) 28px 0;
+}
+
+/* φ columns apply to the calculator tabs only — Finalne rozliczenie keeps finalGrid */
+.grid:not(.finalGrid) {
+  grid-template-columns: minmax(0, 0.382fr) minmax(0, 0.618fr);
+  gap: var(--fib-34);
+  align-items: start;
+}
+
+.panelData,
+.panelCalc {
+  padding: 26px 24px;
+}
+
+.panelCalc {
+  padding: 26px 28px;
+}
+
+/* rule under the section eyebrow */
+.panelEyebrow,
+.calcEyebrow {
+  margin: 0 0 var(--fib-21);
+  padding-bottom: var(--fib-13);
+  border-bottom: 1px solid var(--ag-line-150);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ag-ink-600);
+}
+
+/* keep the corner logo clear of the eyebrow rule */
+.panelCalc .resultCornerLogo {
+  top: 16px;
+  right: 20px;
+  width: 56px;
+}
+
+/* --- result rows: marker · label · tag · prefix · amount(flush right) --- */
+.resultLine {
+  grid-template-columns: 24px minmax(0, 1fr) auto auto auto;
+  gap: 4px 14px;
+  min-height: 0;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--ag-line-150);
+}
+
+.resultLine.isPrimaryLine {
+  min-height: 0;
+  padding: 21px 0;
+  border-bottom: 2px solid var(--ag-primary-line);
+}
+
+.resultLineMarker { order: 1; color: var(--ag-ink-400); font-size: 18px; font-weight: 700; }
+.resultLineBody { order: 2; }
+.resultLineTag { order: 3; }
+.resultLinePrefix { order: 4; font-size: 13px; }
+.resultLineAmount { order: 5; justify-self: end; text-align: right; font-size: 20px; }
+
+.resultLineLabel {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.isPrimaryLine .resultLineLabel {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--ag-ink-900);
+}
+
+.resultLineSub {
+  font-size: 13px;
+}
+
+.isPrimaryLine .resultLineAmount {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--ag-blue-700);
+  /* widen the U+00A0 thousands separator at display size */
+  word-spacing: 0.22em;
+}
+
+/* single-line primary heading only where there is room for it */
+@media (min-width: 1100px) {
+  .isPrimaryLine .resultLineLabel {
+    white-space: nowrap;
+    line-height: 1;
+  }
+}
+
+/* --- Razem: lower φ node --- */
+.totalBar {
+  margin-top: var(--fib-13);
+  background: var(--ag-blue-700);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  gap: var(--fib-21);
+}
+
+.totalBarMark {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.totalBarLabel {
+  font-size: 26px;
+  letter-spacing: 0.02em;
+}
+
+.totalBarValueRow {
+  gap: 2px 14px;
+}
+
+.totalBarValue {
+  font-size: clamp(30px, 3.4vw, 38px);
+  word-spacing: 0.22em;
+}
+
+.totalBarEur {
+  font-size: 26px;
+  font-weight: 700;
+  opacity: 0.92;
+  word-spacing: 0.18em;
+}
+
+.totalBarRate {
+  margin-top: 6px;
+  opacity: 0.7;
+}
+
+/* --- Historia zmian: full-bleed bottom band --- */
+.historyPanel {
+  width: auto;
+  margin: 0 -28px 0;
+  padding: var(--fib-21) 28px;
+  border-top: 1px solid var(--ag-line-200);
+  background: var(--ag-fill-tint);
+}
+
+.historyPanel h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--ag-ink-600);
+}
+
+/* --- responsive --- */
+@media (max-width: 780px) {
+  .grid {
+    padding: var(--fib-21) var(--fib-21) 0;
+  }
+
+  /* must match the specificity of the .grid:not(.finalGrid) rule above */
+  .grid:not(.finalGrid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .topbar,
+  .tabsRow {
+    padding-left: var(--fib-21);
+    padding-right: var(--fib-21);
+  }
+
+  .grid > .historyPanel {
+    margin: 0 calc(-1 * var(--fib-21)) 0;
+    padding: var(--fib-21);
+  }
+}
+
+@media (max-width: 560px) {
+  body {
+    padding: var(--fib-13) var(--fib-8) var(--fib-34);
+  }
+}

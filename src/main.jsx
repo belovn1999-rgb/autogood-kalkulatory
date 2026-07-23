@@ -1931,7 +1931,6 @@ function App() {
           <span className="logoTitle">{c.navTitle}</span>
         </div>
         <div className="headerActions">
-          <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
           <div className="langSwitch" aria-label="Language">
             <button className={lang === "pl" ? "active" : ""} onClick={() => setLang("pl")}>PL</button>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")}>RU</button>
@@ -1961,13 +1960,16 @@ function App() {
         </div>
       </header>
 
-      <nav className="tabs" aria-label="Calculators">
-        {tabs.map((item) => (
-          <button key={item.id} className={item.id === activeTab ? "active" : ""} onClick={() => switchTab(item.id)}>
-            {calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)}
-          </button>
-        ))}
-      </nav>
+      <div className="tabsRow">
+        <nav className="tabs" aria-label="Calculators">
+          {tabs.map((item) => (
+            <button key={item.id} className={item.id === activeTab ? "active" : ""} onClick={() => switchTab(item.id)}>
+              {calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)}
+            </button>
+          ))}
+        </nav>
+        <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
+      </div>
 
       <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
         <aside className={isFinalBalance ? "card sidebar finalSidebar" : "panelData"}>

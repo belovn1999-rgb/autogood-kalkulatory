@@ -9,6 +9,7 @@
   --color-soft: oklch(67.8% 0.024 248);
   --color-faint: oklch(79.5% 0.019 248);
   --color-paper: oklch(97.2% 0.006 248);
+  --color-page: oklch(94.5% 0.008 248); /* φ layout: page background behind the app-shell card */
   --color-surface: oklch(99.4% 0.003 248);
   --color-surface-tint: oklch(98.8% 0.005 248);
   --color-rule: oklch(90.7% 0.013 248);

@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-07-23",
+    "macrostructure": "Workbench",
+    "theme": "AUTOGOOD Wariant B Minimal",
+    "theme_axes": "light / single-family corporate sans / cool brand-blue",
+    "enrichment": "none",
+    "nav": "N9 Edge-aligned minimal",
+    "footer": "none (app tool)",
+    "scope": "single-page app tool",
+    "brief": "Calculators golden-ratio (phi) layout: app-shell card on page bg, two-row header with rate block beside tabs, columns 0.382:0.618, phi focal nodes, Fibonacci spacing, flush-right amounts, full-bleed history band. Finalne rozliczenie keeps finalGrid."
+  },
+  {
     "date": "2026-07-22",
     "macrostructure": "Workbench",
     "theme": "AUTOGOOD Wariant B Minimal",

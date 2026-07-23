@@ -11,3 +11,4 @@ contract-pdf-work/__pycache__/
 contract-pdf-work/output/
 contract-pdf-work/examples/
 contract-pdf-work/assets/signature*
+.claude/

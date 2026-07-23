@@ -2030,13 +2030,7 @@ function App() {
     className: "logoTitle"
   }, c.navTitle)), /*#__PURE__*/React.createElement("div", {
     className: "headerActions"
-  }, /*#__PURE__*/React.createElement(RateWidget, {
-    c: c,
-    avgRateLabel: avgRateLabel,
-    rateDate: rateDate,
-    value: rate,
-    onChange: setManualRate
-  }), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
     className: "langSwitch",
     "aria-label": "Language"
   }, /*#__PURE__*/React.createElement("button", {
@@ -2069,14 +2063,22 @@ function App() {
   }, c.screenshot), /*#__PURE__*/React.createElement("button", {
     className: "printBtn saveBtn",
     onClick: saveCalculation
-  }, c.saveCalculation))), /*#__PURE__*/React.createElement("nav", {
+  }, c.saveCalculation))), /*#__PURE__*/React.createElement("div", {
+    className: "tabsRow"
+  }, /*#__PURE__*/React.createElement("nav", {
     className: "tabs",
     "aria-label": "Calculators"
   }, tabs.map(item => /*#__PURE__*/React.createElement("button", {
     key: item.id,
     className: item.id === activeTab ? "active" : "",
     onClick: () => switchTab(item.id)
-  }, calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement("section", {
+  }, calculatorName(item, safeLang, item.id === activeTab && item.id > 0 && financed)))), /*#__PURE__*/React.createElement(RateWidget, {
+    c: c,
+    avgRateLabel: avgRateLabel,
+    rateDate: rateDate,
+    value: rate,
+    onChange: setManualRate
+  })), /*#__PURE__*/React.createElement("section", {
     className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
     className: isFinalBalance ? "card sidebar finalSidebar" : "panelData"
