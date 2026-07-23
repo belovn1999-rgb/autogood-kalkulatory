@@ -454,8 +454,7 @@ button {
 }
 
 .mobileChoiceGroupTwo {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 420px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .mobileChoiceOption {
@@ -498,6 +497,10 @@ button {
   grid-template-columns: 22px minmax(0, 1fr);
   gap: var(--space-sm);
   min-height: 68px;
+}
+
+.mobileListingDetails {
+  padding-top: var(--space-md);
 }
 
 .mobileCheckboxField input {

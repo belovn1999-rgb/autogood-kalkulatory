@@ -12,7 +12,8 @@ const copy = {
     ready: "Dane gotowe. Wybierz scenariusz zakupu na dole strony.",
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
-    calcEyebrow: "KWOTY DO KALKULATORA",
+    manualEyebrow: "WPISZ DANE RĘCZNIE",
+    manualTitle: "Wpisz dane ręcznie",
     brandLabel: "Marka",
     modelLabel: "Model",
     fuelLabel: "Paliwo",
@@ -28,6 +29,7 @@ const copy = {
     driveFwd: "FWD",
     driveRwd: "RWD",
     gearboxLabel: "Skrzynia biegów",
+    gearboxAny: "Dowolny",
     gearboxAutomatic: "Automatyczna",
     gearboxManual: "Manualna",
     fromPlaceholder: "od",
@@ -40,10 +42,13 @@ const copy = {
     price: "Cena z ogłoszenia",
     purchaseType: "Typ zakupu",
     fuel: "Paliwo",
-    engine: "Akcyza",
+    engine: "Typ silnika / akcyza",
+    displacement: "Pojemność silnika",
+    power: "Moc silnika",
+    gearbox: "Skrzynia biegów",
     body: "Nadwozie",
     mileage: "Przebieg",
-    registration: "Pierwsza rejestracja",
+    registration: "Rok / pierwsza rejestracja",
     location: "Lokalizacja",
     seller: "Sprzedawca",
     delivery: "Transport netto",
@@ -68,7 +73,8 @@ const copy = {
     ready: "Данные готовы. Выбери сценарий покупки внизу страницы.",
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
-    calcEyebrow: "СУММЫ ДЛЯ КАЛЬКУЛЯТОРА",
+    manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
+    manualTitle: "Ввести данные вручную",
     brandLabel: "Марка",
     modelLabel: "Модель",
     fuelLabel: "Топливо",
@@ -84,6 +90,7 @@ const copy = {
     driveFwd: "Передний",
     driveRwd: "Задний",
     gearboxLabel: "Коробка передач",
+    gearboxAny: "Любая",
     gearboxAutomatic: "Автоматическая",
     gearboxManual: "Механическая",
     fromPlaceholder: "от",
@@ -96,10 +103,13 @@ const copy = {
     price: "Цена из объявления",
     purchaseType: "Тип закупа",
     fuel: "Топливо",
-    engine: "Акциз",
+    engine: "Тип двигателя / акциз",
+    displacement: "Объём двигателя",
+    power: "Мощность двигателя",
+    gearbox: "Коробка передач",
     body: "Кузов",
     mileage: "Пробег",
-    registration: "Первая регистрация",
+    registration: "Год / первая регистрация",
     location: "Локация",
     seller: "Продавец",
     delivery: "Доставка netto",
@@ -205,10 +215,8 @@ const els = {
   url: document.querySelector("[data-mobile-url]"),
   submit: document.querySelector("[data-mobile-submit]"),
   status: document.querySelector("[data-mobile-status]"),
-  source: document.querySelector("[data-mobile-source]"),
-  money: document.querySelector("[data-mobile-money]"),
+  listingDetails: document.querySelector("[data-mobile-listing-details]"),
   title: document.querySelector("[data-mobile-title]"),
-  price: document.querySelector("[data-mobile-price]"),
   scenarios: document.querySelector("[data-mobile-scenarios]"),
   brand: document.querySelector("[data-mobile-brand]"),
   model: document.querySelector("[data-mobile-model]"),
@@ -243,6 +251,12 @@ function formatAmount(value, currency) {
   const amount = Number(value);
   if (!Number.isFinite(amount) || amount <= 0) return copy[state.lang].emptyValue;
   return `${Math.round(amount).toLocaleString("pl-PL")} ${currency}`;
+}
+
+function formatNumberWithUnit(value, unit) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return copy[state.lang].emptyValue;
+  return `${Math.round(amount).toLocaleString("pl-PL")} ${unit}`;
 }
 
 function text(value) {
@@ -390,6 +404,36 @@ function compactNumber(value) {
   return match ? match[0] : "";
 }
 
+function optionLabel(options, value) {
+  const option = options.find((item) => item.value === value);
+  return option ? option[state.lang] : "";
+}
+
+function listingBodyLabel(value) {
+  const normalized = normalizeBody(value);
+  return optionLabel(bodyOptions, normalized) || text(value);
+}
+
+function listingGearboxLabel(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (/auto|automat|automatic|automatyczna/.test(normalized)) return copy[state.lang].gearboxAutomatic;
+  if (/manual|schalt|manualna|ręczna|reczna/.test(normalized)) return copy[state.lang].gearboxManual;
+  return text(value);
+}
+
+function normalizeGearboxChoice(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (/auto|automat|automatic|automatyczna/.test(normalized)) return "automatic";
+  if (/manual|schalt|manualna|ręczna|reczna/.test(normalized)) return "manual";
+  return "any";
+}
+
+function listingRegistration(value) {
+  const year = extractYear(value);
+  if (year && String(value).trim() !== year) return `${year} (${String(value).trim()})`;
+  return text(value || year);
+}
+
 function renderManualOptions(keepValues = true) {
   const c = copy[state.lang];
   const current = keepValues ? readManualFields() : {
@@ -407,7 +451,7 @@ function renderManualOptions(keepValues = true) {
     powerFrom: els.powerFrom.value,
     powerTo: els.powerTo.value,
     drive: checkedValue(els.drive) || "any",
-    gearbox: checkedValue(els.gearbox),
+    gearbox: checkedValue(els.gearbox) || "any",
   };
 
   els.brand.innerHTML = [
@@ -441,7 +485,7 @@ function renderManualOptions(keepValues = true) {
   els.powerFrom.value = current.powerFrom || "";
   els.powerTo.value = current.powerTo || "";
   setCheckedValue(els.drive, current.drive || "any");
-  setCheckedValue(els.gearbox, current.gearbox || "");
+  setCheckedValue(els.gearbox, current.gearbox || "any");
 }
 
 function readManualFields() {
@@ -544,6 +588,7 @@ function applyRecognizedManualFields(data) {
     displacementTo: displacementCcm,
     powerFrom: powerHp,
     powerTo: powerHp,
+    gearbox: normalizeGearboxChoice(data?.gearbox),
   };
 
   els.brand.value = next.brand;
@@ -560,7 +605,7 @@ function applyRecognizedManualFields(data) {
   els.powerFrom.value = next.powerFrom;
   els.powerTo.value = next.powerTo;
   setCheckedValue(els.drive, "any");
-  setCheckedValue(els.gearbox, "");
+  setCheckedValue(els.gearbox, next.gearbox);
 
   els.modelOptions.innerHTML = next.model ? optionHtml(next.model, next.model) : "";
 }
@@ -603,22 +648,26 @@ function renderData() {
   const location = data.location || {};
   const estimate = data.deliveryInspectionEstimate || data.transportEstimate || {};
   const title = text(data.title);
+  const powerValue = data.powerHp ?? data.horsepower ?? data.powerPs;
 
   els.title.textContent = title;
-  els.price.textContent = formatAmount(data.carBruttoEur, "EUR");
-  els.source.innerHTML = [
+  els.listingDetails.innerHTML = [
+    detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
+    detailRow(c.purchaseType, purchaseTypeLabel(data)),
+    detailRow(c.fuel, text(data.fuel)),
+    detailRow(c.body, listingBodyLabel(data.bodyType)),
+    detailRow(c.mileage, formatNumberWithUnit(data.mileageKm, "km")),
+    detailRow(c.registration, listingRegistration(data.firstRegistration)),
+    detailRow(c.displacement, formatNumberWithUnit(data.displacementCcm, "ccm")),
+    detailRow(c.power, formatNumberWithUnit(powerValue, "KM")),
+    detailRow(c.gearbox, listingGearboxLabel(data.gearbox)),
+    detailRow(c.engine, text(data.engineTypeLabel)),
+    detailRow(c.delivery, formatAmount(data.transportNettoPln ?? estimate.transport, "PLN")),
+    detailRow(c.inspection, formatAmount(data.inspectionNettoPln ?? estimate.inspection, "PLN")),
+    detailRow(c.tariff, text(estimate.rule)),
     detailRow(c.location, text(location.address || location.city)),
     detailRow(c.seller, text(location.sellerName)),
-  ].join("");
-
-  els.money.innerHTML = [
-    moneyRow(c.price, formatAmount(data.carBruttoEur, "EUR"), true),
-    moneyRow(c.purchaseType, purchaseTypeLabel(data)),
-    moneyRow(c.engine, text(data.engineTypeLabel)),
-    moneyRow(c.delivery, formatAmount(data.transportNettoPln ?? estimate.transport, "PLN")),
-    moneyRow(c.inspection, formatAmount(data.inspectionNettoPln ?? estimate.inspection, "PLN")),
-    moneyRow(c.tariff, text(estimate.rule)),
-    moneyRow(c.warning, state.data ? "VAT 23%" : c.emptyValue),
+    detailRow(c.warning, state.data ? "VAT 23%" : c.emptyValue),
   ].join("");
 
   renderScenarios();

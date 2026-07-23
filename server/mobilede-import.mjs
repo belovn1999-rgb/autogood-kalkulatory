@@ -376,6 +376,72 @@ function extractDisplacement(html, jsonData, text) {
   return Math.round(firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 600, max: 9000 }));
 }
 
+function extractPowerHp(html, jsonData, text) {
+  const primaryCandidates = [];
+  const secondaryCandidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/power|horsepower|leistung|hp|ps|kw/i.test(key) && typeof value !== "object") secondaryCandidates.push(value);
+    });
+  });
+
+  primaryCandidates.push(...collectTextValuesAfterLabels(text, [
+    /^power$/i,
+    /^horsepower$/i,
+    /^leistung$/i,
+    /^moc$/i,
+    /^moc silnika$/i,
+  ]));
+
+  primaryCandidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\"(?:powerHp|horsepower|powerPs)\\"\s*:\s*\\"?([\d. ]+)/gi,
+    /(?:Moc silnika|Moc|Power|Horsepower|Leistung)[^0-9]{0,100}([\d. ]+)\s*(?:KM|HP|PS)/i,
+    /(?:Moc silnika|Moc|Power|Leistung)[^0-9]{0,100}[\d. ]+\s*kW[^0-9]{0,40}([\d. ]+)\s*(?:KM|HP|PS)/i,
+    /([\d. ]+)\s*(?:KM|HP|PS)\b/i,
+  ]));
+
+  return Math.round(firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 20, max: 2000 }));
+}
+
+function normalizeGearbox(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (!normalized) return "";
+  if (/automatic|automatik|automatyczna|auto\.|dct|tiptronic|steptronic|s tronic|pdk/.test(normalized)) return "Automatyczna";
+  if (/manual|schaltgetriebe|schaltung|manualna|ręczna|reczna/.test(normalized)) return "Manualna";
+  return "";
+}
+
+function extractGearbox(html, jsonData, text) {
+  const candidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (/gearbox|transmission|getriebe|skrzy/i.test(key) && typeof value !== "object") candidates.push(value);
+    });
+  });
+
+  candidates.push(...collectTextValuesAfterLabels(text, [
+    /^gearbox$/i,
+    /^transmission$/i,
+    /^getriebe$/i,
+    /^skrzynia biegów$/i,
+    /^skrzynia biegow$/i,
+  ]));
+
+  candidates.push(...collectRegexMatches(`${html}\n${text}`, [
+    /\\"(?:gearbox|transmission|gearboxType)\\"\s*:\s*\\"([^"\\]+)/gi,
+    /(?:Getriebe|Skrzynia biegów|Skrzynia biegow|Transmission|Gearbox)[^A-Za-zÀ-ž0-9]{0,80}([A-Za-zÀ-ž .-]+)/i,
+  ]));
+
+  for (const candidate of candidates) {
+    const normalized = normalizeGearbox(candidate);
+    if (normalized) return normalized;
+  }
+
+  return normalizeGearbox(text);
+}
+
 function normalizeFuel(value) {
   const normalized = String(value || "").toLowerCase();
   if (!normalized) return "";
@@ -1147,6 +1213,8 @@ export async function handleMobiledeImport(request, response) {
     const carBruttoEur = extractPrice(html, jsonData, text);
     const purchaseType = extractPurchaseType(html, jsonData, text);
     const displacementCcm = extractDisplacement(html, jsonData, text);
+    const powerHp = extractPowerHp(html, jsonData, text);
+    const gearbox = extractGearbox(html, jsonData, text);
     const fuel = extractFuel(html, jsonData, text);
     const engineTypeIndex = classifyEngine(fuel, displacementCcm);
     const title = extractTitle(html, jsonData, text);
@@ -1169,6 +1237,8 @@ export async function handleMobiledeImport(request, response) {
       bodyType,
       fuel,
       displacementCcm,
+      powerHp,
+      gearbox,
       mileageKm,
       firstRegistration,
       location,
@@ -1188,6 +1258,8 @@ export async function handleMobiledeImport(request, response) {
         hasPrice: Boolean(carBruttoEur),
         hasFuel: Boolean(fuel),
         hasDisplacement: Boolean(displacementCcm),
+        hasPower: Boolean(powerHp),
+        hasGearbox: Boolean(gearbox),
         hasLocation: Boolean(location.city || location.address),
         htmlChars: html.length,
         textChars: text.length,

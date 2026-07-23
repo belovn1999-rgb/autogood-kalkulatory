@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=mobile-merged-fields-20260723" />
+    <link rel="stylesheet" href="./src/mobile.css?v=mobile-listing-manual-split-20260723" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -63,6 +63,14 @@
           <div class="mobilePanelHead">
             <p data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</p>
             <strong data-mobile-title>—</strong>
+          </div>
+          <dl class="mobileDataGrid mobileListingDetails" data-mobile-listing-details></dl>
+        </article>
+
+        <article class="mobilePanel mobileManualPanel">
+          <div class="mobilePanelHead">
+            <p data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</p>
+            <strong data-i18n="manualTitle">Wpisz dane ręcznie</strong>
           </div>
           <div class="mobileManualGrid">
             <label class="mobileField">
@@ -175,6 +183,10 @@
               <legend data-i18n="gearboxLabel">Skrzynia biegów</legend>
               <div class="mobileChoiceGroup mobileChoiceGroupTwo">
                 <label class="mobileChoiceOption">
+                  <input data-mobile-gearbox name="mobile-gearbox" type="radio" value="any" checked />
+                  <span data-i18n="gearboxAny">Dowolny</span>
+                </label>
+                <label class="mobileChoiceOption">
                   <input data-mobile-gearbox name="mobile-gearbox" type="radio" value="automatic" />
                   <span data-i18n="gearboxAutomatic">Automatyczna</span>
                 </label>
@@ -184,18 +196,6 @@
                 </label>
               </div>
             </fieldset>
-          </div>
-        </article>
-
-        <article class="mobilePanel mobileCalcPanel">
-          <div class="mobilePanelHead">
-            <p data-i18n="calcEyebrow">KWOTY DO KALKULATORA</p>
-            <strong data-mobile-price>—</strong>
-          </div>
-          <div class="mobileMoneyRows" data-mobile-money></div>
-          <div class="mobileSourceBlock">
-            <p data-i18n="sourceEyebrow">SPRZEDAWCA</p>
-            <dl class="mobileDataGrid" data-mobile-source></dl>
           </div>
         </article>
       </section>
@@ -212,6 +212,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=mobile-filter-fields-20260723"></script>
+    <script src="./src/mobile.js?v=mobile-listing-manual-split-20260723"></script>
   </body>
 </html>
