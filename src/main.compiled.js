@@ -496,10 +496,16 @@ function roundedCurrencyValue(value, currency = "PLN") {
   if (currency === "EUR") return Math.round(safeValue / 10) * 10;
   return Math.round(safeValue);
 }
+// Zloty is shown as the ISO code ("1 850 PLN"), not the "zl" symbol.
+// Euro keeps its symbol, so only PLN switches to currencyDisplay: "code".
+function currencyDisplayFor(currency) {
+  return currency === "PLN" ? "code" : "symbol";
+}
 function money(value, currency = "PLN") {
   return new Intl.NumberFormat("pl-PL", {
     style: "currency",
     currency,
+    currencyDisplay: currencyDisplayFor(currency),
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(roundedCurrencyValue(value, currency));
@@ -508,6 +514,7 @@ function moneyExact(value, currency = "PLN") {
   return new Intl.NumberFormat("pl-PL", {
     style: "currency",
     currency,
+    currencyDisplay: currencyDisplayFor(currency),
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(Number.isFinite(value) ? value : 0);
