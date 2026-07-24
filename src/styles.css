@@ -528,7 +528,7 @@ select:focus-visible,
   min-width: 0;
   border: 0;
   padding: 11px;
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   color: var(--ag-ink-900);
   background: var(--ag-surface);
@@ -551,15 +551,15 @@ select:focus-visible,
 }
 
 .finalInputRow .inputWrap input {
-  padding: 12px;
-  font-size: inherit;
+  padding: 9px 8px;
+  font-size: 11px;
 }
 
 .finalInputRow .inputWrap b {
-  min-width: 56px;
+  min-width: 42px;
   background: var(--ag-bg);
   color: var(--ag-ink-400);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .optionalAmountField {
@@ -2032,7 +2032,7 @@ body {
 .resultLineBody { order: 2; }
 .resultLineTag { order: 3; }
 .resultLinePrefix { order: 4; font-size: 13px; }
-.resultLineAmount { order: 5; justify-self: end; text-align: right; font-size: 20px; }
+.resultLineAmount { order: 5; justify-self: end; text-align: right; font-size: 18px; }
 
 .resultLineLabel {
   font-size: 16px;
@@ -2052,7 +2052,7 @@ body {
 }
 
 .isPrimaryLine .resultLineAmount {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   color: var(--ag-blue-700);
   /* widen the U+00A0 thousands separator at display size */
@@ -2092,12 +2092,12 @@ body {
 }
 
 .totalBarValue {
-  font-size: clamp(30px, 3.4vw, 38px);
+  font-size: clamp(26px, 3vw, 34px);
   word-spacing: 0.1em;
 }
 
 .totalBarEur {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   opacity: 0.92;
   word-spacing: 0.08em;
@@ -2261,7 +2261,7 @@ body {
   order: 2;
   justify-self: end;
   text-align: right;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2306,14 +2306,14 @@ body {
 }
 
 .finalResults .finalTotalBox .totalValue strong {
-  font-size: clamp(30px, 3.4vw, 38px);
+  font-size: clamp(26px, 3vw, 34px);
   font-weight: 800;
   line-height: 1.05;
   word-spacing: 0.1em;
 }
 
 .finalResults .finalTotalBox .totalValue em {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   font-style: normal;
   opacity: 0.92;
