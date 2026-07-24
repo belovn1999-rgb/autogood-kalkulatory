@@ -65,7 +65,7 @@ const copy = {
     historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
-    finalBalance: "Finalne rozliczenie",
+    finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
     finalFixedCosts: "Aktywne pozycje",
     finalExtras: "Nieaktywne pozycje",
@@ -1278,7 +1278,6 @@ function FinalBalanceResults({
   currency,
   rate,
   calc,
-  onCurrencyChange,
   onToggleVat
 }) {
   const totalIsNegative = calc.total < 0;
@@ -1287,10 +1286,6 @@ function FinalBalanceResults({
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
     alt: "AUTOGOOD"
-  }), /*#__PURE__*/React.createElement(FinalCurrencyControl, {
-    c: c,
-    currency: currency,
-    onCurrencyChange: onCurrencyChange
   }), /*#__PURE__*/React.createElement("h2", {
     className: "calcEyebrow"
   }, c.finalBalance), /*#__PURE__*/React.createElement("div", {
@@ -2094,9 +2089,15 @@ function App() {
     className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
     className: isFinalBalance ? "panelData finalSidebar" : "panelData"
-  }, isFinalBalance ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+  }, isFinalBalance ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "finalDataHeader"
+  }, /*#__PURE__*/React.createElement("h2", {
     className: "panelEyebrow"
-  }, c.inputs), /*#__PURE__*/React.createElement(FinalBalanceInputs, {
+  }, c.inputs), /*#__PURE__*/React.createElement(FinalCurrencyControl, {
+    c: c,
+    currency: finalCurrency,
+    onCurrencyChange: switchFinalCurrency
+  })), /*#__PURE__*/React.createElement(FinalBalanceInputs, {
     c: c,
     lang: safeLang,
     currency: finalCurrency,
@@ -2169,7 +2170,6 @@ function App() {
     currency: finalCurrency,
     rate: n(rate) || DEFAULT_RATE,
     calc: finalCalc,
-    onCurrencyChange: switchFinalCurrency,
     onToggleVat: toggleFinalVat
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",

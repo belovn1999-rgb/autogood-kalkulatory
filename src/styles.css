@@ -703,6 +703,37 @@ select {
   min-width: 0;
 }
 
+.finalDataHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 var(--fib-21);
+  padding-bottom: var(--fib-13);
+  border-bottom: 1px solid var(--ag-line-150);
+}
+
+.finalDataHeader .panelEyebrow {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.finalDataHeader .finalResultCurrency {
+  width: 126px;
+  max-width: 126px;
+  margin: 0;
+}
+
+.finalDataHeader .finalResultCurrency > span {
+  display: none;
+}
+
+.finalDataHeader .segmented.full button {
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
 .finalResultCurrency {
   position: relative;
   z-index: 3;
