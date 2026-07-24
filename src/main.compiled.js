@@ -2022,7 +2022,7 @@ function App() {
     }
   };
   return /*#__PURE__*/React.createElement("main", {
-    className: "appShell"
+    className: `appShell ${isFinalBalance ? "appShellFinalVat" : ""}`
   }, /*#__PURE__*/React.createElement("header", {
     className: "topbar"
   }, /*#__PURE__*/React.createElement("div", {

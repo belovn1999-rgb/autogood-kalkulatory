@@ -1867,6 +1867,10 @@ body {
   max-width: 1180px;
 }
 
+.appShellFinalVat {
+  overflow: visible;
+}
+
 /* --- header row 1: brand + actions --- */
 .topbar {
   gap: var(--fib-21);
@@ -2213,7 +2217,7 @@ body {
 }
 
 .finalResults .finalVatToggle {
-  right: -42px;
+  right: -63px;
 }
 
 /* data panel ~1/3 of the row, matching the phi split used on tabs 0-4 */

@@ -1933,7 +1933,7 @@ function App() {
   };
 
   return (
-    <main className="appShell">
+    <main className={`appShell ${isFinalBalance ? "appShellFinalVat" : ""}`}>
       <header className="topbar">
         <div className="logoGroup">
           <a className="logoLink" href="./" aria-label="AUTOGOOD home">
