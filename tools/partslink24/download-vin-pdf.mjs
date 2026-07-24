@@ -53,6 +53,7 @@ const routes = await readJson(join(__dirname, "brand-routes.json"));
 const brandConfig = routes.brands[brand];
 if (!brandConfig) fail(`Unknown brand: ${brand}`);
 if (!routes.languages.includes(language)) fail(`Unsupported language: ${language}`);
+const damProductionDateBrands = new Set(["Citroen", "DS", "Peugeot"]);
 
 mkdirSync(outDir, { recursive: true });
 mkdirSync(userDataDir, { recursive: true });
@@ -74,7 +75,7 @@ try {
   await openVehicle(page, brandConfig, vin);
   const vehicleDescription = await extractVehicleDescription(page);
   if (mode === "production-date") {
-    const productionDate = await extractProductionDate(page);
+    const productionDate = await extractProductionDate(page, { brand });
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: productionDate.value, productionDateLabel: productionDate.label }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
@@ -302,7 +303,7 @@ async function extractVehicleDescription(page) {
   }).catch(() => "");
 }
 
-async function extractProductionDate(page) {
+async function extractProductionDate(page, options = {}) {
   const result = await page.evaluate(() => {
     const labelPattern = /(?:data\s+produkcji|дата\s+(?:производства|изготовления)|production\s+date|date\s+of\s+production|manufactur(?:e|ing)\s+date|build\s+date)/i;
     const monthPattern = [
@@ -347,11 +348,74 @@ async function extractProductionDate(page) {
     return { value: "", label: "" };
   });
 
+  if (result.value) {
+    return result;
+  }
+
+  if (damProductionDateBrands.has(options.brand)) {
+    const damCode = await extractDamCode(page);
+    const damDate = formatDamProductionDate(damCode);
+    if (damDate) {
+      return { value: damDate, label: "DAM/OPR" };
+    }
+  }
+
   if (!result.value) {
     fail("Дата производства не найдена на странице PartsLink24 для этого VIN.");
   }
 
   return result;
+}
+
+async function extractDamCode(page) {
+  return page.evaluate(() => {
+    const normalize = (value) => String(value || "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+    const damLabelPattern = /(?:\b(?:DAM|OPR|ORGA)\b|APV\s*\/?\s*PR|N[°ºo]?\s*APV\s*\/?\s*PR|код\s*(?:DAM|OPR)|номер\s*(?:DAM|OPR)|№\s*APV)/i;
+    const pickDam = (value) => {
+      const candidates = normalize(value).match(/\b\d{5}[A-Z0-9]{0,8}\b/g) || [];
+      return candidates
+        .map((candidate) => candidate.slice(0, 5))
+        .find((candidate) => candidate !== "00000") || "";
+    };
+    const rowSelectors = "tr, [role='row'], li, dl, div, section, article";
+
+    for (const element of [...document.querySelectorAll(rowSelectors)].filter(isVisible)) {
+      const text = normalize(element.innerText || element.textContent || "");
+      if (!damLabelPattern.test(text)) continue;
+      const afterLabel = text.replace(damLabelPattern, " ");
+      const value = pickDam(afterLabel) || pickDam(text);
+      if (value) return value;
+    }
+
+    const lines = String(document.body?.innerText || "")
+      .split(/\r?\n/)
+      .map(normalize)
+      .filter(Boolean);
+
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!damLabelPattern.test(lines[index])) continue;
+      const windowText = lines.slice(index, index + 4).join(" ");
+      const afterLabel = windowText.replace(damLabelPattern, " ");
+      const value = pickDam(afterLabel) || pickDam(windowText);
+      if (value) return value;
+    }
+
+    return "";
+  }).catch(() => "");
+}
+
+function formatDamProductionDate(damCode) {
+  const dayOffset = Number(String(damCode || "").trim());
+  if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset > 99999) return "";
+  const baseDate = Date.UTC(1976, 10, 7);
+  const date = new Date(baseDate + dayOffset * 24 * 60 * 60 * 1000);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${day}.${month}.${date.getUTCFullYear()}`;
 }
 
 async function clickBrandTile(page, brandConfig) {
