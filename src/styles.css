@@ -137,7 +137,7 @@ select:focus-visible,
 }
 
 .appShellFinal {
-  max-width: 1320px;
+  max-width: 1200px;
 }
 
 .topbar {
@@ -436,7 +436,7 @@ select:focus-visible,
 }
 
 .finalGrid {
-  grid-template-columns: minmax(0, 650px) minmax(0, 650px);
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
   width: 100%;
   max-width: 100%;
   gap: 20px;
@@ -454,8 +454,9 @@ select:focus-visible,
 }
 
 .finalSidebar {
-  width: 650px;
+  width: auto;
   max-width: 100%;
+  min-width: 0;
 }
 
 .results {
@@ -527,7 +528,7 @@ select:focus-visible,
   min-width: 0;
   border: 0;
   padding: 11px;
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   color: var(--ag-ink-900);
   background: var(--ag-surface);
@@ -550,15 +551,15 @@ select:focus-visible,
 }
 
 .finalInputRow .inputWrap input {
-  padding: 12px;
-  font-size: inherit;
+  padding: 9px 8px;
+  font-size: 11px;
 }
 
 .finalInputRow .inputWrap b {
-  min-width: 56px;
+  min-width: 42px;
   background: var(--ag-bg);
   color: var(--ag-ink-400);
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .optionalAmountField {
@@ -700,6 +701,37 @@ select {
 
 .finalColumn {
   min-width: 0;
+}
+
+.finalDataHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 var(--fib-21);
+  padding-bottom: var(--fib-13);
+  border-bottom: 1px solid var(--ag-line-150);
+}
+
+.finalDataHeader .panelEyebrow {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.finalDataHeader .finalResultCurrency {
+  width: 126px;
+  max-width: 126px;
+  margin: 0;
+}
+
+.finalDataHeader .finalResultCurrency > span {
+  display: none;
+}
+
+.finalDataHeader .segmented.full button {
+  padding: 7px 8px;
+  font-size: 12px;
 }
 
 .finalResultCurrency {
@@ -1359,11 +1391,13 @@ select {
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1100px) {
   .finalColumns {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 860px) {
   .finalCustomControl {
     grid-template-columns: 1fr;
   }
@@ -1822,7 +1856,7 @@ button:disabled {
    φ (golden-ratio) layout — appended override block.
    Kept as one contiguous block at the end of the file so it wins
    on source order and survives upstream edits above it.
-   Scope: calculator tabs 0-4. Finalne rozliczenie keeps finalGrid.
+   Scope: all calculator tabs.
    ============================================================ */
 
 :root {
@@ -1861,7 +1895,11 @@ body {
 }
 
 .appShellFinal {
-  max-width: 1320px;
+  max-width: 1180px;
+}
+
+.appShellFinalVat {
+  overflow: visible;
 }
 
 /* --- header row 1: brand + actions --- */
@@ -1967,8 +2005,14 @@ body {
   padding: var(--fib-34) 28px 0;
 }
 
-/* φ columns apply to the calculator tabs only — Finalne rozliczenie keeps finalGrid */
+/* φ columns apply to every calculator tab, including Finalne rozliczenie */
 .grid:not(.finalGrid) {
+  grid-template-columns: minmax(0, 0.382fr) minmax(0, 0.618fr);
+  gap: var(--fib-34);
+  align-items: start;
+}
+
+.grid.finalGrid {
   grid-template-columns: minmax(0, 0.382fr) minmax(0, 0.618fr);
   gap: var(--fib-34);
   align-items: start;
@@ -2023,7 +2067,7 @@ body {
 .resultLineBody { order: 2; }
 .resultLineTag { order: 3; }
 .resultLinePrefix { order: 4; font-size: 13px; }
-.resultLineAmount { order: 5; justify-self: end; text-align: right; font-size: 20px; }
+.resultLineAmount { order: 5; justify-self: end; text-align: right; font-size: 18px; }
 
 .resultLineLabel {
   font-size: 16px;
@@ -2043,7 +2087,7 @@ body {
 }
 
 .isPrimaryLine .resultLineAmount {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   color: var(--ag-blue-700);
   /* widen the U+00A0 thousands separator at display size */
@@ -2083,12 +2127,12 @@ body {
 }
 
 .totalBarValue {
-  font-size: clamp(30px, 3.4vw, 38px);
+  font-size: clamp(26px, 3vw, 34px);
   word-spacing: 0.1em;
 }
 
 .totalBarEur {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   opacity: 0.92;
   word-spacing: 0.08em;
@@ -2122,8 +2166,12 @@ body {
     padding: var(--fib-21) var(--fib-21) 0;
   }
 
-  /* must match the specificity of the .grid:not(.finalGrid) rule above */
+  /* must match the specificity of the desktop grid rules above */
   .grid:not(.finalGrid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid.finalGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2195,7 +2243,7 @@ body {
 /* width, not margin: `.results { width: 100% }` + margin-right is
    over-constrained and the margin gets dropped */
 .finalResults {
-  width: calc(100% - 46px);
+  width: 100%;
   margin-right: 0;
 }
 
@@ -2248,7 +2296,7 @@ body {
   order: 2;
   justify-self: end;
   text-align: right;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2293,14 +2341,14 @@ body {
 }
 
 .finalResults .finalTotalBox .totalValue strong {
-  font-size: clamp(30px, 3.4vw, 38px);
+  font-size: clamp(26px, 3vw, 34px);
   font-weight: 800;
   line-height: 1.05;
   word-spacing: 0.1em;
 }
 
 .finalResults .finalTotalBox .totalValue em {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   font-style: normal;
   opacity: 0.92;
@@ -2395,7 +2443,7 @@ body {
    restate them here. Below 860px the +/- toggle returns to the normal flow
    (see the 860px block above), which means the card no longer needs the
    right-hand gutter and can span the full column again. */
-@media (max-width: 1270px) {
+@media (max-width: 780px) {
   .grid.finalGrid {
     grid-template-columns: minmax(0, 1fr);
   }

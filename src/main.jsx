@@ -57,7 +57,7 @@ const copy = {
     historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
-    finalBalance: "Finalne rozliczenie",
+    finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
     finalFixedCosts: "Aktywne pozycje",
     finalExtras: "Nieaktywne pozycje",
@@ -1116,7 +1116,7 @@ function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
   );
 }
 
-function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, onToggleVat }) {
+function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
 
@@ -1939,7 +1939,7 @@ function App() {
   };
 
   return (
-    <main className={`appShell ${isFinalBalance ? "appShellFinal" : ""}`}>
+    <main className={`appShell ${isFinalBalance ? "appShellFinalVat" : ""}`}>
       <header className="topbar">
         <div className="logoGroup">
           <a className="logoLink" href="./" aria-label="AUTOGOOD home">
@@ -1989,17 +1989,14 @@ function App() {
         <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
       </div>
 
-      {isFinalBalance && (
-        <div className="finalToolbar">
-          <FinalCurrencyControl c={c} currency={finalCurrency} onCurrencyChange={switchFinalCurrency} />
-        </div>
-      )}
-
       <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
-        <aside className={isFinalBalance ? "card sidebar finalSidebar" : "panelData"}>
+        <aside className={isFinalBalance ? "panelData finalSidebar" : "panelData"}>
           {isFinalBalance ? (
             <>
-              <h2>{c.inputs}</h2>
+              <div className="finalDataHeader">
+                <h2 className="panelEyebrow">{c.inputs}</h2>
+                <FinalCurrencyControl c={c} currency={finalCurrency} onCurrencyChange={switchFinalCurrency} />
+              </div>
               <FinalBalanceInputs
                 c={c}
                 lang={safeLang}
@@ -2086,7 +2083,7 @@ function App() {
           )}
         </aside>
 
-        <section className={isFinalBalance ? "card results finalResults" : "panelCalc"} ref={resultsRef}>
+        <section className={isFinalBalance ? "panelCalc results finalResults" : "panelCalc"} ref={resultsRef}>
           {isFinalBalance ? (
             <FinalBalanceResults
               c={c}
@@ -2094,7 +2091,6 @@ function App() {
               currency={finalCurrency}
               rate={n(rate) || DEFAULT_RATE}
               calc={finalCalc}
-              onCurrencyChange={switchFinalCurrency}
               onToggleVat={toggleFinalVat}
             />
           ) : (
