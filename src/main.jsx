@@ -688,10 +688,12 @@ function calculateFinalBalance(items) {
     const value = finalLineSignedValue(item);
     return value < 0 ? sum + Math.abs(value) : sum;
   }, 0);
+  const vatTotal = active.reduce((sum, item) => sum + finalLineVatValue(item), 0);
   return {
     rows: active,
     positive,
     negative,
+    vatTotal,
     total: positive - negative,
   };
 }
@@ -1108,17 +1110,13 @@ function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
 
 function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, onToggleVat }) {
   const totalIsNegative = calc.total < 0;
-  const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
+  const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
 
   return (
     <>
       <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
 
-      <FinalCurrencyControl c={c} currency={currency} onCurrencyChange={onCurrencyChange} />
-
-      <div className="resultsTitle">
-        <h2><MoneyIcon />{c.finalBalance}</h2>
-      </div>
+      <h2 className="calcEyebrow">{c.finalBalance}</h2>
 
       <div className="rows finalRows">
         {calc.rows.map((item) => (
@@ -1129,7 +1127,6 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, 
               </div>
               <div className="rowValue finalRowValue">
                 <strong>{finalSignedAmountLabel(item, currency)}</strong>
-                <span className="finalVatSlot">{item.vatAdded && tagLabel("+VAT 23%")}</span>
               </div>
             </div>
             {item.mode === "plus" && (
@@ -1138,12 +1135,25 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, 
                 className={`finalVatToggle ${item.vatAdded ? "active" : ""}`}
                 onClick={() => onToggleVat(item.key)}
                 title={c.finalVatToggle}
+                aria-pressed={Boolean(item.vatAdded)}
+                aria-label={c.finalVatToggle}
               >
                 {item.vatAdded ? "−" : "+"}
               </button>
             )}
           </div>
         ))}
+
+        <div className="finalResultLine finalVatRow">
+          <div className="resultRow finalResultRow mode-plus">
+            <div className="rowText">
+              <span className="rowLabel">VAT 23%</span>
+            </div>
+            <div className="rowValue finalRowValue">
+              <strong>+ {moneyExact(calc.vatTotal || 0, currency)}</strong>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className={`totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`}>
@@ -1153,7 +1163,7 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, 
         </div>
         <div className="totalValue">
           <strong>{moneyExact(Math.abs(calc.total), currency)}</strong>
-          <em>({oppositeCurrencyAmount(calc.total, currency, rate)})</em>
+          <em>= {oppositeCurrencyAmount(calc.total, currency, rate)}</em>
         </div>
         <div className="totalRate">{c.finalRateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
       </div>
@@ -1474,7 +1484,7 @@ function printFinalBalance({ lang, rows, total, currency, rate }) {
     .map((item) => `
       <tr class="${item.mode === "minus" ? "minusRow" : ""}">
         <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vatAdded ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
       </tr>`
     )
     .join("");
@@ -1970,6 +1980,12 @@ function App() {
         </nav>
         <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
       </div>
+
+      {isFinalBalance && (
+        <div className="finalToolbar">
+          <FinalCurrencyControl c={c} currency={finalCurrency} onCurrencyChange={switchFinalCurrency} />
+        </div>
+      )}
 
       <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
         <aside className={isFinalBalance ? "card sidebar finalSidebar" : "panelData"}>

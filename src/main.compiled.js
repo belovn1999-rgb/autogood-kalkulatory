@@ -832,10 +832,12 @@ function calculateFinalBalance(items) {
     const value = finalLineSignedValue(item);
     return value < 0 ? sum + Math.abs(value) : sum;
   }, 0);
+  const vatTotal = active.reduce((sum, item) => sum + finalLineVatValue(item), 0);
   return {
     rows: active,
     positive,
     negative,
+    vatTotal,
     total: positive - negative
   };
 }
@@ -1280,18 +1282,14 @@ function FinalBalanceResults({
   onToggleVat
 }) {
   const totalIsNegative = calc.total < 0;
-  const totalLabel = totalIsNegative ? c.finalOverpaid : c.finalDue;
+  const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
     alt: "AUTOGOOD"
-  }), /*#__PURE__*/React.createElement(FinalCurrencyControl, {
-    c: c,
-    currency: currency,
-    onCurrencyChange: onCurrencyChange
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "resultsTitle"
-  }, /*#__PURE__*/React.createElement("h2", null, /*#__PURE__*/React.createElement(MoneyIcon, null), c.finalBalance)), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "calcEyebrow"
+  }, c.finalBalance), /*#__PURE__*/React.createElement("div", {
     className: "rows finalRows"
   }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
     key: item.key,
@@ -1304,14 +1302,24 @@ function FinalBalanceResults({
     className: "rowLabel"
   }, item.label[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rowValue finalRowValue"
-  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)), /*#__PURE__*/React.createElement("span", {
-    className: "finalVatSlot"
-  }, item.vatAdded && tagLabel("+VAT 23%")))), item.mode === "plus" && /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)))), item.mode === "plus" && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `finalVatToggle ${item.vatAdded ? "active" : ""}`,
     onClick: () => onToggleVat(item.key),
-    title: c.finalVatToggle
-  }, item.vatAdded ? "−" : "+")))), /*#__PURE__*/React.createElement("div", {
+    title: c.finalVatToggle,
+    "aria-pressed": Boolean(item.vatAdded),
+    "aria-label": c.finalVatToggle
+  }, item.vatAdded ? "−" : "+"))), /*#__PURE__*/React.createElement("div", {
+    className: "finalResultLine finalVatRow"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "resultRow finalResultRow mode-plus"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "rowText"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "rowLabel"
+  }, "VAT 23%")), /*#__PURE__*/React.createElement("div", {
+    className: "rowValue finalRowValue"
+  }, /*#__PURE__*/React.createElement("strong", null, "+ ", moneyExact(calc.vatTotal || 0, currency)))))), /*#__PURE__*/React.createElement("div", {
     className: `totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "totalMarker",
@@ -1320,7 +1328,7 @@ function FinalBalanceResults({
     className: "totalLabel"
   }, /*#__PURE__*/React.createElement("span", null, totalLabel)), /*#__PURE__*/React.createElement("div", {
     className: "totalValue"
-  }, /*#__PURE__*/React.createElement("strong", null, moneyExact(Math.abs(calc.total), currency)), /*#__PURE__*/React.createElement("em", null, "(", oppositeCurrencyAmount(calc.total, currency, rate), ")")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, moneyExact(Math.abs(calc.total), currency)), /*#__PURE__*/React.createElement("em", null, "= ", oppositeCurrencyAmount(calc.total, currency, rate))), /*#__PURE__*/React.createElement("div", {
     className: "totalRate"
   }, c.finalRateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN")));
 }
@@ -1602,7 +1610,7 @@ function printFinalBalance({
   const rowsHtml = rows.map(item => `
       <tr class="${item.mode === "minus" ? "minusRow" : ""}">
         <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b>${item.vatAdded ? '<span class="softVatTag">+VAT 23%</span>' : ""}</td>
+        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
       </tr>`).join("");
   const html = `
 <!doctype html>
@@ -2078,6 +2086,12 @@ function App() {
     rateDate: rateDate,
     value: rate,
     onChange: setManualRate
+  })), isFinalBalance && /*#__PURE__*/React.createElement("div", {
+    className: "finalToolbar"
+  }, /*#__PURE__*/React.createElement(FinalCurrencyControl, {
+    c: c,
+    currency: finalCurrency,
+    onCurrencyChange: switchFinalCurrency
   })), /*#__PURE__*/React.createElement("section", {
     className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
