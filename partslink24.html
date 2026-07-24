@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./tokens.css?v=partslink24-20260721-1" />
-    <link rel="stylesheet" href="./src/tools.css?v=partslink24-20260709-1" />
+    <link rel="stylesheet" href="./tokens.css?v=vincheck-20260724-1" />
+    <link rel="stylesheet" href="./src/tools.css?v=vincheck-20260724-1" />
     <style>
       /* Hallmark · macrostructure: Workbench · tone: utilitarian · anchor hue: AUTOGOOD blue · nav: N9 · footer: Ft2 · contrast: pass (40–41) · mobile: pass (34, 49, 50–57) */
       html,
@@ -451,7 +451,7 @@
 
       <section class="partslinkHero">
         <div>
-          <p class="partslinkEyebrow">PartsLink24 / Проверка VIN</p>
+          <p class="partslinkEyebrow">Проверка VIN</p>
         </div>
       </section>
 
@@ -485,7 +485,7 @@
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
 
-        <aside class="partslinkResultCard" aria-label="PartsLink24 result">
+        <aside class="partslinkResultCard" aria-label="VIN check result">
           <p class="partslinkPanelTitle">Результат</p>
           <div class="partslinkSpecRows">
             <label class="partslinkSpecRow" for="partslinkVehicleDescription">
@@ -505,7 +505,7 @@
       </section>
 
       <footer class="partslinkFooter">
-        <p>AUTOGOOD Tools · backend PartsLink24 можно заменить параметром <strong>?api=</strong> или <strong>?backend=</strong>.</p>
+        <p>AUTOGOOD Tools · backend можно заменить параметром <strong>?api=</strong> или <strong>?backend=</strong>.</p>
       </footer>
     </main>
     <script>
@@ -714,7 +714,7 @@
         setBusy(true);
         resetDownloadLink();
         setVehicleDescription("");
-        setStatus("Проверяем VIN в PartsLink24...");
+        setStatus("Проверяем VIN...");
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
@@ -749,7 +749,7 @@
         resetDownloadLink();
         resetProductionDate();
         setVehicleDescription("");
-        setStatus("Ищем дату производства в PartsLink24...");
+        setStatus("Ищем дату производства...");
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/production-date`, {
@@ -765,7 +765,7 @@
 
           productionDateInput.value = result.productionDate || "";
           setVehicleDescription(result.vehicleDescription || "");
-          setStatus(productionDateInput.value ? "Дата производства получена без выгрузки PDF." : "PartsLink24 не вернул дату производства.", productionDateInput.value ? "success" : "error");
+          setStatus(productionDateInput.value ? "Дата производства получена без выгрузки PDF." : "Не удалось получить дату производства.", productionDateInput.value ? "success" : "error");
         } catch (error) {
           setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {
