@@ -1287,6 +1287,10 @@ function FinalBalanceResults({
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
     alt: "AUTOGOOD"
+  }), /*#__PURE__*/React.createElement(FinalCurrencyControl, {
+    c: c,
+    currency: currency,
+    onCurrencyChange: onCurrencyChange
   }), /*#__PURE__*/React.createElement("h2", {
     className: "calcEyebrow"
   }, c.finalBalance), /*#__PURE__*/React.createElement("div", {
@@ -2018,7 +2022,7 @@ function App() {
     }
   };
   return /*#__PURE__*/React.createElement("main", {
-    className: `appShell ${isFinalBalance ? "appShellFinal" : ""}`
+    className: "appShell"
   }, /*#__PURE__*/React.createElement("header", {
     className: "topbar"
   }, /*#__PURE__*/React.createElement("div", {
@@ -2086,17 +2090,13 @@ function App() {
     rateDate: rateDate,
     value: rate,
     onChange: setManualRate
-  })), isFinalBalance && /*#__PURE__*/React.createElement("div", {
-    className: "finalToolbar"
-  }, /*#__PURE__*/React.createElement(FinalCurrencyControl, {
-    c: c,
-    currency: finalCurrency,
-    onCurrencyChange: switchFinalCurrency
   })), /*#__PURE__*/React.createElement("section", {
     className: `grid ${isFinalBalance ? "finalGrid" : ""}`
   }, /*#__PURE__*/React.createElement("aside", {
-    className: isFinalBalance ? "card sidebar finalSidebar" : "panelData"
-  }, isFinalBalance ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", null, c.inputs), /*#__PURE__*/React.createElement(FinalBalanceInputs, {
+    className: isFinalBalance ? "panelData finalSidebar" : "panelData"
+  }, isFinalBalance ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
+    className: "panelEyebrow"
+  }, c.inputs), /*#__PURE__*/React.createElement(FinalBalanceInputs, {
     c: c,
     lang: safeLang,
     currency: finalCurrency,
@@ -2161,7 +2161,7 @@ function App() {
     onChange: value => setField(field.key, value),
     suffix: field.currency
   })))), /*#__PURE__*/React.createElement("section", {
-    className: isFinalBalance ? "card results finalResults" : "panelCalc",
+    className: isFinalBalance ? "panelCalc results finalResults" : "panelCalc",
     ref: resultsRef
   }, isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceResults, {
     c: c,

@@ -1116,6 +1116,8 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onCurrencyChange, 
     <>
       <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
 
+      <FinalCurrencyControl c={c} currency={currency} onCurrencyChange={onCurrencyChange} />
+
       <h2 className="calcEyebrow">{c.finalBalance}</h2>
 
       <div className="rows finalRows">
@@ -1931,7 +1933,7 @@ function App() {
   };
 
   return (
-    <main className={`appShell ${isFinalBalance ? "appShellFinal" : ""}`}>
+    <main className="appShell">
       <header className="topbar">
         <div className="logoGroup">
           <a className="logoLink" href="./" aria-label="AUTOGOOD home">
@@ -1981,17 +1983,11 @@ function App() {
         <RateWidget c={c} avgRateLabel={avgRateLabel} rateDate={rateDate} value={rate} onChange={setManualRate} />
       </div>
 
-      {isFinalBalance && (
-        <div className="finalToolbar">
-          <FinalCurrencyControl c={c} currency={finalCurrency} onCurrencyChange={switchFinalCurrency} />
-        </div>
-      )}
-
       <section className={`grid ${isFinalBalance ? "finalGrid" : ""}`}>
-        <aside className={isFinalBalance ? "card sidebar finalSidebar" : "panelData"}>
+        <aside className={isFinalBalance ? "panelData finalSidebar" : "panelData"}>
           {isFinalBalance ? (
             <>
-              <h2>{c.inputs}</h2>
+              <h2 className="panelEyebrow">{c.inputs}</h2>
               <FinalBalanceInputs
                 c={c}
                 lang={safeLang}
@@ -2078,7 +2074,7 @@ function App() {
           )}
         </aside>
 
-        <section className={isFinalBalance ? "card results finalResults" : "panelCalc"} ref={resultsRef}>
+        <section className={isFinalBalance ? "panelCalc results finalResults" : "panelCalc"} ref={resultsRef}>
           {isFinalBalance ? (
             <FinalBalanceResults
               c={c}
