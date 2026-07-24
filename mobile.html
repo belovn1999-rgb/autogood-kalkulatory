@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=mobile-even-columns-20260723" />
+    <link rel="stylesheet" href="./src/mobile.css?v=mobile-custom-filter-dropdowns-20260724" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -96,66 +96,62 @@
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="mileageRangeLabel">Przebieg</span>
               <div class="mobileRangePair">
-                <label class="mobileComboControl">
-                  <input data-mobile-mileage-from list="mobile-mileage-options" inputmode="numeric" autocomplete="off" />
+                <div class="mobileComboControl">
+                  <input data-mobile-mileage-from inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-from" aria-label="Lista"></button>
                   <em>km</em>
-                  <i aria-hidden="true"></i>
-                </label>
-                <label class="mobileComboControl">
-                  <input data-mobile-mileage-to list="mobile-mileage-options" inputmode="numeric" autocomplete="off" />
+                </div>
+                <div class="mobileComboControl">
+                  <input data-mobile-mileage-to inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-to" aria-label="Lista"></button>
                   <em>km</em>
-                  <i aria-hidden="true"></i>
-                </label>
+                </div>
               </div>
-              <datalist id="mobile-mileage-options" data-mobile-mileage-options></datalist>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="yearRangeLabel">Rok</span>
               <div class="mobileRangePair">
-                <label class="mobileComboControl">
-                  <input data-mobile-year-from list="mobile-year-options" inputmode="numeric" autocomplete="off" />
+                <div class="mobileComboControl">
+                  <input data-mobile-year-from inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="year" data-mobile-options-target="data-mobile-year-from" aria-label="Lista"></button>
                   <em aria-hidden="true"></em>
-                  <i aria-hidden="true"></i>
-                </label>
-                <label class="mobileComboControl">
-                  <input data-mobile-year-to list="mobile-year-options" inputmode="numeric" autocomplete="off" />
+                </div>
+                <div class="mobileComboControl">
+                  <input data-mobile-year-to inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="year" data-mobile-options-target="data-mobile-year-to" aria-label="Lista"></button>
                   <em aria-hidden="true"></em>
-                  <i aria-hidden="true"></i>
-                </label>
+                </div>
               </div>
-              <datalist id="mobile-year-options" data-mobile-year-options></datalist>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="displacementRangeLabel">Pojemność silnika</span>
               <div class="mobileRangePair">
-                <label class="mobileComboControl">
-                  <input data-mobile-displacement-from list="mobile-displacement-options" inputmode="numeric" autocomplete="off" />
+                <div class="mobileComboControl">
+                  <input data-mobile-displacement-from inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-from" aria-label="Lista"></button>
                   <em>ccm</em>
-                  <i aria-hidden="true"></i>
-                </label>
-                <label class="mobileComboControl">
-                  <input data-mobile-displacement-to list="mobile-displacement-options" inputmode="numeric" autocomplete="off" />
+                </div>
+                <div class="mobileComboControl">
+                  <input data-mobile-displacement-to inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-to" aria-label="Lista"></button>
                   <em>ccm</em>
-                  <i aria-hidden="true"></i>
-                </label>
+                </div>
               </div>
-              <datalist id="mobile-displacement-options" data-mobile-displacement-options></datalist>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="powerRangeLabel">Moc silnika (KM)</span>
               <div class="mobileRangePair">
-                <label class="mobileComboControl">
-                  <input data-mobile-power-from list="mobile-power-options" inputmode="numeric" autocomplete="off" />
+                <div class="mobileComboControl">
+                  <input data-mobile-power-from inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="power" data-mobile-options-target="data-mobile-power-from" aria-label="Lista"></button>
                   <em>KM</em>
-                  <i aria-hidden="true"></i>
-                </label>
-                <label class="mobileComboControl">
-                  <input data-mobile-power-to list="mobile-power-options" inputmode="numeric" autocomplete="off" />
+                </div>
+                <div class="mobileComboControl">
+                  <input data-mobile-power-to inputmode="numeric" autocomplete="off" />
+                  <button type="button" data-mobile-options="power" data-mobile-options-target="data-mobile-power-to" aria-label="Lista"></button>
                   <em>KM</em>
-                  <i aria-hidden="true"></i>
-                </label>
+                </div>
               </div>
-              <datalist id="mobile-power-options" data-mobile-power-options></datalist>
             </div>
             <fieldset class="mobileField mobileChoiceField mobileWideField">
               <legend data-i18n="driveLabel">Napęd</legend>
@@ -211,6 +207,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=mobile-even-columns-20260723"></script>
+    <script src="./src/mobile.js?v=mobile-custom-filter-dropdowns-20260724"></script>
   </body>
 </html>

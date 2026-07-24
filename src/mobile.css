@@ -379,12 +379,12 @@ button {
 }
 
 .mobileComboControl {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 34px;
+  grid-template-columns: minmax(0, 1fr) 34px auto;
   align-items: center;
   min-width: 0;
   min-height: 42px;
-  overflow: hidden;
   border: var(--rule-thin) solid var(--color-field);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -414,18 +414,22 @@ button {
   font-style: normal;
   font-weight: 700;
   line-height: 1;
+  padding-right: var(--space-sm);
   white-space: nowrap;
 }
 
-.mobileComboControl i {
+.mobileComboControl > button {
   position: relative;
   width: 34px;
   height: 40px;
+  border: 0;
   border-left: var(--rule-thin) solid var(--color-field);
+  border-right: var(--rule-thin) solid var(--color-field);
   background: var(--color-surface-tint);
+  padding: 0;
 }
 
-.mobileComboControl i::before {
+.mobileComboControl > button::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -436,6 +440,47 @@ button {
   border-right: 5px solid transparent;
   border-top: 6px solid var(--color-ink);
   transform: translate(-50%, -35%);
+}
+
+.mobileComboControl.isOpen {
+  border-color: var(--color-focus);
+}
+
+.mobileComboMenu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 12px 28px rgba(12, 37, 54, 0.14);
+  padding: var(--space-2xs);
+}
+
+.mobileComboControl.isOpen .mobileComboMenu {
+  display: grid;
+}
+
+.mobileComboMenu button {
+  width: 100%;
+  height: auto;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  padding: 0 var(--space-sm);
+  text-align: left;
+}
+
+.mobileComboMenu button:hover,
+.mobileComboMenu button:focus-visible {
+  background: var(--color-surface-tint);
+  outline: 0;
 }
 
 .mobileChoiceField {

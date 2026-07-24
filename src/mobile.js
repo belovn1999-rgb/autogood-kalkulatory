@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://bruce-arms-pine-demonstrate.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://dual-combines-syndrome-existed.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
@@ -357,6 +357,53 @@ function renderDatalist(el, values) {
   el.innerHTML = values.map((value) => datalistOptionHtml(String(value))).join("");
 }
 
+function comboOptionSets() {
+  return {
+    mileage: mileageOptions().map((value) => ({
+      value: String(value),
+      label: `${value.toLocaleString("pl-PL")} km`,
+    })),
+    year: yearOptions().map((value) => ({ value, label: value })),
+    displacement: displacementOptions.map((value) => ({
+      value,
+      label: `${value} ccm`,
+    })),
+    power: powerOptions.map((value) => ({
+      value,
+      label: `${value} KM`,
+    })),
+  };
+}
+
+function closeComboMenus(exceptControl = null) {
+  document.querySelectorAll(".mobileComboControl.isOpen").forEach((control) => {
+    if (control === exceptControl) return;
+    control.classList.remove("isOpen");
+    control.querySelector("[data-mobile-options]")?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function renderComboMenus() {
+  const sets = comboOptionSets();
+  document.querySelectorAll("[data-mobile-options]").forEach((button) => {
+    const control = button.closest(".mobileComboControl");
+    if (!control) return;
+    const options = sets[button.dataset.mobileOptions] || [];
+    let menu = control.querySelector(".mobileComboMenu");
+    if (!menu) {
+      menu = document.createElement("div");
+      menu.className = "mobileComboMenu";
+      control.append(menu);
+    }
+    button.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
+    menu.innerHTML = options.map((option) => `
+      <button type="button" data-mobile-option-value="${escapeHtml(option.value)}">
+        ${escapeHtml(option.label)}
+      </button>
+    `).join("");
+  });
+}
+
 function checkedValue(radios) {
   return radios.find((radio) => radio.checked)?.value || "";
 }
@@ -474,6 +521,7 @@ function renderManualOptions(keepValues = true) {
   renderDatalist(els.yearOptions, yearOptions());
   renderDatalist(els.displacementOptions, displacementOptions);
   renderDatalist(els.powerOptions, powerOptions);
+  renderComboMenus();
   els.mileageFrom.value = current.mileageFrom || "";
   els.mileageTo.value = current.mileageTo || "";
   els.yearFrom.value = current.yearFrom || "";
@@ -724,6 +772,38 @@ document.querySelectorAll("[data-lang-button]").forEach((button) => {
     setStatus(state.status, state.error);
     renderData();
   });
+});
+
+document.addEventListener("click", (event) => {
+  const optionsButton = event.target.closest("[data-mobile-options]");
+  if (optionsButton) {
+    const control = optionsButton.closest(".mobileComboControl");
+    const isOpen = control?.classList.contains("isOpen");
+    closeComboMenus(control);
+    control?.classList.toggle("isOpen", !isOpen);
+    optionsButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    return;
+  }
+
+  const optionButton = event.target.closest("[data-mobile-option-value]");
+  if (optionButton) {
+    const control = optionButton.closest(".mobileComboControl");
+    const targetName = control?.querySelector("[data-mobile-options]")?.dataset.mobileOptionsTarget;
+    const input = targetName ? control.querySelector(`[${targetName}]`) : null;
+    if (input) {
+      input.value = optionButton.dataset.mobileOptionValue || "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    }
+    closeComboMenus();
+    return;
+  }
+
+  if (!event.target.closest(".mobileComboControl")) closeComboMenus();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeComboMenus();
 });
 
 els.form.addEventListener("submit", (event) => {
