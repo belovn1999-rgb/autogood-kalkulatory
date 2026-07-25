@@ -9,6 +9,9 @@
   --bg: #f4f6f8;
   --panel: #ffffff;
   --field: #fbfcfd;
+  /* Shared page frame — same recipe as .umowyPage / .partslinkShell */
+  --shell-max: 1200px;
+  --shell-gutter: 40px;
 }
 
 * {
@@ -38,7 +41,12 @@ button {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--shell-max), calc(100% - var(--shell-gutter)));
   min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 0 64px;
 }
 
 .topbar {
@@ -50,8 +58,8 @@ button {
   justify-content: space-between;
   gap: 18px;
   min-height: 76px;
-  padding: 14px 28px;
-  background: rgba(255, 255, 255, 0.96);
+  padding: 22px 0 16px;
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 
@@ -179,7 +187,7 @@ body.export-contract .brandTitle::after {
   grid-template-columns: minmax(220px, 16.666%) minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
-  padding: 22px 28px 32px;
+  padding: 24px 0 0;
 }
 
 .utility-column {
@@ -512,28 +520,79 @@ input[type="radio"] {
   width: min(180px, 100%);
 }
 
+/* Laptops: drop the side rail above the form, but keep the two contract
+   columns — one full-width card per row is what made this feel stretched. */
 @media (max-width: 1100px) {
-  .workspace,
-  .contract-grid {
-    grid-template-columns: 1fr;
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .utility-column {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto;
+    min-height: 0;
+  }
+
+  .paste-panel {
+    height: auto;
+  }
+
+  .example-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .contract-grid,
+  .utility-column {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .utility-column {
     grid-template-rows: auto auto;
-    min-height: 0;
   }
-}
 
-@media (max-width: 720px) {
+  .example-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .topbar {
     position: static;
     align-items: stretch;
     flex-direction: column;
-    padding: 14px 16px;
+    padding: 18px 0 16px;
   }
 
   .actions {
     justify-content: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --shell-gutter: 32px;
+  }
+
+  .app-shell {
+    padding-bottom: 40px;
+  }
+
+  /* Logo + label + variant pill no longer fit on one line inside the column. */
+  .brand {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .brandDivider {
+    display: none;
+  }
+
+  .brandTitle {
+    white-space: normal;
+  }
+
+  body.export-contract .brandTitle::after {
+    margin-left: 10px;
   }
 
   .primary-btn,
@@ -542,7 +601,7 @@ input[type="radio"] {
   }
 
   .workspace {
-    padding: 16px;
+    padding-top: 18px;
   }
 
   .history-strip {

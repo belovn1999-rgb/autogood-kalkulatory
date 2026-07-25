@@ -558,8 +558,11 @@ function configureContractVariant() {
   if (!isExportContract) return;
   document.body.classList.add("export-contract");
   document.title = "AUTOGOOD Umowa Export";
-  const brandLabel = document.querySelector(".brand span");
-  if (brandLabel) brandLabel.textContent = "Umowa Export";
+  // .brand span also matches .brandDivider (a 1px rule) — the label is .brandTitle.
+  // The variant is named by the "Eksport do Białorusi" pill on .brandTitle::after,
+  // matching the "Umowa [Sprzedaż]" badge on the sale contract.
+  const brandLabel = document.querySelector(".brandTitle");
+  if (brandLabel) brandLabel.textContent = "Umowa";
 
   document.querySelectorAll("[data-subject-option]").forEach((label) => {
     const option = label.dataset.subjectOption;
