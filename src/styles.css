@@ -653,6 +653,11 @@ select:focus-visible,
   font-weight: 700;
 }
 
+.mobileImportStatus.warning {
+  color: var(--ag-color-error);
+  font-weight: 600;
+}
+
 .mobileImportSummary b {
   color: var(--ag-ink-900);
 }

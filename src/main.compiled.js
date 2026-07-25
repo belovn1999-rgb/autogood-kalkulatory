@@ -21,6 +21,8 @@ const readMobileDeApiUrl = () => {
   return configuredUrl || queryUrl || DEFAULT_MOBILEDE_API_URL;
 };
 const MOBILEDE_API_URL = readMobileDeApiUrl();
+// Tabs that offer the Mobile.de listing import: direct purchase plus both dealer calculators.
+const MOBILEDE_TABS = [0, 3, 4];
 const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 8;
@@ -89,6 +91,7 @@ const copy = {
     mobileImportReady: "Dane podstawione: cena brutto, silnik, akcyza i dane ogłoszenia.",
     mobileImportError: "Nie udało się pobrać danych. Sprawdź link albo backend.",
     mobileImportFound: "Znaleziono",
+    mobileImportNoNetto: "W ogłoszeniu nie ma ceny netto (VAT niewyodrębniony) — wpisz „Cena pojazdu netto” ręcznie.",
     errorTitle: "Coś poszło nie tak.",
     errorBody: "Odśwież stronę i spróbuj ponownie.",
     selectPlaceholder: "Wybierz typ silnika",
@@ -158,6 +161,7 @@ const copy = {
     mobileImportReady: "Данные подставлены: цена brutto, двигатель, акциз и данные объявления.",
     mobileImportError: "Не удалось загрузить данные. Проверь ссылку или backend.",
     mobileImportFound: "Найдено",
+    mobileImportNoNetto: "В объявлении нет цены netto (НДС не выделен) — впиши «Цена авто netto» вручную.",
     errorTitle: "Что-то пошло не так.",
     errorBody: "Обновите страницу и попробуйте снова.",
     selectPlaceholder: "Выберите тип двигателя",
@@ -496,6 +500,7 @@ function roundedCurrencyValue(value, currency = "PLN") {
   if (currency === "EUR") return Math.round(safeValue / 10) * 10;
   return Math.round(safeValue);
 }
+
 // Zloty is shown as the ISO code ("1 850 PLN"), not the "zl" symbol.
 // Euro keeps its symbol, so only PLN switches to currencyDisplay: "code".
 function currencyDisplayFor(currency) {
@@ -1045,6 +1050,7 @@ function MobileDeImport({
   url,
   status,
   summary,
+  notice,
   onUrlChange,
   onImport
 }) {
@@ -1065,7 +1071,9 @@ function MobileDeImport({
     disabled: status === "loading" || !url.trim()
   }, status === "loading" ? "..." : c.mobileImportButton))), status && /*#__PURE__*/React.createElement("p", {
     className: `mobileImportStatus ${status}`
-  }, status === "loading" && c.mobileImportLoading, status === "ready" && c.mobileImportReady, status === "error" && c.mobileImportError), summary && status !== "error" && /*#__PURE__*/React.createElement("p", {
+  }, status === "loading" && c.mobileImportLoading, status === "ready" && c.mobileImportReady, status === "error" && c.mobileImportError), notice && status === "ready" && /*#__PURE__*/React.createElement("p", {
+    className: "mobileImportStatus warning"
+  }, notice), summary && status !== "error" && /*#__PURE__*/React.createElement("p", {
     className: "mobileImportSummary"
   }, /*#__PURE__*/React.createElement("b", null, c.mobileImportFound, ":"), " ", summary), summary && status === "error" && /*#__PURE__*/React.createElement("p", {
     className: "mobileImportSummary errorDetail"
@@ -1718,6 +1726,7 @@ function App() {
   const [mobileDeUrl, setMobileDeUrl] = useState(initialPrefill.mobileDeUrl);
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
+  const [mobileDeNotice, setMobileDeNotice] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
   const [history, setHistory] = useState(() => readHistory());
   const [finalHistory, setFinalHistory] = useState(() => readHistory(FINAL_HISTORY_KEY));
@@ -1772,6 +1781,11 @@ function App() {
     setFinanced(false);
     setManualOverrides({});
     setEditingOverride("");
+    // Switching tabs wipes the imported values, so the import result no longer
+    // describes what is on screen. Keep the link so it can be re-imported.
+    setMobileDeStatus("");
+    setMobileDeSummary("");
+    setMobileDeNotice("");
   };
   const clearManualOverrides = () => {
     setManualOverrides({});
@@ -1920,6 +1934,7 @@ function App() {
       setMobileDeUrl("");
       setMobileDeStatus("");
       setMobileDeSummary("");
+      setMobileDeNotice("");
       return;
     }
     const nextTab = tabs[item.activeTab] ? item.activeTab : 0;
@@ -1935,12 +1950,14 @@ function App() {
     setMobileDeUrl("");
     setMobileDeStatus("");
     setMobileDeSummary("");
+    setMobileDeNotice("");
   };
   const loadMobileDeData = async () => {
     const sourceUrl = mobileDeUrl.trim();
     if (!sourceUrl) return;
     setMobileDeStatus("loading");
     setMobileDeSummary("");
+    setMobileDeNotice("");
     try {
       const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
       if (!response.ok) {
@@ -1949,10 +1966,19 @@ function App() {
       }
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
+      const carNettoEur = Number(data?.carNettoEur);
       const transportNettoPln = Number(data?.transportNettoPln);
       const inspectionNettoPln = Number(data?.inspectionNettoPln ?? data?.deliveryInspectionEstimate?.inspection ?? data?.transportEstimate?.inspection);
       const nextEngineIndex = Number(data?.engineTypeIndex);
-      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
+
+      // "Dealerzy VAT 23%" asks for the net car price; every other tab wants the
+      // gross listing price. VAT-deductible ads print the net price next to the
+      // gross one — if it is missing (margin ads), leave the field for manual entry.
+      const wantsNettoCar = activeTab === 3;
+      const hasNettoCar = Number.isFinite(carNettoEur) && carNettoEur > 0;
+      if (wantsNettoCar) {
+        if (hasNettoCar) setField("car", String(Math.round(carNettoEur)));else setMobileDeNotice(c.mobileImportNoNetto);
+      } else if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
         setField("car", String(Math.round(carBruttoEur)));
       }
       if (Number.isFinite(transportNettoPln) && transportNettoPln > 0) {
@@ -1966,7 +1992,8 @@ function App() {
       }
       const summaryParts = [];
       if (data?.title) summaryParts.push(data.title);
-      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(`${formatPlainAmount(carBruttoEur, "EUR")} brutto`);
+      if (hasNettoCar) summaryParts.push(`${formatPlainAmount(carNettoEur, "EUR")} netto`);
       if (data?.fuel) summaryParts.push(data.fuel);
       if (data?.bodyType) summaryParts.push(data.bodyType);
       if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
@@ -2118,11 +2145,12 @@ function App() {
     onDeleteCustom: deleteCustomFinalItem
   })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", {
     className: "panelEyebrow"
-  }, c.inputs), activeTab === 0 && /*#__PURE__*/React.createElement(MobileDeImport, {
+  }, c.inputs), MOBILEDE_TABS.includes(activeTab) && /*#__PURE__*/React.createElement(MobileDeImport, {
     c: c,
     url: mobileDeUrl,
     status: mobileDeStatus,
     summary: mobileDeSummary,
+    notice: mobileDeNotice,
     onUrlChange: setMobileDeUrl,
     onImport: loadMobileDeData
   }), activeTab > 0 && /*#__PURE__*/React.createElement("div", {

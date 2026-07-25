@@ -83,6 +83,7 @@ const copy = {
     mobileImportReady: "Dane podstawione: cena brutto, silnik, akcyza i dane ogłoszenia.",
     mobileImportError: "Nie udało się pobrać danych. Sprawdź link albo backend.",
     mobileImportFound: "Znaleziono",
+    mobileImportNoNetto: "W ogłoszeniu nie ma ceny netto (VAT niewyodrębniony) — wpisz „Cena pojazdu netto” ręcznie.",
     errorTitle: "Coś poszło nie tak.",
     errorBody: "Odśwież stronę i spróbuj ponownie.",
     selectPlaceholder: "Wybierz typ silnika",
@@ -152,6 +153,7 @@ const copy = {
     mobileImportReady: "Данные подставлены: цена brutto, двигатель, акциз и данные объявления.",
     mobileImportError: "Не удалось загрузить данные. Проверь ссылку или backend.",
     mobileImportFound: "Найдено",
+    mobileImportNoNetto: "В объявлении нет цены netto (НДС не выделен) — впиши «Цена авто netto» вручную.",
     errorTitle: "Что-то пошло не так.",
     errorBody: "Обновите страницу и попробуйте снова.",
     selectPlaceholder: "Выберите тип двигателя",
@@ -897,7 +899,7 @@ async function loadExchangeRates() {
   }
 }
 
-function MobileDeImport({ c, url, status, summary, onUrlChange, onImport }) {
+function MobileDeImport({ c, url, status, summary, notice, onUrlChange, onImport }) {
   return (
     <section className="mobileImport">
       <label className="field">
@@ -920,6 +922,9 @@ function MobileDeImport({ c, url, status, summary, onUrlChange, onImport }) {
           {status === "ready" && c.mobileImportReady}
           {status === "error" && c.mobileImportError}
         </p>
+      )}
+      {notice && status === "ready" && (
+        <p className="mobileImportStatus warning">{notice}</p>
       )}
       {summary && status !== "error" && (
         <p className="mobileImportSummary">
@@ -1601,6 +1606,7 @@ function App() {
   const [mobileDeUrl, setMobileDeUrl] = useState(initialPrefill.mobileDeUrl);
   const [mobileDeStatus, setMobileDeStatus] = useState("");
   const [mobileDeSummary, setMobileDeSummary] = useState("");
+  const [mobileDeNotice, setMobileDeNotice] = useState("");
   const [screenshotStatus, setScreenshotStatus] = useState("");
   const [history, setHistory] = useState(() => readHistory());
   const [finalHistory, setFinalHistory] = useState(() => readHistory(FINAL_HISTORY_KEY));
@@ -1671,6 +1677,7 @@ function App() {
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
     setMobileDeSummary("");
+    setMobileDeNotice("");
   };
 
   const clearManualOverrides = () => {
@@ -1824,6 +1831,7 @@ function App() {
       setMobileDeUrl("");
       setMobileDeStatus("");
       setMobileDeSummary("");
+      setMobileDeNotice("");
       return;
     }
 
@@ -1840,6 +1848,7 @@ function App() {
     setMobileDeUrl("");
     setMobileDeStatus("");
     setMobileDeSummary("");
+    setMobileDeNotice("");
   };
 
   const loadMobileDeData = async () => {
@@ -1848,6 +1857,7 @@ function App() {
 
     setMobileDeStatus("loading");
     setMobileDeSummary("");
+    setMobileDeNotice("");
 
     try {
       const response = await fetch(`${MOBILEDE_API_URL}?url=${encodeURIComponent(sourceUrl)}`);
@@ -1874,6 +1884,7 @@ function App() {
 
       if (wantsNettoCar) {
         if (hasNettoCar) setField("car", String(Math.round(carNettoEur)));
+        else setMobileDeNotice(c.mobileImportNoNetto);
       } else if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
         setField("car", String(Math.round(carBruttoEur)));
       }
@@ -1892,7 +1903,8 @@ function App() {
 
       const summaryParts = [];
       if (data?.title) summaryParts.push(data.title);
-      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(formatPlainAmount(carBruttoEur, "EUR"));
+      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) summaryParts.push(`${formatPlainAmount(carBruttoEur, "EUR")} brutto`);
+      if (hasNettoCar) summaryParts.push(`${formatPlainAmount(carNettoEur, "EUR")} netto`);
       if (data?.fuel) summaryParts.push(data.fuel);
       if (data?.bodyType) summaryParts.push(data.bodyType);
       if (data?.displacementCcm) summaryParts.push(`${data.displacementCcm} cm³`);
@@ -2036,6 +2048,7 @@ function App() {
               url={mobileDeUrl}
               status={mobileDeStatus}
               summary={mobileDeSummary}
+              notice={mobileDeNotice}
               onUrlChange={setMobileDeUrl}
               onImport={loadMobileDeData}
             />
