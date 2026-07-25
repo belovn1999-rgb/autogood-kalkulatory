@@ -193,11 +193,13 @@ const defaultChecklistValues = {
 function createYesNoRow(name, label) {
   const row = document.createElement("div");
   row.className = "yesNoRow";
+  // The <span> after each input is the visible segment: styling it via
+  // input:checked + span is what makes the selected state repaint reliably.
   row.innerHTML = `
     <span>${label}</span>
-    <label><input type="radio" name="${name}" value="tak" /> TAK</label>
-    <label><input type="radio" name="${name}" value="nie" /> NIE</label>
-    <label><input type="radio" name="${name}" value="" /> —</label>
+    <label><input type="radio" name="${name}" value="tak" /><span>TAK</span></label>
+    <label><input type="radio" name="${name}" value="nie" /><span>NIE</span></label>
+    <label><input type="radio" name="${name}" value="" /><span>—</span></label>
   `;
   return row;
 }

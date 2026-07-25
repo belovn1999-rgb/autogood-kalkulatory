@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=shell-frame-20260725" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=shell-frame-20260725" />
+    <link rel="stylesheet" href="./src/pdf.css?v=readable-20260725-4" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=readable-20260725-4" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -26,9 +26,9 @@
         <div class="actions">
           <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
           <button id="exportSaleContract" class="ghost-btn" type="button">Eksportuj dane</button>
-          <button id="generateSaleDocx" class="primary-btn" type="button">DOCX</button>
+          <button id="printSaleContract" class="ghost-btn" type="button">Drukuj</button>
+          <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
           <button id="generateSalePdf" class="primary-btn" type="button">PDF</button>
-          <button id="printSaleContract" class="primary-btn" type="button">Drukuj</button>
         </div>
       </header>
 
@@ -37,11 +37,10 @@
           <aside class="paste-panel paste-panel-top">
             <div class="section-title">Dane wejściowe</div>
             <div class="input-card">
-              <div class="panel-title">Dane do rozpoznania</div>
-              <textarea id="rawSaleData" spellcheck="false" placeholder="Np. klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
+              <textarea id="rawSaleData" spellcheck="false" placeholder="Wklej dane: klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
               <div class="example-actions">
-                <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
                 <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
+                <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
               </div>
               <div id="saleStatus" class="status" aria-live="polite"></div>
             </div>
@@ -135,6 +134,9 @@
                   <span>Zniżka lub dodatkowa korzyść po negocjacjach:</span>
                   <textarea name="discountBenefit" placeholder="Kwota rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
                 </label>
+
+                <div class="card-head compact">NABYCIE I SPRAWDZENIE POJAZDU:</div>
+                <div id="purchaseChecklist" class="yesNoChecklist"></div>
               </div>
 
               <div class="contract-card">
@@ -184,9 +186,6 @@
 
                 <div class="card-head compact">DOKUMENTY I EMISJE:</div>
                 <div id="documentsChecklist" class="yesNoChecklist"></div>
-
-                <div class="card-head compact">NABYCIE I SPRAWDZENIE POJAZDU:</div>
-                <div id="purchaseChecklist" class="yesNoChecklist"></div>
               </div>
 
               <div class="contract-card contract-card-wide">
@@ -231,6 +230,6 @@
 
     <script src="./vendor/jszip.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/sale-contract.js?v=20260716-6"></script>
+    <script src="./src/sale-contract.js?v=20260725-4"></script>
   </body>
 </html>

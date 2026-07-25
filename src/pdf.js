@@ -571,8 +571,12 @@ function configureContractVariant() {
 
   const purchaseLabel = document.querySelector('[data-subject-option="purchase_by_autogood"] span');
   if (purchaseLabel) purchaseLabel.textContent = exportSubjectLabels.purchase_by_autogood;
-  const purchaseCheckbox = document.querySelector('[data-subject-option="purchase_by_autogood"] input');
+  const purchaseOption = document.querySelector('[data-subject-option="purchase_by_autogood"]');
+  const purchaseCheckbox = purchaseOption && purchaseOption.querySelector("input");
   if (purchaseCheckbox) purchaseCheckbox.remove();
+  // Without a checkbox this is fixed contract wording, not a choice — it must
+  // not look clickable.
+  if (purchaseOption) purchaseOption.classList.add("fixed-term");
   const indicatedLabel = document.querySelector('[data-subject-option="client_indicated_vehicle"] span');
   if (indicatedLabel) indicatedLabel.textContent = exportSubjectLabels.client_indicated_vehicle;
   setRadio("commissionOption", exportDefaultCommission);

@@ -16,6 +16,8 @@ const readMobileDeApiUrl = () => {
   return configuredUrl || queryUrl || DEFAULT_MOBILEDE_API_URL;
 };
 const MOBILEDE_API_URL = readMobileDeApiUrl();
+// Tabs that offer the Mobile.de listing import: direct purchase plus both dealer calculators.
+const MOBILEDE_TABS = [0, 3, 4];
 const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 8;
@@ -1665,6 +1667,10 @@ function App() {
     setFinanced(false);
     setManualOverrides({});
     setEditingOverride("");
+    // Switching tabs wipes the imported values, so the import result no longer
+    // describes what is on screen. Keep the link so it can be re-imported.
+    setMobileDeStatus("");
+    setMobileDeSummary("");
   };
 
   const clearManualOverrides = () => {
@@ -1851,6 +1857,7 @@ function App() {
       }
       const data = await response.json();
       const carBruttoEur = Number(data?.carBruttoEur);
+      const carNettoEur = Number(data?.carNettoEur);
       const transportNettoPln = Number(data?.transportNettoPln);
       const inspectionNettoPln = Number(
         data?.inspectionNettoPln
@@ -1859,7 +1866,15 @@ function App() {
       );
       const nextEngineIndex = Number(data?.engineTypeIndex);
 
-      if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
+      // "Dealerzy VAT 23%" asks for the net car price; every other tab wants the
+      // gross listing price. VAT-deductible ads print the net price next to the
+      // gross one — if it is missing (margin ads), leave the field for manual entry.
+      const wantsNettoCar = activeTab === 3;
+      const hasNettoCar = Number.isFinite(carNettoEur) && carNettoEur > 0;
+
+      if (wantsNettoCar) {
+        if (hasNettoCar) setField("car", String(Math.round(carNettoEur)));
+      } else if (Number.isFinite(carBruttoEur) && carBruttoEur > 0) {
         setField("car", String(Math.round(carBruttoEur)));
       }
 
@@ -2015,7 +2030,7 @@ function App() {
             <>
           <h2 className="panelEyebrow">{c.inputs}</h2>
 
-          {activeTab === 0 && (
+          {MOBILEDE_TABS.includes(activeTab) && (
             <MobileDeImport
               c={c}
               url={mobileDeUrl}

@@ -322,6 +322,54 @@ function extractPrice(html, jsonData, text = "") {
   return firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min: 500, max: 500000 });
 }
 
+// VAT-deductible listings print the net price next to the gross one
+// ("16.722 € (Netto)" / "Nettopreis"). Margin listings have no net price at all.
+function extractNetPrice(html, jsonData, text = "", grossPrice = 0) {
+  const primaryCandidates = [];
+  const secondaryCandidates = [];
+
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if ([
+        "consumerpricenet",
+        "dealerpricenet",
+        "netprice",
+        "pricenet",
+        "nettoprice",
+        "netlistprice",
+      ].includes(key.toLowerCase())) secondaryCandidates.push(value);
+    });
+  });
+
+  primaryCandidates.push(...collectTextValuesAfterLabels(text, [
+    /^nettopreis$/i,
+    /^netto$/i,
+    /^net\s+price$/i,
+    /^price\s+net$/i,
+    /^cena\s+netto$/i,
+  ]));
+
+  primaryCandidates.push(...collectRegexMatches(html, [
+    /\\?"consumerPriceNet\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"dealerPriceNet\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"netPrice\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+    /\\?"priceNet\\?"\s*:\s*\\?"?([\d.,\s\u00a0\u202f]+)/gi,
+  ]));
+
+  primaryCandidates.push(...collectRegexMatches(text, [
+    /([\d.,\s\u00a0\u202f]+)\s*€\s*\(?\s*netto/gi,
+    /netto(?:preis)?[^\d€]{0,20}([\d.,\s\u00a0\u202f]+)\s*€/gi,
+    /([\d.,\s\u00a0\u202f]+)\s*€\s*(?:zzgl|exkl|excl)\b/gi,
+  ]));
+
+  const gross = Number(grossPrice) || 0;
+  // A net price must sit below the gross one; anything outside that band is a mis-parse.
+  const max = gross > 0 ? gross * 0.995 : 500000;
+  const min = gross > 0 ? gross * 0.7 : 500;
+
+  return firstFiniteInRange([...primaryCandidates, ...secondaryCandidates], { min, max });
+}
+
 function extractPurchaseType(html, jsonData, text = "") {
   const candidates = [];
 
@@ -1211,6 +1259,7 @@ export async function handleMobiledeImport(request, response) {
 
     const jsonData = [...readJsonLd(html), ...readJsonBlocks(html)];
     const carBruttoEur = extractPrice(html, jsonData, text);
+    const carNettoEur = extractNetPrice(html, jsonData, text, carBruttoEur);
     const purchaseType = extractPurchaseType(html, jsonData, text);
     const displacementCcm = extractDisplacement(html, jsonData, text);
     const powerHp = extractPowerHp(html, jsonData, text);
@@ -1232,6 +1281,7 @@ export async function handleMobiledeImport(request, response) {
       adId: urlInfo.adId,
       importMode: mode,
       carBruttoEur,
+      carNettoEur: carNettoEur || null,
       purchaseType,
       title,
       bodyType,
@@ -1256,6 +1306,7 @@ export async function handleMobiledeImport(request, response) {
       ][engineTypeIndex],
       diagnostics: {
         hasPrice: Boolean(carBruttoEur),
+        hasNetPrice: Boolean(carNettoEur),
         hasFuel: Boolean(fuel),
         hasDisplacement: Boolean(displacementCcm),
         hasPower: Boolean(powerHp),
