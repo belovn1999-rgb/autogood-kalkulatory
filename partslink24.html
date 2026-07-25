@@ -479,8 +479,8 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" type="button">Проверить VIN</button>
-            <button id="partslinkProductionDateButton" type="button">Проверить дату производства</button>
+            <button id="partslinkCheckButton" type="button">Выгрузить файл</button>
+            <button id="partslinkProductionDateButton" type="button">Проверить данные</button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
@@ -495,6 +495,14 @@
             <label class="partslinkSpecRow" for="partslinkProductionDate">
               <span>Дата производства</span>
               <input id="partslinkProductionDate" class="partslinkReadonlyField" name="productionDate" type="text" readonly placeholder="—" />
+            </label>
+            <label class="partslinkSpecRow" for="partslinkEngineType">
+              <span>Тип двигателя</span>
+              <input id="partslinkEngineType" class="partslinkReadonlyField" name="engineType" type="text" readonly placeholder="—" />
+            </label>
+            <label class="partslinkSpecRow" for="partslinkEngineVolume">
+              <span>Объем двигателя</span>
+              <input id="partslinkEngineVolume" class="partslinkReadonlyField" name="engineVolume" type="text" readonly placeholder="—" />
             </label>
             <div class="partslinkSpecRow">
               <span>Файл VIN</span>
@@ -516,6 +524,8 @@
       const productionDateButton = document.getElementById("partslinkProductionDateButton");
       const vehicleDescriptionInput = document.getElementById("partslinkVehicleDescription");
       const productionDateInput = document.getElementById("partslinkProductionDate");
+      const engineTypeInput = document.getElementById("partslinkEngineType");
+      const engineVolumeInput = document.getElementById("partslinkEngineVolume");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const statusLine = document.getElementById("partslinkStatus");
       const fallbackBrands = {
@@ -601,6 +611,8 @@
 
       function resetProductionDate() {
         productionDateInput.value = "";
+        engineTypeInput.value = "";
+        engineVolumeInput.value = "";
       }
 
       function setVehicleDescription(value) {
@@ -764,8 +776,10 @@
           }
 
           productionDateInput.value = result.productionDate || "";
+          engineTypeInput.value = result.engineType || "";
+          engineVolumeInput.value = result.engineVolume || "";
           setVehicleDescription(result.vehicleDescription || "");
-          setStatus(productionDateInput.value ? "Дата производства получена без выгрузки PDF." : "Не удалось получить дату производства.", productionDateInput.value ? "success" : "error");
+          setStatus(productionDateInput.value ? "Данные получены без выгрузки файла." : "Не удалось получить данные.", productionDateInput.value ? "success" : "error");
         } catch (error) {
           setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {

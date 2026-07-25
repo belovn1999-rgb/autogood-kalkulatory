@@ -106,7 +106,9 @@ async function handleProductionDateCheck(request, response) {
     vin,
     vehicleDescription: result.vehicleDescription || "",
     productionDate: result.productionDate,
-    productionDateLabel: result.productionDateLabel || ""
+    productionDateLabel: result.productionDateLabel || "",
+    engineType: result.engineType || "",
+    engineVolume: result.engineVolume || ""
   });
 }
 
