@@ -806,7 +806,10 @@
           .filter((brand) => !favoriteValues.has(brand))
           .sort((left, right) => left.localeCompare(right, "ru"));
         const options = [
-          ...favorites.map((brand) => ({ value: brand.value, label: `★ ${brand.label}` })),
+          // Hollow, narrower star (U+2727) with a thin space: reads as a faint grey
+          // mark instead of a heavy black one. A native <select> can't colour part
+          // of an option's text, so the glyph itself carries the lighter weight.
+          ...favorites.map((brand) => ({ value: brand.value, label: `✧ ${brand.label}` })),
           ...regularBrands.map((brand) => ({ value: brand, label: brand }))
         ];
 
