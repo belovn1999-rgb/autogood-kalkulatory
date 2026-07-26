@@ -200,6 +200,22 @@ const bodyOptions = [
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
 const powerOptions = ["75", "90", "101", "118", "131", "150", "200", "252", "303", "358", "402", "452"];
 
+const modelGroupsByBrand = {
+  BMW: [
+    { group: "1 Series", models: ["114", "116", "118", "120", "123", "125", "128", "130", "135", "1er M Coupé"] },
+    { group: "2 Series", models: ["2er Gran Coupé", "214 Active Tourer", "214 Gran Tourer", "216", "216 Active Tourer", "216 Gran Coupé", "216 Gran Tourer", "218", "218 Active Tourer", "218 Gran Coupé", "218 Gran Tourer", "220", "220 Active Tourer", "220 Gran Coupé", "220 Gran Tourer", "223", "223 Active Tourer", "223 Gran Coupé", "225", "225 Active Tourer", "228", "230", "230 Active Tourer"] },
+    { group: "3 Series", models: ["315", "316", "318", "318 Gran Turismo", "320", "320 Gran Turismo", "323", "324", "325", "325 Gran Turismo", "328", "328 Gran Turismo", "330", "330 Gran Turismo", "335", "335 Gran Turismo", "340", "340 Gran Turismo", "ActiveHybrid 3"] },
+    { group: "4 Series", models: ["418", "418 Gran Coupé", "420", "420 Gran Coupé", "425", "425 Gran Coupé", "428", "428 Gran Coupé", "430", "430 Gran Coupé", "435", "435 Gran Coupé", "440", "440 Gran Coupé"] },
+    { group: "5 Series", models: ["518", "520", "520 Gran Turismo", "523", "524", "525", "528", "530", "530 Gran Turismo", "535", "535 Gran Turismo", "540", "545", "550", "550 Gran Turismo", "ActiveHybrid 5"] },
+    { group: "6 Series", models: ["620 Gran Turismo", "628", "630", "630 Gran Turismo", "633", "635", "640", "640 Gran Coupé", "640 Gran Turismo", "645", "650", "650 Gran Coupé"] },
+    { group: "7 Series", models: ["725", "728", "730", "732", "735", "740", "745", "750", "760", "ActiveHybrid 7"] },
+    { group: "M Models", models: ["M135", "M140i", "M2", "M235", "M240i", "M3", "M340d", "M340i", "M4", "M440", "M5", "M550", "M6", "M760", "M8", "M850"] },
+    { group: "X Series", models: ["ActiveHybrid X6", "X1", "X2", "X3", "X3 M", "X3 M40", "X3 M50", "X4", "X4 M", "X4 M40", "X5", "X5 M", "X5 M50", "X5 M60", "X6", "X6 M", "X6 M50", "X6 M60", "X7", "X7 M50", "X7 M60", "XM"] },
+    { group: "Z Series", models: ["Z1", "Z3", "Z3 M", "Z4", "Z4 M", "Z4 M40", "Z8"] },
+    { group: "Pozostałe BMW", models: ["2002", "840", "850", "i3", "i4", "i5", "i7", "i8", "iX", "iX1", "iX2", "iX3", "Other"] },
+  ],
+};
+
 const state = {
   lang: new URLSearchParams(window.location.search).get("lang") === "ru" ? "ru" : "pl",
   data: null,
@@ -273,8 +289,8 @@ function optionHtml(value, label, selected = false) {
   return `<option value="${escapeHtml(value)}"${selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
 }
 
-function datalistOptionHtml(value) {
-  return `<option value="${escapeHtml(value)}"></option>`;
+function datalistOptionHtml(value, label = "") {
+  return `<option value="${escapeHtml(value)}"${label ? ` label="${escapeHtml(label)}"` : ""}></option>`;
 }
 
 function normalizeToken(value) {
@@ -355,6 +371,25 @@ function yearOptions() {
 function renderDatalist(el, values) {
   if (!el) return;
   el.innerHTML = values.map((value) => datalistOptionHtml(String(value))).join("");
+}
+
+function modelGroupsForBrand(brand) {
+  return modelGroupsByBrand[brand] || [];
+}
+
+function renderModelOptions(extraModel = "") {
+  if (!els.modelOptions) return;
+  const groups = modelGroupsForBrand(els.brand?.value || "");
+  const seen = new Set();
+  const options = groups.flatMap((group) => group.models.map((model) => {
+    seen.add(normalizeToken(model));
+    return datalistOptionHtml(model, `${group.group} · ${model}`);
+  }));
+  const normalizedExtra = normalizeToken(extraModel);
+  if (extraModel && !seen.has(normalizedExtra)) {
+    options.unshift(datalistOptionHtml(extraModel, extraModel));
+  }
+  els.modelOptions.innerHTML = options.join("");
 }
 
 function comboOptionSets() {
@@ -517,6 +552,7 @@ function renderManualOptions(keepValues = true) {
   ].join("");
 
   els.model.value = current.model || "";
+  renderModelOptions(current.model);
   renderDatalist(els.mileageOptions, mileageOptions());
   renderDatalist(els.yearOptions, yearOptions());
   renderDatalist(els.displacementOptions, displacementOptions);
@@ -653,7 +689,7 @@ function applyRecognizedManualFields(data) {
   setCheckedValue(els.drive, "any");
   setCheckedValue(els.gearbox, next.gearbox);
 
-  els.modelOptions.innerHTML = next.model ? optionHtml(next.model, next.model) : "";
+  renderModelOptions(next.model);
 }
 
 function calculatorUrl(scenario) {
@@ -811,6 +847,10 @@ els.form.addEventListener("submit", (event) => {
   const sourceUrl = els.url.value.trim();
   if (!sourceUrl) return;
   loadMobileDeData(sourceUrl);
+});
+
+els.brand.addEventListener("change", () => {
+  renderModelOptions(els.model.value);
 });
 
 const initialParams = new URLSearchParams(window.location.search);
