@@ -1948,14 +1948,31 @@ body {
 }
 
 .tabs button {
+  position: relative;
+  min-height: 48px;
   padding: 15px 0;
   font-size: 12.8px;
   font-weight: 500;
   border-bottom-width: 3px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  box-shadow: inset 0 0 0 1px rgba(218, 225, 233, 0.42);
+  background: rgba(249, 251, 254, 0.34);
 }
 
 .tabs button.active {
   font-weight: 700;
+  background: var(--ag-surface);
+  box-shadow: inset 0 0 0 1px rgba(188, 205, 223, 0.56);
+}
+
+.tabs button + button::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 13px;
+  bottom: 13px;
+  width: 1px;
+  background: var(--ag-line-200);
 }
 
 /* compact rate block: text column + chip, right-aligned, one line */
