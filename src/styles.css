@@ -1927,18 +1927,18 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--fib-21);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 0 28px;
   border-bottom: 1px solid var(--ag-line-200);
 }
 
 .tabs {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
-  gap: 26px;
+  gap: 10px;
   border-bottom: 0;
   margin-bottom: -1px;
 }
@@ -1949,7 +1949,7 @@ body {
 
 .tabs button {
   padding: 15px 0;
-  font-size: 13.5px;
+  font-size: 12.8px;
   font-weight: 500;
   border-bottom-width: 3px;
 }
@@ -1961,6 +1961,7 @@ body {
 /* compact rate block: text column + chip, right-aligned, one line */
 .tabsRow .rateWidget {
   width: auto;
+  margin-left: auto;
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: auto auto;
@@ -2195,6 +2196,19 @@ body {
 @media (max-width: 560px) {
   body {
     padding: var(--fib-13) var(--fib-8) var(--fib-34);
+  }
+
+  .tabsRow {
+    flex-wrap: wrap;
+  }
+
+  .tabsRow .rateWidget {
+    order: 1;
+  }
+
+  .tabs {
+    order: 2;
+    flex-basis: 100%;
   }
 }
 
