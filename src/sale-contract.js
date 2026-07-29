@@ -890,12 +890,13 @@ function wEl(doc, tagName, attrs = {}) {
   return el;
 }
 
-function setRunText(run, value, { bold = false, size = "18", font = "" } = {}) {
+function setRunText(run, value, { bold = false, size = "18", font = "", color = "" } = {}) {
   const doc = run.ownerDocument;
   run.textContent = "";
   const rPr = wEl(doc, "rPr");
   if (bold) rPr.append(wEl(doc, "b"), wEl(doc, "bCs"));
   if (font) rPr.append(wEl(doc, "rFonts", { ascii: font, hAnsi: font, cs: font, eastAsia: font }));
+  if (color) rPr.append(wEl(doc, "color", { val: color }));
   rPr.append(wEl(doc, "sz", { val: size }), wEl(doc, "szCs", { val: size }));
   const text = wEl(doc, "t");
   text.setAttribute("xml:space", "preserve");
@@ -1091,6 +1092,64 @@ function setCellBorder(cell, side, { val = "single", size = "4", color = "000000
   borders.appendChild(wEl(cell.ownerDocument, side, { val, sz: size, space: "0", color }));
 }
 
+function setCellVerticalAlignment(cell, value) {
+  if (!cell) return;
+  const tcPr = ensureCellProperties(cell);
+  directChildren(tcPr, W, "vAlign").forEach((node) => node.remove());
+  tcPr.appendChild(wEl(cell.ownerDocument, "vAlign", { val: value }));
+}
+
+function normalizePrintSections(root) {
+  const doc = root.ownerDocument || root;
+  all(root, W, "sectPr").forEach((section) => {
+    let pageSize = directChildren(section, W, "pgSz")[0];
+    if (!pageSize) {
+      pageSize = wEl(doc, "pgSz");
+      section.insertBefore(pageSize, section.firstChild);
+    }
+    pageSize.setAttributeNS(W, "w:w", "11906");
+    pageSize.setAttributeNS(W, "w:h", "16838");
+    pageSize.removeAttributeNS(W, "orient");
+
+    let margins = directChildren(section, W, "pgMar")[0];
+    if (!margins) {
+      margins = wEl(doc, "pgMar");
+      section.insertBefore(margins, pageSize.nextSibling);
+    }
+    Object.entries({
+      top: "851",
+      right: "1191",
+      bottom: "851",
+      left: "1247",
+      header: "709",
+      footer: "863",
+      gutter: "0",
+    }).forEach(([name, value]) => margins.setAttributeNS(W, `w:${name}`, value));
+  });
+}
+
+function compactVerticalAgreementLabel(root) {
+  const doc = root.ownerDocument || root;
+  const cell = all(root, W, "tc").find((candidate) =>
+    all(candidate, W, "t")
+      .map((node) => node.textContent || "")
+      .join("")
+      .includes("SZCZEGÓŁOWE POSTANOWIENIA UMOWY"),
+  );
+  if (!cell) return;
+
+  const paragraphs = directChildren(cell, W, "p");
+  paragraphs.slice(1).forEach((paragraph) => paragraph.remove());
+  const paragraph = paragraphs[0] || wEl(doc, "p");
+  if (!paragraph.parentNode) cell.appendChild(paragraph);
+  const runs = all(paragraph, W, "r");
+  const run = runs[0] || wEl(doc, "r");
+  if (!run.parentNode) paragraph.appendChild(run);
+  setRunText(run, "SZCZEGÓŁOWE POSTANOWIENIA UMOWY", { bold: true, size: "16", color: "FFFFFF" });
+  runs.slice(1).forEach((extraRun) => extraRun.remove());
+  setCellVerticalAlignment(cell, "center");
+}
+
 function replaceText(root, search, replacement) {
   all(root, W, "t").forEach((node) => {
     if ((node.textContent || "").includes(search)) {
@@ -1234,6 +1293,8 @@ function fillDocx(root, data) {
   fillGeneralWear(root, data);
   markYesNoTables(root, data);
   closeVehicleFaultsBox(root);
+  compactVerticalAgreementLabel(root);
+  normalizePrintSections(root);
 }
 
 async function generateDocxBlob() {
