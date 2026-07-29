@@ -462,12 +462,12 @@ function isClientDataMarkerLine(line) {
 }
 
 const polishCityPattern =
-  /\b(?:Warszawa|Krak[oó]w|Ł[oó]d[zź]|Lodz|Wrocław|Wroclaw|Pozna[nń]|Gda[nń]sk|Szczecin|Bydgoszcz|Lublin|Białystok|Bialystok|Katowice|Gdynia|Częstochowa|Czestochowa|Radom|Toru[nń]|Torun|Kielce|Rzesz[oó]w|Gliwice|Zabrze|Olsztyn|Bielsko(?:-| )Biała|Bielsko(?:-| )Biala|Bytom|Opole|Tychy|Płock|Plock|Kalisz|Łomianki|Lomianki)\b/i;
+  /\b(?:Warszawa|Krak[oó]w|Ł[oó]d[zź]|Lodz|Wrocław|Wroclaw|Pozna[nń]|Gda[nń]sk|Szczecin|Bydgoszcz|Lublin|Białystok|Bialystok|Katowice|Gdynia|Częstochowa|Czestochowa|Radom|Toru[nń]|Torun|Sosnowiec|Kielce|Rzesz[oó]w|Gliwice|Zabrze|Olsztyn|Bielsko(?:-| )Biała|Bielsko(?:-| )Biala|Bytom|Zielona G[oó]ra|Rybnik|Ruda Śląska|Ruda Slaska|Opole|Tychy|Gorz[oó]w Wielkopolski|Elbląg|Elblag|Płock|Plock|Wałbrzych|Walbrzych|Włocławek|Wloclawek|Tarn[oó]w|Chorz[oó]w|Koszalin|Kalisz|Legnica|Grudziądz|Grudziadz|Słupsk|Slupsk|Jaworzno|Jastrzębie(?:-| )Zdr[oó]j|Jastrzebie(?:-| )Zdroj|Nowy Sącz|Nowy Sacz|Jelenia G[oó]ra|Siedlce|Mysłowice|Myslowice|Piła|Pila|Konin|Piotrk[oó]w Trybunalski|Inowrocław|Inowroclaw|Lubin|Ostr[oó]w Wielkopolski|Łomianki|Lomianki)\b/i;
 
 function isPolishAddressLine(line) {
   const clean = stripKnownNoise(line);
   if (!clean || isClientDataMarkerLine(clean)) return false;
-  if (!polishCityPattern.test(clean) && !/\d{2}-\d{3}/.test(clean)) return false;
+  if (!polishCityPattern.test(clean)) return false;
   if (/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/.test(clean)) return false;
   if (/\b(?:PESEL|NIP|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Auto|Pojazd|Marka|Model|Cena|Rabat|VIN)\b/i.test(clean)) return false;
   return /\d{2}-\d{3}|\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\b|\b\d+[A-Z]?(?:[/-]\d+[A-Z]?)?\b|,/.test(clean);
@@ -489,7 +489,12 @@ function addressFallback(text) {
   const postalAddress = compact.match(
     /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
-  return stripKnownNoise(postalAddress?.[0] || "");
+  if (postalAddress) return stripKnownNoise(postalAddress[0]);
+  const cityAddressLine = lines.find((line) => isPolishAddressLine(line));
+  if (cityAddressLine) return stripKnownNoise(cityAddressLine);
+  const pattern =
+    /\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja|улица|adres)\s+.*?(?=\s+(?:PESEL|NIP|Dokument|Dow[oó]d|Paszport|Karta pobytu|Telefon|Tel|Email|E-mail|Auto|Pojazd|Marka|Model|Cena|Rabat|VIN)\b|$)/i;
+  return stripKnownNoise(text.match(pattern)?.[0] || "");
 }
 
 function parseDocumentValue(text) {
@@ -565,12 +570,20 @@ function parseBuyerType(text, { pesel = "", nip = "" } = {}) {
   if (companyMarkers.some((marker) => lower.includes(marker))) return "company";
   if (pesel) return "person";
   if (nip) return "company";
-  return "";
+  return "person";
 }
 
 function parseBuyerName(text, isCompany) {
   const lines = linesFromText(text);
   const compact = normalizeSpace(text);
+  const clientLine = lines.find((line) => /^(?:Kupujący|Nabywca|Klient|Client|Клиент)\b/i.test(line));
+  if (clientLine) {
+    const candidate = stripKnownNoise(clientLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    if (candidate && !isPolishAddressLine(candidate) && !isAddressStreetLine(candidate) && !isPostalCityLine(candidate) && !isClientDataMarkerLine(candidate)) {
+      return candidate;
+    }
+  }
+
   const labeled = extractLabeled(compact, saleRecognitionLabels.buyer);
   if (labeled) {
     const cleanLabeled = stripKnownNoise(labeled);
@@ -589,9 +602,76 @@ function parseBuyerName(text, isCompany) {
     if (!candidate || isPolishAddressLine(candidate) || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
     if (/@|\+48|\d{2}-\d{3}|\b\d{10,11}\b/.test(candidate)) return false;
     const words = candidate.match(/[\p{L}'-]+/gu) || [];
-    return words.length >= 2 && words.length <= 5;
+    return words.length >= 2 && words.length <= 4;
   });
-  return firstNameLine ? stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "")) : "";
+  if (firstNameLine) return stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+
+  const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
+  const upperPerson = beforeAddress.match(/[\p{Lu}]{2,}(?:\s+[\p{Lu}]{2,}){1,3}/u)?.[0];
+  if (upperPerson) return stripKnownNoise(upperPerson);
+  const person = beforeAddress
+    .replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "")
+    .match(/\b[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
+  return stripKnownNoise(person || "");
+}
+
+function parseBuyerContactData(text) {
+  const compact = normalizeSpace(text);
+  const joined =
+    text
+      .split(/\r?\n/)
+      .map(normalizeSpace)
+      .filter(Boolean)
+      .join("\n") || compact;
+
+  let email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || "";
+  if (!email) email = extractLabeled(compact, saleRecognitionLabels.email);
+  email = stripKnownNoise(email);
+
+  let phone = "";
+  const labeledPhone = extractLabeled(compact, saleRecognitionLabels.phone);
+  const labeledPlus48Phone = labeledPhone.match(plus48PhonePattern) || [];
+  const plus48Phones = joined.match(plus48PhonePattern) || [];
+  const phoneMatches = labeledPhone
+    ? labeledPlus48Phone.length
+      ? labeledPlus48Phone
+      : [labeledPhone]
+    : plus48Phones.length
+      ? plus48Phones
+      : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
+  for (const candidate of phoneMatches) {
+    const digits = candidate.replace(/\D/g, "");
+    const start = joined.indexOf(candidate);
+    const before = start > 0 ? joined.slice(start - 1, start) : "";
+    const after = joined.slice(start + candidate.length, start + candidate.length + 1);
+    if ((digits.startsWith("48") || digits.length === 9) && !/\d/.test(before + after)) {
+      phone = candidate;
+      break;
+    }
+  }
+
+  const compactWithoutPhones = normalizeSpace(withoutPlus48Phones(compact));
+  const joinedWithoutPhones = normalizeSpace(withoutPlus48Phones(joined));
+  const peselValue = extractLabeled(compactWithoutPhones, saleRecognitionLabels.pesel);
+  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joinedWithoutPhones.match(/\b\d{11}\b/)?.[0] || "";
+  const nipRaw =
+    extractLabeled(compactWithoutPhones, saleRecognitionLabels.nip) ||
+    joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] ||
+    "";
+  const nip = nipRaw.replace(/\D/g, "");
+  const buyerType = parseBuyerType(compact, { pesel, nip });
+  const isCompany = buyerType === "company";
+  const documentValue = parseDocumentValue(compact);
+  const rawAddressValue = extractLabeled(compact, saleRecognitionLabels.address) || addressFallback(joined);
+
+  return {
+    type: buyerType,
+    name: parseBuyerName(joined, isCompany),
+    address: cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue }),
+    identifier: isCompany ? nip : pesel,
+    phone: normalizeSpace(phone),
+    email,
+  };
 }
 
 function parseFuelType(value) {
@@ -624,44 +704,8 @@ function parseSaleData() {
   }
 
   const compact = normalizeSpace(text);
-  const joined =
-    text
-      .split(/\r?\n/)
-      .map(normalizeSpace)
-      .filter(Boolean)
-      .join("\n") || compact;
   const vehicleText = vehicleContext(compact);
-
-  let email = joined.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0] || extractLabeled(compact, saleRecognitionLabels.email);
-  email = stripKnownNoise(email);
-
-  let phone = "";
-  const labeledPhone = extractLabeled(compact, saleRecognitionLabels.phone);
-  const labeledPlus48Phone = labeledPhone.match(plus48PhonePattern) || [];
-  const plus48Phones = joined.match(plus48PhonePattern) || [];
-  const phoneMatches = labeledPhone ? (labeledPlus48Phone.length ? labeledPlus48Phone : [labeledPhone]) : plus48Phones.length ? plus48Phones : joined.match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/g) || [];
-  for (const candidate of phoneMatches) {
-    const digits = candidate.replace(/\D/g, "");
-    if (digits.startsWith("48") || digits.length === 9) {
-      phone = candidate;
-      break;
-    }
-  }
-
-  const compactWithoutPhones = normalizeSpace(withoutPlus48Phones(compact));
-  const joinedWithoutPhones = normalizeSpace(withoutPlus48Phones(joined));
-  const peselValue = extractLabeled(compactWithoutPhones, saleRecognitionLabels.pesel);
-  const pesel = peselValue.match(/\b\d{11}\b/)?.[0] || joinedWithoutPhones.match(/\b\d{11}\b/)?.[0] || "";
-  const nipRaw =
-    extractLabeled(compactWithoutPhones, saleRecognitionLabels.nip) ||
-    joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] ||
-    "";
-  const nip = nipRaw.replace(/\D/g, "");
-  const buyerType = parseBuyerType(compact, { pesel, nip });
-  const isCompany = buyerType === "company";
-  const documentValue = parseDocumentValue(compact);
-  const rawAddressValue = extractLabeled(compact, saleRecognitionLabels.address) || addressFallback(joined);
-  const addressValue = cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue });
+  const buyer = parseBuyerContactData(text);
   const make = stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.make));
   const model = stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.model));
   const makeModel = normalizeSpace(`${make} ${model}`) || stripKnownNoise(extractLabeled(compact, saleRecognitionLabels.makeModel)) || makeModelFallback(vehicleText);
@@ -671,13 +715,13 @@ function parseSaleData() {
   const discountMoney = parseMoneyValue(discountValue);
   const fuelType = parseFuelType(extractLabeled(compact, saleRecognitionLabels.fuel) || vehicleText);
 
-  setField("buyerName", parseBuyerName(joined, isCompany));
-  setField("buyerAddress", addressValue);
-  setField("buyerIdentifier", isCompany ? nip : pesel || nip);
-  setField("buyerPhone", normalizeSpace(phone));
-  setField("buyerEmail", email);
-  if (buyerType === "company") setField("buyerProfessional", "tak");
-  if (buyerType === "person") setField("buyerProfessional", "nie");
+  setField("buyerName", buyer.name);
+  setField("buyerAddress", buyer.address);
+  setField("buyerIdentifier", buyer.identifier);
+  setField("buyerPhone", buyer.phone);
+  setField("buyerEmail", buyer.email);
+  if (buyer.type === "company") setField("buyerProfessional", "tak");
+  if (buyer.type === "person") setField("buyerProfessional", "nie");
   setField("vehicleMakeModel", makeModel);
   setField("vehicleVin", vin.toUpperCase());
   setField("vehicleMileage", extractLabeled(compact, saleRecognitionLabels.mileage) || mileageFallback(vehicleText));
@@ -1099,35 +1143,6 @@ function setCellVerticalAlignment(cell, value) {
   tcPr.appendChild(wEl(cell.ownerDocument, "vAlign", { val: value }));
 }
 
-function normalizePrintSections(root) {
-  const doc = root.ownerDocument || root;
-  all(root, W, "sectPr").forEach((section) => {
-    let pageSize = directChildren(section, W, "pgSz")[0];
-    if (!pageSize) {
-      pageSize = wEl(doc, "pgSz");
-      section.insertBefore(pageSize, section.firstChild);
-    }
-    pageSize.setAttributeNS(W, "w:w", "11906");
-    pageSize.setAttributeNS(W, "w:h", "16838");
-    pageSize.removeAttributeNS(W, "orient");
-
-    let margins = directChildren(section, W, "pgMar")[0];
-    if (!margins) {
-      margins = wEl(doc, "pgMar");
-      section.insertBefore(margins, pageSize.nextSibling);
-    }
-    Object.entries({
-      top: "851",
-      right: "1191",
-      bottom: "851",
-      left: "1247",
-      header: "709",
-      footer: "863",
-      gutter: "0",
-    }).forEach(([name, value]) => margins.setAttributeNS(W, `w:${name}`, value));
-  });
-}
-
 function compactVerticalAgreementLabel(root) {
   const doc = root.ownerDocument || root;
   const cell = all(root, W, "tc").find((candidate) =>
@@ -1294,7 +1309,6 @@ function fillDocx(root, data) {
   markYesNoTables(root, data);
   closeVehicleFaultsBox(root);
   compactVerticalAgreementLabel(root);
-  normalizePrintSections(root);
 }
 
 async function generateDocxBlob() {
