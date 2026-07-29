@@ -367,6 +367,13 @@ function formatDiscountBenefit(value, currency) {
   return formatGrossAmount(raw, currency);
 }
 
+function formatMileage(value) {
+  const raw = normalizeSpace(value);
+  if (!raw) return "";
+  if (/\b(?:km|км)\b/i.test(raw)) return raw;
+  return /\d/.test(raw) ? `${raw} km` : raw;
+}
+
 function updateSummary() {
   const data = collectSaleContract();
   document.querySelector("#saleSummaryBuyer").textContent = valueOrFallback(data.buyerName);
@@ -883,11 +890,12 @@ function wEl(doc, tagName, attrs = {}) {
   return el;
 }
 
-function setRunText(run, value, { bold = false, size = "18" } = {}) {
+function setRunText(run, value, { bold = false, size = "18", font = "" } = {}) {
   const doc = run.ownerDocument;
   run.textContent = "";
   const rPr = wEl(doc, "rPr");
   if (bold) rPr.append(wEl(doc, "b"), wEl(doc, "bCs"));
+  if (font) rPr.append(wEl(doc, "rFonts", { ascii: font, hAnsi: font, cs: font, eastAsia: font }));
   rPr.append(wEl(doc, "sz", { val: size }), wEl(doc, "szCs", { val: size }));
   const text = wEl(doc, "t");
   text.setAttribute("xml:space", "preserve");
@@ -1029,10 +1037,11 @@ function setTextControl(sdt, value) {
 function setCheckboxControl(sdt, checked) {
   if (!sdt) return;
   all(sdt, W14, "checked").forEach((node) => node.setAttributeNS(W14, "w14:val", checked ? "1" : "0"));
-  all(sdt, W, "sym").forEach((node) => node.setAttributeNS(W, "w:char", checked ? "F0FE" : "F0A8"));
-  all(sdt, W, "t").forEach((node) => {
-    if (["¨", "þ", "☐", "☒"].includes(node.textContent || "")) node.textContent = checked ? "þ" : "¨";
-  });
+  all(sdt, W, "sym").filter((node) => belongsToControl(sdt, node)).forEach((node) => node.remove());
+  const runs = all(sdt, W, "r").filter((node) => belongsToControl(sdt, node));
+  if (!runs.length) return;
+  setRunText(runs[0], checked ? "☒" : "☐", { size: "24", font: "Arial" });
+  runs.slice(1).forEach((run) => setRunText(run, "", { size: "24", font: "Arial" }));
 }
 
 function setControlAlignment(sdt, horizontal, vertical) {
@@ -1061,6 +1070,27 @@ function setControlAlignment(sdt, horizontal, vertical) {
   tcPr.appendChild(wEl(cell.ownerDocument, "vAlign", { val: vertical }));
 }
 
+function ensureCellProperties(cell) {
+  let tcPr = directChildren(cell, W, "tcPr")[0];
+  if (!tcPr) {
+    tcPr = wEl(cell.ownerDocument, "tcPr");
+    cell.insertBefore(tcPr, cell.firstChild);
+  }
+  return tcPr;
+}
+
+function setCellBorder(cell, side, { val = "single", size = "4", color = "000000" } = {}) {
+  if (!cell) return;
+  const tcPr = ensureCellProperties(cell);
+  let borders = directChildren(tcPr, W, "tcBorders")[0];
+  if (!borders) {
+    borders = wEl(cell.ownerDocument, "tcBorders");
+    tcPr.appendChild(borders);
+  }
+  directChildren(borders, W, side).forEach((node) => node.remove());
+  borders.appendChild(wEl(cell.ownerDocument, side, { val, sz: size, space: "0", color }));
+}
+
 function replaceText(root, search, replacement) {
   all(root, W, "t").forEach((node) => {
     if ((node.textContent || "").includes(search)) {
@@ -1075,6 +1105,15 @@ function fillBuyerBlock(root, data) {
   replaceText(root, "ul. Targowa 2 18-500 Kolno", data.buyerAddress);
   replaceText(root, "+48 692 428\u00a0958", data.buyerPhone);
   replaceText(root, "kazimierz@florczyk.com.pl", data.buyerEmail);
+}
+
+function applyBuyerContactBorders(root) {
+  const tables = all(root, W, "tbl");
+  const buyerRows = directChildren(tables[2], W, "tr");
+  [0, 1, 2, 3].forEach((rowIndex) => {
+    const cells = directChildren(buyerRows[rowIndex], W, "tc");
+    setCellBorder(cells[3], "left");
+  });
 }
 
 function fillGeneralWear(root, data) {
@@ -1105,6 +1144,15 @@ function fillVehicleHistoryTable(root, data) {
   setCellText(vinRowCells[3], data.fuelType);
   setCellText(dateRowCells[1], data.firstRegistration);
   setCellText(dateRowCells[3], data.lastTechnicalInspection);
+}
+
+function closeVehicleFaultsBox(root) {
+  const tables = all(root, W, "tbl");
+  const technicalRows = directChildren(tables[5], W, "tr");
+  const headingCell = directChildren(technicalRows[31], W, "tc")[0];
+  const notesCell = directChildren(technicalRows[32], W, "tc")[0];
+  ["left", "right"].forEach((side) => setCellBorder(headingCell, side));
+  ["left", "right", "bottom"].forEach((side) => setCellBorder(notesCell, side));
 }
 
 function parseDamageMarks(value) {
@@ -1163,7 +1211,8 @@ async function overlayDamageMarks(zip, data) {
 function fillDocx(root, data) {
   const controls = all(root, W, "sdt");
   const dateValue = polishDate(data.contractDate) || polishDate(todayISO());
-  const vinMileage = [data.vehicleVin ? `VIN: ${data.vehicleVin}` : "", data.vehicleMileage ? `stan licznika: ${data.vehicleMileage}` : ""]
+  const mileageValue = formatMileage(data.vehicleMileage);
+  const vinMileage = [data.vehicleVin ? `VIN: ${data.vehicleVin}` : "", mileageValue ? `stan licznika: ${mileageValue}` : ""]
     .filter(Boolean)
     .join(", ");
 
@@ -1173,16 +1222,18 @@ function fillDocx(root, data) {
   setCheckboxControl(controls[3], data.buyerProfessional === "tak");
   setCheckboxControl(controls[4], data.buyerProfessional === "nie");
   setTextControl(controls[5], data.vehicleMakeModel);
-  setTextControl(controls[6], vinMileage || data.vehicleVin || data.vehicleMileage);
+  setTextControl(controls[6], vinMileage || data.vehicleVin || mileageValue);
   setTextControl(controls[7], formatGrossAmount(data.salePrice, data.saleCurrency));
   setControlAlignment(controls[7], "center", "center");
   setTextControl(controls[8], formatDiscountBenefit(data.discountBenefit, data.saleCurrency));
   setTextControl(controls[23], data.notes);
 
   fillBuyerBlock(root, data);
+  applyBuyerContactBorders(root);
   fillVehicleHistoryTable(root, data);
   fillGeneralWear(root, data);
   markYesNoTables(root, data);
+  closeVehicleFaultsBox(root);
 }
 
 async function generateDocxBlob() {
