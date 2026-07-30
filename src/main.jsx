@@ -1248,7 +1248,7 @@ function registrationRows(t, enabled, totalValue = REGISTRATION_NETTO, manualMul
     row(
       t.registration,
       REGISTRATION_NETTO,
-      "netto",
+      "",
       `${moneyExact(REGISTRATION_NETTO * (1 + VAT))} brutto`,
       false,
       true,

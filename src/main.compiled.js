@@ -1411,7 +1411,7 @@ function row(label, value, tag, sub, highlight = false, exact = false, valuePref
 }
 function registrationRows(t, enabled, totalValue = REGISTRATION_NETTO, manualMultiplier = 1) {
   if (!enabled) return [];
-  return [row(t.registration, REGISTRATION_NETTO, "netto", `${moneyExact(REGISTRATION_NETTO * (1 + VAT))} brutto`, false, true, "", totalValue, manualMultiplier)];
+  return [row(t.registration, REGISTRATION_NETTO, "", `${moneyExact(REGISTRATION_NETTO * (1 + VAT))} brutto`, false, true, "", totalValue, manualMultiplier)];
 }
 function commissionFormula(fix, pct, base, discountPart = "") {
   return `${money(fix)} + (${(pct * 100).toFixed(0)}% × ${money(base)})${discountPart}`;
