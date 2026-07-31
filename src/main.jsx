@@ -198,7 +198,7 @@ const tabs = [
       { key: "car", label: { pl: "Cena pojazdu", ru: "Цена автомобиля" }, currency: "EUR" },
       { key: "inspection", label: { pl: "Oględziny specjalisty netto", ru: "Инспекция специалиста netto" }, currency: "PLN" },
       { key: "transport", label: { pl: "Transport na lawecie netto", ru: "Транспорт на автовозе netto" }, currency: "PLN" },
-      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "PLN" },
+      { key: "discount", label: { pl: "Rabat", ru: "Скидка" }, currency: "EUR" },
     ],
   },
   {
@@ -1284,10 +1284,11 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const inspectionBrutto = inspection * 1.23;
     const transportBrutto = transport * 1.23;
     const excise = exciseRate * carPln;
-    const discountCommission = 0.3 * discount;
+    const discountPln = discount * useRate;
+    const discountCommission = 0.3 * discountPln;
     const commissionNetto = STD_FIX + 0.01 * carPln + discountCommission;
     const commissionBrutto = commissionNetto * 1.23;
-    const discountText = discount > 0 ? ` + (30% × ${money(discount)})` : "";
+    const discountText = discount > 0 ? ` + (30% × ${inputCurrencyLabel(discount)})` : "";
     const vatBase = inspection + transport + commissionNetto + registrationNetto;
     const vat = vatBase * VAT;
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION + registrationBrutto;
