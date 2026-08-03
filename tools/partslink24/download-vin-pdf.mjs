@@ -1,11 +1,16 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../..");
+const envLoadWarnings = [];
+loadLocalEnv(join(homedir(), "Library/Application Support/AUTOGOOD/partslink24.env"));
+if (!hasPartslinkCredentials()) loadLocalEnv(join(repoRoot, "server/.env"));
+if (!hasPartslinkCredentials()) loadLocalEnv(join(__dirname, ".env"));
 
 const args = process.argv.slice(2);
 if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
@@ -17,7 +22,7 @@ const vin = readOption(args, "--vin");
 const brand = readOption(args, "--brand");
 const language = readOption(args, "--language") || process.env.PARTSLINK24_DEFAULT_LANGUAGE || "RU";
 const mode = readOption(args, "--mode") || (args.includes("--production-date-only") ? "production-date" : "pdf");
-const outDir = resolve(readOption(args, "--out-dir") || join(repoRoot, "output/partslink24"));
+const outDir = resolve(readOption(args, "--out-dir") || process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
 const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 350);
@@ -29,7 +34,7 @@ const systemChromePaths = [
 
 if (!vin) fail("Missing --vin.");
 if (!brand) fail("Missing --brand.");
-if (!["pdf", "production-date"].includes(mode)) fail(`Unsupported --mode: ${mode}`);
+if (!["pdf", "production-date", "full"].includes(mode)) fail(`Unsupported --mode: ${mode}`);
 
 const companyId = process.env.PARTSLINK24_COMPANY_ID;
 const username = process.env.PARTSLINK24_USERNAME;
@@ -75,9 +80,13 @@ try {
   await openVehicle(page, brandConfig, vin);
   const vehicleDescription = await extractVehicleDescription(page);
   if (mode === "production-date") {
-    const productionDate = await extractProductionDate(page, { brand });
-    const engineInfo = await extractEngineInfo(page);
+    const productionDate = await extractProductionDate(page, { brand, language });
+    const engineInfo = normalizeEngineInfo(await extractEngineInfo(page));
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: productionDate.value, productionDateLabel: productionDate.label, engineType: engineInfo.engineType, engineVolume: engineInfo.engineVolume }, null, 2)}\n`);
+  } else if (mode === "full") {
+    const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
+    const reportInfo = extractPdfVehicleInfo(pdfPaths[0], { language });
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: reportInfo.productionDate, productionDateLabel: reportInfo.productionDate ? "PDF" : "", engineType: reportInfo.engineType, engineVolume: reportInfo.engineVolume, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
@@ -86,7 +95,9 @@ try {
   const screenshotPath = join(outDir, `${brand}_${vin}_${language}_error.png`.replace(/[^A-Za-z0-9_.-]/g, "_"));
   await page?.screenshot({ path: screenshotPath, fullPage: true }).catch(() => {});
   const message = error instanceof Error ? error.message : "Unknown error.";
-  process.stderr.write(`${JSON.stringify({ ok: false, brand, vin, language, error: message, screenshotPath }, null, 2)}\n`);
+  const payload = { ok: false, brand, vin, language, error: message, screenshotPath };
+  if (process.env.PARTSLINK24_DEBUG_ERRORS === "1" && error instanceof Error) payload.stack = error.stack;
+  process.stderr.write(`${JSON.stringify(payload, null, 2)}\n`);
   process.exitCode = 1;
 } finally {
   await closeContext(context);
@@ -350,10 +361,10 @@ async function extractProductionDate(page, options = {}) {
   });
 
   if (result.value) {
-    return result;
+    return { ...result, value: formatProductionDate(result.value, options.language) };
   }
 
-  if (damProductionDateBrands.has(options.brand)) {
+  if (options.allowDamFallback !== false && damProductionDateBrands.has(options.brand)) {
     const damCode = await extractDamCode(page);
     const damDate = formatDamProductionDate(damCode);
     if (damDate) {
@@ -361,7 +372,7 @@ async function extractProductionDate(page, options = {}) {
     }
   }
 
-  if (!result.value) {
+  if (!result.value && options.required !== false) {
     fail("Дата производства не найдена на странице PartsLink24 для этого VIN.");
   }
 
@@ -378,7 +389,9 @@ async function extractEngineInfo(page) {
       .replace(/^[\s:;|/\\-]+/, "")
       .replace(/[\s:;|/\\-]+$/, "");
     const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
-    const engineTypeLabelPattern = /^(?:rodzaj\s+silnika|typ\s+silnika|kod\s+silnika|тип\s+двигателя|двигатель|engine\s+type|engine\s+code|fuel\s+type)$/i;
+    const engineTypeLabelPattern = /^(?:rodzaj\s+silnika|typ\s+silnika|kod\s+silnika|тип\s+двигателя|двигатель|engine\s+type|engine\s+code|motor\s+type)$/i;
+    const fuelTypeLabelPattern = /^(?:rodzaj\s+paliwa|paliwo|тип\s+топлива|вид\s+топлива|топливо|fuel\s+type|fuel\s+category)$/i;
+    const mildHybridLabelPattern = /^(?:mhev|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид)$/i;
     const engineVolumeLabelPattern = /^(?:pojemność\s+silnika|pojemnosc\s+silnika|poj\.?\s*silnika|объем\s+двигателя|объём\s+двигателя|рабочий\s+объем|engine\s+capacity|engine\s+displacement|displacement|cubic\s+capacity)$/i;
     const blockedValuePattern = /^(?:vin|data|date|production|marka|model)$/i;
 
@@ -431,13 +444,140 @@ async function extractEngineInfo(page) {
       return "";
     }
 
-    const engineType = directLabelValue(engineTypeLabelPattern) || rowLabelValue(engineTypeLabelPattern);
+    const engineTypeRaw = directLabelValue(engineTypeLabelPattern) || rowLabelValue(engineTypeLabelPattern);
+    const fuelTypeRaw = directLabelValue(fuelTypeLabelPattern) || rowLabelValue(fuelTypeLabelPattern);
+    const mildHybridRaw = directLabelValue(mildHybridLabelPattern) || rowLabelValue(mildHybridLabelPattern);
     const engineVolumeRaw = directLabelValue(engineVolumeLabelPattern) || rowLabelValue(engineVolumeLabelPattern);
-    const engineVolumeMatch = engineVolumeRaw.match(/\d[\d\s.,]*\s*(?:cm3|cm³|ccm|l|л)?/i);
-    const engineVolume = engineVolumeMatch ? cleanValue(engineVolumeMatch[0]) : engineVolumeRaw;
+    return {
+      engineTypeRaw,
+      fuelTypeRaw,
+      mildHybridRaw,
+      engineVolumeRaw
+    };
+  }).catch(() => ({ engineTypeRaw: "", fuelTypeRaw: "", mildHybridRaw: "", engineVolumeRaw: "" }));
+}
 
-    return { engineType, engineVolume };
-  }).catch(() => ({ engineType: "", engineVolume: "" }));
+function normalizeEngineInfo(info) {
+  const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const isMildHybrid = /\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
+  const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|плагин[\s-]*гибрид/i.test(source);
+  const isElectric = /\bev\b|electric|elektrycz|электр/i.test(source);
+  const isDiesel = /diesel|дизел|olej[\s-]*napędowy/i.test(source);
+  const isGasoline = /gasoline|petrol|benzyn|бензин|\botto\b/i.test(source);
+  const isHybrid = /hybrid|hybryd|гибрид/i.test(source);
+
+  let engineType = "";
+  if (isElectric) {
+    engineType = "Электрический";
+  } else if (isPlugInHybrid) {
+    engineType = "Plug-in Гибрид";
+  } else if (isGasoline) {
+    engineType = "Бензин";
+  } else if (isDiesel) {
+    engineType = "Дизель";
+  } else if (isHybrid && !isMildHybrid) {
+    engineType = "Обычный гибрид";
+  }
+
+  if (isMildHybrid && (engineType === "Бензин" || engineType === "Дизель")) {
+    engineType = `${engineType} + Мягкий гибрид`;
+  }
+
+  return {
+    engineType,
+    engineVolume: normalizeEngineVolume(info.engineVolumeRaw)
+  };
+}
+
+function normalizeEngineVolume(value) {
+  const raw = String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|ccm|cc)\b/i);
+  if (cubicMatch) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
+  return /\d\s*(?:l|л)\b/i.test(raw) ? raw : "";
+}
+
+function extractPdfVehicleInfo(pdfPath, { language = "" } = {}) {
+  const text = readPdfText(pdfPath);
+  if (!text) return { productionDate: "", engineType: "", engineVolume: "" };
+
+  const productionDateRaw = extractPdfValue(text, /(?:data\s+produkcji|дата\s+(?:производства|изготовления)|production\s+date|date\s+of\s+production|manufactur(?:e|ing)\s+date|build\s+date)/i);
+  const engineTypeRaw = extractPdfValue(text, /(?:rodzaj\s+silnika|typ\s+silnika|тип\s+двигателя|engine\s+type|motor\s+type)/i);
+  const fuelTypeRaw = extractPdfValue(text, /(?:rodzaj\s+paliwa|тип\s+топлива|вид\s+топлива|fuel\s+type|fuel\s+category)/i);
+  const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
+  const engineVolumeRaw = extractPdfValue(text, /(?:roboczy\s+objętość|pojemność\s+silnika|pojemnosc\s+silnika|pojemność\s+skokowa|рабочий\s+объем|рабочий\s+объём|объем\s+двигателя|объём\s+двигателя|engine\s+(?:capacity|displacement)|cubic\s+capacity|displacement)/i);
+  const engineInfo = normalizeEngineInfo({ engineTypeRaw, fuelTypeRaw, mildHybridRaw, engineVolumeRaw });
+
+  return {
+    productionDate: formatProductionDate(productionDateRaw, language),
+    engineType: engineInfo.engineType,
+    engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
+  };
+}
+
+function readPdfText(pdfPath) {
+  const bundledPdfToText = join(homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/poppler/bin/pdftotext");
+  const candidates = [process.env.PARTSLINK24_PDFTOTEXT_PATH, "pdftotext", bundledPdfToText].filter(Boolean);
+
+  for (const command of candidates) {
+    const result = spawnSync(command, ["-layout", pdfPath, "-"], {
+      encoding: "utf8",
+      maxBuffer: 5_000_000
+    });
+    if (result.status === 0 && result.stdout) return result.stdout;
+  }
+
+  return "";
+}
+
+function extractPdfValue(text, labelPattern) {
+  const source = labelPattern.source.replace(/^\^/, "").replace(/\$$/, "");
+  const inlinePattern = new RegExp(`(?:${source})\\s*[:\\-]?\\s*([^\\r\\n]{1,80})`, "i");
+  const inlineMatch = String(text || "").match(inlinePattern);
+  return inlineMatch?.[1]?.replace(/\s+/g, " ").trim() || "";
+}
+
+function normalizePdfEngineVolume(value) {
+  const normalized = normalizeEngineVolume(value);
+  if (normalized) return normalized;
+  const bareLiterValue = String(value || "").replace(/\s+/g, " ").trim();
+  return /^\d+(?:[.,]\d+)?$/.test(bareLiterValue) ? `${bareLiterValue} л` : "";
+}
+
+function formatProductionDate(value, language = "") {
+  const raw = String(value || "").replace(/\u00a0/g, " ").trim();
+  const monthNames = {
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
+    stycznia: 1, lutego: 2, marca: 3, kwietnia: 4, maja: 5, czerwca: 6, lipca: 7, sierpnia: 8, września: 9, wrzesnia: 9, października: 10, pazdziernika: 10, listopada: 11, grudnia: 12,
+    января: 1, февраля: 2, марта: 3, апреля: 4, мая: 5, июня: 6, июля: 7, августа: 8, сентября: 9, октября: 10, ноября: 11, декабря: 12
+  };
+  const namedMatch = raw.toLowerCase().match(/(\d{1,2})\s+([a-zа-яёęóśżźć]+)\s+(\d{4})/iu);
+  if (namedMatch && monthNames[namedMatch[2]]) {
+    return formatDateParts(namedMatch[1], monthNames[namedMatch[2]], namedMatch[3]);
+  }
+
+  const numericMatch = raw.match(/\b(\d{1,4})[.\/-](\d{1,2})[.\/-](\d{1,4})\b/);
+  if (!numericMatch) return "";
+  const [, first, second, third] = numericMatch;
+  if (first.length === 4) return formatDateParts(third, second, first);
+  if (third.length !== 4) return "";
+  if (language === "ENG" && first !== "" && Number(first) <= 12 && Number(second) <= 12) {
+    return formatDateParts(second, first, third);
+  }
+  if (Number(first) <= 12 && Number(second) > 12) return formatDateParts(second, first, third);
+  return formatDateParts(first, second, third);
+}
+
+function formatDateParts(day, month, year) {
+  const normalizedDay = Number(day);
+  const normalizedMonth = Number(month);
+  const normalizedYear = Number(year);
+  if (!Number.isInteger(normalizedDay) || !Number.isInteger(normalizedMonth) || !Number.isInteger(normalizedYear)) return "";
+  const date = new Date(Date.UTC(normalizedYear, normalizedMonth - 1, normalizedDay));
+  if (date.getUTCFullYear() !== normalizedYear || date.getUTCMonth() !== normalizedMonth - 1 || date.getUTCDate() !== normalizedDay) return "";
+  return `${String(normalizedDay).padStart(2, "0")}.${String(normalizedMonth).padStart(2, "0")}.${normalizedYear}`;
 }
 
 async function extractDamCode(page) {
@@ -775,8 +915,9 @@ async function settleWithin(promise, timeout) {
   ]);
 }
 
-function makePdfName({ brand, vin, suffix = "" }) {
-  return `${brand}_${vin}${suffix ? `_${suffix}` : ""}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+function makePdfName({ brand, vin, language = "", suffix = "" }) {
+  const parts = [brand, vin, language, suffix].filter(Boolean);
+  return `${parts.join("_")}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
 }
 
 async function closeContext(contextToClose) {
@@ -797,7 +938,7 @@ async function closeContext(contextToClose) {
 }
 
 async function readJson(path) {
-  return JSON.parse(await import("node:fs").then((fs) => fs.readFileSync(path, "utf8")));
+  return JSON.parse(readTextFile(path));
 }
 
 async function fillHuman(locator, value) {
@@ -842,6 +983,47 @@ function readOption(values, name) {
 
 function fail(message) {
   throw new Error(message);
+}
+
+function loadLocalEnv(path) {
+  if (!existsSync(path)) return;
+
+  let lines;
+  try {
+    lines = readTextFile(path).split(/\r?\n/);
+  } catch (error) {
+    const message = `Cannot read ${path}: ${error instanceof Error ? error.message : "Unknown error."}`;
+    envLoadWarnings.push(message);
+    if (process.env.PARTSLINK24_DEBUG_ERRORS === "1") process.stderr.write(`[partslink24] ${message}\n`);
+    return;
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+    const index = trimmed.indexOf("=");
+    const key = trimmed.slice(0, index).trim();
+    const rawValue = trimmed.slice(index + 1).trim();
+    const value = rawValue.replace(/^['"]|['"]$/g, "");
+    if (key && process.env[key] === undefined) process.env[key] = value;
+  }
+}
+
+function hasPartslinkCredentials() {
+  return Boolean(process.env.PARTSLINK24_COMPANY_ID && process.env.PARTSLINK24_USERNAME && process.env.PARTSLINK24_PASSWORD);
+}
+
+function readTextFile(path) {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (error) {
+    const fallback = spawnSync("/bin/cat", [path], {
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024
+    });
+    if (fallback.status === 0) return fallback.stdout;
+    throw error;
+  }
 }
 
 function printHelp() {

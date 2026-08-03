@@ -1,16 +1,19 @@
 import http from "node:http";
-import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
+import { createReadStream, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { homedir } from "node:os";
 import { basename, dirname, extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const routesPath = join(repoRoot, "tools/partslink24/brand-routes.json");
-loadLocalEnv(join(repoRoot, "server/.env"));
-loadLocalEnv(join(repoRoot, "tools/partslink24/.env"));
-const routes = JSON.parse(readFileSync(routesPath, "utf8"));
-const outputDir = resolve(repoRoot, "output/partslink24");
+const envLoadWarnings = [];
+loadLocalEnv(join(homedir(), "Library/Application Support/AUTOGOOD/partslink24.env"));
+if (!hasPartslinkCredentials()) loadLocalEnv(join(repoRoot, "server/.env"));
+if (!hasPartslinkCredentials()) loadLocalEnv(join(repoRoot, "tools/partslink24/.env"));
+const routes = JSON.parse(readTextFile(routesPath));
+const outputDir = resolve(process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const port = Number(process.env.PORT || 4174);
 const minRunGapMs = Number(process.env.PARTSLINK24_MIN_RUN_GAP_MS || 7000);
 let partslinkQueue = Promise.resolve();
@@ -59,7 +62,7 @@ async function handleVinCheck(request, response) {
   if (!payload) return;
   const { brand, language, vin } = payload;
 
-  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "pdf" }));
+  const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "full" }));
   if (!result.ok) return sendJson(response, 500, result);
 
   const pdfPaths = Array.isArray(result.pdfPaths) && result.pdfPaths.length
@@ -79,6 +82,9 @@ async function handleVinCheck(request, response) {
     language,
     vin,
     vehicleDescription: result.vehicleDescription || "",
+    productionDate: result.productionDate || "",
+    engineType: result.engineType || "",
+    engineVolume: result.engineVolume || "",
     fileName: firstFile.fileName,
     downloadUrl: firstFile.downloadUrl,
     files
@@ -133,7 +139,9 @@ async function readPartslinkPayload(request, response) {
   if (!process.env.PARTSLINK24_COMPANY_ID || !process.env.PARTSLINK24_USERNAME || !process.env.PARTSLINK24_PASSWORD) {
     sendJson(response, 500, {
       ok: false,
-      error: "На сервере не настроены данные входа PartsLink24."
+      error: envLoadWarnings.length
+        ? "Сервер не смог прочитать локальный файл с данными входа PartsLink24."
+        : "На сервере не настроены данные входа PartsLink24."
     });
     return null;
   }
@@ -157,7 +165,34 @@ function enqueuePartslinkRun(run) {
   return queued;
 }
 
-function runPartslinkScript({ brand, language, vin, mode }) {
+async function runPartslinkScript({ brand, language, vin, mode }) {
+  const firstResult = await runPartslinkScriptAttempt({ brand, language, vin, mode });
+  if (firstResult.ok || !shouldRetryPartslinkRun(firstResult)) return firstResult;
+
+  const profileDir = makeTransientProfileDir();
+  const retryResult = await runPartslinkScriptAttempt({
+    brand,
+    language,
+    vin,
+    mode,
+    env: {
+      PARTSLINK24_DEBUG_ERRORS: "1",
+      PARTSLINK24_PROFILE_DIR: profileDir
+    },
+    cleanupDir: profileDir
+  });
+
+  if (!retryResult.ok) {
+    retryResult.details = {
+      ...(retryResult.details || {}),
+      retriedWithFreshProfile: true,
+      firstAttempt: firstResult.details || { error: firstResult.error }
+    };
+  }
+  return retryResult;
+}
+
+function runPartslinkScriptAttempt({ brand, language, vin, mode, env = {}, cleanupDir = "" }) {
   const scriptPath = join(repoRoot, "tools/partslink24/download-vin-pdf.mjs");
   const args = [
     scriptPath,
@@ -171,27 +206,63 @@ function runPartslinkScript({ brand, language, vin, mode }) {
   return new Promise((resolveRun) => {
     const child = spawn(process.execPath, args, {
       cwd: repoRoot,
-      env: process.env,
+      env: { ...process.env, ...env },
       stdio: ["ignore", "pipe", "pipe"]
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+
+    const finish = (code) => {
+      if (settled) return;
+      settled = true;
+      if (cleanupDir) cleanupTransientProfileDir(cleanupDir);
+      const parsed = parseLastJson(stdout) || parseLastJson(stderr);
+      if (code === 0 && parsed?.ok) return resolveRun(parsed);
+      return resolveRun({
+        ok: false,
+        error: parsed?.error || (mode === "production-date" ? "PartsLink24 не вернул дату производства." : mode === "full" ? "PartsLink24 не вернул результаты проверки." : "PartsLink24 не вернул PDF."),
+        details: parsed || {
+          code,
+          stderr: tailText(stderr),
+          stdout: tailText(stdout)
+        }
+      });
+    };
 
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("close", (code) => {
-      const parsed = parseLastJson(stdout) || parseLastJson(stderr);
-	      if (code === 0 && parsed?.ok) return resolveRun(parsed);
-	      return resolveRun({
-	        ok: false,
-	        error: parsed?.error || (mode === "production-date" ? "PartsLink24 не вернул дату производства." : "PartsLink24 не вернул PDF."),
-	        details: parsed || undefined
-	      });
-    });
+    child.on("close", finish);
+    child.on("exit", (code) => setTimeout(() => finish(code), 100));
     child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      if (cleanupDir) cleanupTransientProfileDir(cleanupDir);
       resolveRun({ ok: false, error: errorMessage(error) });
     });
   });
+}
+
+function shouldRetryPartslinkRun(result) {
+  if (result.ok) return false;
+  const text = `${result.error || ""}\n${JSON.stringify(result.details || {})}`;
+  return /PartsLink24 не вернул PDF|PartsLink24 не вернул результаты проверки|Unknown system error -11|ProcessSingleton|profile|lock|browser/i.test(text);
+}
+
+function makeTransientProfileDir() {
+  const root = join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-run-profiles");
+  mkdirSync(root, { recursive: true });
+  return mkdtempSync(join(root, "run-"));
+}
+
+function cleanupTransientProfileDir(path) {
+  if (!path || !path.includes("partslink24-run-profiles")) return;
+  rmSync(path, { recursive: true, force: true });
+}
+
+function tailText(value, maxLength = 2000) {
+  const text = String(value || "").trim();
+  return text.length > maxLength ? text.slice(-maxLength) : text;
 }
 
 function delay(ms) {
@@ -270,7 +341,16 @@ function parseLastJson(value) {
 function loadLocalEnv(path) {
   if (!existsSync(path)) return;
 
-  const lines = readFileSync(path, "utf8").split(/\r?\n/);
+  let lines;
+  try {
+    lines = readTextFile(path).split(/\r?\n/);
+  } catch (error) {
+    const message = `Cannot read ${path}: ${errorMessage(error)}`;
+    envLoadWarnings.push(message);
+    process.stderr.write(`[partslink24-api] ${message}\n`);
+    return;
+  }
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
@@ -279,6 +359,23 @@ function loadLocalEnv(path) {
     const rawValue = trimmed.slice(index + 1).trim();
     const value = rawValue.replace(/^['"]|['"]$/g, "");
     if (key && process.env[key] === undefined) process.env[key] = value;
+  }
+}
+
+function hasPartslinkCredentials() {
+  return Boolean(process.env.PARTSLINK24_COMPANY_ID && process.env.PARTSLINK24_USERNAME && process.env.PARTSLINK24_PASSWORD);
+}
+
+function readTextFile(path) {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (error) {
+    const fallback = spawnSync("/bin/cat", [path], {
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024
+    });
+    if (fallback.status === 0) return fallback.stdout;
+    throw error;
   }
 }
 

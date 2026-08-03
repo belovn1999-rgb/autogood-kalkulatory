@@ -240,13 +240,6 @@
         transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
       }
 
-      .partslinkActions button:nth-child(2) {
-        background: var(--ag-color-surface);
-        color: var(--ag-color-ink);
-        border-color: var(--ag-color-rule-2);
-        font-weight: 600;
-      }
-
       .partslinkActions button:hover,
       .partslinkDownloadLink:hover {
         transform: translateY(-1px);
@@ -553,8 +546,7 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" type="button">Выгрузить файл</button>
-            <button id="partslinkProductionDateButton" type="button">Проверить данные</button>
+            <button id="partslinkCheckButton" type="button">Проверить данные</button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
@@ -599,7 +591,6 @@
       const brandSelect = document.getElementById("partslinkBrand");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
-      const productionDateButton = document.getElementById("partslinkProductionDateButton");
       const vehicleDescriptionInput = document.getElementById("partslinkVehicleDescription");
       const productionDateInput = document.getElementById("partslinkProductionDate");
       const engineTypeInput = document.getElementById("partslinkEngineType");
@@ -607,7 +598,7 @@
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const fileViewer = document.getElementById("partslinkFileViewer");
       const statusLine = document.getElementById("partslinkStatus");
-      const emptyFileMessage = "Нажмите «Выгрузить файл» — PDF откроется здесь, и его можно будет сразу скачать.";
+      const emptyFileMessage = "После проверки здесь появится файл VIN.";
       let previewObjectUrls = [];
       const fallbackBrands = {
         "Alfa Romeo": { route: "general_vin_search" },
@@ -656,7 +647,7 @@
         { value: "Volvo", label: "Volvo" },
         { value: "Vw Nutzfahrzeuge", label: "Volkswagen" }
       ];
-      const defaultPartslinkApiBase = "https://rabbit-misc-porter-dow.trycloudflare.com";
+      const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -681,8 +672,8 @@
         return defaultPartslinkApiBase;
       }
 
-      function makePdfFileName(brand, vin) {
-        return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+      function makePdfFileName(brand, vin, language) {
+        return `${brand}_${vin}_${language}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
       }
 
       function releasePreviewUrls() {
@@ -734,10 +725,9 @@
 
       function setBusy(isBusy) {
         checkButton.disabled = isBusy;
-        productionDateButton.disabled = isBusy;
       }
 
-      async function renderDownloadLinks(files, apiBase, brand, vin) {
+      async function renderDownloadLinks(files, apiBase, brand, vin, language) {
         releasePreviewUrls();
         downloadLinks.replaceChildren();
         fileViewer.replaceChildren();
@@ -753,7 +743,7 @@
         fileViewer.dataset.empty = "false";
 
         for (const [index, file] of usableFiles.entries()) {
-          const fileName = file.fileName || makePdfFileName(brand, vin);
+          const fileName = file.fileName || makePdfFileName(brand, vin, language);
           const directUrl = `${apiBase}${file.downloadUrl}`;
           // The PDF route sends content-disposition: attachment, so an iframe
           // pointed at it downloads instead of previewing. Fetch it as a blob
@@ -772,7 +762,7 @@
           link.className = "partslinkDownloadLink";
           link.href = previewUrl || directUrl;
           link.download = fileName;
-          link.textContent = usableFiles.length > 1 ? `Скачать PDF ${index + 1}` : "Скачать PDF";
+          link.textContent = usableFiles.length > 1 ? `Выгрузить файл ${index + 1}` : "Выгрузить файл";
           downloadLinks.append(link);
 
           const pane = document.createElement("div");
@@ -869,9 +859,8 @@
         if (!payload) return;
 
         setBusy(true);
-        resetDownloadLink();
-        setVehicleDescription("");
-        setStatus("Проверяем VIN...");
+        resetResults();
+        setStatus("Проверяем данные и готовим файл VIN...");
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
@@ -889,48 +878,18 @@
             ? result.files
             : [{ fileName: result.fileName, downloadUrl: result.downloadUrl }];
           setVehicleDescription(result.vehicleDescription || "");
-          await renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
-          setStatus(files.length > 1 ? "Файлы готовы — смотрите блок «Файл VIN»." : "Файл готов — смотрите блок «Файл VIN».", "success");
-        } catch (error) {
-          setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
-        } finally {
-          setBusy(false);
-        }
-      });
-
-      productionDateButton.addEventListener("click", async () => {
-        const payload = readPayload();
-        if (!payload) return;
-
-        setBusy(true);
-        resetDownloadLink();
-        resetProductionDate();
-        setVehicleDescription("");
-        setStatus("Ищем дату производства...");
-        try {
-          const apiBase = getPartslinkApiBase();
-          const response = await fetch(`${apiBase}/api/partslink24/production-date`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          const result = await response.json().catch(() => ({}));
-
-          if (!response.ok || !result.ok) {
-            throw new Error(result.error || "Сервер проверки даты производства недоступен.");
-          }
-
           productionDateInput.value = result.productionDate || "";
           engineTypeInput.value = result.engineType || "";
           engineVolumeInput.value = result.engineVolume || "";
-          setVehicleDescription(result.vehicleDescription || "");
-          setStatus(productionDateInput.value ? "Данные получены без выгрузки файла." : "Не удалось получить данные.", productionDateInput.value ? "success" : "error");
+          await renderDownloadLinks(files, apiBase, payload.brand, payload.vin, payload.language);
+          setStatus(files.length > 1 ? "Данные получены, файлы готовы в блоке «Файл VIN»." : "Данные получены, файл готов в блоке «Файл VIN».", "success");
         } catch (error) {
           setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
         } finally {
           setBusy(false);
         }
       });
+
     </script>
   </body>
 </html>
