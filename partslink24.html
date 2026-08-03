@@ -199,6 +199,15 @@
         background: var(--ag-color-surface-tint);
       }
 
+      #partslinkBrand {
+        font-weight: 400;
+      }
+
+      #partslinkBrand.partslinkFavoriteSelected,
+      #partslinkBrand option[data-favorite="true"] {
+        font-weight: 700;
+      }
+
       .partslinkField input:focus-visible,
       .partslinkField select:focus-visible {
         border-color: var(--ag-color-accent);
@@ -647,6 +656,7 @@
         { value: "Volvo", label: "Volvo" },
         { value: "Vw Nutzfahrzeuge", label: "Volkswagen" }
       ];
+      const favoriteBrandValues = new Set(favoriteBrands.map((brand) => brand.value));
       const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
 
       function readApiBaseFromUrl() {
@@ -790,29 +800,27 @@
 
       function renderBrands() {
         brandSelect.innerHTML = "";
-        const favoriteValues = new Set(favoriteBrands.map((brand) => brand.value));
         const favorites = favoriteBrands.filter((brand) => brandRoutes[brand.value]);
         const regularBrands = Object.keys(brandRoutes)
-          .filter((brand) => !favoriteValues.has(brand))
+          .filter((brand) => !favoriteBrandValues.has(brand))
           .sort((left, right) => left.localeCompare(right, "ru"));
         const options = [
-          // Hollow, narrower star (U+2727) with a thin space: reads as a faint grey
-          // mark instead of a heavy black one. A native <select> can't colour part
-          // of an option's text, so the glyph itself carries the lighter weight.
-          ...favorites.map((brand) => ({ value: brand.value, label: `✧ ${brand.label}` })),
-          ...regularBrands.map((brand) => ({ value: brand, label: brand }))
+          ...favorites.map((brand) => ({ value: brand.value, label: brand.label, favorite: true })),
+          ...regularBrands.map((brand) => ({ value: brand, label: brand, favorite: false }))
         ];
 
         options.forEach((brand) => {
           const option = document.createElement("option");
           option.value = brand.value;
           option.textContent = brand.label;
+          if (brand.favorite) option.dataset.favorite = "true";
           brandSelect.append(option);
         });
         applyBrandLogic();
       }
 
       function applyBrandLogic() {
+        brandSelect.classList.toggle("partslinkFavoriteSelected", favoriteBrandValues.has(brandSelect.value));
         const current = brandRoutes[brandSelect.value];
         if (!current) return;
         vinInput.placeholder = current.sampleVin || "";
