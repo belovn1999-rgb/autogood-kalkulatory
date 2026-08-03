@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { extractPdfVehicleInfo, formatProductionDate, normalizeEngineInfo } from "./report-extraction.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../..");
@@ -25,7 +26,7 @@ const mode = readOption(args, "--mode") || (args.includes("--production-date-onl
 const outDir = resolve(readOption(args, "--out-dir") || process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
-const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 350);
+const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 280);
 const systemChromePaths = [
   process.env.PARTSLINK24_CHROME_PATH,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -85,7 +86,7 @@ try {
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: productionDate.value, productionDateLabel: productionDate.label, engineType: engineInfo.engineType, engineVolume: engineInfo.engineVolume }, null, 2)}\n`);
   } else if (mode === "full") {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
-    const reportInfo = extractPdfVehicleInfo(pdfPaths[0], { language });
+    const reportInfo = extractPdfVehicleInfo(pdfPaths[0], { brand, language });
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: reportInfo.productionDate, productionDateLabel: reportInfo.productionDate ? "PDF" : "", engineType: reportInfo.engineType, engineVolume: reportInfo.engineVolume, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
@@ -457,129 +458,6 @@ async function extractEngineInfo(page) {
   }).catch(() => ({ engineTypeRaw: "", fuelTypeRaw: "", mildHybridRaw: "", engineVolumeRaw: "" }));
 }
 
-function normalizeEngineInfo(info) {
-  const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-  const isMildHybrid = /\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
-  const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|плагин[\s-]*гибрид/i.test(source);
-  const isElectric = /\bev\b|electric|elektrycz|электр/i.test(source);
-  const isDiesel = /diesel|дизел|olej[\s-]*napędowy/i.test(source);
-  const isGasoline = /gasoline|petrol|benzyn|бензин|\botto\b/i.test(source);
-  const isHybrid = /hybrid|hybryd|гибрид/i.test(source);
-
-  let engineType = "";
-  if (isElectric) {
-    engineType = "Электрический";
-  } else if (isPlugInHybrid) {
-    engineType = "Plug-in Гибрид";
-  } else if (isGasoline) {
-    engineType = "Бензин";
-  } else if (isDiesel) {
-    engineType = "Дизель";
-  } else if (isHybrid && !isMildHybrid) {
-    engineType = "Обычный гибрид";
-  }
-
-  if (isMildHybrid && (engineType === "Бензин" || engineType === "Дизель")) {
-    engineType = `${engineType} + Мягкий гибрид`;
-  }
-
-  return {
-    engineType,
-    engineVolume: normalizeEngineVolume(info.engineVolumeRaw)
-  };
-}
-
-function normalizeEngineVolume(value) {
-  const raw = String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-  const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|ccm|cc)\b/i);
-  if (cubicMatch) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
-  return /\d\s*(?:l|л)\b/i.test(raw) ? raw : "";
-}
-
-function extractPdfVehicleInfo(pdfPath, { language = "" } = {}) {
-  const text = readPdfText(pdfPath);
-  if (!text) return { productionDate: "", engineType: "", engineVolume: "" };
-
-  const productionDateRaw = extractPdfValue(text, /(?:data\s+produkcji|дата\s+(?:производства|изготовления)|production\s+date|date\s+of\s+production|manufactur(?:e|ing)\s+date|build\s+date)/i);
-  const engineTypeRaw = extractPdfValue(text, /(?:rodzaj\s+silnika|typ\s+silnika|тип\s+двигателя|engine\s+type|motor\s+type)/i);
-  const fuelTypeRaw = extractPdfValue(text, /(?:rodzaj\s+paliwa|тип\s+топлива|вид\s+топлива|fuel\s+type|fuel\s+category)/i);
-  const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
-  const engineVolumeRaw = extractPdfValue(text, /(?:roboczy\s+objętość|pojemność\s+silnika|pojemnosc\s+silnika|pojemność\s+skokowa|рабочий\s+объем|рабочий\s+объём|объем\s+двигателя|объём\s+двигателя|engine\s+(?:capacity|displacement)|cubic\s+capacity|displacement)/i);
-  const engineInfo = normalizeEngineInfo({ engineTypeRaw, fuelTypeRaw, mildHybridRaw, engineVolumeRaw });
-
-  return {
-    productionDate: formatProductionDate(productionDateRaw, language),
-    engineType: engineInfo.engineType,
-    engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
-  };
-}
-
-function readPdfText(pdfPath) {
-  const bundledPdfToText = join(homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/poppler/bin/pdftotext");
-  const candidates = [process.env.PARTSLINK24_PDFTOTEXT_PATH, "pdftotext", bundledPdfToText].filter(Boolean);
-
-  for (const command of candidates) {
-    const result = spawnSync(command, ["-layout", pdfPath, "-"], {
-      encoding: "utf8",
-      maxBuffer: 5_000_000
-    });
-    if (result.status === 0 && result.stdout) return result.stdout;
-  }
-
-  return "";
-}
-
-function extractPdfValue(text, labelPattern) {
-  const source = labelPattern.source.replace(/^\^/, "").replace(/\$$/, "");
-  const inlinePattern = new RegExp(`(?:${source})\\s*[:\\-]?\\s*([^\\r\\n]{1,80})`, "i");
-  const inlineMatch = String(text || "").match(inlinePattern);
-  return inlineMatch?.[1]?.replace(/\s+/g, " ").trim() || "";
-}
-
-function normalizePdfEngineVolume(value) {
-  const normalized = normalizeEngineVolume(value);
-  if (normalized) return normalized;
-  const bareLiterValue = String(value || "").replace(/\s+/g, " ").trim();
-  return /^\d+(?:[.,]\d+)?$/.test(bareLiterValue) ? `${bareLiterValue} л` : "";
-}
-
-function formatProductionDate(value, language = "") {
-  const raw = String(value || "").replace(/\u00a0/g, " ").trim();
-  const monthNames = {
-    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
-    stycznia: 1, lutego: 2, marca: 3, kwietnia: 4, maja: 5, czerwca: 6, lipca: 7, sierpnia: 8, września: 9, wrzesnia: 9, października: 10, pazdziernika: 10, listopada: 11, grudnia: 12,
-    января: 1, февраля: 2, марта: 3, апреля: 4, мая: 5, июня: 6, июля: 7, августа: 8, сентября: 9, октября: 10, ноября: 11, декабря: 12
-  };
-  const namedMatch = raw.toLowerCase().match(/(\d{1,2})\s+([a-zа-яёęóśżźć]+)\s+(\d{4})/iu);
-  if (namedMatch && monthNames[namedMatch[2]]) {
-    return formatDateParts(namedMatch[1], monthNames[namedMatch[2]], namedMatch[3]);
-  }
-
-  const numericMatch = raw.match(/\b(\d{1,4})[.\/-](\d{1,2})[.\/-](\d{1,4})\b/);
-  if (!numericMatch) return "";
-  const [, first, second, third] = numericMatch;
-  if (first.length === 4) return formatDateParts(third, second, first);
-  if (third.length !== 4) return "";
-  if (language === "ENG" && first !== "" && Number(first) <= 12 && Number(second) <= 12) {
-    return formatDateParts(second, first, third);
-  }
-  if (Number(first) <= 12 && Number(second) > 12) return formatDateParts(second, first, third);
-  return formatDateParts(first, second, third);
-}
-
-function formatDateParts(day, month, year) {
-  const normalizedDay = Number(day);
-  const normalizedMonth = Number(month);
-  const normalizedYear = Number(year);
-  if (!Number.isInteger(normalizedDay) || !Number.isInteger(normalizedMonth) || !Number.isInteger(normalizedYear)) return "";
-  const date = new Date(Date.UTC(normalizedYear, normalizedMonth - 1, normalizedDay));
-  if (date.getUTCFullYear() !== normalizedYear || date.getUTCMonth() !== normalizedMonth - 1 || date.getUTCDate() !== normalizedDay) return "";
-  return `${String(normalizedDay).padStart(2, "0")}.${String(normalizedMonth).padStart(2, "0")}.${normalizedYear}`;
-}
-
 async function extractDamCode(page) {
   return page.evaluate(() => {
     const normalize = (value) => String(value || "")
@@ -943,9 +821,9 @@ async function readJson(path) {
 
 async function fillHuman(locator, value) {
   await locator.click();
-  await humanDelay(200, 500);
+  await humanDelay(160, 400);
   await locator.fill("");
-  await locator.pressSequentially(String(value), { delay: randomInt(45, 120) });
+  await locator.pressSequentially(String(value), { delay: randomInt(36, 96) });
 }
 
 async function clickHuman(locator) {
@@ -954,7 +832,7 @@ async function clickHuman(locator) {
   await humanDelay();
 }
 
-async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || 650), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || 1600)) {
+async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || 520), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || 1280)) {
   await new Promise((resolveDelay) => setTimeout(resolveDelay, randomInt(min, max)));
 }
 
