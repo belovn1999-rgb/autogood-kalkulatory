@@ -87,7 +87,8 @@ try {
   } else if (mode === "full") {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
     const reportInfo = extractPdfVehicleInfo(pdfPaths[0], { brand, language });
-    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: reportInfo.productionDate, productionDateLabel: reportInfo.productionDate ? "PDF" : "", engineType: reportInfo.engineType, engineVolume: reportInfo.engineVolume, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
+    const reportVehicleDescription = reportInfo.model ? `${brand} ${reportInfo.model}` : vehicleDescription;
+    process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription: reportVehicleDescription, productionDate: reportInfo.productionDate, productionDateLabel: reportInfo.productionDate ? "PDF" : "", engineType: reportInfo.engineType, engineVolume: reportInfo.engineVolume, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);

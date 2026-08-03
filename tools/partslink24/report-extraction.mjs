@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const genericProfile = {
+  modelLabels: [/(?:model|модель|models+pojazdu|vehicles+model|oznaczenies+handlowe|linias+pojazdu|vehicles+line)/i],
   productionDateLabels: [/(?:data\s+produkcji|дата\s+(?:производства|изготовления)|production\s+date|date\s+of\s+production|manufactur(?:e|ing)\s+date|build\s+date)/i],
   engineSpecificationLabels: [/(?:engine\s+specification|спецификац(?:ия|ии)\s+двигател(?:я|ей)|specyfikacj[ae]\s+silnika|motorspezifikation)/i],
   engineTypeLabels: [/(?:rodzaj\s+silnika|typ\s+silnika|тип\s+двигателя|engine\s+type|motor\s+type)/i],
@@ -20,8 +21,20 @@ const brandReportProfiles = {
   },
   Ford: {
     dateOrder: "YY-MM-DD",
+    modelLabels: [/(?:linia\s+pojazdu|vehicle\s+line)/i],
     engineSpecificationLabels: [/(?:rodzaj\s+silnika|engine\s+type)/i],
     engineTypeLabels: [/(?:rodzaj\s+silnika|engine\s+type)/i]
+  },
+  "Mercedes-Benz": {
+    modelLabels: [/(?:oznaczenie\s+handlowe)/i],
+    engineVolumeLabels: [/(?:pojemność\s+skokowa|engine\s+(?:capacity|displacement))/i],
+    engineEvidenceLabels: [/(?:silnik\s+benzynowy|pojazd\s+hybrydowy|plug[\s-]*in|phev)/i]
+  },
+  Peugeot: {
+    modelLabels: [/(?:model)/i],
+    dateFromDam: true,
+    engineSpecificationLabels: [/(?:^|\n)\s*silnik\b/i],
+    engineEvidenceLabels: [/(?:^|\n)\s*(?:silnik|paliwo\s*\(typ\)|pojemność\s+skokowa)\b/i]
   }
 };
 
@@ -31,20 +44,26 @@ export function extractPdfVehicleInfo(pdfPath, { brand = "", language = "" } = {
 
   const profile = mergeProfile(brandReportProfiles[brand]);
   const productionDateRaw = findFirstPdfValue(text, profile.productionDateLabels);
+  const model = normalizeModel(findFirstPdfValue(text, profile.modelLabels), brand);
   const engineSpecificationRaw = findFirstPdfValue(text, profile.engineSpecificationLabels);
   const engineTypeRaw = findFirstPdfValue(text, profile.engineTypeLabels);
   const fuelTypeRaw = findFirstPdfValue(text, profile.fuelTypeLabels);
+  const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const engineVolumeRaw = findFirstPdfValue(text, profile.engineVolumeLabels) || engineSpecificationRaw;
   const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
   const engineInfo = normalizeEngineInfo({
-    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw].filter(Boolean).join(" "),
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, engineEvidenceRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
   });
 
+  const productionDate = formatProductionDate(productionDateRaw, language, profile.dateOrder)
+    || (profile.dateFromDam ? formatDamProductionDate(extractPdfDamCode(text)) : "");
+
   return {
-    productionDate: formatProductionDate(productionDateRaw, language, profile.dateOrder),
+    model,
+    productionDate,
     engineType: engineInfo.engineType,
     engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
   };
@@ -131,6 +150,24 @@ function findFirstPdfValue(text, patterns) {
   return "";
 }
 
+function collectPdfEvidence(text, patterns = []) {
+  if (!patterns.length) return "";
+  const lines = String(text || "").split(/\r?\n/);
+  const matches = [];
+  for (const line of lines) {
+    if (patterns.some((pattern) => pattern.test(line))) matches.push(line.trim());
+    if (matches.length === 8) break;
+  }
+  return matches.join(" ");
+}
+
+function normalizeModel(value, brand) {
+  const raw = String(value || "").replace(/\s+/g, " ").trim();
+  const normalizedBrand = String(brand || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (!normalizedBrand) return raw;
+  return raw.replace(new RegExp(`^${normalizedBrand}(?:[\s-]+benz)?[\s-]*`, "i"), "").trim();
+}
+
 function extractPdfValue(text, labelPattern) {
   const source = labelPattern.source.replace(/^\^/, "").replace(/\$$/, "");
   // Table rows in PartsLink reports sometimes wrap the engine size to the next
@@ -147,6 +184,18 @@ function normalizePdfEngineVolume(value) {
   const literMatch = raw.match(/(\d+(?:[.,]\d+)?)\s*(?:l|л)(?![a-zа-яё])/iu);
   if (literMatch) return `${literMatch[1]} л`;
   return /^\d+(?:[.,]\d+)?$/.test(raw) ? `${raw} л` : "";
+}
+
+function extractPdfDamCode(text) {
+  const damMatch = String(text || "").match(/(?:^|\n)\s*(?:DAM|OPR|ORGA)\s+(\d{5,})\b/i);
+  return damMatch?.[1]?.slice(0, 5) || "";
+}
+
+function formatDamProductionDate(damCode) {
+  const dayOffset = Number(String(damCode || "").trim());
+  if (!Number.isInteger(dayOffset) || dayOffset < 0 || dayOffset > 99999) return "";
+  const date = new Date(Date.UTC(1976, 10, 7) + dayOffset * 24 * 60 * 60 * 1000);
+  return `${String(date.getUTCDate()).padStart(2, "0")}.${String(date.getUTCMonth() + 1).padStart(2, "0")}.${date.getUTCFullYear()}`;
 }
 
 function formatDateParts(day, month, year) {
