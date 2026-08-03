@@ -1,9 +1,17 @@
 {
   "languages": ["RU", "PL", "ENG"],
   "brands": {
+    "Abarth": {
+      "route": "pending_demo",
+      "brandTile": "Abarth"
+    },
     "Alfa Romeo": {
       "route": "general_vin_search",
       "brandTile": "Alfa Romeo"
+    },
+    "Alpine": {
+      "route": "pending_demo",
+      "brandTile": "Alpine"
     },
     "Audi": {
       "route": "general_vin_search",
@@ -13,6 +21,10 @@
       "expectedKeywords": ["partslink24", "Audi"],
       "expectedTextAny": ["identyfikacja pojazdu", "Data produkcji", "Wyposazenie"]
     },
+    "Bentley": {
+      "route": "pending_demo",
+      "brandTile": "Bentley"
+    },
     "BMW": {
       "route": "general_vin_search",
       "brandTile": "BMW",
@@ -20,6 +32,18 @@
       "sampleLanguage": "RU",
       "expectedKeywords": ["partslink24", "BMW"],
       "expectedTextAny": ["Идентификация автомобиля", "Серийная комплектация", "Спецоборудование"]
+    },
+    "BMW Classic": {
+      "route": "pending_demo",
+      "brandTile": "BMW Classic"
+    },
+    "BMW Motorrad": {
+      "route": "pending_demo",
+      "brandTile": "BMW Motorrad"
+    },
+    "BMW Motorrad Classic": {
+      "route": "pending_demo",
+      "brandTile": "BMW Motorrad Classic"
     },
     "Citroen": {
       "route": "brand_first_search",
@@ -43,6 +67,10 @@
       "route": "general_vin_search",
       "brandTile": "Fiat"
     },
+    "Fiat Professional": {
+      "route": "pending_demo",
+      "brandTile": "Fiat Professional"
+    },
     "Ford": {
       "route": "two_file_print",
       "brandTile": "Ford",
@@ -53,6 +81,10 @@
       "expectedTextAny": ["Vehicle identification", "Vehicle data", "Equipment"],
       "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
+    "Ford Pro": {
+      "route": "pending_demo",
+      "brandTile": "Ford Pro"
+    },
     "Hyundai": {
       "route": "two_file_print",
       "brandTile": "Hyundai",
@@ -61,6 +93,10 @@
       "expectedKeywords": ["partslink24", "Hyundai"],
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "parametry pojazdu"],
       "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
+    },
+    "Infiniti": {
+      "route": "pending_demo",
+      "brandTile": "Infiniti"
     },
     "Iveco": {
       "route": "two_file_print",
@@ -90,6 +126,14 @@
       "route": "general_vin_search",
       "brandTile": "Lexus"
     },
+    "Lancia": {
+      "route": "pending_demo",
+      "brandTile": "Lancia"
+    },
+    "MAN": {
+      "route": "pending_demo",
+      "brandTile": "MAN"
+    },
     "Mercedes-Benz": {
       "route": "brand_first_search",
       "brandTile": "Mercedes-Benz",
@@ -98,10 +142,18 @@
       "expectedKeywords": ["partslink24", "Mercedes-Benz"],
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "SAA Numbers"]
     },
+    "Mercedes Classic": {
+      "route": "pending_demo",
+      "brandTile": "Mercedes Classic"
+    },
     "Mercedes Trucks": {
       "route": "brand_first_search",
       "brandTile": "Trucks",
       "brandTileAliases": ["Mercedes-Benz Trucks", "Mercedes Trucks"]
+    },
+    "Mercedes Unimog": {
+      "route": "pending_demo",
+      "brandTile": "Mercedes Unimog"
     },
     "Mercedes Vans": {
       "route": "brand_first_search",
@@ -111,6 +163,10 @@
     "Mini": {
       "route": "general_vin_search",
       "brandTile": "MINI"
+    },
+    "Mini Classic": {
+      "route": "pending_demo",
+      "brandTile": "MINI Classic"
     },
     "Mitsubishi": {
       "route": "general_vin_search",
@@ -125,6 +181,10 @@
       "route": "brand_first_search",
       "brandTile": "Opel"
     },
+    "Opel Legacy": {
+      "route": "pending_demo",
+      "brandTile": "Opel Legacy"
+    },
     "Peugeot": {
       "route": "brand_first_search",
       "brandTile": "Peugeot",
@@ -134,9 +194,17 @@
       "expectedTextAny": ["Идентификация автомобиля", "Модель", "Оснащение"],
       "notes": ["Дата производства не обязательна."]
     },
+    "Polestar": {
+      "route": "pending_demo",
+      "brandTile": "Polestar"
+    },
     "Porsche": {
       "route": "general_vin_search",
       "brandTile": "Porsche"
+    },
+    "Porsche Classic": {
+      "route": "pending_demo",
+      "brandTile": "Porsche Classic"
     },
     "Renault": {
       "route": "brand_first_search",
@@ -169,6 +237,22 @@
       "sampleLanguage": "PL",
       "expectedKeywords": ["partslink24", "Volvo"],
       "expectedTextAny": ["identyfikacja pojazdu", "Wyposazenie", "Informacje techniczne"]
+    },
+    "Vauxhall": {
+      "route": "pending_demo",
+      "brandTile": "Vauxhall"
+    },
+    "Vauxhall Legacy": {
+      "route": "pending_demo",
+      "brandTile": "Vauxhall Legacy"
+    },
+    "Volkswagen": {
+      "route": "pending_demo",
+      "brandTile": "Volkswagen"
+    },
+    "Volkswagen Classic Parts": {
+      "route": "pending_demo",
+      "brandTile": "Volkswagen Classic Parts"
     },
     "Vw Nutzfahrzeuge": {
       "route": "brand_first_search",

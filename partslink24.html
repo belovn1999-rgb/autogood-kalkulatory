@@ -716,37 +716,58 @@
       const emptyFileMessage = "После проверки здесь появится файл VIN.";
       let previewObjectUrls = [];
       const fallbackBrands = {
+        Abarth: { route: "pending_demo" },
         "Alfa Romeo": { route: "general_vin_search" },
+        Alpine: { route: "pending_demo" },
         Audi: { sampleVin: "WAUZZZ4M3RD016484", route: "general_vin_search" },
+        Bentley: { route: "pending_demo" },
         BMW: { sampleVin: "WBA31AA0905V40977", route: "general_vin_search" },
+        "BMW Classic": { route: "pending_demo" },
+        "BMW Motorrad": { route: "pending_demo" },
+        "BMW Motorrad Classic": { route: "pending_demo" },
         Citroen: { route: "brand_first_search" },
         Cupra: { route: "general_vin_search" },
         Dacia: { route: "general_vin_search" },
         DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
+        "Fiat Professional": { route: "pending_demo" },
         Ford: { sampleVin: "WF0MXXGBWMEL10535", route: "two_file_print" },
+        "Ford Pro": { route: "pending_demo" },
         Hyundai: { sampleVin: "KMHS5811DMU002130", route: "two_file_print" },
+        Infiniti: { route: "pending_demo" },
         Iveco: { route: "two_file_print" },
         Jaguar: { route: "general_vin_search" },
         Jeep: { route: "general_vin_search" },
         Kia: { route: "two_file_print" },
         "Land Rover": { route: "general_vin_search" },
+        Lancia: { route: "pending_demo" },
         Lexus: { route: "general_vin_search" },
+        MAN: { route: "pending_demo" },
         "Mercedes-Benz": { sampleVin: "WDD2120481A322032", route: "brand_first_search" },
+        "Mercedes Classic": { route: "pending_demo" },
         "Mercedes Trucks": { route: "brand_first_search" },
+        "Mercedes Unimog": { route: "pending_demo" },
         "Mercedes Vans": { route: "brand_first_search" },
         Mini: { route: "general_vin_search" },
+        "Mini Classic": { route: "pending_demo" },
         Mitsubishi: { route: "general_vin_search" },
         Nissan: { route: "two_file_print" },
         Opel: { route: "brand_first_search" },
+        "Opel Legacy": { route: "pending_demo" },
         Peugeot: { sampleVin: "VR3FPHNSTPY610770", route: "brand_first_search" },
+        Polestar: { route: "pending_demo" },
         Porsche: { route: "general_vin_search" },
+        "Porsche Classic": { route: "pending_demo" },
         Renault: { route: "brand_first_search" },
         Seat: { route: "general_vin_search" },
         Skoda: { route: "general_vin_search" },
         Smart: { route: "general_vin_search" },
         Suzuki: { route: "general_vin_search" },
         Toyota: { route: "general_vin_search" },
+        Vauxhall: { route: "pending_demo" },
+        "Vauxhall Legacy": { route: "pending_demo" },
+        Volkswagen: { route: "pending_demo" },
+        "Volkswagen Classic Parts": { route: "pending_demo" },
         Volvo: { sampleVin: "YV1ZZK5V2P2106956", route: "general_vin_search" },
         "Vw Nutzfahrzeuge": { route: "brand_first_search" }
       };
@@ -1052,7 +1073,7 @@
       renderLanguages();
       resetDownloadLink();
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
+      fetch("./tools/partslink24/brand-routes.json?v=20260803-1")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;
