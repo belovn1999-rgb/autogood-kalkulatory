@@ -199,13 +199,99 @@
         background: var(--ag-color-surface-tint);
       }
 
-      #partslinkBrand {
-        font-weight: 400;
+      .partslinkBrandNativeSelect {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
       }
 
-      #partslinkBrand.partslinkFavoriteSelected,
-      #partslinkBrand option[data-favorite="true"] {
+      .partslinkBrandPicker {
+        position: relative;
+      }
+
+      .partslinkBrandPickerButton {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: var(--ag-size-action);
+        border: var(--ag-rule-field);
+        border-radius: var(--ag-radius-input);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-ink);
+        padding: var(--ag-space-control-y) var(--ag-space-field-x);
+        font: inherit;
+        font-size: var(--ag-text-base);
+        font-weight: 400;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .partslinkBrandPickerButton:hover,
+      .partslinkBrandPickerButton:focus-visible {
+        border-color: var(--ag-color-accent);
+        background: var(--ag-color-surface-tint);
+      }
+
+      .partslinkBrandPickerButton[data-favorite="true"] {
         font-weight: 700;
+      }
+
+      .partslinkBrandCaret {
+        flex: 0 0 auto;
+        margin-left: var(--ag-space-sm);
+        color: var(--ag-color-muted);
+        font-size: 12px;
+      }
+
+      .partslinkBrandOptions {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        display: grid;
+        max-height: 340px;
+        overflow-y: auto;
+        border: var(--ag-rule-field);
+        border-radius: var(--ag-radius-input);
+        background: var(--ag-color-surface);
+        box-shadow: 0 12px 28px rgb(21 48 74 / 16%);
+      }
+
+      .partslinkBrandOptions[hidden] {
+        display: none;
+      }
+
+      .partslinkBrandOption {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--ag-color-rule);
+        background: transparent;
+        color: var(--ag-color-ink);
+        padding: 10px var(--ag-space-field-x);
+        font: inherit;
+        font-size: var(--ag-text-base);
+        font-weight: 400;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .partslinkBrandOption:last-child {
+        border-bottom: 0;
+      }
+
+      .partslinkBrandOption[data-favorite="true"] {
+        font-weight: 700;
+      }
+
+      .partslinkBrandOption:hover,
+      .partslinkBrandOption:focus-visible,
+      .partslinkBrandOption[aria-selected="true"] {
+        background: var(--ag-color-surface-tint);
+        color: var(--ag-color-accent-dark);
       }
 
       .partslinkField input:focus-visible,
@@ -545,7 +631,14 @@
 
           <label class="partslinkField">
             <span>2. Марка авто</span>
-            <select id="partslinkBrand" name="brand"></select>
+            <div class="partslinkBrandPicker">
+              <button id="partslinkBrandButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkBrandOptions">
+                <span id="partslinkBrandLabel"></span>
+                <span class="partslinkBrandCaret" aria-hidden="true">&#9662;</span>
+              </button>
+              <div id="partslinkBrandOptions" class="partslinkBrandOptions" role="listbox" hidden></div>
+              <select id="partslinkBrand" class="partslinkBrandNativeSelect" name="brand" tabindex="-1" aria-hidden="true"></select>
+            </div>
           </label>
 
           <label class="partslinkField">
@@ -598,6 +691,9 @@
     <script>
       const languageSelect = document.getElementById("partslinkLanguage");
       const brandSelect = document.getElementById("partslinkBrand");
+      const brandPickerButton = document.getElementById("partslinkBrandButton");
+      const brandPickerLabel = document.getElementById("partslinkBrandLabel");
+      const brandPickerOptions = document.getElementById("partslinkBrandOptions");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
       const vehicleDescriptionInput = document.getElementById("partslinkVehicleDescription");
@@ -800,6 +896,7 @@
 
       function renderBrands() {
         brandSelect.innerHTML = "";
+        brandPickerOptions.replaceChildren();
         const favorites = favoriteBrands.filter((brand) => brandRoutes[brand.value]);
         const regularBrands = Object.keys(brandRoutes)
           .filter((brand) => !favoriteBrandValues.has(brand))
@@ -815,16 +912,50 @@
           option.textContent = brand.label;
           if (brand.favorite) option.dataset.favorite = "true";
           brandSelect.append(option);
+
+          const pickerOption = document.createElement("button");
+          pickerOption.type = "button";
+          pickerOption.className = "partslinkBrandOption";
+          pickerOption.role = "option";
+          pickerOption.dataset.value = brand.value;
+          pickerOption.dataset.favorite = String(brand.favorite);
+          pickerOption.textContent = brand.label;
+          pickerOption.addEventListener("click", () => {
+            brandSelect.value = brand.value;
+            brandSelect.dispatchEvent(new Event("change"));
+            closeBrandPicker();
+          });
+          brandPickerOptions.append(pickerOption);
         });
         applyBrandLogic();
       }
 
       function applyBrandLogic() {
-        brandSelect.classList.toggle("partslinkFavoriteSelected", favoriteBrandValues.has(brandSelect.value));
+        const selectedLabel = brandSelect.selectedOptions[0]?.textContent || "";
+        const isFavorite = favoriteBrandValues.has(brandSelect.value);
+        brandPickerLabel.textContent = selectedLabel;
+        brandPickerButton.dataset.favorite = String(isFavorite);
+        brandPickerOptions.querySelectorAll("[role='option']").forEach((option) => {
+          option.setAttribute("aria-selected", String(option.dataset.value === brandSelect.value));
+        });
         const current = brandRoutes[brandSelect.value];
         if (!current) return;
         vinInput.placeholder = current.sampleVin || "";
         vinInput.dataset.route = current.route || "";
+      }
+
+      function closeBrandPicker() {
+        brandPickerOptions.hidden = true;
+        brandPickerButton.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleBrandPicker() {
+        const isOpen = !brandPickerOptions.hidden;
+        brandPickerOptions.hidden = isOpen;
+        brandPickerButton.setAttribute("aria-expanded", String(!isOpen));
+        if (!isOpen) {
+          brandPickerOptions.querySelector('[aria-selected="true"]')?.focus();
+        }
       }
 
       vinInput.addEventListener("input", () => {
@@ -835,6 +966,19 @@
         vinInput.value = "";
         resetResults();
         applyBrandLogic();
+      });
+      brandPickerButton.addEventListener("click", toggleBrandPicker);
+      brandPickerButton.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          if (brandPickerOptions.hidden) toggleBrandPicker();
+        }
+      });
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".partslinkBrandPicker")) closeBrandPicker();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeBrandPicker();
       });
       languageSelect.addEventListener("change", resetResults);
 
