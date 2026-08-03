@@ -849,8 +849,9 @@
         fileViewer.dataset.empty = "false";
 
         for (const [index, file] of usableFiles.entries()) {
-          const fileName = file.fileName || makePdfFileName(brand, vin, language);
-          const directUrl = `${apiBase}${file.downloadUrl}`;
+          const fileName = makePdfFileName(brand, vin, language);
+          const separator = file.downloadUrl.includes("?") ? "&" : "?";
+          const directUrl = `${apiBase}${file.downloadUrl}${separator}downloadName=${encodeURIComponent(fileName)}`;
           // The PDF route sends content-disposition: attachment, so an iframe
           // pointed at it downloads instead of previewing. Fetch it as a blob
           // and preview the object URL; fall back to the direct link if that fails.

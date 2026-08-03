@@ -270,9 +270,11 @@ function delay(ms) {
 }
 
 function sendPdf(request, response) {
-  const encodedName = request.url?.replace("/api/partslink24/pdf/", "") || "";
+  const requestUrl = new URL(request.url || "/", "http://127.0.0.1");
+  const encodedName = requestUrl.pathname.replace("/api/partslink24/pdf/", "");
   const fileName = basename(decodeURIComponent(encodedName));
   const filePath = resolve(outputDir, fileName);
+  const requestedDownloadName = normalizeDownloadFileName(requestUrl.searchParams.get("downloadName"));
 
   if (!filePath.startsWith(`${outputDir}/`) || extname(filePath).toLowerCase() !== ".pdf" || !existsSync(filePath)) {
     return sendJson(response, 404, { ok: false, error: "PDF не найден." });
@@ -280,11 +282,17 @@ function sendPdf(request, response) {
 
   response.writeHead(200, {
     "content-type": "application/pdf",
-    "content-disposition": `attachment; filename="${fileName}"`,
+    "content-disposition": `attachment; filename="${requestedDownloadName || fileName}"`,
     "content-length": statSync(filePath).size,
     ...corsHeaders()
   });
   return createReadStream(filePath).pipe(response);
+}
+
+function normalizeDownloadFileName(value) {
+  const fileName = basename(String(value || ""))
+    .replace(/[^A-Za-z0-9_.-]/g, "_");
+  return fileName.toLowerCase().endsWith(".pdf") ? fileName : "";
 }
 
 function sendStatic(request, response) {
