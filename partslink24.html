@@ -780,10 +780,17 @@
         { value: "Peugeot", label: "Peugeot" },
         { value: "Renault", label: "Renault" },
         { value: "Toyota", label: "Toyota" },
-        { value: "Volvo", label: "Volvo" },
-        { value: "Vw Nutzfahrzeuge", label: "Volkswagen" }
+        { value: "Volvo", label: "Volvo" }
       ];
       const favoriteBrandValues = new Set(favoriteBrands.map((brand) => brand.value));
+      const brandLabels = {
+        "Vw Nutzfahrzeuge": "Volkswagen Nutzfahrzeuge"
+      };
+      const brandDisplayOrder = [
+        "Audi", "BMW", "Ford", "Mercedes-Benz", "Peugeot", "Renault", "Toyota", "Volvo",
+        "Alfa Romeo", "Citroen", "Cupra", "DS", "Fiat", "Ford Pro", "Hyundai", "Jaguar", "Jeep", "Kia", "Land Rover", "Lexus", "Mini", "Mitsubishi", "Nissan", "Opel", "Porsche", "Porsche Classic", "Seat", "Skoda", "Suzuki", "Volkswagen", "Vw Nutzfahrzeuge",
+        "Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Fiat Professional", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"
+      ];
       const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
 
       function readApiBaseFromUrl() {
@@ -929,14 +936,15 @@
       function renderBrands() {
         brandSelect.innerHTML = "";
         brandPickerOptions.replaceChildren();
-        const favorites = favoriteBrands.filter((brand) => brandRoutes[brand.value]);
-        const regularBrands = Object.keys(brandRoutes)
-          .filter((brand) => !favoriteBrandValues.has(brand))
+        const orderedBrands = brandDisplayOrder.filter((brand) => brandRoutes[brand]);
+        const unlistedBrands = Object.keys(brandRoutes)
+          .filter((brand) => !brandDisplayOrder.includes(brand))
           .sort((left, right) => left.localeCompare(right, "ru"));
-        const options = [
-          ...favorites.map((brand) => ({ value: brand.value, label: brand.label, favorite: true })),
-          ...regularBrands.map((brand) => ({ value: brand, label: brand, favorite: false }))
-        ];
+        const options = [...orderedBrands, ...unlistedBrands].map((brand) => ({
+          value: brand,
+          label: brandLabels[brand] || brand,
+          favorite: favoriteBrandValues.has(brand)
+        }));
 
         options.forEach((brand) => {
           const option = document.createElement("option");
