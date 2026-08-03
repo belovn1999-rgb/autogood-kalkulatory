@@ -79,7 +79,7 @@ try {
   page = context.pages()[0] || await context.newPage();
   await login(page, { companyId, username, password, language });
   await openVehicle(page, brandConfig, vin);
-  const vehicleDescription = await extractVehicleDescription(page);
+  const vehicleDescription = await extractVehicleDescription(page, { brand });
   if (mode === "production-date") {
     const productionDate = await extractProductionDate(page, { brand, language });
     const engineInfo = normalizeEngineInfo(await extractEngineInfo(page));
@@ -247,8 +247,8 @@ async function downloadVehiclePdfs(page, brandConfig, options) {
   return [await downloadPdf(page, options)];
 }
 
-async function extractVehicleDescription(page) {
-  return page.evaluate(() => {
+async function extractVehicleDescription(page, options = {}) {
+  return page.evaluate((defaultBrand) => {
     const normalize = (value) => String(value || "")
       .replace(/\u00a0/g, " ")
       .replace(/\s+/g, " ")
@@ -258,7 +258,7 @@ async function extractVehicleDescription(page) {
       .replace(/[\s:;|/\\-]+$/, "");
     const isVisible = (element) => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     const brandLabelPattern = /^(?:marka|марка|make|manufacturer|producent)$/i;
-    const modelLabelPattern = /^(?:model|модель|model pojazdu|vehicle model)$/i;
+    const modelLabelPattern = /^(?:model|модель|model pojazdu|vehicle model|linia pojazdu|vehicle line)$/i;
     const blockedValuePattern = /^(?:marka|марка|make|manufacturer|producent|model|модель|vin|data|date|production|vehicle identification|identyfikacja pojazdu|идентификация автомобиля)$/i;
 
     function directLabelValue(labelPattern) {
@@ -312,8 +312,8 @@ async function extractVehicleDescription(page) {
 
     const brand = directLabelValue(brandLabelPattern) || rowLabelValue(brandLabelPattern);
     const model = directLabelValue(modelLabelPattern) || rowLabelValue(modelLabelPattern);
-    return [brand, model].filter(Boolean).join(" ");
-  }).catch(() => "");
+    return [brand || defaultBrand, model].filter(Boolean).join(" ");
+  }, options.brand || "").catch(() => "");
 }
 
 async function extractProductionDate(page, options = {}) {
@@ -610,28 +610,30 @@ async function downloadTwoFilePrintPdfs(page, options) {
   const equipmentPath = join(options.outDir, makePdfName({ ...options, suffix: "equipment" }));
   await saveTwoFilePanelPdf(page, equipmentPath, "equipment");
 
-  return [vehiclePath, equipmentPath];
+  const mergedPath = join(options.outDir, makePdfName(options));
+  await mergePdfFiles([vehiclePath, equipmentPath], mergedPath);
+  return [mergedPath];
 }
 
 async function openTwoFileEquipmentTab(page) {
-  const candidates = [
-    page.getByText(/Wyposażenie|Wyposazenie|Оснащение|Equipment/i).first(),
-    page.locator('a, button, [role="tab"]').filter({ hasText: /Wyposażenie|Wyposazenie|Оснащение|Equipment/i }).first()
-  ];
-
-  for (const candidate of candidates) {
-    if (!await candidate.isVisible({ timeout: 2000 }).catch(() => false)) continue;
-    await clickHuman(candidate);
-    await page.waitForLoadState("networkidle").catch(() => {});
-    await page.waitForFunction(() => {
-      const text = document.body?.innerText || "";
-      return /Cecha\s+Nazwa|Cechy\s+Nazwa|Wyposażenie|Wyposazenie|Equipment/i.test(text);
-    }, undefined, { timeout: 20000 }).catch(() => {});
-    await humanDelay();
-    return;
+  const equipmentTab = page.locator('a, button, [role="tab"]')
+    .filter({ hasText: /^\s*(?:Wyposażenie|Wyposazenie|Оснащение|Equipment)\s*$/i })
+    .first();
+  if (!await equipmentTab.isVisible({ timeout: 5000 }).catch(() => false)) {
+    fail("Не удалось найти вкладку оснащения для второго PDF.");
   }
 
-  fail("Не удалось открыть вкладку оснащения для второго PDF.");
+  await clickHuman(equipmentTab);
+  await page.waitForFunction(() => {
+    const text = document.body?.innerText || "";
+    const activeTab = [...document.querySelectorAll('a, button, [role="tab"]')]
+      .find((element) => /^(?:Wyposażenie|Wyposazenie|Оснащение|Equipment)$/i.test((element.textContent || "").trim()));
+    const isActive = activeTab?.getAttribute("aria-selected") === "true"
+      || /(?:^|\s)(?:active|selected|ui-tabs-active)(?:\s|$)/i.test(activeTab?.className || "");
+    const hasEquipmentRows = /A\/C Refrigerant|Accessory USB Unit|Adjustable Foot Pedals|Cecha\s+Nazwa|Cechy\s+Nazwa/i.test(text);
+    return Boolean(isActive || hasEquipmentRows) && hasEquipmentRows;
+  }, undefined, { timeout: 20000 }).catch(() => fail("Вкладка оснащения не открылась для второго PDF."));
+  await humanDelay();
 }
 
 async function saveTwoFilePanelPdf(page, target, mode) {
@@ -718,6 +720,25 @@ async function savePagePdf(page, target) {
   });
   await assertPdfFile(target);
   await page.emulateMedia({ media: "screen" }).catch(() => {});
+}
+
+async function mergePdfFiles(sourcePaths, target) {
+  const fs = await import("node:fs/promises");
+  const bundledPdfUnite = join(homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/poppler/bin/pdfunite");
+  const commands = [process.env.PARTSLINK24_PDFUNITE_PATH, "pdfunite", bundledPdfUnite].filter(Boolean);
+  await fs.rm(target, { force: true }).catch(() => {});
+
+  for (const command of commands) {
+    const result = spawnSync(command, [...sourcePaths, target], {
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024
+    });
+    if (result.status !== 0 || !existsSync(target)) continue;
+    await assertPdfFile(target);
+    return;
+  }
+
+  fail("Не удалось объединить параметры автомобиля и оснащение в один PDF.");
 }
 
 async function saveDownload(download, target) {

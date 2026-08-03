@@ -17,6 +17,11 @@ const brandReportProfiles = {
     engineSpecificationLabels: [/(?:engine\s+specification|спецификац(?:ия|ии)\s+двигател(?:я|ей)|specyfikacj[ae]\s+silnika|motorspezifikation)/i],
     engineTypeLabels: [/(?:engine\s+type|rodzaj\s+silnika|тип\s+двигателя)/i],
     fuelTypeLabels: [/(?:fuel\s+systems|układy\s+paliwowe|топливн(?:ая|ые)\s+систем)/i]
+  },
+  Ford: {
+    dateOrder: "YY-MM-DD",
+    engineSpecificationLabels: [/(?:rodzaj\s+silnika|engine\s+type)/i],
+    engineTypeLabels: [/(?:rodzaj\s+silnika|engine\s+type)/i]
   }
 };
 
@@ -39,7 +44,7 @@ export function extractPdfVehicleInfo(pdfPath, { brand = "", language = "" } = {
   });
 
   return {
-    productionDate: formatProductionDate(productionDateRaw, language),
+    productionDate: formatProductionDate(productionDateRaw, language, profile.dateOrder),
     engineType: engineInfo.engineType,
     engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
   };
@@ -54,7 +59,7 @@ export function normalizeEngineInfo(info) {
   const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|плагин[\s-]*гибрид/i.test(source);
   const isElectric = /(?:battery\s+electric|\bbev\b|electric\s+(?:engine|motor)|silnik\s+elektrycz|электрическ(?:ий|ая)\s+двигател)/i.test(source)
     && !/(?:without|bez|без)\s+(?:electric\s+(?:engine|motor)|silnik\s+elektrycz|электрическ(?:ий|ая)\s+двигател)/i.test(source);
-  const isDiesel = /diesel|дизел|olej[\s-]*napędowy|wysokopr[eę][żz]?n/i.test(source);
+  const isDiesel = /diesel|дизел|olej[\s-]*napędowy|wysokopr[eę][żz]?n|\btdci\b/i.test(source);
   const isGasoline = /gasoline|petrol|benzyn|бензин|\botto\b|\bsi\s+engine\b|silnik\s+benzyn|бензинов/i.test(source);
   const isHybrid = /hybrid|hybryd|гибрид/i.test(source);
 
@@ -81,7 +86,7 @@ export function normalizeEngineInfo(info) {
   };
 }
 
-export function formatProductionDate(value, language = "") {
+export function formatProductionDate(value, language = "", dateOrder = "") {
   const raw = String(value || "").replace(/\u00a0/g, " ").trim();
   const monthNames = {
     january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12,
@@ -96,6 +101,9 @@ export function formatProductionDate(value, language = "") {
   const numericMatch = raw.match(/\b(\d{1,4})[.\/-](\d{1,2})[.\/-](\d{1,4})\b/);
   if (!numericMatch) return "";
   const [, first, second, third] = numericMatch;
+  if (dateOrder === "YY-MM-DD" && first.length === 2 && third.length === 2) {
+    return formatDateParts(third, second, 2000 + Number(first));
+  }
   if (first.length === 4) return formatDateParts(third, second, first);
   if (third.length !== 4) return "";
   if (language === "ENG" && Number(first) <= 12 && Number(second) <= 12) {
@@ -106,10 +114,13 @@ export function formatProductionDate(value, language = "") {
 }
 
 function mergeProfile(profile = {}) {
-  return Object.fromEntries(Object.entries(genericProfile).map(([key, genericPatterns]) => [
+  return {
+    ...profile,
+    ...Object.fromEntries(Object.entries(genericProfile).map(([key, genericPatterns]) => [
     key,
     [...(profile[key] || []), ...genericPatterns]
-  ]));
+    ]))
+  };
 }
 
 function findFirstPdfValue(text, patterns) {
