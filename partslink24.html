@@ -622,11 +622,18 @@
           <p class="partslinkPanelTitle">Данные проверки</p>
           <label class="partslinkField">
             <span>1. Язык</span>
-            <select id="partslinkLanguage" name="language">
-              <option value="RU">RU</option>
-              <option value="PL">PL</option>
-              <option value="ENG">ENG</option>
-            </select>
+            <div class="partslinkBrandPicker partslinkLanguagePicker">
+              <button id="partslinkLanguageButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkLanguageOptions">
+                <span id="partslinkLanguageLabel"></span>
+                <span class="partslinkBrandCaret" aria-hidden="true">&#9662;</span>
+              </button>
+              <div id="partslinkLanguageOptions" class="partslinkBrandOptions" role="listbox" hidden></div>
+              <select id="partslinkLanguage" class="partslinkBrandNativeSelect" name="language" tabindex="-1" aria-hidden="true">
+                <option value="RU">RU</option>
+                <option value="PL">PL</option>
+                <option value="ENG">ENG</option>
+              </select>
+            </div>
           </label>
 
           <label class="partslinkField">
@@ -690,6 +697,9 @@
     </main>
     <script>
       const languageSelect = document.getElementById("partslinkLanguage");
+      const languagePickerButton = document.getElementById("partslinkLanguageButton");
+      const languagePickerLabel = document.getElementById("partslinkLanguageLabel");
+      const languagePickerOptions = document.getElementById("partslinkLanguageOptions");
       const brandSelect = document.getElementById("partslinkBrand");
       const brandPickerButton = document.getElementById("partslinkBrandButton");
       const brandPickerLabel = document.getElementById("partslinkBrandLabel");
@@ -931,6 +941,34 @@
         applyBrandLogic();
       }
 
+      function renderLanguages() {
+        languagePickerOptions.replaceChildren();
+        [...languageSelect.options].forEach((language) => {
+          const pickerOption = document.createElement("button");
+          pickerOption.type = "button";
+          pickerOption.className = "partslinkBrandOption";
+          pickerOption.role = "option";
+          pickerOption.dataset.value = language.value;
+          pickerOption.dataset.favorite = "true";
+          pickerOption.textContent = language.textContent;
+          pickerOption.addEventListener("click", () => {
+            languageSelect.value = language.value;
+            languageSelect.dispatchEvent(new Event("change"));
+            closeLanguagePicker();
+          });
+          languagePickerOptions.append(pickerOption);
+        });
+        applyLanguageLogic();
+      }
+
+      function applyLanguageLogic() {
+        languagePickerLabel.textContent = languageSelect.selectedOptions[0]?.textContent || "";
+        languagePickerButton.dataset.favorite = "true";
+        languagePickerOptions.querySelectorAll("[role='option']").forEach((option) => {
+          option.setAttribute("aria-selected", String(option.dataset.value === languageSelect.value));
+        });
+      }
+
       function applyBrandLogic() {
         const selectedLabel = brandSelect.selectedOptions[0]?.textContent || "";
         const isFavorite = favoriteBrandValues.has(brandSelect.value);
@@ -959,6 +997,20 @@
         }
       }
 
+      function closeLanguagePicker() {
+        languagePickerOptions.hidden = true;
+        languagePickerButton.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleLanguagePicker() {
+        const isOpen = !languagePickerOptions.hidden;
+        languagePickerOptions.hidden = isOpen;
+        languagePickerButton.setAttribute("aria-expanded", String(!isOpen));
+        if (!isOpen) {
+          languagePickerOptions.querySelector('[aria-selected="true"]')?.focus();
+        }
+      }
+
       vinInput.addEventListener("input", () => {
         vinInput.value = vinInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 17);
         resetResults();
@@ -975,14 +1027,29 @@
           if (brandPickerOptions.hidden) toggleBrandPicker();
         }
       });
+      languagePickerButton.addEventListener("click", toggleLanguagePicker);
+      languagePickerButton.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          if (languagePickerOptions.hidden) toggleLanguagePicker();
+        }
+      });
       document.addEventListener("click", (event) => {
         if (!event.target.closest(".partslinkBrandPicker")) closeBrandPicker();
+        if (!event.target.closest(".partslinkLanguagePicker")) closeLanguagePicker();
       });
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeBrandPicker();
+        if (event.key === "Escape") {
+          closeBrandPicker();
+          closeLanguagePicker();
+        }
       });
-      languageSelect.addEventListener("change", resetResults);
+      languageSelect.addEventListener("change", () => {
+        resetResults();
+        applyLanguageLogic();
+      });
 
+      renderLanguages();
       resetDownloadLink();
 
       fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
