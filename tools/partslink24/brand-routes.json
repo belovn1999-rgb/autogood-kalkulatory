@@ -82,8 +82,10 @@
       "notes": ["Скачивает 2 PDF: параметры автомобиля и оснащение."]
     },
     "Ford Pro": {
-      "route": "pending_demo",
-      "brandTile": "Ford Pro"
+      "route": "two_file_print",
+      "brandTile": "Ford Commercial",
+      "brandTileAliases": ["Ford Pro", "Ford PRO"],
+      "notes": ["Использует проверенный двухфайловый сценарий Ford."]
     },
     "Hyundai": {
       "route": "two_file_print",
@@ -211,12 +213,13 @@
       "brandTile": "Renault"
     },
     "Seat": {
-      "route": "general_vin_search",
+      "route": "brand_first_search",
       "brandTile": "SEAT"
     },
     "Skoda": {
-      "route": "general_vin_search",
-      "brandTile": "Škoda"
+      "route": "brand_first_search",
+      "brandTile": "Škoda",
+      "brandTileAliases": ["Skoda"]
     },
     "Smart": {
       "route": "general_vin_search",
@@ -247,8 +250,9 @@
       "brandTile": "Vauxhall Legacy"
     },
     "Volkswagen": {
-      "route": "pending_demo",
-      "brandTile": "Volkswagen"
+      "route": "brand_first_search",
+      "brandTile": "Volkswagen",
+      "brandTileAliases": ["VW"]
     },
     "Volkswagen Classic Parts": {
       "route": "pending_demo",

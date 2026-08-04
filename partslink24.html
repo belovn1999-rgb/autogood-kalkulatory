@@ -738,7 +738,7 @@
         Fiat: { route: "general_vin_search" },
         "Fiat Professional": { route: "pending_demo" },
         Ford: { sampleVin: "WF0MXXGBWMEL10535", route: "two_file_print" },
-        "Ford Pro": { route: "pending_demo" },
+        "Ford Pro": { route: "two_file_print" },
         Hyundai: { sampleVin: "KMHS5811DMU002130", route: "two_file_print" },
         Infiniti: { route: "pending_demo" },
         Iveco: { route: "two_file_print" },
@@ -765,14 +765,14 @@
         Porsche: { route: "general_vin_search" },
         "Porsche Classic": { route: "pending_demo" },
         Renault: { route: "brand_first_search" },
-        Seat: { route: "general_vin_search" },
-        Skoda: { route: "general_vin_search" },
+        Seat: { route: "brand_first_search" },
+        Skoda: { route: "brand_first_search" },
         Smart: { route: "general_vin_search" },
         Suzuki: { route: "general_vin_search" },
         Toyota: { route: "general_vin_search" },
         Vauxhall: { route: "pending_demo" },
         "Vauxhall Legacy": { route: "pending_demo" },
-        Volkswagen: { route: "pending_demo" },
+        Volkswagen: { route: "brand_first_search" },
         "Volkswagen Classic Parts": { route: "pending_demo" },
         Volvo: { sampleVin: "YV1ZZK5V2P2106956", route: "general_vin_search" },
         "Vw Nutzfahrzeuge": { route: "brand_first_search" }
@@ -799,7 +799,7 @@
         "Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Fiat Professional", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"
       ];
       const brandGroupDividerAfter = new Set(["Volkswagen", "Vw Nutzfahrzeuge"]);
-      const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
+      const defaultPartslinkApiBase = "https://intend-gas-screensaver-telecharger.trycloudflare.com";
       let brandTypeahead = "";
       let brandTypeaheadTimer;
 
@@ -1133,7 +1133,7 @@
       renderLanguages();
       resetDownloadLink();
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260803-1")
+      fetch("./tools/partslink24/brand-routes.json?v=20260804-1")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;

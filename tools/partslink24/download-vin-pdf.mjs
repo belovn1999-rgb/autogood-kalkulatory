@@ -237,7 +237,26 @@ async function waitForVehicleLoaded(page, vin) {
 
   if (result) return;
 
+  const blockingMessage = await readPartslinkBlockingMessage(page);
+  if (blockingMessage) fail(blockingMessage);
+
   await page.getByText(vin).first().waitFor({ timeout: 5000 });
+}
+
+async function readPartslinkBlockingMessage(page) {
+  return page.evaluate(() => {
+    const normalize = (value) => String(value || "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const text = normalize(document.body?.innerText || "");
+    const patterns = [
+      /(?:сожалени[ея][^.!?]{0,120})?идентификация[^.!?]{0,120}(?:vin|номера|шасси)[^.!?]{0,180}(?:недоступна|не доступна|неопределенного периода)/i,
+      /identyfikacja[^.!?]{0,120}(?:vin|numeru|nadwozia|podwozia|chassis)[^.!?]{0,180}(?:niedostępna|niedostepna|nie będzie dostępna|nie bedzie dostepna)/i,
+      /(?:vin|chassis number) identification[^.!?]{0,180}(?:unavailable|not available)/i
+    ];
+    return patterns.map((pattern) => text.match(pattern)?.[0]).find(Boolean) || "";
+  }).catch(() => "");
 }
 
 async function downloadVehiclePdfs(page, brandConfig, options) {
@@ -631,7 +650,7 @@ async function openTwoFileEquipmentTab(page) {
       .find((element) => /^(?:Wyposażenie|Wyposazenie|Оснащение|Equipment)$/i.test((element.textContent || "").trim()));
     const isActive = activeTab?.getAttribute("aria-selected") === "true"
       || /(?:^|\s)(?:active|selected|ui-tabs-active)(?:\s|$)/i.test(activeTab?.className || "");
-    const hasEquipmentRows = /A\/C Refrigerant|Accessory USB Unit|Adjustable Foot Pedals|Cecha\s+Nazwa|Cechy\s+Nazwa/i.test(text);
+    const hasEquipmentRows = /A\/C Refrigerant|Accessory USB Unit|Adjustable Foot Pedals|Cecha\s+Nazwa|Cechy\s+Nazwa|Характеристи[\s-]*ка\s+Наименование|Attribute\s+(?:Description|Name)|COLOR PACKAGE|BATTERY CAPACITY/i.test(text);
     return Boolean(isActive || hasEquipmentRows) && hasEquipmentRows;
   }, undefined, { timeout: 20000 }).catch(() => fail("Вкладка оснащения не открылась для второго PDF."));
   await humanDelay();
