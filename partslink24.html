@@ -799,6 +799,8 @@
       ];
       const brandGroupDividerAfter = new Set(["Volvo", "Vw Nutzfahrzeuge"]);
       const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
+      let brandTypeahead = "";
+      let brandTypeaheadTimer;
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -1039,6 +1041,39 @@
         }
       }
 
+      function selectBrandFromTypeahead(event) {
+        if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1 || !event.key.trim()) return;
+
+        const typed = event.key.toLocaleLowerCase();
+        const options = [...brandPickerOptions.querySelectorAll("[role='option']")];
+        const currentIndex = options.findIndex((option) => option.dataset.value === brandSelect.value);
+        brandTypeahead += typed;
+        let matches = options.filter((option) => option.textContent.trim().toLocaleLowerCase().startsWith(brandTypeahead));
+
+        if (!matches.length) {
+          brandTypeahead = typed;
+          matches = options.filter((option) => option.textContent.trim().toLocaleLowerCase().startsWith(typed));
+          if (matches.length > 1) {
+            const next = options.slice(currentIndex + 1).find((option) => matches.includes(option));
+            if (next) matches = [next];
+          }
+        }
+
+        const match = matches[0];
+        if (!match) return;
+
+        event.preventDefault();
+        if (brandPickerOptions.hidden) toggleBrandPicker();
+        brandSelect.value = match.dataset.value;
+        brandSelect.dispatchEvent(new Event("change"));
+        match.focus();
+        match.scrollIntoView({ block: "nearest" });
+        clearTimeout(brandTypeaheadTimer);
+        brandTypeaheadTimer = setTimeout(() => {
+          brandTypeahead = "";
+        }, 700);
+      }
+
       function closeLanguagePicker() {
         languagePickerOptions.hidden = true;
         languagePickerButton.setAttribute("aria-expanded", "false");
@@ -1067,8 +1102,11 @@
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           if (brandPickerOptions.hidden) toggleBrandPicker();
+          return;
         }
+        selectBrandFromTypeahead(event);
       });
+      brandPickerOptions.addEventListener("keydown", selectBrandFromTypeahead);
       languagePickerButton.addEventListener("click", toggleLanguagePicker);
       languagePickerButton.addEventListener("keydown", (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
