@@ -32,7 +32,7 @@ test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
 
   for (const [language, text] of reports) {
     const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
-    assert.equal(result.productionDate, "16.10.2023");
+    assert.equal(result.productionDate, "16.10.2023 (дата поставки)");
     assert.equal(result.engineType, "Бензин + Plug-in Гибрид");
     assert.match(result.engineVolume, /^2[,.]0 л$/);
   }

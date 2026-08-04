@@ -155,6 +155,9 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   } else {
     productionDate = formatProductionDate(findFirstPdfValue(text, profile.productionDateLabels), language, profile.dateOrder);
   }
+  if (brand === "Mercedes-Benz" && productionDate) {
+    productionDate = `${productionDate} (дата поставки)`;
+  }
 
   return {
     model,
