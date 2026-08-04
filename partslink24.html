@@ -283,6 +283,12 @@
         border-bottom: 0;
       }
 
+      .partslinkBrandGroupDivider {
+        height: 0;
+        margin: 2px 0;
+        border-top: 2px solid var(--ag-color-ink);
+      }
+
       .partslinkBrandOption[data-favorite="true"] {
         font-weight: 700;
       }
@@ -791,6 +797,7 @@
         "Alfa Romeo", "Citroen", "Cupra", "DS", "Fiat", "Ford Pro", "Hyundai", "Jaguar", "Jeep", "Kia", "Land Rover", "Lexus", "Mini", "Mitsubishi", "Nissan", "Opel", "Porsche", "Porsche Classic", "Seat", "Skoda", "Suzuki", "Volkswagen", "Vw Nutzfahrzeuge",
         "Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Fiat Professional", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"
       ];
+      const brandGroupDividerAfter = new Set(["Volvo", "Vw Nutzfahrzeuge"]);
       const defaultPartslinkApiBase = "https://asked-supplied-conduct-greatest.trycloudflare.com";
 
       function readApiBaseFromUrl() {
@@ -966,6 +973,12 @@
             closeBrandPicker();
           });
           brandPickerOptions.append(pickerOption);
+          if (brandGroupDividerAfter.has(brand.value)) {
+            const divider = document.createElement("div");
+            divider.className = "partslinkBrandGroupDivider";
+            divider.setAttribute("role", "separator");
+            brandPickerOptions.append(divider);
+          }
         });
         applyBrandLogic();
       }
