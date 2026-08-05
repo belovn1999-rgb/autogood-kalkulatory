@@ -806,6 +806,9 @@
         if (["127.0.0.1", "localhost"].includes(window.location.hostname)) {
           return "";
         }
+        if (!window.location.hostname.endsWith(".github.io")) {
+          return "";
+        }
         return defaultPartslinkApiBase;
       }
 

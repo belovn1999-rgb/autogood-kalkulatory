@@ -14,10 +14,17 @@ if (!hasPartslinkCredentials()) loadLocalEnv(join(repoRoot, "server/.env"));
 if (!hasPartslinkCredentials()) loadLocalEnv(join(repoRoot, "tools/partslink24/.env"));
 const routes = JSON.parse(readTextFile(routesPath));
 const outputDir = resolve(process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
+const configuredProfileDir = process.env.PARTSLINK24_PROFILE_DIR
+  ? resolve(process.env.PARTSLINK24_PROFILE_DIR)
+  : "";
+const transientProfileRoot = configuredProfileDir
+  ? join(configuredProfileDir, "run-profiles")
+  : join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-run-profiles");
 const port = Number(process.env.PORT || 4174);
 const minRunGapMs = Number(process.env.PARTSLINK24_MIN_RUN_GAP_MS || 7000);
-let partslinkQueue = Promise.resolve();
-let lastRunFinishedAt = 0;
+const maxQueueSize = Number(process.env.PARTSLINK24_MAX_QUEUE_SIZE || 4);
+const runTimeoutMs = Number(process.env.PARTSLINK24_RUN_TIMEOUT_MS || 240000);
+const partslinkQueue = createPartslinkQueue({ minRunGapMs, maxQueueSize });
 
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -31,7 +38,7 @@ const mimeTypes = {
 
 export async function handlePartslink24Request(request, response) {
   try {
-    if (request.method === "OPTIONS") return sendNoContent(response);
+    if (request.method === "OPTIONS") return sendNoContent(request, response);
     if (request.method === "POST" && request.url === "/api/partslink24/check-vin") {
       return handleVinCheck(request, response);
     }
@@ -44,9 +51,9 @@ export async function handlePartslink24Request(request, response) {
     if (request.method === "GET" || request.method === "HEAD") {
       return sendStatic(request, response);
     }
-    return sendJson(response, 405, { ok: false, error: "Method not allowed." });
+    return sendJson(request, response, 405, { ok: false, error: "Method not allowed." });
   } catch (error) {
-    return sendJson(response, 500, { ok: false, error: errorMessage(error) });
+    return sendJson(request, response, 500, { ok: false, error: errorMessage(error) });
   }
 }
 
@@ -63,7 +70,7 @@ async function handleVinCheck(request, response) {
   const { brand, language, vin } = payload;
 
   const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "full" }));
-  if (!result.ok) return sendJson(response, 500, result);
+  if (!result.ok) return sendJson(request, response, result.statusCode || 500, result);
 
   const pdfPaths = Array.isArray(result.pdfPaths) && result.pdfPaths.length
     ? result.pdfPaths
@@ -76,7 +83,7 @@ async function handleVinCheck(request, response) {
     };
   });
   const firstFile = files[0] || {};
-  return sendJson(response, 200, {
+  return sendJson(request, response, 200, {
     ok: true,
     brand,
     language,
@@ -97,15 +104,15 @@ async function handleProductionDateCheck(request, response) {
   const { brand, language, vin } = payload;
 
   const result = await enqueuePartslinkRun(() => runPartslinkScript({ brand, language, vin, mode: "production-date" }));
-  if (!result.ok) return sendJson(response, 500, result);
+  if (!result.ok) return sendJson(request, response, result.statusCode || 500, result);
   if (!result.productionDate) {
-    return sendJson(response, 500, {
+    return sendJson(request, response, 500, {
       ok: false,
       error: "PartsLink24 не вернул дату производства для этого VIN."
     });
   }
 
-  return sendJson(response, 200, {
+  return sendJson(request, response, 200, {
     ok: true,
     brand,
     language,
@@ -125,19 +132,19 @@ async function readPartslinkPayload(request, response) {
   const vin = String(payload.vin || "").trim().toUpperCase();
 
   if (!routes.brands[brand]) {
-    sendJson(response, 400, { ok: false, error: "Выберите поддерживаемую марку." });
+    sendJson(request, response, 400, { ok: false, error: "Выберите поддерживаемую марку." });
     return null;
   }
   if (!routes.languages.includes(language)) {
-    sendJson(response, 400, { ok: false, error: "Выберите поддерживаемый язык." });
+    sendJson(request, response, 400, { ok: false, error: "Выберите поддерживаемый язык." });
     return null;
   }
   if (!/^[A-Z0-9]{17}$/.test(vin)) {
-    sendJson(response, 400, { ok: false, error: "VIN должен содержать 17 символов." });
+    sendJson(request, response, 400, { ok: false, error: "VIN должен содержать 17 символов." });
     return null;
   }
   if (!process.env.PARTSLINK24_COMPANY_ID || !process.env.PARTSLINK24_USERNAME || !process.env.PARTSLINK24_PASSWORD) {
-    sendJson(response, 500, {
+    sendJson(request, response, 500, {
       ok: false,
       error: envLoadWarnings.length
         ? "Сервер не смог прочитать локальный файл с данными входа PartsLink24."
@@ -150,19 +157,44 @@ async function readPartslinkPayload(request, response) {
 }
 
 function enqueuePartslinkRun(run) {
-  const queued = partslinkQueue.then(async () => {
-    const elapsed = Date.now() - lastRunFinishedAt;
-    if (lastRunFinishedAt && elapsed < minRunGapMs) {
-      await delay(minRunGapMs - elapsed);
+  return partslinkQueue.enqueue(run);
+}
+
+export function createPartslinkQueue({ minRunGapMs = 0, maxQueueSize = 1, now = Date.now, sleep = delay } = {}) {
+  let queue = Promise.resolve();
+  let lastRunFinishedAt = null;
+  let queuedRuns = 0;
+
+  return { enqueue };
+
+  function enqueue(run) {
+  if (!Number.isFinite(maxQueueSize) || maxQueueSize < 1) {
+    return Promise.resolve({ ok: false, statusCode: 500, error: "PARTSLINK24_MAX_QUEUE_SIZE должен быть не меньше 1." });
+  }
+  if (queuedRuns >= maxQueueSize) {
+    return Promise.resolve({
+      ok: false,
+      statusCode: 429,
+      error: "Сервис VIN занят. Подождите завершения текущих проверок и повторите запрос."
+    });
+  }
+
+  queuedRuns += 1;
+  const queued = queue.then(async () => {
+    const elapsed = now() - lastRunFinishedAt;
+    if (lastRunFinishedAt !== null && elapsed < minRunGapMs) {
+      await sleep(minRunGapMs - elapsed);
     }
     try {
       return await run();
     } finally {
-      lastRunFinishedAt = Date.now();
+      lastRunFinishedAt = now();
     }
   });
-  partslinkQueue = queued.catch(() => {});
-  return queued;
+  const tracked = queued.finally(() => { queuedRuns -= 1; });
+  queue = tracked.catch(() => {});
+  return tracked;
+  }
 }
 
 async function runPartslinkScript({ brand, language, vin, mode }) {
@@ -212,16 +244,19 @@ function runPartslinkScriptAttempt({ brand, language, vin, mode, env = {}, clean
     let stdout = "";
     let stderr = "";
     let settled = false;
+    let timeout;
+    let timedOut = false;
 
     const finish = (code) => {
       if (settled) return;
       settled = true;
+      clearTimeout(timeout);
       if (cleanupDir) cleanupTransientProfileDir(cleanupDir);
       const parsed = parseLastJson(stdout) || parseLastJson(stderr);
       if (code === 0 && parsed?.ok) return resolveRun(parsed);
       return resolveRun({
         ok: false,
-        error: parsed?.error || (mode === "production-date" ? "PartsLink24 не вернул дату производства." : mode === "full" ? "PartsLink24 не вернул результаты проверки." : "PartsLink24 не вернул PDF."),
+        error: parsed?.error || (timedOut ? "Истекло время ожидания ответа PartsLink24." : mode === "production-date" ? "PartsLink24 не вернул дату производства." : mode === "full" ? "PartsLink24 не вернул результаты проверки." : "PartsLink24 не вернул PDF."),
         details: parsed || {
           code,
           stderr: tailText(stderr),
@@ -232,6 +267,13 @@ function runPartslinkScriptAttempt({ brand, language, vin, mode, env = {}, clean
 
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
+    timeout = setTimeout(() => {
+      if (settled) return;
+      timedOut = true;
+      stderr += `\nPartsLink24 run timed out after ${runTimeoutMs}ms.`;
+      child.kill("SIGTERM");
+      finish(null);
+    }, runTimeoutMs);
     child.on("close", finish);
     child.on("exit", (code) => setTimeout(() => finish(code), 100));
     child.on("error", (error) => {
@@ -250,14 +292,14 @@ function shouldRetryPartslinkRun(result) {
 }
 
 function makeTransientProfileDir() {
-  const root = join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-run-profiles");
-  mkdirSync(root, { recursive: true });
-  return mkdtempSync(join(root, "run-"));
+  mkdirSync(transientProfileRoot, { recursive: true });
+  return mkdtempSync(join(transientProfileRoot, "run-"));
 }
 
 function cleanupTransientProfileDir(path) {
-  if (!path || !path.includes("partslink24-run-profiles")) return;
-  rmSync(path, { recursive: true, force: true });
+  const resolvedPath = resolve(path || "");
+  if (!resolvedPath.startsWith(`${transientProfileRoot}/`)) return;
+  rmSync(resolvedPath, { recursive: true, force: true });
 }
 
 function tailText(value, maxLength = 2000) {
@@ -277,14 +319,14 @@ function sendPdf(request, response) {
   const requestedDownloadName = normalizeDownloadFileName(requestUrl.searchParams.get("downloadName"));
 
   if (!filePath.startsWith(`${outputDir}/`) || extname(filePath).toLowerCase() !== ".pdf" || !existsSync(filePath)) {
-    return sendJson(response, 404, { ok: false, error: "PDF не найден." });
+    return sendJson(request, response, 404, { ok: false, error: "PDF не найден." });
   }
 
   response.writeHead(200, {
     "content-type": "application/pdf",
     "content-disposition": `attachment; filename="${requestedDownloadName || fileName}"`,
     "content-length": statSync(filePath).size,
-    ...corsHeaders()
+    ...corsHeaders(request)
   });
   return createReadStream(filePath).pipe(response);
 }
@@ -301,14 +343,14 @@ function sendStatic(request, response) {
   const filePath = resolve(repoRoot, `.${normalize(rawPath)}`);
 
   if (!filePath.startsWith(`${repoRoot}/`) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
-    return sendJson(response, 404, { ok: false, error: "Not found." });
+    return sendJson(request, response, 404, { ok: false, error: "Not found." });
   }
 
   const type = mimeTypes[extname(filePath).toLowerCase()] || "application/octet-stream";
   response.writeHead(200, {
     "content-type": type,
     "content-length": statSync(filePath).size,
-    ...corsHeaders()
+    ...corsHeaders(request)
   });
   if (request.method === "HEAD") return response.end();
   return createReadStream(filePath).pipe(response);
@@ -387,22 +429,30 @@ function readTextFile(path) {
   }
 }
 
-function sendNoContent(response) {
-  response.writeHead(204, corsHeaders());
+function sendNoContent(request, response) {
+  response.writeHead(204, corsHeaders(request));
   response.end();
 }
 
-function sendJson(response, status, payload) {
+function sendJson(request, response, status, payload) {
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
-    ...corsHeaders()
+    ...corsHeaders(request)
   });
   response.end(JSON.stringify(payload, null, 2));
 }
 
-function corsHeaders() {
+function corsHeaders(request) {
+  const configuredOrigins = String(process.env.AUTOGOOD_ALLOWED_ORIGINS || "*")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const origin = String(request.headers.origin || "");
+  const allowAnyOrigin = configuredOrigins.includes("*");
+  const allowedOrigin = allowAnyOrigin ? "*" : configuredOrigins.includes(origin) ? origin : "";
+
   return {
-    "access-control-allow-origin": "*",
+    ...(allowedOrigin ? { "access-control-allow-origin": allowedOrigin, vary: "Origin" } : {}),
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-headers": "content-type",
     "access-control-allow-private-network": "true"
