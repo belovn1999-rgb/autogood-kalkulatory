@@ -67,6 +67,28 @@ DAM                                      15320CJ
   assert.equal(cyrillicUnitResult.engineVolume, "1500 cm3");
 });
 
+test("Stellantis reports use transmission data as hybrid evidence", () => {
+  const reports = [
+    ["RU", `ДВИГАТЕЛЬ          EP6FADTXHPD UE64 1,6 Л БЕНЗИН
+КОРОБКА ПЕРЕДАЧ     4X2 8-СТУП. АКП, ГИБРИДНЫЙ ПРИВОД`],
+    ["PL", `SILNIK                 EP6FADTXHPD UE64, 1,6 L, BENZYNA
+PRZENIESIENIE NAPĘDU   4X2 AUTOMATYCZNA 8 BIEGOWA HYBRYDA`],
+    ["ENG", `ENGINE                 EP6FADTXHPD UE64, 1.6 L, GASOLINE
+TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID DRIVE`]
+  ];
+
+  for (const [language, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "DS", language });
+    assert.equal(result.engineType, "Обычный гибрид");
+  }
+
+  const diesel = extractVehicleInfoFromText(`
+ДВИГАТЕЛЬ          DV5RC/UE63 1.5L ДИЗЕЛЬ
+КОРОБКА ПЕРЕДАЧ     АКП 8 СТУП. ТИПА STT
+`, { brand: "DS", language: "RU" });
+  assert.equal(diesel.engineType, "Дизель");
+});
+
 test("Hyundai HEV is not reduced to gasoline", () => {
   const result = extractVehicleInfoFromText(`
 model               SANTA FE HYBRID 20

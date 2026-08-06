@@ -43,6 +43,15 @@ const toyotaLexusProfile = {
   engineEvidenceLabels: [/(?:ENGINE\s*1)/i]
 };
 
+const stellantisBrands = new Set([
+  "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+  "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+]);
+
+const stellantisTransmissionLabels = [
+  /^(?:коробка\s+передач|przeniesienie\s+napędu|skrzynia\s+biegów|transmission|drivetrain)$/i
+];
+
 // Locations below come from the operator's verified report matrix. Generic
 // labels remain as fallbacks because the same layout is translated by the portal.
 const brandReportProfiles = {
@@ -128,6 +137,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const engineTypeRaw = findFirstPdfValue(text, profile.engineTypeLabels);
   const fuelTypeRaw = findFirstPdfValue(text, profile.fuelTypeLabels);
   const engineCodeRaw = findFirstPdfValue(text, profile.engineCodeLabels);
+  const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
@@ -136,6 +146,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineTypeRaw,
     fuelTypeRaw,
     engineCodeRaw,
+    transmissionRaw,
     engineEvidenceRaw
   });
   const engineVolumeRaw = findEngineVolumeRaw(text, brand, profile, {
@@ -145,7 +156,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineEvidenceRaw
   });
   const engineInfo = normalizeEngineInfo({
-    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, engineEvidenceRaw, inferredEngineRaw].filter(Boolean).join(" "),
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, engineEvidenceRaw, inferredEngineRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
