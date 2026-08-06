@@ -15,6 +15,10 @@ const genericProfile = {
 const psaProfile = {
   dateFromDam: true,
   engineSpecificationLabels: [/(?:silnik|двигатель|engine)/i],
+  engineVolumeLabels: [
+    /(?:pojemność\s+skokowa|рабочий\s+объ[её]м|engine\s+(?:capacity|displacement))/i,
+    /^(?:мощность|moc|power)$/i
+  ],
   engineEvidenceLabels: [/(?:silnik|двигатель|engine|paliwo\s*\(typ\)|тип\s+топлива|fuel\s+type|pojemność\s+skokowa|рабочий\s+объ[её]м|engine\s+displacement)/i]
 };
 
@@ -377,7 +381,7 @@ function findEngineVolumeRaw(text, brand, profile, values) {
 
 function normalizePdfEngineVolume(value) {
   const raw = String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-  const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|ccm|cc)\b/i);
+  const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|см3|см³|ccm|cc)\b/i);
   if (cubicMatch) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
   const literMatch = raw.match(/(\d+(?:[.,]\d+)?)\s*(?:l|л|litr(?:e|es|a|ów)?|литр(?:а|ов)?)(?=$|[^\p{L}\d])/iu);
   if (literMatch) return `${literMatch[1]} л`;

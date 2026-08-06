@@ -53,6 +53,20 @@ DAM                                    16403CJ
   });
 });
 
+test("Peugeot reads engine volume from the translated power row", () => {
+  const latinUnitResult = extractVehicleInfoFromText(`
+МОДЕЛЬНЫЙ РЯД                           3008 (P84E)
+DAM                                      15320CJ
+МОЩНОСТЬ                                1600 CM3
+МОЩНОСТЬ СОПРОТИВЛЕНИЯ CTP              БЕЗ МОЩНОСТИ СОПРОТИВЛЕНИЯ CTP
+ОРИГИНАЛЬНАЯ БАЗА ДВИГАТЕЛЯ             БАЗА ДВИГАТЕЛЯ EP6FADT
+`, { brand: "Peugeot", language: "RU" });
+  const cyrillicUnitResult = extractVehicleInfoFromText("МОЩНОСТЬ    1500 СМ3", { brand: "Peugeot", language: "RU" });
+
+  assert.equal(latinUnitResult.engineVolume, "1600 cm3");
+  assert.equal(cyrillicUnitResult.engineVolume, "1500 cm3");
+});
+
 test("Hyundai HEV is not reduced to gasoline", () => {
   const result = extractVehicleInfoFromText(`
 model               SANTA FE HYBRID 20
