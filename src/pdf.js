@@ -557,6 +557,21 @@ function filenameFor(data, extension) {
 function updateDocumentFileName() {
   const node = $("documentFileName");
   if (node) node.textContent = filenameFor(collectData(), "pdf");
+  updateSummary();
+}
+
+function summaryValue(value) {
+  return normalizeSpace(value) || "Nie wskazano";
+}
+
+function updateSummary() {
+  const clientNode = $("summaryClient");
+  if (!clientNode) return;
+  const data = collectData();
+  clientNode.textContent = summaryValue(data.client.name);
+  $("summaryVehicle").textContent = summaryValue(data.vehicle.make_model);
+  $("summaryBudget").textContent = summaryValue(data.budget.total);
+  $("summaryAdvance").textContent = summaryValue(data.budget.advance);
 }
 
 function setDefaultSelectValues() {
@@ -658,6 +673,7 @@ function applyFormSnapshot(snapshot) {
   setFuel(snapshot.fuel || []);
   syncClientTypeRules();
   updateDocumentFileName();
+  updateSummary();
 }
 
 function historyTitle(entry) {
@@ -854,6 +870,7 @@ function applyParsed(data) {
   $("expectedEquipment").value = data.vehicle?.expected_equipment || $("expectedEquipment").value;
   syncClientTypeRules();
   updateDocumentFileName();
+  updateSummary();
 }
 
 function collectData() {
@@ -1518,6 +1535,7 @@ function resetForm() {
   syncClientTypeRules();
   updateDocumentFileName();
   setStatus("");
+  updateSummary();
 }
 
 configureContractVariant();
@@ -1533,5 +1551,10 @@ $("resetBtn").addEventListener("click", resetForm);
 $("saveDataBtn").addEventListener("click", saveCurrentContractData);
 document.querySelectorAll('input[name="clientType"]').forEach((node) => node.addEventListener("change", syncClientTypeRules));
 $("vehicleMakeModel").addEventListener("input", updateDocumentFileName);
+document.querySelectorAll("input, textarea, select").forEach((node) => {
+  node.addEventListener("input", updateSummary);
+  node.addEventListener("change", updateSummary);
+});
 
 syncClientTypeRules();
+updateSummary();

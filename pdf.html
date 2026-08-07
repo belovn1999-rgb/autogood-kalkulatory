@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260807-contract-ui-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260807-contract-summary-1" />
   </head>
   <body>
     <main class="app-shell">
@@ -50,6 +50,27 @@
               <div id="status" class="status"></div>
             </div>
           </aside>
+          <section class="contract-card contract-summary-panel">
+            <div class="card-head">PODSUMOWANIE:</div>
+            <dl class="contractSummaryList">
+              <div>
+                <dt>Klient</dt>
+                <dd id="summaryClient">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Auto</dt>
+                <dd id="summaryVehicle">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Budżet</dt>
+                <dd id="summaryBudget">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Zaliczka</dt>
+                <dd id="summaryAdvance">Nie wskazano</dd>
+              </div>
+            </dl>
+          </section>
           <section class="contract-history history-strip">
             <div class="history-title">Ostatnie umowy</div>
             <div id="contractHistoryList" class="history-list"></div>
@@ -219,6 +240,6 @@
     <script src="./vendor/jszip.min.js"></script>
     <script src="./vendor/jspdf.umd.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/pdf.js?v=20260807-contract-ui-1"></script>
+    <script src="./src/pdf.js?v=20260807-contract-summary-1"></script>
   </body>
 </html>
