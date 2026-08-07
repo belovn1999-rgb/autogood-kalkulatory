@@ -52,6 +52,12 @@ const stellantisTransmissionLabels = [
   /^(?:коробка\s+передач|przeniesienie\s+napędu|skrzynia\s+biegów|transmission|drivetrain)$/i
 ];
 
+const vagBrands = new Set(["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"]);
+
+const vagPowertrainLabels = [
+  /(?:альтернативная\s+система\s+привода|alternatywny\s+układ\s+napędowy|alternative\s+(?:drive|powertrain)(?:\s+system)?|гибридный\s+привод|napęd\s+hybrydowy|hybrid\s+drive)/i
+];
+
 // Locations below come from the operator's verified report matrix. Generic
 // labels remain as fallbacks because the same layout is translated by the portal.
 const brandReportProfiles = {
@@ -138,6 +144,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const fuelTypeRaw = findFirstPdfValue(text, profile.fuelTypeLabels);
   const engineCodeRaw = findFirstPdfValue(text, profile.engineCodeLabels);
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
+  const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
@@ -147,6 +154,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     fuelTypeRaw,
     engineCodeRaw,
     transmissionRaw,
+    vagPowertrainRaw,
     engineEvidenceRaw
   });
   const engineVolumeRaw = findEngineVolumeRaw(text, brand, profile, {
@@ -156,7 +164,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineEvidenceRaw
   });
   const engineInfo = normalizeEngineInfo({
-    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, engineEvidenceRaw, inferredEngineRaw].filter(Boolean).join(" "),
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, inferredEngineRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
@@ -174,10 +182,17 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     productionDate = `${productionDate} (дата поставки)`;
   }
 
+  const vagPowertrainEvidence = [modelRaw, engineSpecificationRaw, engineTypeRaw, fuelTypeRaw, vagPowertrainRaw, inferredEngineRaw]
+    .filter(Boolean)
+    .join(" ");
+  const engineType = vagBrands.has(brand) && /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence)
+    ? "PHEV"
+    : engineInfo.engineType;
+
   return {
     model,
     productionDate,
-    engineType: engineInfo.engineType,
+    engineType,
     engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
   };
 }
@@ -186,12 +201,12 @@ export function normalizeEngineInfo(info) {
   const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
     .filter(Boolean)
     .join(" ")
-    .replace(/(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ\w*\s+двигател\w*)\s*\(?\s*hybrid\s*\)?/giu, " ")
+    .replace(/(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ\w*\s+двигател\w*|электродвигател\w*)\s*\(?\s*(?:hybrid|hybryd|гибрид)\s*\)?/giu, " ")
     .toLowerCase();
   const isMildHybrid = /\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
   const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|подключаем\w*\s+гибрид|плагин[\s-]*гибрид/i.test(source);
   const isHybrid = /\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(source);
-  const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электромобил/i.test(source);
+  const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил/i.test(source);
   const isDiesel = /diesel|дизел|olej[\s-]*napędowy|wysokopr[eę][żz]?n|\btdci\b|\btdi\b/i.test(source);
   const isGasoline = /gasoline|petrol|benzyn|бензин|искровым\s+зажиганием|\botto\b|\bsi\s+engine\b/i.test(source);
   const baseFuel = isGasoline ? "Бензин" : isDiesel ? "Дизель" : "";
@@ -289,8 +304,18 @@ function collectPdfEvidence(text, patterns = []) {
 function normalizeModel(value, brand) {
   const raw = String(value || "").replace(/\s+/g, " ").trim();
   const escapedBrand = String(brand || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  if (!escapedBrand) return raw;
-  return raw.replace(new RegExp(`^${escapedBrand}(?:\\s+benz)?[\\s-]*`, "i"), "").trim();
+  const withoutBrand = escapedBrand
+    ? raw.replace(new RegExp(`^${escapedBrand}(?:\\s+benz)?[\\s-]*`, "i"), "").trim()
+    : raw;
+  return vagBrands.has(brand) ? normalizeVagModel(withoutBrand) : withoutBrand;
+}
+
+function normalizeVagModel(value) {
+  const powertrainStart = /\s+(?:(?:гибр(?:ид)?\.?|qu\.)(?=\s|$)|(?:hybrid|hybryd\w*|phev|mhev|bev|electric|электрическ\w*|электромобил\w*|tsi|tdi|tfsi|fsi|diesel|olej\s+napędowy|дизел\w*|бензин\w*)\b|\d+[.,]\d+(?:\s*[lл])?\b)/i;
+  const marker = value.search(powertrainStart);
+  let model = marker >= 0 ? value.slice(0, marker) : value;
+  model = model.replace(/\s+(?!(?:GTI|GTE|RS|FR)$)[A-Z][A-Z0-9]{1,5}$/u, "");
+  return model.replace(/[\s,;/-]+$/g, "").trim();
 }
 
 function extractPdfValue(text, labelPattern) {
@@ -319,6 +344,12 @@ function extractPdfValue(text, labelPattern) {
 function inferEngineEvidence(brand, values) {
   const source = Object.values(values).filter(Boolean).join(" ");
   const upper = source.toUpperCase();
+
+  if (vagBrands.has(brand)) {
+    if (/\bPHEV\b|PLUG[\s-]*IN/i.test(upper)) return " gasoline PHEV";
+    if (/\bMHEV\b|MILD[\s-]*HYBRID/i.test(upper)) return " MHEV";
+    if (/\bE-?TRON\b|ELECTRIC\s+(?:ENGINE|MOTOR|VEHICLE)|ЭЛЕКТРОДВИГАТЕЛ|ЭЛЕКТРОМОБИЛ|SILNIK\s+ELEKTRYCZ/i.test(upper)) return " electric vehicle";
+  }
 
   if (["Alfa Romeo", "Fiat", "Jeep"].includes(brand)) {
     const fuel = /\bCMB\s+DS\b|^DS\b|DIESEL|ДИЗЕЛ/i.test(source) ? " diesel" : /\bCMB\s+BE\b|^BE\b|BENZIN|БЕНЗИН/i.test(source) ? " gasoline" : "";

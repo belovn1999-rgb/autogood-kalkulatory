@@ -89,6 +89,36 @@ TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID DRIVE`]
   assert.equal(diesel.engineType, "Дизель");
 });
 
+test("VAG reports separate model, powertrain type and engine volume", () => {
+  const phev = extractVehicleInfoFromText(`
+Модель                             Audi A7 Sportback гибр. PHEV 2,0 A7
+Альтернативная система привода     Гибридная системы привода PHEV
+Топливные системы                  Непосредственный впрыск бенз. двигателя (FSI)
+Спецификации двигателей            4 цил. бенз. двигатель 2,0 л/185 кВт гибрид
+`, { brand: "Audi", language: "RU" });
+  assert.equal(phev.model, "A7 Sportback");
+  assert.equal(phev.engineType, "PHEV");
+  assert.equal(phev.engineVolume, "2,0 л");
+
+  const electric = extractVehicleInfoFromText(`
+Модель                             Audi e-tron ETRSP
+Спецификации двигателей            Электродвигатель, общая мощность 230 кВт
+`, { brand: "Audi", language: "RU" });
+  assert.equal(electric.model, "e-tron");
+  assert.equal(electric.engineType, "Электрический");
+  assert.equal(electric.engineVolume, "");
+
+  const sharedModels = [
+    ["Volkswagen", "Passat Variant BlueMotion Technology PA", "Passat Variant BlueMotion Technology"],
+    ["Seat", "Ateca Xperience AT", "Ateca Xperience"],
+    ["Skoda", "Octavia Combi TDI OCT", "Octavia Combi"],
+    ["Cupra", "Formentor TSI CUPRA FOR", "Formentor"]
+  ];
+  for (const [brand, model, expected] of sharedModels) {
+    assert.equal(extractVehicleInfoFromText(`Model  ${model}`, { brand, language: "ENG" }).model, expected);
+  }
+});
+
 test("Hyundai HEV is not reduced to gasoline", () => {
   const result = extractVehicleInfoFromText(`
 model               SANTA FE HYBRID 20
