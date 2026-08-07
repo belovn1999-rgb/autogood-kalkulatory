@@ -173,7 +173,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     ? findFallbackEngineEvidence(text)
     : "";
   const fallbackEngineInfo = normalizeEngineInfo({ engineTypeRaw: fallbackEngineRaw, engineVolumeRaw: fallbackEngineRaw });
-  const resolvedEngineVolumeRaw = engineVolumeRaw || fallbackEngineRaw;
+  let resolvedEngineVolumeRaw = normalizePdfEngineVolume(engineVolumeRaw) ? engineVolumeRaw : fallbackEngineRaw;
+  if (!normalizePdfEngineVolume(resolvedEngineVolumeRaw) && brand === "BMW") {
+    resolvedEngineVolumeRaw = inferBmwEngineVolume(modelRaw);
+  }
 
   let productionDate = "";
   if (profile.productionWeekLabels?.length) {
@@ -431,6 +434,41 @@ function inferBmwMarketNamePowertrain(value) {
   if (/\bM?\d{3}dA?\b|\b[XS]Drive\d{2}d\b/i.test(marketName)) return " diesel";
   if (/\bM?\d{3}(?:t)?iA?\b|\b[XS]Drive\d{2}i\b/i.test(marketName)) return " gasoline";
   return "";
+}
+
+function inferBmwEngineVolume(value) {
+  const marketName = String(value || "").replace(/\s+/g, " ").trim();
+  if (!marketName || /^(?:i3|i4|i5|i7|iX\d*)\b/i.test(marketName)) return "";
+
+  const standardMatch = marketName.match(/\b(M?\d{3})(?:L|x|t)?([die])A?\b/i);
+  const driveMatch = marketName.match(/\b[XS]Drive(\d{2})([die])\b/i);
+  const performanceMatch = marketName.match(/\bM(\d{2})([di])\b/i);
+  const badge = standardMatch
+    ? `${standardMatch[1]}${standardMatch[2]}`.toLowerCase()
+    : driveMatch
+      ? `${driveMatch[1]}${driveMatch[2]}`.toLowerCase()
+      : performanceMatch
+        ? `m${performanceMatch[1]}${performanceMatch[2]}`.toLowerCase()
+        : "";
+
+  const capacities = {
+    "116d": "1.5 L", "216d": "1.5 L", "16d": "1.5 L",
+    "118d": "2.0 L", "120d": "2.0 L", "218d": "2.0 L", "220d": "2.0 L", "223d": "2.0 L",
+    "316d": "2.0 L", "318d": "2.0 L", "320d": "2.0 L", "420d": "2.0 L", "518d": "2.0 L", "520d": "2.0 L",
+    "18d": "2.0 L", "20d": "2.0 L", "23d": "2.0 L", "25d": "2.0 L",
+    "330d": "3.0 L", "m340d": "3.0 L", "430d": "3.0 L", "m440d": "3.0 L", "530d": "3.0 L", "540d": "3.0 L",
+    "630d": "3.0 L", "640d": "3.0 L", "730d": "3.0 L", "740d": "3.0 L", "30d": "3.0 L", "40d": "3.0 L", "m50d": "3.0 L",
+    "116i": "1.5 L", "118i": "1.5 L", "218i": "1.5 L", "18i": "1.5 L",
+    "120i": "2.0 L", "128i": "2.0 L", "220i": "2.0 L", "223i": "2.0 L", "230i": "2.0 L",
+    "318i": "2.0 L", "320i": "2.0 L", "330i": "2.0 L", "420i": "2.0 L", "430i": "2.0 L", "520i": "2.0 L", "530i": "2.0 L",
+    "20i": "2.0 L", "23i": "2.0 L", "25i": "2.0 L", "28i": "2.0 L", "30i": "2.0 L",
+    "m240i": "3.0 L", "m340i": "3.0 L", "m440i": "3.0 L", "540i": "3.0 L", "640i": "3.0 L", "740i": "3.0 L", "840i": "3.0 L", "40i": "3.0 L", "m40i": "3.0 L",
+    "225e": "1.5 L", "230e": "1.5 L", "25e": "1.5 L",
+    "320e": "2.0 L", "330e": "2.0 L", "530e": "2.0 L", "630e": "2.0 L", "30e": "2.0 L",
+    "545e": "3.0 L", "550e": "3.0 L", "745e": "3.0 L", "750e": "3.0 L", "45e": "3.0 L", "50e": "3.0 L"
+  };
+
+  return capacities[badge] || "";
 }
 
 function findEngineVolumeRaw(text, brand, profile, values) {

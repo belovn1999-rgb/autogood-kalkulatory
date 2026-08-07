@@ -45,7 +45,19 @@ ${extraEvidence}
 Рабочий объем   0,00
 Двигатель          XD5O 5,50
 `, { brand: "BMW", language: "RU" });
-  assert.equal(invalidVolume.engineVolume, "");
+  assert.equal(invalidVolume.engineVolume, "2.0 л");
+
+  const inferredVolumes = [
+    ["X1 sDrive18i", "1.5 л"],
+    ["330d xDrive Touring", "3.0 л"],
+    ["330e Touring", "2.0 л"],
+    ["X5 xDrive45e", "3.0 л"],
+    ["i4 eDrive40", ""]
+  ];
+  for (const [marketName, engineVolume] of inferredVolumes) {
+    const result = extractVehicleInfoFromText(`Специфическое для рынка торговое наименование   ${marketName}`, { brand: "BMW", language: "RU" });
+    assert.equal(result.engineVolume, engineVolume);
+  }
 });
 
 test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
