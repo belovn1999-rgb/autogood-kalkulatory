@@ -163,12 +163,17 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineCodeRaw,
     engineEvidenceRaw
   });
-  const engineInfo = normalizeEngineInfo({
+  const primaryEngineInfo = normalizeEngineInfo({
     engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, inferredEngineRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
   });
+  const fallbackEngineRaw = !primaryEngineInfo.engineType || !normalizePdfEngineVolume(engineVolumeRaw)
+    ? findFallbackEngineEvidence(text)
+    : "";
+  const fallbackEngineInfo = normalizeEngineInfo({ engineTypeRaw: fallbackEngineRaw, engineVolumeRaw: fallbackEngineRaw });
+  const resolvedEngineVolumeRaw = engineVolumeRaw || fallbackEngineRaw;
 
   let productionDate = "";
   if (profile.productionWeekLabels?.length) {
@@ -187,13 +192,13 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     .join(" ");
   const engineType = vagBrands.has(brand) && /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence)
     ? "PHEV"
-    : engineInfo.engineType;
+    : primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
 
   return {
     model,
     productionDate,
     engineType,
-    engineVolume: normalizePdfEngineVolume(engineVolumeRaw)
+    engineVolume: normalizePdfEngineVolume(resolvedEngineVolumeRaw)
   };
 }
 
@@ -208,7 +213,7 @@ export function normalizeEngineInfo(info) {
   const isHybrid = /\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(source);
   const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил/i.test(source);
   const isDiesel = /diesel|дизел|olej[\s-]*napędowy|wysokopr[eę][żz]?n|\btdci\b|\btdi\b/i.test(source);
-  const isGasoline = /gasoline|petrol|benzyn|бензин|искровым\s+зажиганием|\botto\b|\bsi\s+engine\b/i.test(source);
+  const isGasoline = /gasoline|petrol|benzyn|benzin|\bbenz\.(?=\s|$)|бензин|\bбенз\.(?=\s|$)|искровым\s+зажиганием|\botto\b|\bsi\s+engine\b/i.test(source);
   const baseFuel = isGasoline ? "Бензин" : isDiesel ? "Дизель" : "";
 
   let engineType = "";
@@ -301,6 +306,26 @@ function collectPdfEvidence(text, patterns = []) {
   return matches.join(" ");
 }
 
+function findFallbackEngineEvidence(text) {
+  const fuelOrPowertrain = /gasoline|petrol|diesel|hybrid|mild[\s-]*hybrid|plug[\s-]*in|\bphev\b|\bmhev\b|battery\s+electric|electric\s+(?:engine|motor|vehicle)|benzyn|olej[\s-]*napędowy|hybryd|silnik\s+elektrycz|benzin|\bbenz\.|\bбенз\.|бензин|дизел|гибрид|электродвигател|электромобил/i;
+  const engineContext = /engine|motor|silnik|specyfikacj|base\s+engine|basic\s+engine|двигател|спецификац|базовый\s+двигател/i;
+  const capacity = /\d[\d\s]*(?:[.,]\d+)?\s*(?:cm3|cm³|см3|см³|ccm|cc|l|л)\b/i;
+  const negativePowertrain = /(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электродвигател\w*)\s*\(?\s*(?:hybrid|hybryd|гибрид)\s*\)?/i;
+  const nonEngineVolume = /fuel\s+(?:tank|filling)|zbiornik\s+paliwa|tankowanie|топливн\w*\s+бак|заправк/i;
+  const matches = [];
+
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    if (!normalized || negativePowertrain.test(normalized) || nonEngineVolume.test(normalized)) continue;
+    if (!engineContext.test(normalized)) continue;
+    if (!fuelOrPowertrain.test(normalized) && !capacity.test(normalized)) continue;
+    matches.push(normalized);
+    if (matches.length === 8) break;
+  }
+
+  return matches.join(" ");
+}
+
 function normalizeModel(value, brand) {
   const raw = String(value || "").replace(/\s+/g, " ").trim();
   const escapedBrand = String(brand || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -346,9 +371,10 @@ function inferEngineEvidence(brand, values) {
   const upper = source.toUpperCase();
 
   if (vagBrands.has(brand)) {
-    if (/\bPHEV\b|PLUG[\s-]*IN/i.test(upper)) return " gasoline PHEV";
-    if (/\bMHEV\b|MILD[\s-]*HYBRID/i.test(upper)) return " MHEV";
-    if (/\bE-?TRON\b|ELECTRIC\s+(?:ENGINE|MOTOR|VEHICLE)|ЭЛЕКТРОДВИГАТЕЛ|ЭЛЕКТРОМОБИЛ|SILNIK\s+ELEKTRYCZ/i.test(upper)) return " electric vehicle";
+    const positiveVagSource = upper.replace(/(?:WITHOUT|BEZ|БЕЗ)\s+(?:AN?\s+)?(?:ELECTRIC\s+(?:ENGINE|MOTOR)|SILNIK(?:A)?\s+ELEKTRYCZN\w*|ЭЛЕКТРОДВИГАТЕЛ\w*)\s*\(?\s*(?:HYBRID|HYBRYD|ГИБРИД)\s*\)?/gi, " ");
+    if (/\bPHEV\b|PLUG[\s-]*IN/i.test(positiveVagSource)) return " gasoline PHEV";
+    if (/\bMHEV\b|MILD[\s-]*HYBRID/i.test(positiveVagSource)) return " MHEV";
+    if (/\bE-?TRON\b|ELECTRIC\s+(?:ENGINE|MOTOR|VEHICLE)|ЭЛЕКТРОДВИГАТЕЛ|ЭЛЕКТРОМОБИЛ|SILNIK\s+ELEKTRYCZ/i.test(positiveVagSource)) return " electric vehicle";
   }
 
   if (["Alfa Romeo", "Fiat", "Jeep"].includes(brand)) {

@@ -119,6 +119,27 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
   }
 });
 
+test("missing engine fields fall back to translated evidence from the whole PDF", () => {
+  const reports = [
+    ["RU", "Базовый двигател TQ6 4-цил. бензиновый двигатель 1,8 л агр. 06L.A", "1,8 л"],
+    ["PL", "Silnik podstawowy TQ6 4-cylindrowy silnik benzynowy 1,8 l, agregat 06L.A", "1,8 л"],
+    ["ENG", "Base engine TQ6 4-cylinder gasoline engine 1.8 l, unit 06L.A", "1.8 л"]
+  ];
+
+  for (const [language, text, volume] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "Audi", language });
+    assert.equal(result.engineType, "Бензин");
+    assert.equal(result.engineVolume, volume);
+  }
+
+  const negativeHybrid = extractVehicleInfoFromText(`
+Hybrid drive      Without electric motor (hybrid)
+Base engine       TQ6 4-cylinder gasoline engine 1.8 l
+`, { brand: "Audi", language: "ENG" });
+  assert.equal(negativeHybrid.engineType, "Бензин");
+  assert.equal(negativeHybrid.engineVolume, "1.8 л");
+});
+
 test("Hyundai HEV is not reduced to gasoline", () => {
   const result = extractVehicleInfoFromText(`
 model               SANTA FE HYBRID 20
