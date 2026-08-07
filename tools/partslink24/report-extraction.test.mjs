@@ -23,6 +23,31 @@ Pojemność skokowa                1,50
   });
 });
 
+test("BMW market names determine d, e and i powertrains and retain MHEV evidence", () => {
+  const reports = [
+    ["320dA Touring", "", "Дизель"],
+    ["330e Touring", "", "PHEV"],
+    ["320i Limousine", "", "Бензин"],
+    ["i4 eDrive40", "", "Электрический"],
+    ["M340d xDrive Touring", "48 V MHEV mild hybrid system", "Дизель + Мягкий гибрид"]
+  ];
+
+  for (const [marketName, extraEvidence, engineType] of reports) {
+    const result = extractVehicleInfoFromText(`
+Специфическое для рынка торговое наименование   ${marketName}
+${extraEvidence}
+`, { brand: "BMW", language: "RU" });
+    assert.equal(result.engineType, engineType);
+  }
+
+  const invalidVolume = extractVehicleInfoFromText(`
+Специфическое для рынка торговое наименование   320dA Touring
+Рабочий объем   0,00
+Двигатель          XD5O 5,50
+`, { brand: "BMW", language: "RU" });
+  assert.equal(invalidVolume.engineVolume, "");
+});
+
 test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
   const reports = [
     ["RU", `Торговое наименование              C 300 e универсал\nДата поставки                      16.10.2023\nM20         РАБОЧИЙ ОБЪЁМ 2,0 ЛИТРА\nM254        ДВИГАТЕЛЬ С ИСКРОВЫМ ЗАЖИГАНИЕМ\nME10        ГИБРИДНЫЙ АВТОМОБИЛЬ (ПОДКЛЮЧАЕМЫЙ, PHEV)`],

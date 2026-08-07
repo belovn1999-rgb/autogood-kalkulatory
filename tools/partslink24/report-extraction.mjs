@@ -190,7 +190,8 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const vagPowertrainEvidence = [modelRaw, engineSpecificationRaw, engineTypeRaw, fuelTypeRaw, vagPowertrainRaw, inferredEngineRaw]
     .filter(Boolean)
     .join(" ");
-  const engineType = vagBrands.has(brand) && /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence)
+  const hasExplicitPhev = /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence);
+  const engineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
     ? "PHEV"
     : primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
 
@@ -384,6 +385,8 @@ function inferEngineEvidence(brand, values) {
   }
 
   if (["BMW", "Mini"].includes(brand)) {
+    const marketNamePowertrain = inferBmwMarketNamePowertrain(values.modelRaw);
+    if (marketNamePowertrain) return marketNamePowertrain;
     if (/\b(?:I3|I4|I5|I7|IX\d*|COOPER\s+SE|ELECTRIC)\b/i.test(source)) return " electric vehicle";
     if (/\bI8\b|\b\d{2}E\b/i.test(source)) return " gasoline PHEV";
     if (/\b(?:B37|B47|B57|N47|N57|M47|M57|\d{2}D)\w*/i.test(source)) return " diesel";
@@ -420,6 +423,16 @@ function inferEngineEvidence(brand, values) {
   return "";
 }
 
+function inferBmwMarketNamePowertrain(value) {
+  const marketName = String(value || "").replace(/\s+/g, " ").trim();
+  if (!marketName) return "";
+  if (/^(?:i3|i4|i5|i7|iX\d*)\b|\b(?:eDrive\d+|BMW\s+Electric)\b/i.test(marketName)) return " electric vehicle";
+  if (/\bi8\b|\bM?\d{3}(?:L|x)?eA?\b|\b[XS]Drive\d{2}e\b/i.test(marketName)) return " gasoline PHEV";
+  if (/\bM?\d{3}dA?\b|\b[XS]Drive\d{2}d\b/i.test(marketName)) return " diesel";
+  if (/\bM?\d{3}(?:t)?iA?\b|\b[XS]Drive\d{2}i\b/i.test(marketName)) return " gasoline";
+  return "";
+}
+
 function findEngineVolumeRaw(text, brand, profile, values) {
   const labeledValue = findFirstPdfValue(text, profile.engineVolumeLabels);
   if (normalizePdfEngineVolume(labeledValue)) return labeledValue;
@@ -450,12 +463,12 @@ function findEngineVolumeRaw(text, brand, profile, values) {
 function normalizePdfEngineVolume(value) {
   const raw = String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
   const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|см3|см³|ccm|cc)\b/i);
-  if (cubicMatch) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
+  if (cubicMatch && Number(cubicMatch[1].replace(/\s/g, "")) > 0) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
   const literMatch = raw.match(/(\d+(?:[.,]\d+)?)\s*(?:l|л|litr(?:e|es|a|ów)?|литр(?:а|ов)?)(?=$|[^\p{L}\d])/iu);
-  if (literMatch) return `${literMatch[1]} л`;
+  if (literMatch && Number(literMatch[1].replace(",", ".")) > 0) return `${literMatch[1]} л`;
   const codedLiterMatch = raw.match(/^(\d+(?:[.,]\d+)?)\b.*(?:ENGINE\s+DISPLACEMENT|ЛОШАДИНАЯ\s+СИЛА\s*\(КОММЕРЧЕСКАЯ\)|POJEMNOŚĆ\s+SKOKOWA|РАБОЧИЙ\s+ОБЪ[ЕЁ]М)/i);
-  if (codedLiterMatch) return `${codedLiterMatch[1]} л`;
-  return /^\d+(?:[.,]\d+)?$/.test(raw) ? `${raw} л` : "";
+  if (codedLiterMatch && Number(codedLiterMatch[1].replace(",", ".")) > 0) return `${codedLiterMatch[1]} л`;
+  return /^\d+(?:[.,]\d+)?$/.test(raw) && Number(raw.replace(",", ".")) > 0 ? `${raw} л` : "";
 }
 
 function extractPdfDamCode(text) {
