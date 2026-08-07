@@ -59,6 +59,11 @@ Green evidence:
 - `outputs/contract-layout-reproducer-local-green.json`
 - result: `NOT_REPRODUCED` on contracts 01, 02, and 03
 
+Post-deploy public green evidence:
+
+- `outputs/contract-layout-reproducer-public-green.json`
+- result: `NOT_REPRODUCED` on contracts 01, 02, and 03 after GitHub Pages served `20260807-contract-ui-1`
+
 Harness:
 
 - `outputs/contract-layout-reproducer.mjs`
