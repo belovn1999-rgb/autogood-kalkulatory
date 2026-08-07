@@ -510,7 +510,7 @@ function showDownloads(items) {
 
   const list = document.createElement("div");
   list.className = "download-list";
-  items.forEach(({ blob, filename, readyText, autoDownload = false }) => {
+  items.forEach(({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) => {
     const url = URL.createObjectURL(blob);
     currentDownloadUrls.push(url);
 
@@ -525,6 +525,9 @@ function showDownloads(items) {
     row.append(label, link);
     list.append(row);
 
+    if (openInViewer && viewerWindow && !viewerWindow.closed) {
+      viewerWindow.location.href = url;
+    }
     if (autoDownload) link.click();
   });
   statusEl.append(list);
@@ -532,6 +535,14 @@ function showDownloads(items) {
 
 function showDownload(blob, filename, readyText, options = {}) {
   showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
+}
+
+function createPdfViewerWindow() {
+  const viewerWindow = window.open("", "_blank");
+  if (!viewerWindow) return null;
+  viewerWindow.document.write("<!doctype html><title>PDF</title><p>Przygotowuję PDF...</p>");
+  viewerWindow.document.close();
+  return viewerWindow;
 }
 
 function filenameFor(data, extension) {
@@ -1464,6 +1475,7 @@ async function generateContract() {
 }
 
 async function generatePdf() {
+  const viewerWindow = createPdfViewerWindow();
   try {
     setStatus("Przygotowuję DOCX do konwersji PDF...");
     const data = collectData();
@@ -1472,9 +1484,10 @@ async function generatePdf() {
     const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
     showDownloads([
       { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
+      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
     ]);
   } catch (error) {
+    if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
     const message = String(error.message || error);
     const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
       ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."

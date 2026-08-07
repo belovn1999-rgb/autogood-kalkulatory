@@ -2,11 +2,9 @@ const saleStorageKey = "autogoodSaleContract.v2";
 
 const form = document.querySelector("#saleContractForm");
 const saveButton = document.querySelector("#saveSaleContract");
-const exportButton = document.querySelector("#exportSaleContract");
 const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
-const printButton = document.querySelector("#printSaleContract");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -401,7 +399,7 @@ function stripKnownNoise(value) {
 }
 
 const saleRecognitionLabels = {
-  buyer: ["Kupujący", "Nabywca", "Klient", "Client", "Клиент", "Firma", "Nazwa", "Imię i nazwisko", "Imie i nazwisko", "Imię i nazwisko / Nazwa"],
+  buyer: ["Kupujący", "Nabywca", "Zleceniodawca", "Klient", "Client", "Клиент", "Firma", "Nazwa", "Imię i nazwisko", "Imie i nazwisko", "Imię i nazwisko / Nazwa"],
   buyerType: ["Rodzaj klienta", "Typ klienta", "Тип клиента"],
   address: ["Adres", "Адрес", "Address", "Siedziba", "Miejsce zamieszkania"],
   pesel: ["PESEL"],
@@ -576,9 +574,9 @@ function parseBuyerType(text, { pesel = "", nip = "" } = {}) {
 function parseBuyerName(text, isCompany) {
   const lines = linesFromText(text);
   const compact = normalizeSpace(text);
-  const clientLine = lines.find((line) => /^(?:Kupujący|Nabywca|Klient|Client|Клиент)\b/i.test(line));
+  const clientLine = lines.find((line) => /^(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b/i.test(line));
   if (clientLine) {
-    const candidate = stripKnownNoise(clientLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    const candidate = stripKnownNoise(clientLine.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
     if (candidate && !isPolishAddressLine(candidate) && !isAddressStreetLine(candidate) && !isPostalCityLine(candidate) && !isClientDataMarkerLine(candidate)) {
       return candidate;
     }
@@ -598,13 +596,13 @@ function parseBuyerName(text, isCompany) {
     if (company) return stripKnownNoise(company);
   }
   const firstNameLine = lines.find((line) => {
-    const candidate = stripKnownNoise(line.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+    const candidate = stripKnownNoise(line.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
     if (!candidate || isPolishAddressLine(candidate) || isAddressStreetLine(candidate) || isPostalCityLine(candidate) || isClientDataMarkerLine(candidate)) return false;
     if (/@|\+48|\d{2}-\d{3}|\b\d{10,11}\b/.test(candidate)) return false;
     const words = candidate.match(/[\p{L}'-]+/gu) || [];
     return words.length >= 2 && words.length <= 4;
   });
-  if (firstNameLine) return stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+  if (firstNameLine) return stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
 
   const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
   const upperPerson = beforeAddress.match(/[\p{Lu}]{2,}(?:\s+[\p{Lu}]{2,}){1,3}/u)?.[0];
@@ -840,7 +838,7 @@ function showDownloads(items) {
 
   const list = document.createElement("div");
   list.className = "download-list";
-  items.forEach(({ blob, filename, readyText, autoDownload = false }) => {
+  items.forEach(({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) => {
     const url = URL.createObjectURL(blob);
     currentDownloadUrls.push(url);
 
@@ -855,6 +853,9 @@ function showDownloads(items) {
     row.append(label, link);
     list.append(row);
 
+    if (openInViewer && viewerWindow && !viewerWindow.closed) {
+      viewerWindow.location.href = url;
+    }
     if (autoDownload) link.click();
   });
   statusEl.append(list);
@@ -862,6 +863,14 @@ function showDownloads(items) {
 
 function showDownload(blob, filename, readyText, options = {}) {
   showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
+}
+
+function createPdfViewerWindow() {
+  const viewerWindow = window.open("", "_blank");
+  if (!viewerWindow) return null;
+  viewerWindow.document.write("<!doctype html><title>PDF</title><p>Przygotowuję PDF...</p>");
+  viewerWindow.document.close();
+  return viewerWindow;
 }
 
 function clearPrintUrl() {
@@ -1368,6 +1377,7 @@ async function convertDocxBlobToPdf(docxBlob, filename) {
 }
 
 async function generateSalePdf() {
+  const viewerWindow = createPdfViewerWindow();
   try {
     setStatus("Przygotowuję DOCX do konwersji PDF...");
     const data = collectSaleContract();
@@ -1376,9 +1386,10 @@ async function generateSalePdf() {
     const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
     showDownloads([
       { blob: docxBlob, filename: saleFilename(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      { blob: pdfBlob, filename: saleFilename(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
+      { blob: pdfBlob, filename: saleFilename(data, "pdf"), readyText: "PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
     ]);
   } catch (error) {
+    if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
     const message = String(error.message || error);
     const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
       ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
@@ -1437,7 +1448,6 @@ fields.forEach((field) => {
 });
 
 saveButton.addEventListener("click", saveSaleContract);
-exportButton.addEventListener("click", exportSaleContract);
 resetButton.addEventListener("click", resetSaleContract);
 parseButton.addEventListener("click", parseSaleData);
 damageCanvas.addEventListener("click", addDamageMark);
@@ -1448,7 +1458,6 @@ clearDamageButton.addEventListener("click", () => {
 });
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
-printButton.addEventListener("click", generateSalePrint);
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();

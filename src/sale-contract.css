@@ -19,17 +19,20 @@
 }
 
 .saleWorkspace .utility-column {
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   align-self: start;
+  min-width: 0;
 }
 
 .paste-panel-top {
   height: auto;
   min-height: 0;
+  min-width: 0;
 }
 
 .paste-panel-top .input-card {
   grid-template-rows: minmax(150px, 220px) auto auto;
+  min-width: 0;
 }
 
 .paste-panel-top .example-actions {
@@ -39,6 +42,10 @@
 .saleWorkspace .history-strip {
   min-height: 160px;
   max-height: 360px;
+}
+
+.sale-summary-panel {
+  min-width: 0;
 }
 
 .contract-card-wide {
@@ -52,15 +59,25 @@
   color: var(--text);
   outline: none;
   width: 100%;
+  min-width: 0;
   min-height: 120px;
   resize: vertical;
   padding: 11px;
   line-height: 1.4;
 }
 
+.saleWorkspace #saleStatus,
+.saleWorkspace .download-list,
+.saleWorkspace .download-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .status a {
   color: var(--brand-dark);
   font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .saleSummaryList {

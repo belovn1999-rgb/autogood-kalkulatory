@@ -1,0 +1,159 @@
+{
+  "baseUrl": "https://belovn1999-rgb.github.io/autogood-kalkulatory",
+  "viewport": {
+    "width": 375,
+    "height": 667
+  },
+  "sample": "Zleceniodawca: Jolanta Piasek\nAdres: ul. Sloneczna 21A/65, 85-862 Bydgoszcz\nPESEL: 72042815966\nTelefon: +48 669 050 903\nE-mail: jolanta@example.com\nAuto: Mercedes-Benz Klasa E 220d Avantgarde Kombi Bardzo Dlugi Opis Testowy\nVIN: WDD2132041A123456\nCena: 124 700 PLN",
+  "routes": [
+    {
+      "id": "01-poland",
+      "url": "https://belovn1999-rgb.github.io/autogood-kalkulatory/pdf.html?reproducer=contract-layout",
+      "parsedName": "Jolanta Piasek",
+      "before": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": []
+      },
+      "afterDocx": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.docx"
+        ]
+      },
+      "afterPdf": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.docx",
+          "PDF gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.pdf"
+        ]
+      },
+      "failures": [],
+      "status": "NOT_REPRODUCED"
+    },
+    {
+      "id": "02-sale",
+      "url": "https://belovn1999-rgb.github.io/autogood-kalkulatory/umowa-sprzedazy.html?reproducer=contract-layout",
+      "parsedName": "Zleceniodawca: Jolanta Piasek",
+      "before": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": []
+      },
+      "afterDocx": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 506,
+        "statusClientWidth": 478,
+        "statusScrollWidth": 478,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Sprzedazy_Mercedes-Benz_Klasa_E_220d_Avantgarde_Kombi_Bardzo_Dlugi_Opis_Testowy.docx"
+        ]
+      },
+      "afterPdf": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 506,
+        "statusClientWidth": 478,
+        "statusScrollWidth": 478,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Sprzedazy_Mercedes-Benz_Klasa_E_220d_Avantgarde_Kombi_Bardzo_Dlugi_Opis_Testowy.docx",
+          "PDF gotowy. Umowa_Sprzedazy_Mercedes-Benz_Klasa_E_220d_Avantgarde_Kombi_Bardzo_Dlugi_Opis_Testowy.pdf"
+        ]
+      },
+      "failures": [
+        "parse: parsed name \"Zleceniodawca: Jolanta Piasek\" did not equal \"Jolanta Piasek\"",
+        "after DOCX: panel horizontal overflow 506 > 341",
+        "after PDF: panel horizontal overflow 506 > 341"
+      ],
+      "status": "REPRODUCED"
+    },
+    {
+      "id": "03-export",
+      "url": "https://belovn1999-rgb.github.io/autogood-kalkulatory/pdf.html?variant=export&reproducer=contract-layout",
+      "parsedName": "Jolanta Piasek",
+      "before": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": []
+      },
+      "afterDocx": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.docx"
+        ]
+      },
+      "afterPdf": {
+        "x": 16,
+        "width": 343,
+        "right": 359,
+        "panelClientWidth": 341,
+        "panelScrollWidth": 341,
+        "statusClientWidth": 313,
+        "statusScrollWidth": 313,
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "downloadRows": [
+          "DOCX gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.docx",
+          "PDF gotowy. Umowa_Zamówienia_Pojazdu_Mercedes-Benz_Klasa_E_220d.pdf"
+        ]
+      },
+      "failures": [],
+      "status": "NOT_REPRODUCED"
+    }
+  ],
+  "reproduced": true
+}

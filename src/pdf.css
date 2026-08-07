@@ -98,6 +98,21 @@ button {
   white-space: nowrap;
 }
 
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  margin-left: 10px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--brand);
+  background: #f7fafc;
+  font-size: 12px;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
 body.export-contract .brandTitle::after {
   content: "Eksport do Białorusi";
   display: inline-flex;
@@ -196,6 +211,7 @@ body.export-contract .brandTitle::after {
   display: grid;
   grid-template-rows: 2fr 1fr;
   gap: 18px;
+  min-width: 0;
   min-height: 0;
   align-self: stretch;
 }
@@ -226,6 +242,7 @@ body.export-contract .brandTitle::after {
   display: grid;
   grid-template-rows: minmax(110px, 1fr) auto auto;
   gap: 10px;
+  min-width: 0;
   min-height: 0;
 }
 
@@ -244,6 +261,7 @@ body.export-contract .brandTitle::after {
 
 #rawClient {
   width: 100%;
+  min-width: 0;
   min-height: 120px;
   resize: vertical;
   padding: 11px;
@@ -269,6 +287,8 @@ body.export-contract .brandTitle::after {
 
 .status {
   min-height: 20px;
+  min-width: 0;
+  max-width: 100%;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.35;
@@ -277,11 +297,20 @@ body.export-contract .brandTitle::after {
 .download-list {
   display: grid;
   gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.download-row {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .download-row a {
   color: var(--brand-dark);
   font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .contract-history {

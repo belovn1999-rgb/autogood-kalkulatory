@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=readable-20260725-4" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=readable-20260725-4" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260807-contract-ui-1" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260807-contract-ui-1" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -25,8 +25,6 @@
         </div>
         <div class="actions">
           <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
-          <button id="exportSaleContract" class="ghost-btn" type="button">Eksportuj dane</button>
-          <button id="printSaleContract" class="ghost-btn" type="button">Drukuj</button>
           <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
           <button id="generateSalePdf" class="primary-btn" type="button">PDF</button>
         </div>
@@ -45,6 +43,28 @@
               <div id="saleStatus" class="status" aria-live="polite"></div>
             </div>
           </aside>
+
+          <section class="contract-card sale-summary-panel">
+            <div class="card-head">PODSUMOWANIE:</div>
+            <dl class="saleSummaryList">
+              <div>
+                <dt>Kupujący</dt>
+                <dd id="saleSummaryBuyer">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Auto</dt>
+                <dd id="saleSummaryVehicle">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>VIN</dt>
+                <dd id="saleSummaryVin">Nie wskazano</dd>
+              </div>
+              <div>
+                <dt>Cena</dt>
+                <dd id="saleSummaryPrice">Nie wskazano</dd>
+              </div>
+            </dl>
+          </section>
 
           <section class="contract-history history-strip">
             <div class="history-title">Historia zmian</div>
@@ -200,28 +220,6 @@
                   <textarea name="notes"></textarea>
                 </label>
               </div>
-
-              <div class="contract-card contract-card-wide">
-                <div class="card-head">PODSUMOWANIE:</div>
-                <dl class="saleSummaryList">
-                  <div>
-                    <dt>Kupujący</dt>
-                    <dd id="saleSummaryBuyer">Nie wskazano</dd>
-                  </div>
-                  <div>
-                    <dt>Auto</dt>
-                    <dd id="saleSummaryVehicle">Nie wskazano</dd>
-                  </div>
-                  <div>
-                    <dt>VIN</dt>
-                    <dd id="saleSummaryVin">Nie wskazano</dd>
-                  </div>
-                  <div>
-                    <dt>Cena</dt>
-                    <dd id="saleSummaryPrice">Nie wskazano</dd>
-                  </div>
-                </dl>
-              </div>
             </section>
           </form>
         </section>
@@ -230,6 +228,6 @@
 
     <script src="./vendor/jszip.min.js"></script>
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/sale-contract.js?v=20260729-3"></script>
+    <script src="./src/sale-contract.js?v=20260807-contract-ui-1"></script>
   </body>
 </html>
