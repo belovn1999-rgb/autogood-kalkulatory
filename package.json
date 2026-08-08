@@ -1,13 +1,21 @@
 {
   "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22 <25",
+    "pnpm": ">=9 <12"
+  },
   "scripts": {
     "dev": "python3 -m http.server 4173",
     "api": "node server/autogood-api.mjs",
     "partslink24": "node server/partslink24-api.mjs",
     "mobilede": "node server/mobilede-import.mjs",
-    "converter": "python3 converter/server.py"
+    "converter": "python3 converter/server.py",
+    "check": "node --check server/autogood-api.mjs && node --check server/mobilede-import.mjs && node --check server/partslink24-api.mjs && node --check tools/partslink24/download-vin-pdf.mjs",
+    "test": "node --test server/autogood-api.test.mjs server/partslink24-api.test.mjs tools/partslink24/report-extraction.test.mjs",
+    "verify": "pnpm run check && pnpm run test"
   },
   "dependencies": {
-    "playwright": "^1.60.0"
+    "playwright": "1.61.0"
   }
 }

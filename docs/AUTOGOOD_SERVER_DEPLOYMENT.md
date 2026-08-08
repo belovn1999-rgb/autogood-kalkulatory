@@ -1,17 +1,18 @@
 # AUTOGOOD Server Deployment
 
-This repo now contains one server entrypoint for the backend workflows used by the GitHub Pages tools:
+This repo contains one server entrypoint for AUTOGOOD browser workflows:
 
 - `GET /mobilede/import?url=...` - imports data from a mobile.de listing.
 - `POST /api/partslink24/check-vin` - logs into PartsLink24 and generates VIN specification PDF files.
 - `GET /api/partslink24/pdf/:fileName` - downloads generated PartsLink24 PDFs.
 - `GET /health` - confirms the server process is running.
+- `GET /version` - reports deployed release and build time.
 
 ## Start Command
 
 ```bash
-npm install
-npm run api
+pnpm install --frozen-lockfile
+pnpm run api
 ```
 
 Default bind:
@@ -21,12 +22,20 @@ HOST=127.0.0.1
 PORT=8790
 ```
 
-For a public server, put Nginx/Caddy/Cloudflare Tunnel in front of this process and expose HTTPS.
+For production, serve `partslink24.html` from this same API host through a
+Cloudflare Named Tunnel and Cloudflare Access. Keep GitHub Pages as test/source
+hosting, not as production authentication.
 
 For systemd, use this template:
 
 ```text
 deploy/systemd/autogood-api.service.example
+```
+
+Server install and rollback sequence:
+
+```text
+docs/AUTOGOOD_VIN_SERVER_RUNBOOK.md
 ```
 
 ## Required Server Files
@@ -39,7 +48,7 @@ Upload the full repo, excluding ignored local/runtime output. These files are re
 - `tools/partslink24/download-vin-pdf.mjs`
 - `tools/partslink24/brand-routes.json`
 - `package.json`
-- `package-lock.json` if generated on the target server
+- `pnpm-lock.yaml`
 
 The static pages can also be served from the same process, but the current public frontend remains GitHub Pages.
 
@@ -61,6 +70,8 @@ PARTSLINK24_USERNAME
 PARTSLINK24_PASSWORD
 ```
 
+Also set `AUTOGOOD_ALLOWED_ORIGINS` to exact production HTTPS hostname.
+
 ## Browser Requirement
 
 PartsLink24 and mobile.de browser fallback need Chrome/Chromium or Playwright browsers available on the server.
@@ -68,7 +79,7 @@ PartsLink24 and mobile.de browser fallback need Chrome/Chromium or Playwright br
 Preferred production setup:
 
 ```bash
-npx playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 Alternative:
@@ -111,11 +122,14 @@ curl 'http://127.0.0.1:8790/mobilede/import?url=https%3A%2F%2Fsuchen.mobile.de%2
 
 ## Frontend Connection
 
-For testing from GitHub Pages, use:
+For temporary testing from GitHub Pages, use:
 
 ```text
 https://belovn1999-rgb.github.io/autogood-kalkulatory/partslink24.html?api=https://YOUR-BACKEND-DOMAIN
 ```
+
+When served from production API host, page uses same-origin API automatically;
+no `?api=` parameter is needed.
 
 For mobile.de, update the API base in `src/main.jsx` and rebuild/copy the same value into `src/main.compiled.js`, or keep the current tunnel during local testing.
 

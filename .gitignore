@@ -6,6 +6,8 @@ build/
 .env.*
 !server/.env.example
 !tools/partslink24/.env.example
+deploy/**/*.env
+!deploy/**/*.env.example
 output/partslink24/
 contract-pdf-work/__pycache__/
 contract-pdf-work/output/
