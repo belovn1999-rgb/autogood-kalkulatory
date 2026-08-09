@@ -322,10 +322,6 @@ function detailRow(label, value) {
   return `<div class="mobileDataRow"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
 }
 
-function moneyRow(label, value, primary = false) {
-  return `<div class="mobileMoneyRow ${primary ? "isPrimary" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
-}
-
 function purchaseTypeLabel(data) {
   const rawValue = [
     data?.purchaseType,

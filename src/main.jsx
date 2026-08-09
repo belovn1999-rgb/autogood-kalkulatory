@@ -600,10 +600,6 @@ function percentLabel(value) {
   return `${(value * 100).toFixed(digits).replace(".", ",")}%`;
 }
 
-function rateLabel(value) {
-  return (Number.isFinite(value) ? value : DEFAULT_RATE).toFixed(4);
-}
-
 function calculationRateLabel(value) {
   const safeValue = Number.isFinite(value) ? value : DEFAULT_RATE;
   return (Math.round((safeValue + Number.EPSILON) * 100) / 100).toFixed(2);
@@ -960,25 +956,6 @@ function MobileDeImport({ c, url, status, summary, notice, onUrlChange, onImport
   );
 }
 
-function MoneyIcon() {
-  return (
-    <svg className="moneyIcon" viewBox="0 0 48 48" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round">
-        <ellipse cx="15" cy="9" rx="9" ry="4" />
-        <path d="M6 9v18c0 2.2 4 4 9 4s9-1.8 9-4V9" />
-        <path d="M6 15c0 2.2 4 4 9 4s9-1.8 9-4" />
-        <path d="M6 21c0 2.2 4 4 9 4s9-1.8 9-4" />
-        <ellipse cx="33" cy="16" rx="8" ry="3.5" />
-        <path d="M25 16v10c0 2 3.6 3.5 8 3.5s8-1.5 8-3.5V16" />
-        <path d="M25 21c0 2 3.6 3.5 8 3.5s8-1.5 8-3.5" />
-        <path d="M14 35l18-9 10 9-18 9-10-9z" />
-        <path d="M19 35l6-3 11 5" />
-        <path d="M22 40l18-9" />
-      </g>
-    </svg>
-  );
-}
-
 function ProcessFlow({ steps }) {
   return (
     <ol className="processFlow" aria-label="Informacje">
@@ -1229,13 +1206,6 @@ class ErrorBoundary extends Component {
     }
     return this.props.children;
   }
-}
-
-function tagLabel(tag) {
-  if (!tag) return null;
-  const label = tag === "+VAT 23%" ? "+VAT 23%" : tag;
-  const className = tag.replace("+", "plus").replace(/\s|%/g, "");
-  return <span className={`tag tag-${className}`}>{label}</span>;
 }
 
 function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1) {

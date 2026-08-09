@@ -534,23 +534,6 @@ function drawPdfLine(pdfLib, page, x0, topY0, x1, topY1, color) {
   });
 }
 
-function drawCenteredText(pdfLib, page, text, centerX, topY, options = {}) {
-  const font = options.font;
-  const { width, height } = pageRect(page);
-  const sx = width / BASE_WIDTH;
-  const sy = height / BASE_HEIGHT;
-  const size = (options.size || 8) * sy;
-  const textWidth = font.widthOfTextAtSize(text, size);
-
-  page.drawText(text, {
-    x: centerX * sx - textWidth / 2,
-    y: height - topY * sy - size,
-    size,
-    font,
-    color: options.color || rgb(pdfLib, 0.06, 0.06, 0.06),
-  });
-}
-
 function wrapTextForWidth(font, text, size, maxWidth) {
   const words = normalizeText(text).split(" ").filter(Boolean);
   const lines = [];
