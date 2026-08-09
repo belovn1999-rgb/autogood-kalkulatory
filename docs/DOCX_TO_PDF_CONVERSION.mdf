@@ -259,54 +259,39 @@ async function generatePdf() {
 - проверить размер файла;
 - проверить, что тело запроса похоже на DOCX;
 - сохранить DOCX во временную папку;
-- вызвать LibreOffice/soffice в headless-режиме;
+- запустить LibreOffice один раз при старте сервиса;
+- последовательно направлять конвертации в прогретый процесс через общий профиль;
 - проверить, что PDF реально создан и начинается с `%PDF-`;
 - вернуть PDF с правильным `Content-Disposition`;
+- вернуть длительность конвертации в `Server-Timing`;
 - отдать healthcheck по `/api/health`;
 - обработать CORS для GitHub Pages.
 
-Главная функция конвертации:
+Главная схема конвертации:
 
 ```python
-def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
-    soffice = find_soffice()
-    if not soffice:
-        raise RuntimeError("LibreOffice/soffice is not available.")
+class LibreOfficeService:
+    def start(self) -> None:
+        # Один headless-процесс и один профиль на весь срок жизни сервиса.
+        ...
 
-    profile = pdf_path.parent / "lo-profile"
-    profile.mkdir(parents=True, exist_ok=True)
-    generated = pdf_path.with_name(f"{docx_path.stem}.pdf")
-    generated.unlink(missing_ok=True)
+    def convert(self, docx_path: Path, pdf_path: Path) -> float:
+        with self.lock:
+            self.start()
+            # Команда с тем же UserInstallation передается уже работающему LibreOffice.
+            ...
+            return duration_ms
 
-    result = subprocess.run(
-        [
-            soffice,
-            f"-env:UserInstallation=file://{profile}",
-            "--headless",
-            "--norestore",
-            "--convert-to",
-            "pdf",
-            "--outdir",
-            str(pdf_path.parent),
-            str(docx_path),
-        ],
-        text=True,
-        capture_output=True,
-        timeout=conversion_timeout_seconds(),
-        check=False,
-    )
 
-    if result.returncode != 0:
-        details = " ".join((result.stderr or result.stdout or "unknown error").split())
-        raise RuntimeError(f"LibreOffice conversion failed: {details}")
-    if not generated.exists() or generated.stat().st_size == 0:
-        details = " ".join((result.stderr or result.stdout or "PDF was not created").split())
-        raise RuntimeError(f"LibreOffice did not create PDF: {details}")
-    if generated != pdf_path:
-        generated.replace(pdf_path)
-    if not pdf_path.read_bytes().startswith(b"%PDF-"):
-        raise RuntimeError("LibreOffice output is not a valid PDF file.")
+LIBREOFFICE = LibreOfficeService()
+
+
+def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> float:
+    return LIBREOFFICE.convert(docx_path, pdf_path)
 ```
+
+Последовательная очередь нужна потому, что один профиль LibreOffice нельзя безопасно
+использовать для нескольких одновременных записей. Прогрев выполняется до запуска HTTP-сервера.
 
 Главный endpoint:
 

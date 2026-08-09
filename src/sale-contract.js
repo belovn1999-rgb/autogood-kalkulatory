@@ -875,21 +875,22 @@ function appendDownloadMessage(text) {
 }
 
 async function runGenerationOperation(key, button, operation) {
-  if (activeGenerationOperations.has(key)) return;
+  if (activeGenerationOperations.size > 0) return;
   activeGenerationOperations.add(key);
-  if (button) {
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-  }
+  const buttons = [generateButton, generatePdfButton, encryptPdfButton, printButton].filter(Boolean);
+  buttons.forEach((actionButton) => {
+    actionButton.disabled = true;
+    if (actionButton === button) actionButton.setAttribute("aria-busy", "true");
+  });
 
   try {
     await operation();
   } finally {
     activeGenerationOperations.delete(key);
-    if (button) {
-      button.disabled = false;
-      button.removeAttribute("aria-busy");
-    }
+    buttons.forEach((actionButton) => {
+      actionButton.disabled = false;
+      actionButton.removeAttribute("aria-busy");
+    });
   }
 }
 
