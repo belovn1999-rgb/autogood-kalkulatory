@@ -1,6 +1,6 @@
 # AUTOGOOD: DOCX to PDF conversion export
 
-Дата выгрузки: 2026-07-16  
+Дата выгрузки: 2026-08-09
 Назначение: отдельно зафиксировать весь код и настройки, которые сейчас отвечают за подготовку договора DOCX и конвертацию DOCX в PDF.
 
 ## Что решает этот блок
@@ -27,14 +27,6 @@ converter/server.py
 converter/Dockerfile
 render.yaml
 contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx
-assets/autogood-stamp.jpg
-assets/arial.ttf
-```
-
-Дополнительно для старого fallback-PDF через jsPDF, который сейчас не является основным путем:
-
-```text
-vendor/jspdf.umd.min.js
 ```
 
 ## Точки подключения в HTML
@@ -48,9 +40,9 @@ vendor/jspdf.umd.min.js
 <button id="printBtn" class="primary-btn" type="button">PDF</button>
 
 <script src="./vendor/jszip.min.js"></script>
-<script src="./vendor/jspdf.umd.min.js"></script>
 <script src="./src/pdf-config.js?v=20260616-4"></script>
-<script src="./src/pdf.js?v=20260708-13"></script>
+<script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
+<script src="./src/pdf.js?v=20260809-docx-performance-1"></script>
 ```
 
 `generateBtn` готовит DOCX без автоматического скачивания.  
@@ -64,11 +56,12 @@ vendor/jspdf.umd.min.js
 
 ```js
 const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260622-1";
-const stampUrl = "./assets/autogood-stamp.jpg";
-const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
+const pdfConversionTimeoutMs = 120_000;
 
 let currentDownloadUrls = [];
+let templateBytesPromise = null;
+let generationInProgress = false;
 ```
 
 Шаблон договора берется из `templateUrl`.  
@@ -134,7 +127,7 @@ function showDownloads(items) {
 
 1. Проверяет наличие `JSZip`.
 2. Собирает данные из формы через `collectData()`.
-3. Загружает Word-шаблон.
+3. Загружает Word-шаблон один раз и повторно использует его байты до перезагрузки страницы.
 4. Открывает `word/document.xml`.
 5. Находит таблицу договора.
 6. Заполняет поля клиента, бюджета, авто, чекбоксы.
@@ -148,9 +141,7 @@ function showDownloads(items) {
 async function generateDocx() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
   const data = collectData();
-  const response = await fetch(templateUrl);
-  if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
-  const zip = await JSZip.loadAsync(await response.arrayBuffer());
+  const zip = await JSZip.loadAsync(await loadTemplateBytes());
   const xmlText = await zip.file("word/document.xml").async("text");
   const xml = new DOMParser().parseFromString(xmlText, "application/xml");
   const root = xml.documentElement;
@@ -163,7 +154,11 @@ async function generateDocx() {
 
   const serialized = new XMLSerializer().serializeToString(xml);
   zip.file("word/document.xml", serialized);
-  return new Blob([await zip.generateAsync({ type: "arraybuffer" })], {
+  return new Blob([await zip.generateAsync({
+    type: "arraybuffer",
+    compression: "DEFLATE",
+    compressionOptions: { level: 3 },
+  })], {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   });
 }
@@ -180,14 +175,22 @@ async function convertDocxBlobToPdf(docxBlob, filename) {
   if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
     throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
   }
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "X-Filename": encodeURIComponent(filename),
-    },
-    body: docxBlob,
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), pdfConversionTimeoutMs);
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "X-Filename": encodeURIComponent(filename),
+      },
+      body: docxBlob,
+      signal: controller.signal,
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
@@ -229,12 +232,11 @@ async function generatePdf() {
     setStatus("Przygotowuję DOCX do konwersji PDF...");
     const data = collectData();
     const docxBlob = await generateDocx();
-    setStatus("Konwertuję DOCX do PDF...");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
     showDownloads([
       { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: true },
     ]);
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
+    appendDownload({ blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy." });
   } catch (error) {
     const message = String(error.message || error);
     const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
@@ -244,6 +246,8 @@ async function generatePdf() {
   }
 }
 ```
+
+На время любой генерации кнопки `DOCX`, `PDF` и `Zaszyfruj` блокируются единым флагом, поэтому двойной клик не создает параллельные сборки и повторные POST-запросы. Обычный PDF-поток показывает ссылку на DOCX сразу после локальной сборки, пока backend продолжает конвертацию. POST имеет клиентский таймаут 120 секунд и не повторяется автоматически.
 
 ## Backend: сервер конвертации
 
@@ -400,7 +404,7 @@ services:
 ## Что важно не потерять при переносе
 
 1. `src/pdf-config.js` должен грузиться до `src/pdf.js`.
-2. `vendor/jszip.min.js` обязателен для сборки DOCX в браузере.
+2. `vendor/jszip.min.js` обязателен для сборки DOCX в браузере; архив создается с `DEFLATE`, уровень 3.
 3. Backend должен иметь LibreOffice.
 4. В Render должен быть разрешен origin `https://belovn1999-rgb.github.io`.
 5. `X-Filename` нужен, чтобы backend вернул PDF с правильным именем.

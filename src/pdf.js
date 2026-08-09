@@ -2,12 +2,13 @@ const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
 const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260622-1";
-const stampUrl = "./assets/autogood-stamp.jpg";
-const fontUrl = "./assets/arial.ttf";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const contractHistoryLimit = 3;
+const pdfConversionTimeoutMs = 120_000;
 
 let currentDownloadUrls = [];
+let templateBytesPromise = null;
+let generationInProgress = false;
 const pageParams = new URLSearchParams(window.location.search);
 const contractVariant = pageParams.get("variant") || "standard";
 const isExportContract = contractVariant === "export";
@@ -192,11 +193,6 @@ function stripKnownNoise(value) {
 
 function withoutPlus48Phones(value) {
   return String(value || "").replace(plus48PhonePattern, " ");
-}
-
-function cleanupChoice(value) {
-  const cleaned = normalizeSpace(value);
-  return normalizeSpace(cleaned.includes("/") ? cleaned.split("/")[0] : cleaned);
 }
 
 function parseBody(value) {
@@ -535,6 +531,50 @@ function showDownloads(items) {
 
 function showDownload(blob, filename, readyText, options = {}) {
   showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
+}
+
+function appendDownload({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) {
+  let list = statusEl.querySelector(".download-list");
+  if (!list) {
+    statusEl.innerHTML = "";
+    list = document.createElement("div");
+    list.className = "download-list";
+    statusEl.append(list);
+  }
+
+  const url = URL.createObjectURL(blob);
+  currentDownloadUrls.push(url);
+  const row = document.createElement("div");
+  row.className = "download-row";
+  const label = document.createElement("span");
+  label.textContent = `${readyText} `;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.textContent = filename;
+  row.append(label, link);
+  list.append(row);
+
+  if (openInViewer && viewerWindow && !viewerWindow.closed) viewerWindow.location.href = url;
+  if (autoDownload) link.click();
+}
+
+function setGenerationBusy(busy) {
+  generationInProgress = busy;
+  ["generateBtn", "printBtn", "encryptBtn"].forEach((id) => {
+    const button = $(id);
+    if (button) button.disabled = busy;
+  });
+}
+
+async function withGenerationLock(operation) {
+  if (generationInProgress) return;
+  setGenerationBusy(true);
+  try {
+    await operation();
+  } finally {
+    setGenerationBusy(false);
+  }
 }
 
 function createPdfViewerWindow() {
@@ -992,11 +1032,6 @@ function setParagraphLabel(p, label, { size = 18 } = {}) {
   p.append(makeRun(p.ownerDocument, label, { size, bold: true, underline: true }));
 }
 
-function appendParagraphValue(p, value, { size = 18, prefix = " " } = {}) {
-  if (!value) return;
-  p.append(makeRun(p.ownerDocument, `${prefix}${value}`, { size, bold: false }));
-}
-
 function setParagraphValueAfterPrefix(p, prefix, value, { size = 18 } = {}) {
   let remaining = prefix.length;
   let reachedPrefixEnd = false;
@@ -1272,9 +1307,7 @@ function applyExportContractLayout(rows, data) {
 async function generateDocx() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
   const data = collectData();
-  const response = await fetch(templateUrl);
-  if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
-  const zip = await JSZip.loadAsync(await response.arrayBuffer());
+  const zip = await JSZip.loadAsync(await loadTemplateBytes());
   const xmlText = await zip.file("word/document.xml").async("text");
   const xml = new DOMParser().parseFromString(xmlText, "application/xml");
   const root = xml.documentElement;
@@ -1308,141 +1341,24 @@ async function generateDocx() {
 
   const serialized = new XMLSerializer().serializeToString(xml);
   zip.file("word/document.xml", serialized);
-  return new Blob([await zip.generateAsync({ type: "arraybuffer" })], {
+  return new Blob([await zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE", compressionOptions: { level: 3 } })], {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   });
 }
 
-function arrayBufferToBase64(buffer) {
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i += 1) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-
-async function imageDataUrl(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Nie można pobrać obrazu podpisu.");
-  const blob = await response.blob();
-  return await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
-}
-
-async function setupPdfFont(doc) {
-  const response = await fetch(fontUrl);
-  if (!response.ok) return;
-  const fontBase64 = arrayBufferToBase64(await response.arrayBuffer());
-  doc.addFileToVFS("arial.ttf", fontBase64);
-  doc.addFont("arial.ttf", "ArialLocal", "normal");
-  doc.setFont("ArialLocal", "normal");
-}
-
-async function generatePdfBlob() {
-  if (!window.jspdf?.jsPDF) throw new Error("jsPDF nie został załadowany.");
-  const data = collectData();
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  await setupPdfFont(doc);
-  const stamp = await imageDataUrl(stampUrl);
-
-  const pageWidth = 210;
-  const margin = 14;
-  let y = 14;
-
-  function text(value, x, lineY, size = 9, options = {}) {
-    doc.setFontSize(size);
-    doc.text(String(value || ""), x, lineY, options);
+async function loadTemplateBytes() {
+  if (!templateBytesPromise) {
+    templateBytesPromise = fetch(templateUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
+        return response.arrayBuffer();
+      })
+      .catch((error) => {
+        templateBytesPromise = null;
+        throw error;
+      });
   }
-
-  function line(label, value) {
-    doc.setFontSize(8.5);
-    const wrapped = doc.splitTextToSize(`${label}: ${value || ""}`, pageWidth - margin * 2);
-    doc.text(wrapped, margin, y);
-    y += wrapped.length * 4.4 + 1.5;
-  }
-
-  function section(title) {
-    y += 3;
-    doc.setFillColor(0, 91, 130);
-    doc.rect(margin, y, pageWidth - margin * 2, 7, "F");
-    doc.setTextColor(255, 255, 255);
-    text(title, pageWidth / 2, y + 5, 9, { align: "center" });
-    doc.setTextColor(17, 32, 51);
-    y += 11;
-  }
-
-  function box(label, checked) {
-    doc.rect(margin, y - 3, 3, 3);
-    if (checked) {
-      doc.line(margin + 0.5, y - 1.5, margin + 1.3, y - 0.5);
-      doc.line(margin + 1.3, y - 0.5, margin + 2.7, y - 2.7);
-    }
-    text(label, margin + 5, y, 8.5);
-    y += 5;
-  }
-
-  function plainBlock(value) {
-    doc.setFontSize(8.5);
-    const wrapped = doc.splitTextToSize(String(value || ""), pageWidth - margin * 2);
-    doc.text(wrapped, margin, y);
-    y += wrapped.length * 4.4 + 1.5;
-  }
-
-  text(polishDateLine(data.contract.date), pageWidth - margin, y, 12, { align: "right" });
-  y += 10;
-  text(`UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, pageWidth / 2, y, 15, { align: "center" });
-  y += 9;
-
-  section("ZLECENIODAWCA");
-  line("Imię i Nazwisko/Nazwa", data.client.name);
-  if (!isExportContract) box("Zleceniodawca jest przedsiębiorcą, zawiera umowę o charakterze zawodowym", data.client.is_entrepreneur);
-  line("Adres", data.client.address);
-  line("PESEL/NIP", data.client.type === "company" ? data.client.nip : data.client.pesel);
-  line("Rodzaj, numer i seria dokumentu tożsamości", data.client.document);
-  line("Nr. tel.", data.client.phone);
-  line("E-mail", data.client.email);
-
-  section("PRZEDMIOT UMOWY");
-  const subjects = new Set(data.agreement.subjects || (data.agreement.subject ? [data.agreement.subject] : []));
-  if (isExportContract) {
-    plainBlock(exportSubjectLabels.purchase_by_autogood);
-    box(exportSubjectLabels.client_indicated_vehicle, data.agreement.client_indicated_vehicle);
-  } else {
-    box("wyszukanie ofert oraz pośrednictwo w zakupie", subjects.has("mediation"));
-    box("wyszukanie ofert oraz zakup przez Zleceniobiorcę", subjects.has("purchase_by_autogood"));
-    box("zakup z finansowania", subjects.has("financing"));
-    box("pojazd wskazany przez Zleceniodawcę", data.agreement.client_indicated_vehicle);
-  }
-
-  section("BUDŻET NA ZAKUP");
-  line("Budżet", data.budget.total);
-  line("Zaliczka", data.budget.advance);
-
-  section("KRYTERIA POSZUKIWAŃ I ZAKUPU");
-  line("Marka i model", data.vehicle.make_model);
-  line("Paliwo", data.vehicle.fuel.join(", "));
-  line("Skrzynia biegów", asArray(data.vehicle.gearbox).join(", "));
-  line("Norma euro", data.vehicle.euro_standard);
-  line("Wiek", data.vehicle.first_registration);
-  line("Przebieg do", data.vehicle.mileage_to);
-  line("Nadwozie", bodyLabel(data.vehicle.body));
-  box("dopuszczalne auto po kolizjach, ale bez uszkodzenia podłużnic", data.vehicle.allow_collision_without_longitudinals);
-  line("Dodatkowe wymagane cechy/wyposażenie", data.vehicle.required_equipment);
-  line("Dodatkowe oczekiwane cechy/wyposażenie", data.vehicle.expected_equipment);
-
-  if (y > 245) {
-    doc.addPage();
-    y = 20;
-  }
-  y = Math.max(y + 12, 245);
-  text("ZLECENIODAWCA:", margin + 20, y, 9, { align: "center" });
-  text("ZLECENIOBIORCA:", pageWidth - margin - 25, y, 9, { align: "center" });
-  doc.addImage(stamp, "JPEG", pageWidth - margin - 50, y + 2, 38, 24);
-
-  return doc.output("blob");
+  return await templateBytesPromise;
 }
 
 async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
@@ -1457,11 +1373,22 @@ async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   };
   if (password) headers["X-PDF-Password"] = window.AUTOGOOD_PDF_ENCRYPTION.encodePassword(password);
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body: docxBlob,
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), pdfConversionTimeoutMs);
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: docxBlob,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error("Konwersja PDF przekroczyła limit 120 sekund.");
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
@@ -1485,52 +1412,73 @@ function parseRawText() {
 }
 
 async function generateContract() {
-  try {
-    setStatus("Przygotowuję DOCX...");
-    const blob = await generateDocx();
-    showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.", { autoDownload: false });
-  } catch (error) {
-    setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
-  }
+  await withGenerationLock(async () => {
+    try {
+      setStatus("Przygotowuję DOCX...");
+      const blob = await generateDocx();
+      showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.", { autoDownload: false });
+    } catch (error) {
+      setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
+    }
+  });
 }
 
 async function generatePdf() {
-  const viewerWindow = createPdfViewerWindow();
-  try {
-    setStatus("Przygotowuję DOCX do konwersji PDF...");
-    const data = collectData();
-    const docxBlob = await generateDocx();
-    setStatus("Konwertuję DOCX do PDF...");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
-    showDownloads([
-      { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      { blob: pdfBlob, filename: filenameFor(data, "pdf"), readyText: "PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
-    ]);
-  } catch (error) {
-    if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
-    const message = String(error.message || error);
-    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
-      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
-      : message;
-    setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
-  }
+  await withGenerationLock(async () => {
+    const viewerWindow = createPdfViewerWindow();
+    let docxReady = false;
+    try {
+      setStatus("Przygotowuję DOCX do konwersji PDF...");
+      const data = collectData();
+      const docxBlob = await generateDocx();
+      showDownloads([
+        { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
+      ]);
+      docxReady = true;
+      const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
+      appendDownload({
+        blob: pdfBlob,
+        filename: filenameFor(data, "pdf"),
+        readyText: "PDF gotowy.",
+        autoDownload: false,
+        openInViewer: true,
+        viewerWindow,
+      });
+    } catch (error) {
+      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
+      const message = String(error.message || error);
+      const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+        ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+        : message;
+      if (docxReady) {
+        const errorRow = document.createElement("div");
+        errorRow.className = "download-row";
+        errorRow.textContent = `Nie udało się przygotować PDF: ${converterMessage}`;
+        statusEl.querySelector(".download-list")?.append(errorRow);
+      } else {
+        setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
+      }
+    }
+  });
 }
 
 async function generateEncryptedPdf() {
-  const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
-  if (!password) return;
+  await withGenerationLock(async () => {
+    const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
+    if (!password) return;
 
-  try {
-    setStatus("Przygotowuję zaszyfrowany PDF...");
-    const data = collectData();
-    const docxBlob = await generateDocx();
-    const filename = filenameFor(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
-    showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
-  } catch (error) {
-    const message = String(error.message || error);
-    setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
-  }
+    try {
+      setStatus("Przygotowuję zaszyfrowany PDF...");
+      const data = collectData();
+      const docxBlob = await generateDocx();
+      const filename = filenameFor(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
+      const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+      showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
+    } catch (error) {
+      const message = String(error.message || error);
+      setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
+    }
+  });
 }
 
 function resetForm() {
