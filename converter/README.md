@@ -13,6 +13,11 @@ Optional encrypted PDF: pass the UTF-8 password as Base64 in the
 
 Response: generated PDF bytes.
 
+The server starts one headless LibreOffice instance during startup and sends
+conversions through a serial queue. This avoids paying the full LibreOffice
+startup cost for every document. Successful responses expose the measured
+conversion time in the `Server-Timing` header.
+
 Local run on macOS with LibreOffice installed:
 
 ```bash
@@ -46,6 +51,7 @@ PORT=8787
 ALLOWED_ORIGINS=https://belovn1999-rgb.github.io
 MAX_UPLOAD_BYTES=15728640
 CONVERSION_TIMEOUT_SECONDS=120
+LIBREOFFICE_STARTUP_TIMEOUT_SECONDS=30
 SOFFICE_PATH=/custom/path/to/soffice
 ```
 

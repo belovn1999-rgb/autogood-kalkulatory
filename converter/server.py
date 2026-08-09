@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import atexit
 import base64
 import binascii
 import json
@@ -9,6 +10,8 @@ import secrets
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 import zipfile
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -19,9 +22,10 @@ from pypdf import PdfReader, PdfWriter
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVER_VERSION = "AUTOGOODConverter/1.2"
+SERVER_VERSION = "AUTOGOODConverter/1.3"
 DEFAULT_MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 DEFAULT_CONVERSION_TIMEOUT_SECONDS = 120
+DEFAULT_LIBREOFFICE_STARTUP_TIMEOUT_SECONDS = 30
 
 DEFAULT_ALLOWED_ORIGINS = {
     "http://127.0.0.1:8899",
@@ -70,6 +74,18 @@ def conversion_timeout_seconds() -> int:
         return DEFAULT_CONVERSION_TIMEOUT_SECONDS
 
 
+def libreoffice_startup_timeout_seconds() -> int:
+    try:
+        return int(
+            os.environ.get(
+                "LIBREOFFICE_STARTUP_TIMEOUT_SECONDS",
+                str(DEFAULT_LIBREOFFICE_STARTUP_TIMEOUT_SECONDS),
+            )
+        )
+    except ValueError:
+        return DEFAULT_LIBREOFFICE_STARTUP_TIMEOUT_SECONDS
+
+
 def is_probable_docx(path: Path) -> bool:
     if not zipfile.is_zipfile(path):
         return False
@@ -86,47 +102,116 @@ def sanitize_download_filename(value: str | None) -> str:
     return filename or "Umowa_Zamowienia_Pojazdu.pdf"
 
 
-def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
-    soffice = find_soffice()
-    if not soffice:
-        raise RuntimeError("LibreOffice/soffice is not available.")
+class LibreOfficeService:
+    def __init__(self) -> None:
+        self.soffice = find_soffice()
+        self.profile = Path(tempfile.mkdtemp(prefix="autogood-lo-profile-"))
+        self.process: subprocess.Popen[str] | None = None
+        self.lock = threading.RLock()
+        atexit.register(self.stop)
 
-    profile = pdf_path.parent / "lo-profile"
-    profile.mkdir(parents=True, exist_ok=True)
-    generated = pdf_path.with_name(f"{docx_path.stem}.pdf")
-    generated.unlink(missing_ok=True)
+    @property
+    def ready(self) -> bool:
+        return self.process is not None and self.process.poll() is None
 
-    try:
-        result = subprocess.run(
-            [
-                soffice,
-                f"-env:UserInstallation=file://{profile}",
-                "--headless",
-                "--norestore",
-                "--convert-to",
-                "pdf",
-                "--outdir",
-                str(pdf_path.parent),
-                str(docx_path),
-            ],
-            text=True,
-            capture_output=True,
-            timeout=conversion_timeout_seconds(),
-            check=False,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"LibreOffice conversion timed out after {conversion_timeout_seconds()} seconds.") from exc
+    def start(self) -> None:
+        with self.lock:
+            if self.ready:
+                return
+            if not self.soffice:
+                raise RuntimeError("LibreOffice/soffice is not available.")
 
-    if result.returncode != 0:
-        details = " ".join((result.stderr or result.stdout or "unknown error").split())
-        raise RuntimeError(f"LibreOffice conversion failed: {details}")
-    if not generated.exists() or generated.stat().st_size == 0:
-        details = " ".join((result.stderr or result.stdout or "PDF was not created").split())
-        raise RuntimeError(f"LibreOffice did not create PDF: {details}")
-    if generated != pdf_path:
-        generated.replace(pdf_path)
-    if not pdf_path.read_bytes().startswith(b"%PDF-"):
-        raise RuntimeError("LibreOffice output is not a valid PDF file.")
+            shutil.rmtree(self.profile, ignore_errors=True)
+            self.profile.mkdir(parents=True, exist_ok=True)
+            pipe_name = f"autogood-pdf-{os.getpid()}"
+            self.process = subprocess.Popen(
+                [
+                    self.soffice,
+                    f"-env:UserInstallation={self.profile.as_uri()}",
+                    "--headless",
+                    "--invisible",
+                    "--norestore",
+                    "--nodefault",
+                    "--nofirststartwizard",
+                    f"--accept=pipe,name={pipe_name};urp;StarOffice.ComponentContext",
+                ],
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
+            deadline = time.monotonic() + libreoffice_startup_timeout_seconds()
+            while time.monotonic() < deadline:
+                if self.process.poll() is not None:
+                    raise RuntimeError("LibreOffice stopped during startup.")
+                if (self.profile / ".lock").exists():
+                    return
+                time.sleep(0.1)
+            self.stop()
+            raise RuntimeError(
+                f"LibreOffice startup timed out after {libreoffice_startup_timeout_seconds()} seconds."
+            )
+
+    def stop(self) -> None:
+        with self.lock:
+            if self.process is not None and self.process.poll() is None:
+                self.process.terminate()
+                try:
+                    self.process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.process.kill()
+                    self.process.wait(timeout=5)
+            self.process = None
+            shutil.rmtree(self.profile, ignore_errors=True)
+
+    def convert(self, docx_path: Path, pdf_path: Path) -> float:
+        with self.lock:
+            self.start()
+            generated = pdf_path.with_name(f"{docx_path.stem}.pdf")
+            generated.unlink(missing_ok=True)
+            started = time.monotonic()
+            try:
+                result = subprocess.run(
+                    [
+                        self.soffice,
+                        f"-env:UserInstallation={self.profile.as_uri()}",
+                        "--headless",
+                        "--norestore",
+                        "--convert-to",
+                        "pdf",
+                        "--outdir",
+                        str(pdf_path.parent),
+                        str(docx_path),
+                    ],
+                    text=True,
+                    capture_output=True,
+                    timeout=conversion_timeout_seconds(),
+                    check=False,
+                )
+            except subprocess.TimeoutExpired as exc:
+                raise RuntimeError(
+                    f"LibreOffice conversion timed out after {conversion_timeout_seconds()} seconds."
+                ) from exc
+
+            duration_ms = (time.monotonic() - started) * 1000
+            if result.returncode != 0:
+                details = " ".join((result.stderr or result.stdout or "unknown error").split())
+                raise RuntimeError(f"LibreOffice conversion failed: {details}")
+            if not generated.exists() or generated.stat().st_size == 0:
+                details = " ".join((result.stderr or result.stdout or "PDF was not created").split())
+                raise RuntimeError(f"LibreOffice did not create PDF: {details}")
+            if generated != pdf_path:
+                generated.replace(pdf_path)
+            if not pdf_path.read_bytes().startswith(b"%PDF-"):
+                raise RuntimeError("LibreOffice output is not a valid PDF file.")
+            return duration_ms
+
+
+LIBREOFFICE = LibreOfficeService()
+
+
+def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> float:
+    return LIBREOFFICE.convert(docx_path, pdf_path)
 
 
 def decode_pdf_password(value: str | None) -> str | None:
@@ -193,9 +278,11 @@ class Handler(SimpleHTTPRequestHandler):
             return
 
         payload = {
-            "ok": bool(find_soffice()),
+            "ok": LIBREOFFICE.ready,
             "service": "AUTOGOOD DOCX to PDF converter",
-            "soffice": bool(find_soffice()),
+            "soffice": bool(LIBREOFFICE.soffice),
+            "libreoffice_ready": LIBREOFFICE.ready,
+            "conversion_queue": "serial",
             "pdf_encryption": "AES-256",
             "version": SERVER_VERSION,
             "max_upload_bytes": max_upload_bytes(),
@@ -210,6 +297,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self) -> None:
+        request_started = time.monotonic()
         if self.path.split("?", 1)[0] != "/api/convert-docx-to-pdf":
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint")
             return
@@ -233,7 +321,7 @@ class Handler(SimpleHTTPRequestHandler):
                 if not is_probable_docx(docx_path):
                     raise ValueError("Request body is not a valid DOCX file.")
                 password = decode_pdf_password(self.headers.get("X-PDF-Password"))
-                convert_docx_to_pdf(docx_path, pdf_path)
+                conversion_duration_ms = convert_docx_to_pdf(docx_path, pdf_path)
                 if password:
                     encrypted_path = temp / "contract-encrypted.pdf"
                     encrypt_pdf(pdf_path, encrypted_path, password)
@@ -258,6 +346,11 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Disposition", f"attachment; filename=\"{ascii_filename}\"; filename*=UTF-8''{quote(filename, safe='')}")
         self.send_header("Content-Length", str(len(pdf)))
         self.send_header("Cache-Control", "no-store")
+        total_duration_ms = (time.monotonic() - request_started) * 1000
+        self.send_header(
+            "Server-Timing",
+            f"libreoffice;dur={conversion_duration_ms:.1f}, total;dur={total_duration_ms:.1f}",
+        )
         self.end_headers()
         self.wfile.write(pdf)
 
@@ -265,6 +358,7 @@ class Handler(SimpleHTTPRequestHandler):
 def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     host = os.environ.get("HOST", "127.0.0.1")
+    LIBREOFFICE.start()
     server = ThreadingHTTPServer((host, port), Handler)
     print(f"http://{host}:{port}/")
     server.serve_forever()
