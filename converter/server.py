@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 import os
+import secrets
 import shutil
 import subprocess
 import tempfile
-import json
 import zipfile
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import quote, unquote
 
+from pypdf import PdfReader, PdfWriter
+
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVER_VERSION = "AUTOGOODConverter/1.1"
+SERVER_VERSION = "AUTOGOODConverter/1.2"
 DEFAULT_MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 DEFAULT_CONVERSION_TIMEOUT_SECONDS = 120
 
@@ -124,6 +129,36 @@ def convert_docx_to_pdf(docx_path: Path, pdf_path: Path) -> None:
         raise RuntimeError("LibreOffice output is not a valid PDF file.")
 
 
+def decode_pdf_password(value: str | None) -> str | None:
+    if not value:
+        return None
+    try:
+        password_bytes = base64.b64decode(value, validate=True)
+        password = password_bytes.decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError) as exc:
+        raise ValueError("Invalid PDF password encoding.") from exc
+    if not password:
+        raise ValueError("PDF password must not be empty.")
+    if len(password_bytes) > 127:
+        raise ValueError("PDF password is too long.")
+    return password
+
+
+def encrypt_pdf(source_path: Path, encrypted_path: Path, password: str) -> None:
+    reader = PdfReader(source_path)
+    writer = PdfWriter()
+    writer.clone_document_from_reader(reader)
+    writer.encrypt(
+        user_password=password,
+        owner_password=secrets.token_urlsafe(32),
+        algorithm="AES-256",
+    )
+    with encrypted_path.open("wb") as output:
+        writer.write(output)
+    if not encrypted_path.read_bytes().startswith(b"%PDF-"):
+        raise RuntimeError("Encrypted output is not a valid PDF file.")
+
+
 class Handler(SimpleHTTPRequestHandler):
     server_version = SERVER_VERSION
 
@@ -142,7 +177,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Filename")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Filename, X-PDF-Password")
 
     def end_headers(self) -> None:
         self.add_cors_headers()
@@ -161,6 +196,7 @@ class Handler(SimpleHTTPRequestHandler):
             "ok": bool(find_soffice()),
             "service": "AUTOGOOD DOCX to PDF converter",
             "soffice": bool(find_soffice()),
+            "pdf_encryption": "AES-256",
             "version": SERVER_VERSION,
             "max_upload_bytes": max_upload_bytes(),
             "conversion_timeout_seconds": conversion_timeout_seconds(),
@@ -196,7 +232,12 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 if not is_probable_docx(docx_path):
                     raise ValueError("Request body is not a valid DOCX file.")
+                password = decode_pdf_password(self.headers.get("X-PDF-Password"))
                 convert_docx_to_pdf(docx_path, pdf_path)
+                if password:
+                    encrypted_path = temp / "contract-encrypted.pdf"
+                    encrypt_pdf(pdf_path, encrypted_path, password)
+                    pdf_path = encrypted_path
                 pdf = pdf_path.read_bytes()
             except Exception as exc:
                 message = f"PDF conversion failed: {exc}"

@@ -5,6 +5,7 @@ const saveButton = document.querySelector("#saveSaleContract");
 const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
+const encryptPdfButton = document.querySelector("#encryptSalePdf");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -1350,18 +1351,21 @@ async function generateSaleDocx() {
   }
 }
 
-async function convertDocxBlobToPdf(docxBlob, filename) {
+async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
   const endpoint = configuredEndpoint || defaultPdfConverterUrl;
   if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
     throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
   }
+  const headers = {
+    "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "X-Filename": encodeURIComponent(filename),
+  };
+  if (password) headers["X-PDF-Password"] = window.AUTOGOOD_PDF_ENCRYPTION.encodePassword(password);
+
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "X-Filename": encodeURIComponent(filename),
-    },
+    headers,
     body: docxBlob,
   });
 
@@ -1395,6 +1399,23 @@ async function generateSalePdf() {
       ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
       : message;
     setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
+  }
+}
+
+async function generateEncryptedSalePdf() {
+  const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
+  if (!password) return;
+
+  try {
+    setStatus("Przygotowuję zaszyfrowany PDF...");
+    const data = collectSaleContract();
+    const docxBlob = await generateDocxBlob();
+    const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+    showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
+  } catch (error) {
+    const message = String(error.message || error);
+    setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
   }
 }
 
@@ -1458,6 +1479,7 @@ clearDamageButton.addEventListener("click", () => {
 });
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
+encryptPdfButton.addEventListener("click", generateEncryptedSalePdf);
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();

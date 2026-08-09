@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260807-contract-ui-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260809-pdf-encryption-1" />
     <link rel="stylesheet" href="./src/sale-contract.css?v=20260807-contract-ui-1" />
   </head>
   <body>
@@ -27,6 +27,7 @@
           <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
           <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
           <button id="generateSalePdf" class="primary-btn" type="button">PDF</button>
+          <button id="encryptSalePdf" class="secondary-top-btn" type="button">Zaszyfruj</button>
         </div>
       </header>
 
@@ -227,7 +228,31 @@
     </main>
 
     <script src="./vendor/jszip.min.js"></script>
+    <dialog id="pdfEncryptionDialog" class="password-dialog">
+      <form method="dialog" class="password-dialog-form">
+        <div class="password-dialog-head">
+          <strong>Zaszyfruj PDF</strong>
+          <button class="dialog-close" type="button" data-password-cancel aria-label="Zamknij">&times;</button>
+        </div>
+        <p>Ustaw hasło potrzebne do otwarcia pliku PDF.</p>
+        <label>
+          <span>Hasło</span>
+          <input id="pdfPassword" type="password" autocomplete="new-password" maxlength="64" required />
+        </label>
+        <label>
+          <span>Powtórz hasło</span>
+          <input id="pdfPasswordConfirm" type="password" autocomplete="new-password" maxlength="64" required />
+        </label>
+        <div id="pdfPasswordError" class="password-error" aria-live="polite"></div>
+        <div class="password-dialog-actions">
+          <button class="ghost-btn" type="button" data-password-cancel>Anuluj</button>
+          <button class="primary-btn" type="submit">Zaszyfruj PDF</button>
+        </div>
+      </form>
+    </dialog>
+
     <script src="./src/pdf-config.js?v=20260616-4"></script>
-    <script src="./src/sale-contract.js?v=20260807-contract-ui-1"></script>
+    <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
+    <script src="./src/sale-contract.js?v=20260809-pdf-encryption-1"></script>
   </body>
 </html>

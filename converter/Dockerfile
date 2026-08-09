@@ -11,6 +11,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY . /app
+RUN pip install --no-cache-dir -r converter/requirements.txt
 
 ENV HOST=0.0.0.0
 ENV PORT=8787

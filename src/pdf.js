@@ -1445,18 +1445,21 @@ async function generatePdfBlob() {
   return doc.output("blob");
 }
 
-async function convertDocxBlobToPdf(docxBlob, filename) {
+async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
   const endpoint = configuredEndpoint || defaultPdfConverterUrl;
   if (!configuredEndpoint && /\.github\.io$/i.test(window.location.hostname)) {
     throw new Error("Konwerter DOCX→PDF nie jest jeszcze wdrożony. Podłącz adres backendu w src/pdf-config.js.");
   }
+  const headers = {
+    "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "X-Filename": encodeURIComponent(filename),
+  };
+  if (password) headers["X-PDF-Password"] = window.AUTOGOOD_PDF_ENCRYPTION.encodePassword(password);
+
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "X-Filename": encodeURIComponent(filename),
-    },
+    headers,
     body: docxBlob,
   });
 
@@ -1513,6 +1516,23 @@ async function generatePdf() {
   }
 }
 
+async function generateEncryptedPdf() {
+  const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
+  if (!password) return;
+
+  try {
+    setStatus("Przygotowuję zaszyfrowany PDF...");
+    const data = collectData();
+    const docxBlob = await generateDocx();
+    const filename = filenameFor(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
+    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+    showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
+  } catch (error) {
+    const message = String(error.message || error);
+    setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
+  }
+}
+
 function resetForm() {
   $("contractDate").value = todayISO();
   $("sequence").value = "1";
@@ -1546,6 +1566,7 @@ updateDocumentFileName();
 renderContractHistory();
 $("parseBtn").addEventListener("click", parseRawText);
 $("printBtn").addEventListener("click", generatePdf);
+$("encryptBtn").addEventListener("click", generateEncryptedPdf);
 $("generateBtn").addEventListener("click", generateContract);
 $("resetBtn").addEventListener("click", resetForm);
 $("saveDataBtn").addEventListener("click", saveCurrentContractData);

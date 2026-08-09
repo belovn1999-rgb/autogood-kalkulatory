@@ -8,6 +8,9 @@ POST /api/convert-docx-to-pdf
 
 Request body: raw DOCX bytes.
 
+Optional encrypted PDF: pass the UTF-8 password as Base64 in the
+`X-PDF-Password` request header. The response uses AES-256 encryption.
+
 Response: generated PDF bytes.
 
 Local run on macOS with LibreOffice installed:
