@@ -6,6 +6,7 @@ const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
 const encryptPdfButton = document.querySelector("#encryptSalePdf");
+const printButton = document.querySelector("#printSaleContract");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -22,6 +23,8 @@ const saleHistoryLimit = 5;
 
 let currentDownloadUrls = [];
 let currentPrintUrl = null;
+let saleTemplateBytesPromise = null;
+const activeGenerationOperations = new Set();
 
 const checklistGroups = {
   documentsChecklist: [
@@ -790,20 +793,6 @@ function saveSaleContract() {
   }, 1200);
 }
 
-function exportSaleContract() {
-  const data = collectSaleContract();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const filenameSeed = data.vehicleVin || data.vehicleMakeModel || data.buyerName || "umowa-sprzedazy";
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${filenameSeed.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, "-")}.json`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
 function todayISO() {
   const date = new Date();
   const offset = date.getTimezoneOffset() * 60000;
@@ -832,13 +821,20 @@ function setStatus(text) {
   statusEl.textContent = text;
 }
 
-function showDownloads(items) {
-  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
-  currentDownloadUrls = [];
-  statusEl.innerHTML = "";
+function showDownloads(items, options = {}) {
+  const append = Boolean(options.append);
+  let list = append ? statusEl.querySelector(".download-list") : null;
+  if (!list) {
+    if (!append) {
+      currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
+      currentDownloadUrls = [];
+      statusEl.innerHTML = "";
+    }
+    list = document.createElement("div");
+    list.className = "download-list";
+    statusEl.append(list);
+  }
 
-  const list = document.createElement("div");
-  list.className = "download-list";
   items.forEach(({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) => {
     const url = URL.createObjectURL(blob);
     currentDownloadUrls.push(url);
@@ -859,11 +855,42 @@ function showDownloads(items) {
     }
     if (autoDownload) link.click();
   });
-  statusEl.append(list);
 }
 
 function showDownload(blob, filename, readyText, options = {}) {
-  showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
+  showDownloads(
+    [{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }],
+    { append: Boolean(options.append) },
+  );
+}
+
+function appendDownloadMessage(text) {
+  const list = statusEl.querySelector(".download-list");
+  if (!list) return null;
+  const row = document.createElement("div");
+  row.className = "download-row";
+  row.textContent = text;
+  list.append(row);
+  return row;
+}
+
+async function runGenerationOperation(key, button, operation) {
+  if (activeGenerationOperations.has(key)) return;
+  activeGenerationOperations.add(key);
+  if (button) {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  }
+
+  try {
+    await operation();
+  } finally {
+    activeGenerationOperations.delete(key);
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    }
+  }
 }
 
 function createPdfViewerWindow() {
@@ -1325,30 +1352,43 @@ async function generateDocxBlob() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
 
   const data = collectSaleContract();
-  const response = await fetch(saleTemplateUrl);
-  if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
+  if (!saleTemplateBytesPromise) {
+    saleTemplateBytesPromise = fetch(saleTemplateUrl).then(async (response) => {
+      if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");
+      return await response.arrayBuffer();
+    }).catch((error) => {
+      saleTemplateBytesPromise = null;
+      throw error;
+    });
+  }
 
-  const zip = await JSZip.loadAsync(await response.arrayBuffer());
+  const zip = await JSZip.loadAsync(await saleTemplateBytesPromise);
   const xmlText = await zip.file("word/document.xml").async("text");
   const xml = new DOMParser().parseFromString(xmlText, "application/xml");
   fillDocx(xml.documentElement, data);
   await overlayDamageMarks(zip, data);
   zip.file("word/document.xml", new XMLSerializer().serializeToString(xml));
 
-  return new Blob([await zip.generateAsync({ type: "arraybuffer" })], {
+  return new Blob([await zip.generateAsync({
+    type: "arraybuffer",
+    compression: "DEFLATE",
+    compressionOptions: { level: 3 },
+  })], {
     type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   });
 }
 
 async function generateSaleDocx() {
-  try {
-    setStatus("Przygotowuję DOCX...");
-    const data = collectSaleContract();
-    const blob = await generateDocxBlob();
-    showDownload(blob, saleFilename(data, "docx"), "DOCX gotowy.", { autoDownload: false });
-  } catch (error) {
-    setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
-  }
+  await runGenerationOperation("docx", generateButton, async () => {
+    try {
+      setStatus("Przygotowuję DOCX...");
+      const data = collectSaleContract();
+      const blob = await generateDocxBlob();
+      showDownload(blob, saleFilename(data, "docx"), "DOCX gotowy.", { autoDownload: false });
+    } catch (error) {
+      setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
+    }
+  });
 }
 
 async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
@@ -1363,80 +1403,104 @@ async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   };
   if (password) headers["X-PDF-Password"] = window.AUTOGOOD_PDF_ENCRYPTION.encodePassword(password);
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body: docxBlob,
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 120000);
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: docxBlob,
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const message = await response.text().catch(() => "");
-    if (response.status === 404 && /onrender\.com/i.test(endpoint)) {
-      throw new Error("Backend Render dla konwertera PDF nie jest jeszcze wdrożony pod wskazanym adresem.");
+    if (!response.ok) {
+      const message = await response.text().catch(() => "");
+      if (response.status === 404 && /onrender\.com/i.test(endpoint)) {
+        throw new Error("Backend Render dla konwertera PDF nie jest jeszcze wdrożony pod wskazanym adresem.");
+      }
+      throw new Error(message || "Konwerter PDF nie jest dostępny.");
     }
-    throw new Error(message || "Konwerter PDF nie jest dostępny.");
-  }
 
-  return await response.blob();
+    return await response.blob();
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Konwersja PDF przekroczyła limit 120 sekund.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 async function generateSalePdf() {
-  const viewerWindow = createPdfViewerWindow();
-  try {
-    setStatus("Przygotowuję DOCX do konwersji PDF...");
-    const data = collectSaleContract();
-    const docxBlob = await generateDocxBlob();
-    setStatus("Konwertuję DOCX do PDF...");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
-    showDownloads([
-      { blob: docxBlob, filename: saleFilename(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      { blob: pdfBlob, filename: saleFilename(data, "pdf"), readyText: "PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
-    ]);
-  } catch (error) {
-    if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
-    const message = String(error.message || error);
-    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
-      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
-      : message;
-    setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
-  }
+  await runGenerationOperation("pdf", generatePdfButton, async () => {
+    const viewerWindow = createPdfViewerWindow();
+    let docxBlob = null;
+    let progressRow = null;
+    try {
+      setStatus("Przygotowuję DOCX do konwersji PDF...");
+      const data = collectSaleContract();
+      docxBlob = await generateDocxBlob();
+      showDownload(docxBlob, saleFilename(data, "docx"), "DOCX gotowy.", { autoDownload: false });
+      progressRow = appendDownloadMessage("Konwertuję DOCX do PDF...");
+      const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
+      if (progressRow) progressRow.remove();
+      showDownloads([
+        { blob: pdfBlob, filename: saleFilename(data, "pdf"), readyText: "PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
+      ], { append: true });
+    } catch (error) {
+      if (progressRow) progressRow.remove();
+      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
+      const message = String(error.message || error);
+      const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+        ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+        : message;
+      const errorText = `Nie udało się przygotować PDF: ${converterMessage}`;
+      if (docxBlob) appendDownloadMessage(errorText);
+      else setStatus(errorText);
+    }
+  });
 }
 
 async function generateEncryptedSalePdf() {
-  const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
-  if (!password) return;
+  await runGenerationOperation("encrypted-pdf", encryptPdfButton, async () => {
+    const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
+    if (!password) return;
 
-  try {
-    setStatus("Przygotowuję zaszyfrowany PDF...");
-    const data = collectSaleContract();
-    const docxBlob = await generateDocxBlob();
-    const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
-    showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
-  } catch (error) {
-    const message = String(error.message || error);
-    setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
-  }
+    try {
+      setStatus("Przygotowuję zaszyfrowany PDF...");
+      const data = collectSaleContract();
+      const docxBlob = await generateDocxBlob();
+      const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
+      const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+      showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
+    } catch (error) {
+      const message = String(error.message || error);
+      setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
+    }
+  });
 }
 
 async function generateSalePrint() {
-  const printWindow = createPrintWindow();
-  try {
-    setStatus("Przygotowuję dokument do druku...");
-    const data = collectSaleContract();
-    const docxBlob = await generateDocxBlob();
-    setStatus("Konwertuję dokument do PDF przed drukiem...");
-    const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
-    showDownload(pdfBlob, saleFilename(data, "pdf"), "PDF gotowy do druku.", { autoDownload: false });
-    printPdfBlob(pdfBlob, printWindow);
-  } catch (error) {
-    if (printWindow && !printWindow.closed) printWindow.close();
-    const message = String(error.message || error);
-    const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
-      ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
-      : message;
-    setStatus(`Nie udało się przygotować druku: ${converterMessage}`);
-  }
+  await runGenerationOperation("print", printButton, async () => {
+    const printWindow = createPrintWindow();
+    try {
+      setStatus("Przygotowuję dokument do druku...");
+      const data = collectSaleContract();
+      const docxBlob = await generateDocxBlob();
+      setStatus("Konwertuję dokument do PDF przed drukiem...");
+      const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
+      showDownload(pdfBlob, saleFilename(data, "pdf"), "PDF gotowy do druku.", { autoDownload: false });
+      printPdfBlob(pdfBlob, printWindow);
+    } catch (error) {
+      if (printWindow && !printWindow.closed) printWindow.close();
+      const message = String(error.message || error);
+      const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
+        ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
+        : message;
+      setStatus(`Nie udało się przygotować druku: ${converterMessage}`);
+    }
+  });
 }
 
 function resetSaleContract() {
@@ -1480,6 +1544,7 @@ clearDamageButton.addEventListener("click", () => {
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
 encryptPdfButton.addEventListener("click", generateEncryptedSalePdf);
+if (printButton) printButton.addEventListener("click", generateSalePrint);
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();
