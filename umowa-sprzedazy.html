@@ -108,16 +108,14 @@
                   <input name="buyerAddress" type="text" />
                 </label>
                 <div class="field">
-                  <span id="buyerIdentifierLabel">PESEL / NIP:</span>
-                  <div class="client-kind identifier-kind" role="radiogroup" aria-labelledby="buyerIdentifierLabel">
+                  <div class="client-kind identifier-kind" role="radiogroup" aria-label="Rodzaj numeru identyfikacyjnego">
                     <label><input name="buyerIdentifierType" type="radio" value="pesel" checked /><span>PESEL</span></label>
                     <label><input name="buyerIdentifierType" type="radio" value="nip" /><span>NIP</span></label>
                   </div>
                 </div>
-                <label class="field">
-                  <span>Numer PESEL / NIP:</span>
-                  <input id="buyerIdentifier" name="buyerIdentifier" type="text" />
-                </label>
+                <div class="field">
+                  <input id="buyerIdentifier" name="buyerIdentifier" type="text" aria-label="Numer PESEL lub NIP" />
+                </div>
                 <label class="field">
                   <span>Telefon:</span>
                   <input name="buyerPhone" type="text" />
