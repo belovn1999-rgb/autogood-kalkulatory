@@ -126,6 +126,35 @@ TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID DRIVE`]
   assert.equal(diesel.engineType, "Дизель");
 });
 
+test("Stellantis engine rows outrank unrelated electric equipment descriptions", () => {
+  const reports = [
+    ["RU", `ДВИГАТЕЛЬ                 DV5RC UE64 1.5 L DIESEL
+КОРОБКА ПЕРЕДАЧ          STT TYPE 8-SPEED AUTOMATIC GEARBOX
+ЭЛЕКТРОДВИГАТЕЛЬ СИСТЕМЫ ОХЛАЖДЕНИЯ
+ЭЛЕКТРИЧЕСКИЙ УСИЛИТЕЛЬ РУЛЯ`],
+    ["PL", `SILNIK                    DV5RC UE64 1.5 L DIESEL
+SKRZYNIA BIEGÓW           STT TYPE 8-SPEED AUTOMATIC GEARBOX
+SILNIK ELEKTRYCZNY UKŁADU CHŁODZENIA
+ELEKTRYCZNE WSPOMAGANIE KIEROWNICY`],
+    ["ENG", `ENGINE                    DV5RC UE64 1.5 L DIESEL
+TRANSMISSION              STT TYPE 8-SPEED AUTOMATIC GEARBOX
+ELECTRIC COOLING SYSTEM MOTOR
+ELECTRIC POWER STEERING`]
+  ];
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    for (const [language, text] of reports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.engineType, "Дизель", `${brand} ${language}`);
+      assert.equal(result.engineVolume, "1.5 л", `${brand} ${language}`);
+    }
+  }
+});
+
 test("VAG reports separate model, powertrain type and engine volume", () => {
   const phev = extractVehicleInfoFromText(`
 Модель                             Audi A7 Sportback гибр. PHEV 2,0 A7

@@ -139,7 +139,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const profile = mergeProfile(brandReportProfiles[brand]);
   const modelRaw = findFirstPdfValue(text, profile.modelLabels);
   const model = normalizeModel(modelRaw, brand);
-  const engineSpecificationRaw = findFirstPdfValue(text, profile.engineSpecificationLabels);
+  const engineSpecificationLabels = stellantisBrands.has(brand)
+    ? [/^(?:silnik|двигатель|engine)$/i, ...profile.engineSpecificationLabels]
+    : profile.engineSpecificationLabels;
+  const engineSpecificationRaw = findFirstPdfValue(text, engineSpecificationLabels);
   const engineTypeRaw = findFirstPdfValue(text, profile.engineTypeLabels);
   const fuelTypeRaw = findFirstPdfValue(text, profile.fuelTypeLabels);
   const engineCodeRaw = findFirstPdfValue(text, profile.engineCodeLabels);
@@ -169,6 +172,17 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     mildHybridRaw,
     engineVolumeRaw
   });
+  const stellantisEngineType = stellantisBrands.has(brand)
+    ? resolveStellantisEngineType({
+      engineSpecificationRaw,
+      engineTypeRaw,
+      fuelTypeRaw,
+      transmissionRaw,
+      inferredEngineRaw,
+      mildHybridRaw,
+      fallbackEngineType: primaryEngineInfo.engineType
+    })
+    : "";
   const fallbackEngineRaw = !primaryEngineInfo.engineType || !normalizePdfEngineVolume(engineVolumeRaw)
     ? findFallbackEngineEvidence(text)
     : "";
@@ -196,7 +210,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const hasExplicitPhev = /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence);
   const engineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
     ? "PHEV"
-    : primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
+    : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
 
   return {
     model,
@@ -204,6 +218,36 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineType,
     engineVolume: normalizePdfEngineVolume(resolvedEngineVolumeRaw)
   };
+}
+
+function resolveStellantisEngineType({
+  engineSpecificationRaw,
+  engineTypeRaw,
+  fuelTypeRaw,
+  transmissionRaw,
+  inferredEngineRaw,
+  mildHybridRaw,
+  fallbackEngineType
+}) {
+  const directInfo = normalizeEngineInfo({
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw].filter(Boolean).join(" "),
+    fuelTypeRaw
+  });
+  const directType = directInfo.engineType;
+  const baseFuel = directType.includes("Бензин") ? "Бензин" : directType.includes("Дизель") ? "Дизель" : "";
+  const powertrainEvidence = [transmissionRaw, inferredEngineRaw, mildHybridRaw].filter(Boolean).join(" ");
+
+  if (/\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence)) {
+    return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
+  }
+  if (/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(powertrainEvidence)) {
+    return baseFuel ? `${baseFuel} + Мягкий гибрид` : "Мягкий гибрид";
+  }
+  if (/\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(transmissionRaw)) return "Обычный гибрид";
+
+  // Equipment descriptions often mention electric motors. A labeled engine or
+  // fuel row is authoritative unless the drivetrain explicitly says hybrid.
+  return directType || normalizeEngineInfo({ engineTypeRaw: inferredEngineRaw }).engineType || fallbackEngineType;
 }
 
 export function normalizeEngineInfo(info) {
