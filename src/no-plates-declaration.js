@@ -54,7 +54,7 @@ function updateVariant() {
     templateDescriptionEl.textContent = "Oświadczenie podpisywane przez AUTOGOOD. Dane firmy są już wpisane w pliku PDF.";
   } else {
     hintEl.textContent = "Wybierz Pan albo Pani i uzupełnij dane właściciela pojazdu.";
-    templateDescriptionEl.textContent = "Oświadczenie właściciela pojazdu. W dokumencie nie ma informacji o kraju sprowadzenia.";
+    templateDescriptionEl.textContent = "Oświadczenie właściciela pojazdu.";
   }
 }
 
