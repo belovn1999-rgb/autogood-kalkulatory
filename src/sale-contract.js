@@ -1505,15 +1505,28 @@ async function generateSalePrint() {
 }
 
 function resetSaleContract() {
-  localStorage.removeItem(saleStorageKey);
   rawSaleDataInput.value = "";
-  fields.forEach((field) => {
-    if (field.type === "radio" || field.type === "checkbox") field.checked = false;
-    else field.value = "";
+  [
+    "buyerName",
+    "buyerAddress",
+    "buyerIdentifier",
+    "buyerPhone",
+    "buyerEmail",
+    "vehicleMakeModel",
+    "vehicleVin",
+    "vehicleMileage",
+    "firstRegistration",
+    "fuelType",
+    "lastTechnicalInspection",
+  ].forEach((name) => {
+    const field = form.querySelector(`[name="${name}"]`);
+    if (field) field.value = "";
   });
+  setField("generalWear", "przecietne");
   damageMarks = [];
   writeDamageMarks();
   renderDamageMarks();
+  localStorage.setItem(saleStorageKey, JSON.stringify(collectSaleContract(), null, 2));
   setStatus("");
   updateSummary();
 }
