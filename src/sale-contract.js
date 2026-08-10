@@ -6,6 +6,7 @@ const resetButton = document.querySelector("#resetSaleContract");
 const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
 const encryptPdfButton = document.querySelector("#encryptSalePdf");
+const pullCrmDataButton = document.querySelector("#pullSaleCrmDataBtn");
 const printButton = document.querySelector("#printSaleContract");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
@@ -884,7 +885,7 @@ function appendDownloadMessage(text) {
 async function runGenerationOperation(key, button, operation) {
   if (activeGenerationOperations.size > 0) return;
   activeGenerationOperations.add(key);
-  const buttons = [generateButton, generatePdfButton, encryptPdfButton, printButton].filter(Boolean);
+  const buttons = [pullCrmDataButton, generateButton, generatePdfButton, encryptPdfButton, printButton].filter(Boolean);
   buttons.forEach((actionButton) => {
     actionButton.disabled = true;
     if (actionButton === button) actionButton.setAttribute("aria-busy", "true");
@@ -1560,6 +1561,9 @@ fields.forEach((field) => {
 });
 
 saveButton.addEventListener("click", saveSaleContract);
+pullCrmDataButton.addEventListener("click", () => {
+  window.alert("Integracja z CRM zostanie podłączona w kolejnym etapie.");
+});
 resetButton.addEventListener("click", resetSaleContract);
 parseButton.addEventListener("click", parseSaleData);
 damageCanvas.addEventListener("click", addDamageMark);

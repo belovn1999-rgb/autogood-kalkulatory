@@ -561,7 +561,7 @@ function appendDownload({ blob, filename, readyText, autoDownload = false, openI
 
 function setGenerationBusy(busy) {
   generationInProgress = busy;
-  ["generateBtn", "printBtn", "encryptBtn"].forEach((id) => {
+  ["pullCrmDataBtn", "generateBtn", "printBtn", "encryptBtn"].forEach((id) => {
     const button = $(id);
     if (button) button.disabled = busy;
   });
@@ -1517,6 +1517,9 @@ setDefaultSelectValues();
 updateDocumentFileName();
 renderContractHistory();
 $("parseBtn").addEventListener("click", parseRawText);
+$("pullCrmDataBtn").addEventListener("click", () => {
+  window.alert("Integracja z CRM zostanie podłączona w kolejnym etapie.");
+});
 $("printBtn").addEventListener("click", generatePdf);
 $("encryptBtn").addEventListener("click", generateEncryptedPdf);
 $("generateBtn").addEventListener("click", generateContract);
