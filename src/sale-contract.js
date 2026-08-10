@@ -1468,14 +1468,18 @@ async function generateEncryptedSalePdf() {
     const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
     if (!password) return;
 
+    const viewerWindow = createPdfViewerWindow();
     try {
       setStatus("Przygotowuję zaszyfrowany PDF...");
       const data = collectSaleContract();
       const docxBlob = await generateDocxBlob();
       const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
-      showDownload(pdfBlob, filename, "Zaszyfrowany PDF gotowy.", { autoDownload: true });
+      showDownloads([
+        { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
+      ]);
     } catch (error) {
+      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
       setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
     }
