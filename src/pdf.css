@@ -298,7 +298,7 @@ body.export-contract .brandTitle::after {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(220px, 16.666%) minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   gap: 18px;
   align-items: stretch;
   padding: 24px 0 0;
@@ -330,14 +330,14 @@ body.export-contract .brandTitle::after {
   gap: 12px;
   min-width: 0;
   min-height: 0;
-  height: auto;
+  min-height: 500px;
   padding: 14px;
   overflow: hidden;
 }
 
 .input-card {
   display: grid;
-  grid-template-rows: minmax(140px, 180px) auto auto;
+  grid-template-rows: 220px auto minmax(150px, 1fr);
   gap: 10px;
   min-width: 0;
   min-height: 0;
@@ -356,12 +356,13 @@ body.export-contract .brandTitle::after {
   margin-bottom: 2px;
 }
 
-#rawClient {
+#rawClient,
+#rawSaleData {
   width: 100%;
   min-width: 0;
-  height: 180px;
-  min-height: 140px;
-  max-height: 220px;
+  height: 220px;
+  min-height: 150px;
+  max-height: 260px;
   resize: vertical;
   padding: 11px;
   line-height: 1.4;
@@ -879,6 +880,7 @@ input[type="radio"] {
 
   .paste-panel {
     height: auto;
+    min-height: 0;
   }
 
   .example-actions {

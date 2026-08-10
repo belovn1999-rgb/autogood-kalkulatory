@@ -14,7 +14,7 @@
 }
 
 .saleWorkspace .workspace {
-  grid-template-columns: minmax(280px, 22%) minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   gap: 22px;
 }
 
@@ -31,8 +31,6 @@
 }
 
 .paste-panel-top .input-card {
-  grid-template-rows: minmax(150px, 220px) auto minmax(150px, 1fr);
-  min-height: 460px;
   min-width: 0;
 }
 
