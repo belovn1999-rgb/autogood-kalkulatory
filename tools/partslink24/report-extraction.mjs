@@ -33,7 +33,7 @@ const jaguarLandRoverProfile = {
   engineSpecificationLabels: [/(?:тип\s+двигателя|typ\s+silnika|engine\s+type|power\s+unit\s+variant|wariant\s+jednostki\s+napędowej|вариант\s+силового\s+агрегата)/i],
   engineTypeLabels: [/(?:тип\s+двигателя|typ\s+silnika|engine\s+type|power\s+unit\s+variant|wariant\s+jednostki\s+napędowej|вариант\s+силового\s+агрегата)/i],
   engineVolumeLabels: [/(?:тип\s+двигателя|typ\s+silnika|engine\s+type|power\s+unit\s+variant|wariant\s+jednostki\s+napędowej|вариант\s+силового\s+агрегата)/i],
-  engineEvidenceLabels: [/(?:тип\s+двигателя|typ\s+silnika|engine\s+type|power\s+unit\s+variant|wariant\s+jednostki\s+napędowej|вариант\s+силового\s+агрегата|MHEV|mild\s+hybrid|мягк(?:ий|ая)\s+гибрид)/i]
+  engineEvidenceLabels: [/(?:тип\s+двигателя|typ\s+silnika|engine\s+type|power\s+unit\s+variant|wariant\s+jednostki\s+napędowej|вариант\s+силового\s+агрегата|M[\s-]*HEV|mild\s+hybrid|мягк(?:ий|ая)\s+гибрид)/i]
 };
 
 const toyotaLexusProfile = {
@@ -89,7 +89,7 @@ const brandReportProfiles = {
     engineVolumeLabels: [/(?:rodzaj\s+silnika|engine\s+type|тип\s+двигателя)/i]
   },
   Hyundai: {
-    engineEvidenceLabels: [/(?:SPECIAL\s+CAR|HEV|HYBRID|PHEV|MHEV|ELECTRIC\s+VEHICLE)/i]
+    engineEvidenceLabels: [/(?:SPECIAL\s+CAR|HEV|HYBRID|PHEV|M[\s-]*HEV|ELECTRIC\s+VEHICLE)/i]
   },
   Jaguar: jaguarLandRoverProfile,
   Jeep: fcaProfile,
@@ -149,7 +149,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
-  const mildHybridRaw = text.match(/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
+  const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
     modelRaw,
     engineSpecificationRaw,
@@ -240,7 +240,7 @@ function resolveStellantisEngineType({
   if (/\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence)) {
     return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
   }
-  if (/\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(powertrainEvidence)) {
+  if (/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(powertrainEvidence)) {
     return baseFuel ? `${baseFuel} + Мягкий гибрид` : "Мягкий гибрид";
   }
   if (/\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(transmissionRaw)) return "Обычный гибрид";
@@ -256,7 +256,7 @@ export function normalizeEngineInfo(info) {
     .join(" ")
     .replace(/(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ\w*\s+двигател\w*|электродвигател\w*)\s*\(?\s*(?:hybrid|hybryd|гибрид)\s*\)?/giu, " ")
     .toLowerCase();
-  const isMildHybrid = /\bmhev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
+  const isMildHybrid = /\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
   const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|подключаем\w*\s+гибрид|плагин[\s-]*гибрид/i.test(source);
   const isHybrid = /\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(source);
   const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил/i.test(source);
@@ -421,13 +421,20 @@ function inferEngineEvidence(brand, values) {
   if (vagBrands.has(brand)) {
     const positiveVagSource = upper.replace(/(?:WITHOUT|BEZ|БЕЗ)\s+(?:AN?\s+)?(?:ELECTRIC\s+(?:ENGINE|MOTOR)|SILNIK(?:A)?\s+ELEKTRYCZN\w*|ЭЛЕКТРОДВИГАТЕЛ\w*)\s*\(?\s*(?:HYBRID|HYBRYD|ГИБРИД)\s*\)?/gi, " ");
     if (/\bPHEV\b|PLUG[\s-]*IN/i.test(positiveVagSource)) return " gasoline PHEV";
-    if (/\bMHEV\b|MILD[\s-]*HYBRID/i.test(positiveVagSource)) return " MHEV";
+    if (/\bM[\s-]*HEV\b|MILD[\s-]*HYBRID/i.test(positiveVagSource)) {
+      const fuel = /\bTDI\b|DIESEL|OLEJ[\s-]*NAPĘDOWY|WYSOKOPRĘŻ/i.test(positiveVagSource)
+        ? "diesel "
+        : /\b(?:TSI|TFSI|FSI)\b|GASOLINE|PETROL|BENZYN/i.test(positiveVagSource)
+          ? "gasoline "
+          : "";
+      return `${fuel}MHEV`;
+    }
     if (/\bE-?TRON\b|ELECTRIC\s+(?:ENGINE|MOTOR|VEHICLE)|ЭЛЕКТРОДВИГАТЕЛ|ЭЛЕКТРОМОБИЛ|SILNIK\s+ELEKTRYCZ/i.test(positiveVagSource)) return " electric vehicle";
   }
 
   if (["Alfa Romeo", "Fiat", "Jeep"].includes(brand)) {
     const fuel = /\bCMB\s+DS\b|^DS\b|DIESEL|ДИЗЕЛ/i.test(source) ? " diesel" : /\bCMB\s+BE\b|^BE\b|BENZIN|БЕНЗИН/i.test(source) ? " gasoline" : "";
-    const hybrid = /\bPHEV\b/i.test(source) ? " PHEV" : /\bMHEV\b/i.test(source) ? " MHEV" : "";
+    const hybrid = /\bPHEV\b/i.test(source) ? " PHEV" : /\bM[\s-]*HEV\b/i.test(source) ? " MHEV" : "";
     return `${fuel}${hybrid}`;
   }
 

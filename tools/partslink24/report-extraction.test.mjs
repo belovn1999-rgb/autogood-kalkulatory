@@ -174,6 +174,16 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
   assert.equal(electric.engineType, "Электрический");
   assert.equal(electric.engineVolume, "");
 
+  const mildHybridDiesel = extractVehicleInfoFromText(`
+model                                Audi A6 Av. 2.0 TDI A6
+Układy paliwowe                      0F3  Układ paliwowy - olej napędowy
+Alternatywny układ napędowy          0K4  Hybrydowy układ napędowy M-HEV
+Napęd hybrydowy                      20A  Bez silnika elektrycznego (Hybrid)
+Specyfikacja silnika                 DE9  4-cyl. silnik wysokoprężny 2,0 l/100 kW TDI
+`, { brand: "Audi", language: "PL" });
+  assert.equal(mildHybridDiesel.engineType, "Дизель + Мягкий гибрид");
+  assert.equal(mildHybridDiesel.engineVolume, "2,0 л");
+
   const sharedModels = [
     ["Volkswagen", "Passat Variant BlueMotion Technology PA", "Passat Variant BlueMotion Technology"],
     ["Seat", "Ateca Xperience AT", "Ateca Xperience"],
