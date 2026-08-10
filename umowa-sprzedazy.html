@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/pdf.css?v=20260810-document-flow-1" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=20260807-contract-ui-1" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260810-identifier-stack-1" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -107,21 +107,21 @@
                   <span>Adres:</span>
                   <input name="buyerAddress" type="text" />
                 </label>
-                <div class="two-fields">
-                  <div class="field">
-                    <label class="identifier-label" for="buyerIdentifierType">
-                      <select id="buyerIdentifierType" name="buyerIdentifierType" aria-label="Rodzaj numeru identyfikacyjnego">
-                        <option value="pesel" selected>PESEL</option>
-                        <option value="nip">NIP</option>
-                      </select>:
-                    </label>
-                    <input id="buyerIdentifier" name="buyerIdentifier" type="text" aria-label="Numer PESEL lub NIP" />
+                <div class="field">
+                  <span id="buyerIdentifierLabel">PESEL / NIP:</span>
+                  <div class="client-kind identifier-kind" role="radiogroup" aria-labelledby="buyerIdentifierLabel">
+                    <label><input name="buyerIdentifierType" type="radio" value="pesel" checked /><span>PESEL</span></label>
+                    <label><input name="buyerIdentifierType" type="radio" value="nip" /><span>NIP</span></label>
                   </div>
-                  <label class="field">
-                    <span>Telefon:</span>
-                    <input name="buyerPhone" type="text" />
-                  </label>
                 </div>
+                <label class="field">
+                  <span>Numer PESEL / NIP:</span>
+                  <input id="buyerIdentifier" name="buyerIdentifier" type="text" />
+                </label>
+                <label class="field">
+                  <span>Telefon:</span>
+                  <input name="buyerPhone" type="text" />
+                </label>
                 <label class="field">
                   <span>E-mail:</span>
                   <input name="buyerEmail" type="email" />

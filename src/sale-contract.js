@@ -400,8 +400,15 @@ function setField(name, value) {
 }
 
 function setBuyerIdentifierType(value) {
+  const normalizedValue = value === "nip" ? "nip" : "pesel";
+  const option = form.querySelector(`input[name="buyerIdentifierType"][value="${normalizedValue}"]`);
+  if (option) {
+    option.checked = true;
+    return;
+  }
+
   const field = form.querySelector('[name="buyerIdentifierType"]');
-  if (field) field.value = value === "nip" ? "nip" : "pesel";
+  if (field) field.value = normalizedValue;
 }
 
 function stripKnownNoise(value) {
