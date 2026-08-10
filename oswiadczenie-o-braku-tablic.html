@@ -3,7 +3,134 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Oświadczenie o braku tablic</title>
+    <title>AUTOGOOD Oświadczenie o braku tablic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260810-no-plates-1" />
+    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260810-1" />
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
   </head>
-  <body></body>
+  <body>
+    <main class="app-shell declarationWorkspace">
+      <header class="topbar">
+        <div class="brand">
+          <a href="./umowy.html" aria-label="AUTOGOOD Umowy">
+            <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          </a>
+          <span class="brandDivider" aria-hidden="true"></span>
+          <span class="brandTitle">Oświadczenie<span class="badge-pill">Brak tablic</span></span>
+        </div>
+        <div class="actions">
+          <button id="printDeclaration" class="secondary-top-btn" type="button">Drukuj</button>
+          <button id="saveDeclarationPdf" class="primary-btn" type="button">Pobierz i zapisz PDF</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="utility-column">
+          <section class="paste-panel declaration-choice-panel">
+            <div class="section-title">Wybór</div>
+            <div class="input-card">
+              <fieldset class="declaration-choice" aria-label="Sposób zakupu">
+                <legend>Zakup</legend>
+                <label><input name="purchaseMode" type="radio" value="autogood" checked /><span>Przez AUTOGOOD</span></label>
+                <label><input name="purchaseMode" type="radio" value="direct" /><span>Bezpośredni</span></label>
+              </fieldset>
+
+              <fieldset id="clientGenderChoice" class="declaration-choice" hidden aria-label="Rodzaj oświadczenia klienta">
+                <legend>Oświadczenie klienta</legend>
+                <label><input name="clientGender" type="radio" value="man" checked /><span>Pan</span></label>
+                <label><input name="clientGender" type="radio" value="woman" /><span>Pani</span></label>
+              </fieldset>
+              <p id="declarationHint" class="declaration-hint">Wypełnij dane do oświadczenia AUTOGOOD.</p>
+              <div id="declarationStatus" class="status" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section class="contract-history history-strip">
+            <div class="history-title">Historia zapisów</div>
+            <div id="declarationHistoryList" class="history-list"></div>
+          </section>
+        </aside>
+
+        <section class="form-section">
+          <form id="declarationForm" class="declaration-form">
+            <section class="contract-grid declaration-grid">
+              <section class="contract-card">
+                <div class="card-head">DANE OŚWIADCZENIA:</div>
+                <div id="autogoodFields">
+                  <label class="field">
+                    <span>Data oświadczenia:</span>
+                    <input name="autogoodDate" type="date" />
+                  </label>
+                  <label class="field">
+                    <span>Marka i model:</span>
+                    <input name="vehicleMakeModel" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>VIN:</span>
+                    <input name="vehicleVin" type="text" autocomplete="off" />
+                  </label>
+                </div>
+
+                <div id="directFields" hidden>
+                  <div class="two-fields">
+                    <label class="field">
+                      <span>Miejscowość:</span>
+                      <input name="city" type="text" autocomplete="address-level2" />
+                    </label>
+                    <label class="field">
+                      <span>Data oświadczenia:</span>
+                      <input name="documentDate" type="date" />
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span>Imię i nazwisko:</span>
+                    <input name="clientName" type="text" autocomplete="name" />
+                  </label>
+                  <div class="two-fields">
+                    <label class="field">
+                      <span>Dokument tożsamości:</span>
+                      <input name="identityDocument" type="text" autocomplete="off" />
+                    </label>
+                    <label class="field">
+                      <span>Numer dokumentu:</span>
+                      <input name="identityNumber" type="text" autocomplete="off" />
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span>Marka i model:</span>
+                    <input name="vehicleMakeModel" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>VIN:</span>
+                    <input name="vehicleVin" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Data sprowadzenia pojazdu:</span>
+                    <input name="importDate" type="date" />
+                  </label>
+                </div>
+              </section>
+
+              <section class="contract-card declaration-preview-card">
+                <div class="card-head">SZABLON:</div>
+                <p id="templateTitle" class="declaration-template-title">AUTOGOOD</p>
+                <p id="templateDescription" class="declaration-template-description">
+                  Oświadczenie podpisywane przez AUTOGOOD. Dane firmy są już wpisane w pliku PDF.
+                </p>
+                <p class="declaration-privacy-note">Dane są przetwarzane wyłącznie w Twojej przeglądarce.</p>
+              </section>
+            </section>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="./src/no-plates-declaration.js?v=20260810-1"></script>
+  </body>
 </html>
