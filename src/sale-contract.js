@@ -398,6 +398,11 @@ function setField(name, value) {
   field.value = value;
 }
 
+function setBuyerIdentifierType(value) {
+  const option = form.querySelector(`input[name="buyerIdentifierType"][value="${value}"]`);
+  if (option) option.checked = true;
+}
+
 function stripKnownNoise(value) {
   return normalizeSpace(String(value || "").replace(/^[-–—•*]+/, "").replace(/^[/:;,.\s-]+|[/:;,.\s-]+$/g, ""));
 }
@@ -660,7 +665,7 @@ function parseBuyerContactData(text) {
     extractLabeled(compactWithoutPhones, saleRecognitionLabels.nip) ||
     joinedWithoutPhones.match(/\b(?:NIP[:\s]*)?(\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2})\b/i)?.[1] ||
     "";
-  const nip = nipRaw.replace(/\D/g, "");
+  const nip = nipRaw.match(/\d{3}[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/)?.[0]?.replace(/\D/g, "") || "";
   const buyerType = parseBuyerType(compact, { pesel, nip });
   const isCompany = buyerType === "company";
   const documentValue = parseDocumentValue(compact);
@@ -671,6 +676,7 @@ function parseBuyerContactData(text) {
     name: parseBuyerName(joined, isCompany),
     address: cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue }),
     identifier: isCompany ? nip : pesel,
+    identifierType: isCompany ? "nip" : "pesel",
     phone: normalizeSpace(phone),
     email,
   };
@@ -720,6 +726,7 @@ function parseSaleData() {
   setField("buyerName", buyer.name);
   setField("buyerAddress", buyer.address);
   setField("buyerIdentifier", buyer.identifier);
+  setBuyerIdentifierType(buyer.identifierType);
   setField("buyerPhone", buyer.phone);
   setField("buyerEmail", buyer.email);
   if (buyer.type === "company") setField("buyerProfessional", "tak");
@@ -1213,7 +1220,8 @@ function replaceText(root, search, replacement) {
 
 function fillBuyerBlock(root, data) {
   replaceText(root, "P.H.U. Kazimierz Florczyk", data.buyerName);
-  replaceText(root, "NIP: 7211070432", data.buyerIdentifier ? `NIP/PESEL: ${data.buyerIdentifier}` : "NIP/PESEL:");
+  const identifierLabel = data.buyerIdentifierType === "nip" ? "NIP" : "PESEL";
+  replaceText(root, "NIP: 7211070432", data.buyerIdentifier ? `${identifierLabel}: ${data.buyerIdentifier}` : `${identifierLabel}:`);
   replaceText(root, "ul. Targowa 2 18-500 Kolno", data.buyerAddress);
   replaceText(root, "+48 692 428\u00a0958", data.buyerPhone);
   replaceText(root, "kazimierz@florczyk.com.pl", data.buyerEmail);
@@ -1526,6 +1534,7 @@ function resetSaleContract() {
     const field = form.querySelector(`[name="${name}"]`);
     if (field) field.value = "";
   });
+  setBuyerIdentifierType("pesel");
   setField("generalWear", "przecietne");
   damageMarks = [];
   writeDamageMarks();

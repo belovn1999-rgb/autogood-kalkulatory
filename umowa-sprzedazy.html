@@ -102,10 +102,16 @@
                   <input name="buyerAddress" type="text" />
                 </label>
                 <div class="two-fields">
-                  <label class="field">
-                    <span>PESEL / NIP:</span>
-                    <input name="buyerIdentifier" type="text" />
-                  </label>
+                  <div class="field">
+                    <span id="buyerIdentifierLabel">PESEL / NIP:</span>
+                    <div class="identifier-control">
+                      <div class="client-kind identifier-kind" role="radiogroup" aria-labelledby="buyerIdentifierLabel">
+                        <label><input name="buyerIdentifierType" type="radio" value="pesel" checked /><span>PESEL</span></label>
+                        <label><input name="buyerIdentifierType" type="radio" value="nip" /><span>NIP</span></label>
+                      </div>
+                      <input name="buyerIdentifier" type="text" aria-labelledby="buyerIdentifierLabel" />
+                    </div>
+                  </div>
                   <label class="field">
                     <span>Telefon:</span>
                     <input name="buyerPhone" type="text" />
@@ -253,6 +259,6 @@
 
     <script src="./src/pdf-config.js?v=20260616-4"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/sale-contract.js?v=20260810-pdf-viewer-1"></script>
+    <script src="./src/sale-contract.js?v=20260810-identifier-type-1"></script>
   </body>
 </html>
