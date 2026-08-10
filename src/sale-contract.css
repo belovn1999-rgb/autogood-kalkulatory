@@ -31,7 +31,8 @@
 }
 
 .paste-panel-top .input-card {
-  grid-template-rows: minmax(150px, 220px) auto auto;
+  grid-template-rows: minmax(150px, 220px) auto minmax(150px, 1fr);
+  min-height: 460px;
   min-width: 0;
 }
 
@@ -115,26 +116,29 @@
   overflow-wrap: anywhere;
 }
 
-.identifier-control {
-  display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  gap: 8px;
+.identifier-label {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
-.identifier-kind {
-  gap: 4px;
+.identifier-label select {
+  width: auto;
+  min-height: 0;
+  padding: 0 18px 0 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 800;
 }
 
-.identifier-kind label > span {
-  justify-content: center;
-  min-height: 40px;
-  padding: 8px 7px;
-}
-
-@media (max-width: 700px) {
-  .identifier-control {
-    grid-template-columns: 1fr;
-  }
+.paste-panel-top #saleStatus {
+  align-self: stretch;
+  min-height: 150px;
 }
 
 /* Forty questions is a list, not forty boxes: hairline-separated rows with

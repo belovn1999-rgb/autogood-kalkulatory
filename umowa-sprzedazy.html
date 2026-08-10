@@ -24,7 +24,6 @@
           <span class="brandTitle">Umowa<span class="badge-pill">Sprzedaż</span></span>
         </div>
         <div class="actions">
-          <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
           <div class="document-flow" aria-label="Proces przygotowania dokumentu">
             <button id="pullSaleCrmDataBtn" class="secondary-top-btn" type="button">Wyciągnij dane</button>
             <span class="flow-arrow" aria-hidden="true">→</span>
@@ -46,6 +45,7 @@
               <div class="example-actions">
                 <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
                 <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
+                <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
               </div>
               <div id="saleStatus" class="status" aria-live="polite"></div>
             </div>
@@ -109,14 +109,13 @@
                 </label>
                 <div class="two-fields">
                   <div class="field">
-                    <span id="buyerIdentifierLabel">PESEL / NIP:</span>
-                    <div class="identifier-control">
-                      <div class="client-kind identifier-kind" role="radiogroup" aria-labelledby="buyerIdentifierLabel">
-                        <label><input name="buyerIdentifierType" type="radio" value="pesel" checked /><span>PESEL</span></label>
-                        <label><input name="buyerIdentifierType" type="radio" value="nip" /><span>NIP</span></label>
-                      </div>
-                      <input name="buyerIdentifier" type="text" aria-labelledby="buyerIdentifierLabel" />
-                    </div>
+                    <label class="identifier-label" for="buyerIdentifierType">
+                      <select id="buyerIdentifierType" name="buyerIdentifierType" aria-label="Rodzaj numeru identyfikacyjnego">
+                        <option value="pesel" selected>PESEL</option>
+                        <option value="nip">NIP</option>
+                      </select>:
+                    </label>
+                    <input id="buyerIdentifier" name="buyerIdentifier" type="text" aria-label="Numer PESEL lub NIP" />
                   </div>
                   <label class="field">
                     <span>Telefon:</span>
@@ -265,6 +264,6 @@
 
     <script src="./src/pdf-config.js?v=20260616-4"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/sale-contract.js?v=20260810-crm-placeholder-1"></script>
+    <script src="./src/sale-contract.js?v=20260810-identifier-layout-1"></script>
   </body>
 </html>

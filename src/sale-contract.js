@@ -400,8 +400,8 @@ function setField(name, value) {
 }
 
 function setBuyerIdentifierType(value) {
-  const option = form.querySelector(`input[name="buyerIdentifierType"][value="${value}"]`);
-  if (option) option.checked = true;
+  const field = form.querySelector('[name="buyerIdentifierType"]');
+  if (field) field.value = value === "nip" ? "nip" : "pesel";
 }
 
 function stripKnownNoise(value) {
