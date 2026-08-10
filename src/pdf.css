@@ -136,6 +136,22 @@ body.export-contract .brandTitle::after {
   justify-content: flex-end;
 }
 
+.document-flow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.flow-arrow {
+  flex: 0 0 auto;
+  width: 12px;
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
 .date-field,
 .sequence-field {
   display: grid;
@@ -921,6 +937,29 @@ input[type="radio"] {
 
   body.export-contract .brandTitle::after {
     margin-left: 10px;
+  }
+
+  .document-flow {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.35fr) 10px minmax(0, 0.8fr) 10px
+      minmax(0, 0.7fr) 10px minmax(0, 1.05fr);
+    gap: 4px;
+    width: 100%;
+  }
+
+  .document-flow .primary-btn,
+  .document-flow .secondary-top-btn {
+    width: 100%;
+    min-width: 0;
+    padding: 0 7px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .document-flow .flow-arrow {
+    width: 10px;
+    font-size: 12px;
   }
 
   .primary-btn,

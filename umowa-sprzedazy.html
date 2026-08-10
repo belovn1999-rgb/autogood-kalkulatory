@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260809-pdf-encryption-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260810-document-flow-1" />
     <link rel="stylesheet" href="./src/sale-contract.css?v=20260807-contract-ui-1" />
   </head>
   <body>
@@ -25,10 +25,15 @@
         </div>
         <div class="actions">
           <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
-          <button id="pullSaleCrmDataBtn" class="secondary-top-btn" type="button">Wyciągnij dane</button>
-          <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
-          <button id="generateSalePdf" class="primary-btn" type="button">PDF</button>
-          <button id="encryptSalePdf" class="secondary-top-btn" type="button">Zaszyfruj</button>
+          <div class="document-flow" aria-label="Proces przygotowania dokumentu">
+            <button id="pullSaleCrmDataBtn" class="secondary-top-btn" type="button">Wyciągnij dane</button>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <button id="generateSalePdf" class="primary-btn" type="button">PDF</button>
+            <span class="flow-arrow" aria-hidden="true">→</span>
+            <button id="encryptSalePdf" class="secondary-top-btn" type="button">Zaszyfruj</button>
+          </div>
         </div>
       </header>
 
