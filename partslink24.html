@@ -785,6 +785,7 @@
       const defaultPartslinkApiBase = "https://ashley-instantly-starring-regular.trycloudflare.com";
       let brandTypeahead = "";
       let brandTypeaheadTimer;
+      const brandTypeaheadTimeout = 2000;
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -1014,6 +1015,8 @@
       function closeBrandPicker() {
         brandPickerOptions.hidden = true;
         brandPickerButton.setAttribute("aria-expanded", "false");
+        clearTimeout(brandTypeaheadTimer);
+        brandTypeahead = "";
       }
 
       function toggleBrandPicker() {
@@ -1028,6 +1031,7 @@
       function selectBrandFromTypeahead(event) {
         if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1 || !event.key.trim()) return;
 
+        clearTimeout(brandTypeaheadTimer);
         const typed = event.key.toLocaleLowerCase();
         const options = [...brandPickerOptions.querySelectorAll("[role='option']")];
         const currentIndex = options.findIndex((option) => option.dataset.value === brandSelect.value);
@@ -1043,19 +1047,19 @@
           }
         }
 
+        event.preventDefault();
+        brandTypeaheadTimer = setTimeout(() => {
+          brandTypeahead = "";
+        }, brandTypeaheadTimeout);
+
         const match = matches[0];
         if (!match) return;
 
-        event.preventDefault();
         if (brandPickerOptions.hidden) toggleBrandPicker();
         brandSelect.value = match.dataset.value;
         brandSelect.dispatchEvent(new Event("change"));
         match.focus();
         match.scrollIntoView({ block: "nearest" });
-        clearTimeout(brandTypeaheadTimer);
-        brandTypeaheadTimer = setTimeout(() => {
-          brandTypeahead = "";
-        }, 700);
       }
 
       function closeLanguagePicker() {
