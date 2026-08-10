@@ -188,10 +188,10 @@ function replaceClientTopDate(page, date, font) {
 }
 
 function removeCountryStatement(page, font) {
-  page.drawRectangle({ x: 169, y: 401, width: 295, height: 29, color: window.PDFLib.rgb(1, 1, 1) });
-  page.drawText(" do Polski bez tablic rejestracyjnych.", {
-    x: 168,
-    y: 412,
+  page.drawRectangle({ x: 168, y: 401, width: 296, height: 29, color: window.PDFLib.rgb(1, 1, 1) });
+  page.drawText("do Polski bez tablic rejestracyjnych.", {
+    x: 168.73,
+    y: 414.4,
     size: 12,
     font,
     color: window.PDFLib.rgb(0, 0, 0),
