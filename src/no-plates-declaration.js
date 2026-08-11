@@ -5,8 +5,6 @@ const genderChoice = document.querySelector("#clientGenderChoice");
 const autogoodFields = document.querySelector("#autogoodFields");
 const directFields = document.querySelector("#directFields");
 const hintEl = document.querySelector("#declarationHint");
-const templateTitleEl = document.querySelector("#templateTitle");
-const templateDescriptionEl = document.querySelector("#templateDescription");
 const printButton = document.querySelector("#printDeclaration");
 const saveButton = document.querySelector("#saveDeclarationPdf");
 
@@ -47,14 +45,10 @@ function updateVariant() {
   autogoodFields.hidden = direct;
   directFields.hidden = !direct;
 
-  const type = declarationType();
-  templateTitleEl.textContent = type;
   if (!direct) {
     hintEl.textContent = "Wypełnij dane do oświadczenia AUTOGOOD.";
-    templateDescriptionEl.textContent = "Oświadczenie podpisywane przez AUTOGOOD. Dane firmy są już wpisane w pliku PDF.";
   } else {
     hintEl.textContent = "Wybierz Pan albo Pani i uzupełnij dane właściciela pojazdu.";
-    templateDescriptionEl.textContent = "Oświadczenie właściciela pojazdu.";
   }
 }
 
