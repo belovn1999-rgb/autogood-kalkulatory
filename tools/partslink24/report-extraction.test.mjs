@@ -97,6 +97,22 @@ ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT),
   }
 });
 
+test("all Mercedes catalogs use delivery date as the displayed date", () => {
+  const brands = ["Mercedes-Benz", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans"];
+  const reports = [
+    ["RU", "Дата поставки 15.02.2022"],
+    ["PL", "Data dostawy 15.02.2022"],
+    ["ENG", "Delivery date 15.02.2022"]
+  ];
+
+  for (const brand of brands) {
+    for (const [language, text] of reports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.productionDate, "15.02.2022 (дата поставки)", `${brand} ${language}`);
+    }
+  }
+});
+
 test("PSA reports derive dates from alphanumeric DAM and read the engine row", () => {
   const result = extractVehicleInfoFromText(`
 Модель                                 C5 AIRCROSS (C84)

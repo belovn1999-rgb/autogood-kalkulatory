@@ -53,10 +53,17 @@ const stellantisTransmissionLabels = [
 ];
 
 const vagBrands = new Set(["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"]);
+const mercedesBrands = new Set(["Mercedes-Benz", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans"]);
 
 const vagPowertrainLabels = [
   /(?:альтернативная\s+система\s+привода|alternatywny\s+układ\s+napędowy|alternative\s+(?:drive|powertrain)(?:\s+system)?|гибридный\s+привод|napęd\s+hybrydowy|hybrid\s+drive)/i
 ];
+
+const mercedesProfile = {
+  modelLabels: [/(?:торговое\s+наименование|oznaczenie\s+handlowe|trade\s+designation|commercial\s+designation)/i],
+  productionDateLabels: [/(?:дата\s+поставки|data\s+dostawy|delivery\s+date)/i],
+  engineEvidenceLabels: [/(?:рабочий\s+объ[её]м|pojemność\s+skokowa|engine\s+(?:capacity|displacement)|двигатель\s+с\s+искровым\s+зажиганием|silnik\s+benzynowy|gasoline\s+engine|pojazd\s+hybrydowy|гибридный\s+автомобиль|hybrid\s+vehicle|plug[\s-]*in|PHEV)/i]
+};
 
 // Locations below come from the operator's verified report matrix. Generic
 // labels remain as fallbacks because the same layout is translated by the portal.
@@ -95,11 +102,11 @@ const brandReportProfiles = {
   Jeep: fcaProfile,
   "Land Rover": jaguarLandRoverProfile,
   Lexus: toyotaLexusProfile,
-  "Mercedes-Benz": {
-    modelLabels: [/(?:торговое\s+наименование|oznaczenie\s+handlowe|trade\s+designation|commercial\s+designation)/i],
-    productionDateLabels: [/(?:дата\s+поставки|data\s+dostawy|delivery\s+date)/i],
-    engineEvidenceLabels: [/(?:рабочий\s+объ[её]м|pojemność\s+skokowa|engine\s+(?:capacity|displacement)|двигатель\s+с\s+искровым\s+зажиганием|silnik\s+benzynowy|gasoline\s+engine|pojazd\s+hybrydowy|гибридный\s+автомобиль|hybrid\s+vehicle|plug[\s-]*in|PHEV)/i]
-  },
+  "Mercedes-Benz": mercedesProfile,
+  "Mercedes Classic": mercedesProfile,
+  "Mercedes Trucks": mercedesProfile,
+  "Mercedes Unimog": mercedesProfile,
+  "Mercedes Vans": mercedesProfile,
   Mini: {
     modelLabels: [/(?:model|модель)/i],
     engineTypeLabels: [/(?:kod\s+silnika|код\s+двигателя|engine\s+code)/i]
@@ -149,7 +156,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
-  const mercedesPowertrainRaw = brand === "Mercedes-Benz" ? collectMercedesPowertrainEvidence(text) : "";
+  const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
   const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
     modelRaw,
@@ -201,7 +208,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   } else {
     productionDate = formatProductionDate(findFirstPdfValue(text, profile.productionDateLabels), language, profile.dateOrder);
   }
-  if (brand === "Mercedes-Benz" && productionDate) {
+  if (mercedesBrands.has(brand) && productionDate) {
     productionDate = `${productionDate} (дата поставки)`;
   }
 
