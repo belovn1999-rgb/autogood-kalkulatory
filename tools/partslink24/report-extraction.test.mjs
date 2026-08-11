@@ -75,6 +75,25 @@ test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
   }
 });
 
+test("Mercedes scans the full report for plug-in evidence after a diesel engine row", () => {
+  const reports = [
+    ["RU", `Тип двигателя                    Дизель
+M654         ДИЗЕЛЬНЫЙ ДВИГАТЕЛЬ R4 OM654
+ME05         ГИБРИДНЫЙ ПРИВОД (МОДИФИКАЦИЯ 85 КВТ - 94 КВТ), ПОДКЛЮЧАЕМЫЙ`],
+    ["PL", `Rodzaj silnika                   Diesel
+M654         SILNIK WYSOKOPRĘŻNY R4 OM654
+ME05         NAPĘD HYBRYDOWY (WARIANT 85 KW - 94 KW), PLUG-IN`],
+    ["ENG", `Engine type                     Diesel
+M654         R4 DIESEL ENGINE OM654
+ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT), PLUG-IN`]
+  ];
+
+  for (const [language, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
+    assert.equal(result.engineType, "Дизель + Plug-in Гибрид", language);
+  }
+});
+
 test("PSA reports derive dates from alphanumeric DAM and read the engine row", () => {
   const result = extractVehicleInfoFromText(`
 Модель                                 C5 AIRCROSS (C84)
