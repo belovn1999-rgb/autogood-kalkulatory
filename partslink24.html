@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pl">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -89,6 +89,44 @@
         gap: var(--ag-space-md);
         flex-wrap: wrap;
         min-width: 0;
+      }
+
+      .partslinkHeaderActions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--ag-space-md);
+        min-width: 0;
+      }
+
+      .partslinkUiLanguageSwitch {
+        display: inline-flex;
+        flex: 0 0 auto;
+        overflow: hidden;
+        border: 1px solid var(--ag-color-rule-2);
+        border-radius: var(--ag-radius-control);
+      }
+
+      .partslinkUiLanguageSwitch button {
+        min-width: 42px;
+        border: 0;
+        background: var(--ag-color-surface);
+        color: var(--ag-color-muted);
+        padding: 7px 12px;
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .partslinkUiLanguageSwitch button + button {
+        border-left: 1px solid var(--ag-color-rule-2);
+      }
+
+      .partslinkUiLanguageSwitch button[aria-pressed="true"] {
+        background: var(--ag-color-accent-dark);
+        color: var(--ag-color-accent-ink);
       }
 
       .partslinkNav a {
@@ -577,6 +615,11 @@
           justify-content: flex-start;
         }
 
+        .partslinkHeaderActions {
+          justify-content: space-between;
+          width: 100%;
+        }
+
         .partslinkHero {
           gap: var(--ag-space-md);
         }
@@ -639,25 +682,31 @@
           <span class="partslinkWordmarkDivider" aria-hidden="true"></span>
           <span>VIN Check</span>
         </a>
-        <nav class="partslinkNav" aria-label="Workspace navigation">
-          <a href="./">Tools</a>
-          <a href="./calculators.html">Kalkulatory</a>
-          <a href="./umowy.html">Umowy PDF</a>
-          <a href="./auctions.html">Aukcje</a>
-        </nav>
+        <div class="partslinkHeaderActions">
+          <nav class="partslinkNav" aria-label="Навигация">
+            <a href="./" data-ui-key="navTools">Инструменты</a>
+            <a href="./calculators.html" data-ui-key="navCalculators">Калькуляторы</a>
+            <a href="./umowy.html" data-ui-key="navContracts">Договоры PDF</a>
+            <a href="./auctions.html" data-ui-key="navAuctions">Аукционы</a>
+          </nav>
+          <div id="partslinkUiLanguageSwitch" class="partslinkUiLanguageSwitch" aria-label="Язык интерфейса">
+            <button type="button" data-ui-language="pl" aria-pressed="false">PL</button>
+            <button type="button" data-ui-language="ru" aria-pressed="true">RU</button>
+          </div>
+        </div>
       </header>
 
       <section class="partslinkHero">
         <div>
-          <p class="partslinkEyebrow">Проверка VIN</p>
+          <p class="partslinkEyebrow" data-ui-key="vinCheck">Проверка VIN</p>
         </div>
       </section>
 
       <section class="partslinkWorkbench" aria-label="VIN PDF and production date form">
         <div class="partslinkCard">
-          <p class="partslinkPanelTitle">Данные проверки</p>
+          <p class="partslinkPanelTitle" data-ui-key="checkData">Данные проверки</p>
           <label class="partslinkField">
-            <span>1. Язык</span>
+            <span data-ui-key="reportLanguage">1. Язык отчёта</span>
             <div class="partslinkBrandPicker partslinkLanguagePicker">
               <button id="partslinkLanguageButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkLanguageOptions">
                 <span id="partslinkLanguageLabel"></span>
@@ -673,7 +722,7 @@
           </label>
 
           <label class="partslinkField">
-            <span>2. Марка авто</span>
+            <span data-ui-key="vehicleBrand">2. Марка авто</span>
             <div class="partslinkBrandPicker">
               <button id="partslinkBrandButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkBrandOptions">
                 <span id="partslinkBrandLabel"></span>
@@ -687,38 +736,38 @@
           <label class="partslinkField">
             <span>3. VIN</span>
             <input id="partslinkVin" name="vin" type="text" autocomplete="off" maxlength="17" />
-            <small class="partslinkHint">17 символов.</small>
+            <small class="partslinkHint" data-ui-key="vinHint">17 символов.</small>
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" type="button">Проверить данные</button>
+            <button id="partslinkCheckButton" type="button" data-ui-key="checkButton">Проверить данные</button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
 
         <aside class="partslinkResultCard" aria-label="VIN check result">
           <div class="partslinkResultHead">
-            <p class="partslinkPanelTitle">Результат</p>
+            <p class="partslinkPanelTitle" data-ui-key="result">Результат</p>
             <button id="partslinkCopyResult" class="partslinkCopyResult" type="button" aria-label="Скопировать VIN и дату производства" title="Скопировать VIN и дату производства" disabled>
               <span class="partslinkCopyResultIcon" aria-hidden="true">&#10697;</span>
-              <span>Копировать</span>
+              <span data-ui-key="copyButton">Копировать</span>
             </button>
           </div>
           <div class="partslinkSpecRows">
             <label class="partslinkSpecRow" for="partslinkVehicleDescription">
-              <span>Марка и модель авто</span>
+              <span data-ui-key="brandAndModel">Марка и модель авто</span>
               <input id="partslinkVehicleDescription" class="partslinkReadonlyField" name="vehicleDescription" type="text" readonly placeholder="—" />
             </label>
             <label class="partslinkSpecRow" for="partslinkProductionDate">
-              <span>Дата производства</span>
+              <span data-ui-key="productionDate">Дата производства</span>
               <input id="partslinkProductionDate" class="partslinkReadonlyField" name="productionDate" type="text" readonly placeholder="—" />
             </label>
             <label class="partslinkSpecRow" for="partslinkEngineType">
-              <span>Тип двигателя</span>
+              <span data-ui-key="engineType">Тип двигателя</span>
               <input id="partslinkEngineType" class="partslinkReadonlyField" name="engineType" type="text" readonly placeholder="—" />
             </label>
             <label class="partslinkSpecRow" for="partslinkEngineVolume">
-              <span>Объем двигателя</span>
+              <span data-ui-key="engineVolume">Объем двигателя</span>
               <input id="partslinkEngineVolume" class="partslinkReadonlyField" name="engineVolume" type="text" readonly placeholder="—" />
             </label>
           </div>
@@ -727,7 +776,7 @@
 
       <section class="partslinkFileBlock" aria-label="Файл VIN">
         <div class="partslinkFileHead">
-          <p class="partslinkPanelTitle">Файл VIN</p>
+          <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
           <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
         </div>
         <div id="partslinkFileViewer" class="partslinkFileViewer" data-empty="true"></div>
@@ -753,7 +802,89 @@
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const fileViewer = document.getElementById("partslinkFileViewer");
       const statusLine = document.getElementById("partslinkStatus");
-      const emptyFileMessage = "После проверки здесь появится файл VIN.";
+      const uiLanguageSwitch = document.getElementById("partslinkUiLanguageSwitch");
+      const uiLanguageButtons = [...uiLanguageSwitch.querySelectorAll("[data-ui-language]")];
+      const uiCopy = {
+        ru: {
+          pageTitle: "AUTOGOOD VIN спецификация",
+          navTools: "Инструменты",
+          navCalculators: "Калькуляторы",
+          navContracts: "Договоры PDF",
+          navAuctions: "Аукционы",
+          vinCheck: "Проверка VIN",
+          checkData: "Данные проверки",
+          reportLanguage: "1. Язык отчёта",
+          vehicleBrand: "2. Марка авто",
+          vinHint: "17 символов.",
+          checkButton: "Проверить данные",
+          result: "Результат",
+          copyButton: "Копировать",
+          brandAndModel: "Марка и модель авто",
+          productionDate: "Дата производства",
+          engineType: "Тип двигателя",
+          engineVolume: "Объем двигателя",
+          vinFile: "Файл VIN",
+          navigationAria: "Навигация",
+          uiLanguageAria: "Язык интерфейса",
+          resultAria: "Результат проверки VIN",
+          fileAria: "Файл VIN",
+          copyTitle: "Скопировать VIN и дату производства",
+          copied: "Скопировано",
+          clipboardProductionDate: "Дата производства",
+          emptyFile: "После проверки здесь появится файл VIN.",
+          copyError: "Не удалось скопировать данные.",
+          noFile: "Сервер не вернул файл.",
+          downloadFile: "Выгрузить файл",
+          downloadFileNumber: (number) => `Выгрузить файл ${number}`,
+          previewUnavailable: (fileName) => `Предпросмотр недоступен. Скачайте файл ${fileName} кнопкой выше.`,
+          invalidVin: "VIN должен содержать 17 символов: проверьте ввод и повторите.",
+          checking: "Проверяем данные и готовим файл VIN...",
+          backendUnavailable: "Сервер проверки VIN недоступен.",
+          readyMany: "Данные получены, файлы готовы в блоке «Файл VIN».",
+          readyOne: "Данные получены, файл готов в блоке «Файл VIN».",
+          httpsError: "GitHub-странице нужен HTTPS backend. Откройте ссылку с параметром ?api=адрес_backend или локальную страницу."
+        },
+        pl: {
+          pageTitle: "AUTOGOOD Specyfikacja VIN",
+          navTools: "Narzędzia",
+          navCalculators: "Kalkulatory",
+          navContracts: "Umowy PDF",
+          navAuctions: "Aukcje",
+          vinCheck: "Weryfikacja VIN",
+          checkData: "Dane do weryfikacji",
+          reportLanguage: "1. Język raportu",
+          vehicleBrand: "2. Marka samochodu",
+          vinHint: "17 znaków.",
+          checkButton: "Sprawdź dane",
+          result: "Wynik",
+          copyButton: "Kopiuj",
+          brandAndModel: "Marka i model samochodu",
+          productionDate: "Data produkcji",
+          engineType: "Typ silnika",
+          engineVolume: "Pojemność silnika",
+          vinFile: "Plik VIN",
+          navigationAria: "Nawigacja",
+          uiLanguageAria: "Język interfejsu",
+          resultAria: "Wynik weryfikacji VIN",
+          fileAria: "Plik VIN",
+          copyTitle: "Kopiuj VIN i datę produkcji",
+          copied: "Skopiowano",
+          clipboardProductionDate: "Data produkcji",
+          emptyFile: "Po weryfikacji pojawi się tutaj plik VIN.",
+          copyError: "Nie udało się skopiować danych.",
+          noFile: "Serwer nie zwrócił pliku.",
+          downloadFile: "Pobierz plik",
+          downloadFileNumber: (number) => `Pobierz plik ${number}`,
+          previewUnavailable: (fileName) => `Podgląd jest niedostępny. Pobierz plik ${fileName} przyciskiem powyżej.`,
+          invalidVin: "VIN musi zawierać 17 znaków. Sprawdź wpisane dane i spróbuj ponownie.",
+          checking: "Sprawdzamy dane i przygotowujemy plik VIN...",
+          backendUnavailable: "Serwer weryfikacji VIN jest niedostępny.",
+          readyMany: "Dane zostały pobrane. Pliki są gotowe w sekcji „Plik VIN”.",
+          readyOne: "Dane zostały pobrane. Plik jest gotowy w sekcji „Plik VIN”.",
+          httpsError: "Strona GitHub wymaga backendu HTTPS. Otwórz link z parametrem ?api=adres_backendu albo stronę lokalną."
+        }
+      };
+      let uiLanguage = "ru";
       let previewObjectUrls = [];
       const fallbackBrands = {
         Abarth: { route: "pending_demo" },
@@ -865,6 +996,75 @@
         return `${brand}_${vin}_${language}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
       }
 
+      function uiText(key, ...args) {
+        const value = uiCopy[uiLanguage][key];
+        return typeof value === "function" ? value(...args) : value;
+      }
+
+      function readStoredUiLanguage() {
+        try {
+          return localStorage.getItem("partslink24-ui-language") === "pl" ? "pl" : "ru";
+        } catch {
+          return "ru";
+        }
+      }
+
+      function localizeEngineType(value) {
+        if (uiLanguage !== "pl") return value;
+        return value
+          .replace(/Plug-in Гибрид/gi, "Hybryda Plug-in")
+          .replace(/Обычный гибрид/gi, "Hybryda")
+          .replace(/Мягкий гибрид/gi, "Miękka hybryda")
+          .replace(/Электрический/gi, "Elektryczny")
+          .replace(/Бензин/gi, "Benzyna")
+          .replace(/Дизель/gi, "Diesel");
+      }
+
+      function renderLocalizedResultValues() {
+        const productionDate = productionDateInput.dataset.rawValue || "";
+        const engineType = engineTypeInput.dataset.rawValue || "";
+        const engineVolume = engineVolumeInput.dataset.rawValue || "";
+        productionDateInput.value = uiLanguage === "pl"
+          ? productionDate.replace(/\(дата поставки\)/gi, "(data dostawy)")
+          : productionDate;
+        engineTypeInput.value = localizeEngineType(engineType);
+        engineVolumeInput.value = uiLanguage === "pl" ? engineVolume.replace(/\sл(?=\s|$)/gi, " l") : engineVolume;
+      }
+
+      function updateCopyButtonLabel() {
+        const key = copyResultButton.dataset.copied === "true" ? "copied" : "copyTitle";
+        copyResultButton.title = uiText(key);
+        copyResultButton.setAttribute("aria-label", copyResultButton.title);
+      }
+
+      function applyUiLanguage(language, { persist = true } = {}) {
+        uiLanguage = language === "pl" ? "pl" : "ru";
+        document.documentElement.lang = uiLanguage;
+        document.title = uiText("pageTitle");
+        document.querySelectorAll("[data-ui-key]").forEach((element) => {
+          element.textContent = uiText(element.dataset.uiKey);
+        });
+        uiLanguageButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.uiLanguage === uiLanguage));
+        });
+        document.querySelector(".partslinkNav")?.setAttribute("aria-label", uiText("navigationAria"));
+        uiLanguageSwitch.setAttribute("aria-label", uiText("uiLanguageAria"));
+        document.querySelector(".partslinkResultCard")?.setAttribute("aria-label", uiText("resultAria"));
+        document.querySelector(".partslinkFileBlock")?.setAttribute("aria-label", uiText("fileAria"));
+        updateCopyButtonLabel();
+        renderLocalizedResultValues();
+        if (fileViewer.dataset.empty === "true") {
+          fileViewer.replaceChildren(makeFileMessage(uiText("emptyFile")));
+        }
+        const messageKey = statusLine.dataset.messageKey;
+        if (messageKey) statusLine.textContent = uiText(messageKey);
+        if (persist) {
+          try {
+            localStorage.setItem("partslink24-ui-language", uiLanguage);
+          } catch {}
+        }
+      }
+
       function releasePreviewUrls() {
         previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
         previewObjectUrls = [];
@@ -882,10 +1082,13 @@
         downloadLinks.hidden = true;
         downloadLinks.replaceChildren();
         fileViewer.dataset.empty = "true";
-        fileViewer.replaceChildren(makeFileMessage(emptyFileMessage));
+        fileViewer.replaceChildren(makeFileMessage(uiText("emptyFile")));
       }
 
       function resetProductionDate() {
+        productionDateInput.dataset.rawValue = "";
+        engineTypeInput.dataset.rawValue = "";
+        engineVolumeInput.dataset.rawValue = "";
         productionDateInput.value = "";
         engineTypeInput.value = "";
         engineVolumeInput.value = "";
@@ -900,10 +1103,11 @@
         resetProductionDate();
         setVehicleDescription("");
         copyResultButton.disabled = true;
+        copyResultButton.dataset.copied = "false";
         copyResultButton.querySelector("span").innerHTML = "&#10697;";
-        copyResultButton.title = "Скопировать VIN и дату производства";
-        copyResultButton.setAttribute("aria-label", copyResultButton.title);
+        updateCopyButtonLabel();
         statusLine.textContent = "";
+        delete statusLine.dataset.messageKey;
         statusLine.removeAttribute("data-tone");
       }
 
@@ -924,7 +1128,7 @@
         helper.select();
         const copied = document.execCommand("copy");
         helper.remove();
-        if (!copied) throw new Error("Не удалось скопировать данные.");
+        if (!copied) throw new Error(uiText("copyError"));
       }
 
       copyResultButton.addEventListener("click", async () => {
@@ -933,27 +1137,33 @@
         if (!vin || !productionDate) return;
 
         try {
-          await writeClipboardText(`VIN: ${vin}\nДата производства: ${productionDate}`);
+          await writeClipboardText(`VIN: ${vin}\n${uiText("clipboardProductionDate")}: ${productionDate}`);
           copyResultButton.querySelector("span").textContent = "✓";
-          copyResultButton.title = "Скопировано";
-          copyResultButton.setAttribute("aria-label", copyResultButton.title);
+          copyResultButton.dataset.copied = "true";
+          updateCopyButtonLabel();
           window.setTimeout(() => {
             copyResultButton.querySelector("span").innerHTML = "&#10697;";
-            copyResultButton.title = "Скопировать VIN и дату производства";
-            copyResultButton.setAttribute("aria-label", copyResultButton.title);
+            copyResultButton.dataset.copied = "false";
+            updateCopyButtonLabel();
           }, 1400);
         } catch (error) {
-          setStatus(error.message || "Не удалось скопировать данные.", "error");
+          setStatus(error.message || uiText("copyError"), "error");
         }
       });
 
-      function setStatus(message, tone = "") {
+      function setStatus(message, tone = "", messageKey = "") {
         statusLine.textContent = message;
+        if (messageKey) statusLine.dataset.messageKey = messageKey;
+        else delete statusLine.dataset.messageKey;
         if (tone) {
           statusLine.dataset.tone = tone;
         } else {
           statusLine.removeAttribute("data-tone");
         }
+      }
+
+      function setStatusFromKey(key, tone = "") {
+        setStatus(uiText(key), tone, key);
       }
 
       function setBusy(isBusy) {
@@ -969,7 +1179,7 @@
         if (!usableFiles.length) {
           downloadLinks.hidden = true;
           fileViewer.dataset.empty = "true";
-          fileViewer.append(makeFileMessage("Сервер не вернул файл."));
+          fileViewer.append(makeFileMessage(uiText("noFile")));
           return;
         }
 
@@ -996,7 +1206,7 @@
           link.className = "partslinkDownloadLink";
           link.href = previewUrl || directUrl;
           link.download = fileName;
-          link.textContent = usableFiles.length > 1 ? `Выгрузить файл ${index + 1}` : "Выгрузить файл";
+          link.textContent = usableFiles.length > 1 ? uiText("downloadFileNumber", index + 1) : uiText("downloadFile");
           downloadLinks.append(link);
 
           const pane = document.createElement("div");
@@ -1014,7 +1224,7 @@
             frame.title = fileName;
             pane.append(frame);
           } else {
-            pane.append(makeFileMessage(`Предпросмотр недоступен. Скачайте файл ${fileName} кнопкой выше.`));
+            pane.append(makeFileMessage(uiText("previewUnavailable", fileName)));
           }
           fileViewer.append(pane);
         }
@@ -1214,7 +1424,11 @@
         resetResults();
         applyLanguageLogic();
       });
+      uiLanguageButtons.forEach((button) => {
+        button.addEventListener("click", () => applyUiLanguage(button.dataset.uiLanguage));
+      });
 
+      applyUiLanguage(readStoredUiLanguage(), { persist: false });
       renderLanguages();
       resetDownloadLink();
 
@@ -1232,7 +1446,7 @@
         const language = languageSelect.value;
 
         if (!/^[A-Z0-9]{17}$/.test(vin)) {
-          setStatus("VIN должен содержать 17 символов: проверьте ввод и повторите.", "error");
+          setStatusFromKey("invalidVin", "error");
           vinInput.focus();
           return null;
         }
@@ -1246,7 +1460,7 @@
 
         setBusy(true);
         resetResults();
-        setStatus("Проверяем данные и готовим файл VIN...");
+        setStatusFromKey("checking");
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
@@ -1257,21 +1471,22 @@
           const result = await response.json().catch(() => ({}));
 
           if (!response.ok || !result.ok) {
-            throw new Error(result.error || "Сервер проверки VIN недоступен.");
+            throw new Error(result.error || uiText("backendUnavailable"));
           }
 
           const files = Array.isArray(result.files) && result.files.length
             ? result.files
             : [{ fileName: result.fileName, downloadUrl: result.downloadUrl }];
           setVehicleDescription(result.vehicleDescription || "");
-          productionDateInput.value = result.productionDate || "";
-          engineTypeInput.value = result.engineType || "";
-          engineVolumeInput.value = result.engineVolume || "";
+          productionDateInput.dataset.rawValue = result.productionDate || "";
+          engineTypeInput.dataset.rawValue = result.engineType || "";
+          engineVolumeInput.dataset.rawValue = result.engineVolume || "";
+          renderLocalizedResultValues();
           copyResultButton.disabled = !payload.vin || !productionDateInput.value;
           await renderDownloadLinks(files, apiBase, payload.brand, payload.vin, payload.language);
-          setStatus(files.length > 1 ? "Данные получены, файлы готовы в блоке «Файл VIN»." : "Данные получены, файл готов в блоке «Файл VIN».", "success");
+          setStatusFromKey(files.length > 1 ? "readyMany" : "readyOne", "success");
         } catch (error) {
-          setStatus(error.message || "GitHub-странице нужен HTTPS backend. Открой ссылку с параметром ?api=адрес_backend или локальную страницу.", "error");
+          setStatus(error.message || uiText("httpsError"), "error");
         } finally {
           setBusy(false);
         }
