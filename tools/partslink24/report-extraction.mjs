@@ -362,13 +362,18 @@ function collectMercedesPowertrainEvidence(text) {
   const explicitHybrid = /\bphev\b|plug[\s-]*in|\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i;
   const hybridPowertrain = /hybrid\s+(?:drive|vehicle|powertrain)|(?:napęd|pojazd)\s+hybrydow|гибридн[а-яё]*\s+(?:привод|автомобил)/i;
   const plugInQualifier = /подключаем[а-яё]*|plug[\s-]*in/i;
+  const combustionEngine = /diesel\s+engine|gasoline\s+engine|silnik\s+(?:wysokopr[eę][żz]ny|diesla|benzynowy)|(?:дизельн|бензинов)[а-яё]*\s+двигател/i;
   const matches = [];
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim());
 
-  for (const line of String(text || "").split(/\r?\n/)) {
-    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  for (let index = 0; index < lines.length; index += 1) {
+    const normalized = lines[index];
     if (!normalized) continue;
-    if (!explicitHybrid.test(normalized) && !hybridPowertrain.test(normalized)) continue;
-    matches.push(hybridPowertrain.test(normalized) && plugInQualifier.test(normalized) ? `${normalized} PHEV` : normalized);
+    if (combustionEngine.test(normalized)) matches.push(normalized);
+
+    const powertrainBlock = [normalized, lines[index + 1], lines[index + 2]].filter(Boolean).join(" ");
+    if (!explicitHybrid.test(powertrainBlock) && !hybridPowertrain.test(powertrainBlock)) continue;
+    matches.push(hybridPowertrain.test(powertrainBlock) && plugInQualifier.test(powertrainBlock) ? `${powertrainBlock} PHEV` : powertrainBlock);
   }
 
   return matches.join(" ");

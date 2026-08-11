@@ -79,13 +79,16 @@ test("Mercedes scans the full report for plug-in evidence after a diesel engine 
   const reports = [
     ["RU", `Тип двигателя                    Дизель
 M654         ДИЗЕЛЬНЫЙ ДВИГАТЕЛЬ R4 OM654
-ME05         ГИБРИДНЫЙ ПРИВОД (МОДИФИКАЦИЯ 85 КВТ - 94 КВТ), ПОДКЛЮЧАЕМЫЙ`],
+ME05         ГИБРИДНЫЙ ПРИВОД (МОДИФИКАЦИЯ 85 КВТ - 94 КВТ),
+             ПОДКЛЮЧАЕМЫЙ`],
     ["PL", `Rodzaj silnika                   Diesel
 M654         SILNIK WYSOKOPRĘŻNY R4 OM654
-ME05         NAPĘD HYBRYDOWY (WARIANT 85 KW - 94 KW), PLUG-IN`],
+ME05         NAPĘD HYBRYDOWY (WARIANT 85 KW - 94 KW),
+             PLUG-IN`],
     ["ENG", `Engine type                     Diesel
 M654         R4 DIESEL ENGINE OM654
-ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT), PLUG-IN`]
+ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT),
+             PLUG-IN`]
   ];
 
   for (const [language, text] of reports) {
