@@ -19,7 +19,7 @@ Pojemność skokowa                1,50
     model: "X1 sDrive18i",
     productionDate: "22.04.2022",
     engineType: "Бензин",
-    engineVolume: "1,50 л"
+    engineVolume: "1500 cm³"
   });
 });
 
@@ -45,13 +45,13 @@ ${extraEvidence}
 Рабочий объем   0,00
 Двигатель          XD5O 5,50
 `, { brand: "BMW", language: "RU" });
-  assert.equal(invalidVolume.engineVolume, "2.0 л");
+  assert.equal(invalidVolume.engineVolume, "2000 cm³");
 
   const inferredVolumes = [
-    ["X1 sDrive18i", "1.5 л"],
-    ["330d xDrive Touring", "3.0 л"],
-    ["330e Touring", "2.0 л"],
-    ["X5 xDrive45e", "3.0 л"],
+    ["X1 sDrive18i", "1500 cm³"],
+    ["330d xDrive Touring", "3000 cm³"],
+    ["330e Touring", "2000 cm³"],
+    ["X5 xDrive45e", "3000 cm³"],
     ["i4 eDrive40", ""]
   ];
   for (const [marketName, engineVolume] of inferredVolumes) {
@@ -71,7 +71,7 @@ test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
     const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
     assert.equal(result.productionDate, "16.10.2023 (дата поставки)");
     assert.equal(result.engineType, "Бензин + Plug-in Гибрид");
-    assert.match(result.engineVolume, /^2[,.]0 л$/);
+    assert.equal(result.engineVolume, "2000 cm³");
   }
 });
 
@@ -124,7 +124,7 @@ DAM                                    16403CJ
     model: "C5 AIRCROSS (C84)",
     productionDate: "05.10.2021",
     engineType: "Дизель",
-    engineVolume: "1.5 л"
+    engineVolume: "1500 cm³"
   });
 });
 
@@ -138,8 +138,8 @@ DAM                                      15320CJ
 `, { brand: "Peugeot", language: "RU" });
   const cyrillicUnitResult = extractVehicleInfoFromText("МОЩНОСТЬ    1500 СМ3", { brand: "Peugeot", language: "RU" });
 
-  assert.equal(latinUnitResult.engineVolume, "1600 cm3");
-  assert.equal(cyrillicUnitResult.engineVolume, "1500 cm3");
+  assert.equal(latinUnitResult.engineVolume, "1600 cm³");
+  assert.equal(cyrillicUnitResult.engineVolume, "1500 cm³");
 });
 
 test("Stellantis reports use transmission data as hybrid evidence", () => {
@@ -188,7 +188,7 @@ ELECTRIC POWER STEERING`]
     for (const [language, text] of reports) {
       const result = extractVehicleInfoFromText(text, { brand, language });
       assert.equal(result.engineType, "Дизель", `${brand} ${language}`);
-      assert.equal(result.engineVolume, "1.5 л", `${brand} ${language}`);
+      assert.equal(result.engineVolume, "1500 cm³", `${brand} ${language}`);
     }
   }
 });
@@ -202,7 +202,7 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
 `, { brand: "Audi", language: "RU" });
   assert.equal(phev.model, "A7 Sportback");
   assert.equal(phev.engineType, "PHEV");
-  assert.equal(phev.engineVolume, "2,0 л");
+  assert.equal(phev.engineVolume, "2000 cm³");
 
   const electric = extractVehicleInfoFromText(`
 Модель                             Audi e-tron ETRSP
@@ -220,7 +220,7 @@ Napęd hybrydowy                      20A  Bez silnika elektrycznego (Hybrid)
 Specyfikacja silnika                 DE9  4-cyl. silnik wysokoprężny 2,0 l/100 kW TDI
 `, { brand: "Audi", language: "PL" });
   assert.equal(mildHybridDiesel.engineType, "Дизель + Мягкий гибрид");
-  assert.equal(mildHybridDiesel.engineVolume, "2,0 л");
+  assert.equal(mildHybridDiesel.engineVolume, "2000 cm³");
 
   const sharedModels = [
     ["Volkswagen", "Passat Variant BlueMotion Technology PA", "Passat Variant BlueMotion Technology"],
@@ -235,9 +235,9 @@ Specyfikacja silnika                 DE9  4-cyl. silnik wysokoprężny 2,0 l/100
 
 test("missing engine fields fall back to translated evidence from the whole PDF", () => {
   const reports = [
-    ["RU", "Базовый двигател TQ6 4-цил. бензиновый двигатель 1,8 л агр. 06L.A", "1,8 л"],
-    ["PL", "Silnik podstawowy TQ6 4-cylindrowy silnik benzynowy 1,8 l, agregat 06L.A", "1,8 л"],
-    ["ENG", "Base engine TQ6 4-cylinder gasoline engine 1.8 l, unit 06L.A", "1.8 л"]
+    ["RU", "Базовый двигател TQ6 4-цил. бензиновый двигатель 1,8 л агр. 06L.A", "1800 cm³"],
+    ["PL", "Silnik podstawowy TQ6 4-cylindrowy silnik benzynowy 1,8 l, agregat 06L.A", "1800 cm³"],
+    ["ENG", "Base engine TQ6 4-cylinder gasoline engine 1.8 l, unit 06L.A", "1800 cm³"]
   ];
 
   for (const [language, text, volume] of reports) {
@@ -251,7 +251,7 @@ Hybrid drive      Without electric motor (hybrid)
 Base engine       TQ6 4-cylinder gasoline engine 1.8 l
 `, { brand: "Audi", language: "ENG" });
   assert.equal(negativeHybrid.engineType, "Бензин");
-  assert.equal(negativeHybrid.engineVolume, "1.8 л");
+  assert.equal(negativeHybrid.engineVolume, "1800 cm³");
 });
 
 test("Hyundai HEV is not reduced to gasoline", () => {
@@ -264,7 +264,7 @@ SPECIAL CAR         ELECTRIC VEHICLE - HEV(HYBRID ELECTRIC VEHICLE)
 `, { brand: "Hyundai", language: "ENG" });
 
   assert.equal(result.engineType, "Обычный гибрид");
-  assert.equal(result.engineVolume, "1600 cm3");
+  assert.equal(result.engineVolume, "1600 cm³");
 });
 
 test("Ford Pro reuses Ford fields in a translated report", () => {
@@ -278,7 +278,7 @@ Engine Type               2.0 EcoBlue B
     model: "Transit/Tourneo Custom 2012",
     productionDate: "21.01.2019",
     engineType: "Дизель",
-    engineVolume: "2.0 л"
+    engineVolume: "2000 cm³"
   });
 });
 
@@ -296,7 +296,7 @@ CG02        FUEL Diesel
     model: "V60 Cross Country (19-)",
     productionDate: "12-18.09.2022",
     engineType: "Дизель",
-    engineVolume: "2.0 л"
+    engineVolume: "2000 cm³"
   });
 
   const currentV60 = extractVehicleInfoFromText(`
@@ -315,7 +315,7 @@ G602  FUEL TANK, VOLUME              Volume 60 Litre
     model: "V60 (19-)",
     productionDate: "22-28.04.2024",
     engineType: "Бензин + Мягкий гибрид",
-    engineVolume: "2.0 л"
+    engineVolume: "2000 cm³"
   });
 
   const compactEngine = extractVehicleInfoFromText(`
@@ -325,7 +325,7 @@ FUEL                                 Petrol
 FUEL TANK, VOLUME                    Volume 54 Litre
 `, { brand: "Volvo", language: "ENG" });
   assert.equal(compactEngine.productionDate, "01-07.01.2024");
-  assert.equal(compactEngine.engineVolume, "1.5 л");
+  assert.equal(compactEngine.engineVolume, "1500 cm³");
 });
 
 test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
@@ -335,12 +335,12 @@ test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
   const suzuki = extractVehicleInfoFromText("Data produkcji   2016-10\nNr silnika   K12C-5104637", { brand: "Suzuki", language: "PL" });
 
   assert.equal(toyota.engineType, "Обычный гибрид");
-  assert.equal(toyota.engineVolume, "1800 cm3");
+  assert.equal(toyota.engineVolume, "1800 cm³");
   assert.equal(toyotaGasoline.engineType, "Бензин");
-  assert.equal(toyotaGasoline.engineVolume, "1500 cm3");
+  assert.equal(toyotaGasoline.engineVolume, "1500 cm³");
   assert.equal(nissan.productionDate, "09.2019");
   assert.equal(nissan.engineType, "Дизель");
-  assert.equal(nissan.engineVolume, "1461 cm3");
+  assert.equal(nissan.engineVolume, "1461 cm³");
   assert.equal(suzuki.productionDate, "10.2016");
   assert.equal(suzuki.engineType, "Бензин");
 });
@@ -378,7 +378,7 @@ DBG02                          FUEL TANK CAP WITH LOCK
     model: "PROACE VERSO PASSENGER (K0)",
     productionDate: "25.09.2021",
     engineType: "Дизель",
-    engineVolume: "1.5 л"
+    engineVolume: "1500 cm³"
   });
 });
 

@@ -980,7 +980,7 @@
           ? productionDate.replace(/\(дата поставки\)/gi, "(data dostawy)")
           : productionDate;
         engineTypeInput.value = localizeEngineType(engineType);
-        engineVolumeInput.value = uiLanguage === "pl" ? engineVolume.replace(/\sл(?=\s|$)/gi, " l") : engineVolume;
+        engineVolumeInput.value = engineVolume;
       }
 
       function updateCopyButtonLabel() {

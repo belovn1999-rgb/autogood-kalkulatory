@@ -624,12 +624,14 @@ function inferVolvoEngineVolume(value) {
 function normalizePdfEngineVolume(value) {
   const raw = String(value || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
   const cubicMatch = raw.match(/(\d[\d\s]*)\s*(?:cm3|cm³|см3|см³|ccm|cc)\b/i);
-  if (cubicMatch && Number(cubicMatch[1].replace(/\s/g, "")) > 0) return `${cubicMatch[1].replace(/\s/g, "")} cm3`;
+  if (cubicMatch && Number(cubicMatch[1].replace(/\s/g, "")) > 0) return `${cubicMatch[1].replace(/\s/g, "")} cm³`;
   const literMatch = raw.match(/(\d+(?:[.,]\d+)?)\s*(?:l|л|litr(?:e|es|a|ów)?|литр(?:а|ов)?)(?=$|[^\p{L}\d])/iu);
-  if (literMatch && Number(literMatch[1].replace(",", ".")) > 0) return `${literMatch[1]} л`;
+  if (literMatch && Number(literMatch[1].replace(",", ".")) > 0) return `${Math.round(Number(literMatch[1].replace(",", ".")) * 1000)} cm³`;
   const codedLiterMatch = raw.match(/^(\d+(?:[.,]\d+)?)\b.*(?:ENGINE\s+DISPLACEMENT|ЛОШАДИНАЯ\s+СИЛА\s*\(КОММЕРЧЕСКАЯ\)|POJEMNOŚĆ\s+SKOKOWA|РАБОЧИЙ\s+ОБЪ[ЕЁ]М)/i);
-  if (codedLiterMatch && Number(codedLiterMatch[1].replace(",", ".")) > 0) return `${codedLiterMatch[1]} л`;
-  return /^\d+(?:[.,]\d+)?$/.test(raw) && Number(raw.replace(",", ".")) > 0 ? `${raw} л` : "";
+  if (codedLiterMatch && Number(codedLiterMatch[1].replace(",", ".")) > 0) return `${Math.round(Number(codedLiterMatch[1].replace(",", ".")) * 1000)} cm³`;
+  if (!/^\d+(?:[.,]\d+)?$/.test(raw) || Number(raw.replace(",", ".")) <= 0) return "";
+  const numericValue = Number(raw.replace(",", "."));
+  return `${Math.round(numericValue > 20 ? numericValue : numericValue * 1000)} cm³`;
 }
 
 function extractPdfDamCode(text) {
