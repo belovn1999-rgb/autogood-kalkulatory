@@ -359,6 +359,26 @@ ENGINE 1                1800CC 16-VALVE DOHC EFI (2ZRFXE)
   assert.equal(selfCharging.engineType, "Обычный гибрид");
 });
 
+test("Toyota reads fuel and displacement from a first-page powertrain row", () => {
+  const result = extractVehicleInfoFromText(`
+Номер шасси                    YARVAYHVMGZ008825
+Модель                         PROACE VERSO PASSENGER (K0)
+Дата производства              25.09.2021
+B0DNP                          COMBI L3 H1
+B0FPP                          DIESEL DV5RUC/UE63 1.5 L
+B0G0K                          STT TYPE 6-SPEED MANUAL GEARBOX
+\f
+DBG02                          FUEL TANK CAP WITH LOCK
+`, { brand: "Toyota", language: "RU" });
+
+  assert.deepEqual(result, {
+    model: "PROACE VERSO PASSENGER (K0)",
+    productionDate: "25.09.2021",
+    engineType: "Дизель",
+    engineVolume: "1.5 л"
+  });
+});
+
 test("translated and shortened dates are normalized", () => {
   assert.equal(formatProductionDate("21 нояб. 2023?г.", "RU"), "21.11.2023");
   assert.equal(formatProductionDate("Nov 21, 2023", "ENG"), "21.11.2023");

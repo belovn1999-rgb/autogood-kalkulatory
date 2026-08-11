@@ -158,6 +158,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
+  const toyotaFirstPageEngineRaw = toyotaLexusBrands.has(brand) ? findToyotaFirstPageEngineEvidence(text) : "";
   const toyotaPlugInRaw = toyotaLexusBrands.has(brand) ? findToyotaPlugInEvidence(text) : "";
   const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
@@ -168,16 +169,16 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineCodeRaw,
     transmissionRaw,
     vagPowertrainRaw,
-    engineEvidenceRaw
+    engineEvidenceRaw: [engineEvidenceRaw, toyotaFirstPageEngineRaw].filter(Boolean).join(" ")
   });
   const engineVolumeRaw = findEngineVolumeRaw(text, brand, profile, {
     engineSpecificationRaw,
     engineTypeRaw,
     engineCodeRaw,
-    engineEvidenceRaw
+    engineEvidenceRaw: [engineEvidenceRaw, toyotaFirstPageEngineRaw].filter(Boolean).join(" ")
   });
   const primaryEngineInfo = normalizeEngineInfo({
-    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, mercedesPowertrainRaw, inferredEngineRaw].filter(Boolean).join(" "),
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, mercedesPowertrainRaw, toyotaFirstPageEngineRaw, inferredEngineRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
@@ -395,6 +396,20 @@ function findToyotaPlugInEvidence(text) {
     if (/\bcharger\b.*\bac\s*type\s*2\b/i.test(normalized) && !/\b(?:without|w\/?o|none)\b/i.test(normalized)) {
       return normalized;
     }
+  }
+  return "";
+}
+
+function findToyotaFirstPageEngineEvidence(text) {
+  const firstPage = String(text || "").split("\f", 1)[0];
+  const fuelOrPowertrain = /diesel|gasoline|petrol|benzyn|бензин|дизел|hybrid|hybryd|гибрид|\bphev\b|plug[\s-]*in/i;
+  const displacement = /\b\d+(?:[.,]\d+)?\s*(?:l|л|cm3|cm³|см3|см³|ccm|cc)\b/i;
+  const nonEngineFluid = /fuel\s+tank|coolant|engine\s+oil|washer\s+fluid|adblue|zbiornik|топливн[а-яё]*\s+бак|охлаждающ|масло/i;
+
+  for (const line of firstPage.split(/\r?\n/)) {
+    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    if (!normalized || nonEngineFluid.test(normalized)) continue;
+    if (fuelOrPowertrain.test(normalized) && displacement.test(normalized)) return normalized;
   }
   return "";
 }
