@@ -375,6 +375,42 @@
         gap: var(--ag-space-md);
       }
 
+      .partslinkResultHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ag-space-sm);
+      }
+
+      .partslinkCopyResult {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        border: 1px solid var(--ag-color-rule-2);
+        border-radius: var(--ag-radius-control);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-accent-dark);
+        font-family: var(--ag-font-body);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .partslinkCopyResult:hover:not(:disabled),
+      .partslinkCopyResult:focus-visible {
+        border-color: var(--ag-color-accent);
+        background: var(--ag-color-surface-tint);
+      }
+
+      .partslinkCopyResult:disabled {
+        color: var(--ag-color-muted);
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
       .partslinkSpecRows {
         display: grid;
         gap: 0;
@@ -653,7 +689,12 @@
         </div>
 
         <aside class="partslinkResultCard" aria-label="VIN check result">
-          <p class="partslinkPanelTitle">Результат</p>
+          <div class="partslinkResultHead">
+            <p class="partslinkPanelTitle">Результат</p>
+            <button id="partslinkCopyResult" class="partslinkCopyResult" type="button" aria-label="Скопировать VIN и дату производства" title="Скопировать VIN и дату производства" disabled>
+              <span aria-hidden="true">&#10697;</span>
+            </button>
+          </div>
           <div class="partslinkSpecRows">
             <label class="partslinkSpecRow" for="partslinkVehicleDescription">
               <span>Марка и модель авто</span>
@@ -699,6 +740,7 @@
       const productionDateInput = document.getElementById("partslinkProductionDate");
       const engineTypeInput = document.getElementById("partslinkEngineType");
       const engineVolumeInput = document.getElementById("partslinkEngineVolume");
+      const copyResultButton = document.getElementById("partslinkCopyResult");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const fileViewer = document.getElementById("partslinkFileViewer");
       const statusLine = document.getElementById("partslinkStatus");
@@ -848,9 +890,53 @@
         resetDownloadLink();
         resetProductionDate();
         setVehicleDescription("");
+        copyResultButton.disabled = true;
+        copyResultButton.querySelector("span").innerHTML = "&#10697;";
+        copyResultButton.title = "Скопировать VIN и дату производства";
+        copyResultButton.setAttribute("aria-label", copyResultButton.title);
         statusLine.textContent = "";
         statusLine.removeAttribute("data-tone");
       }
+
+      async function writeClipboardText(value) {
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(value);
+            return;
+          }
+        } catch {}
+
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.append(helper);
+        helper.select();
+        const copied = document.execCommand("copy");
+        helper.remove();
+        if (!copied) throw new Error("Не удалось скопировать данные.");
+      }
+
+      copyResultButton.addEventListener("click", async () => {
+        const vin = vinInput.value.trim();
+        const productionDate = productionDateInput.value.trim();
+        if (!vin || !productionDate) return;
+
+        try {
+          await writeClipboardText(`VIN: ${vin}\nДата производства: ${productionDate}`);
+          copyResultButton.querySelector("span").textContent = "✓";
+          copyResultButton.title = "Скопировано";
+          copyResultButton.setAttribute("aria-label", copyResultButton.title);
+          window.setTimeout(() => {
+            copyResultButton.querySelector("span").innerHTML = "&#10697;";
+            copyResultButton.title = "Скопировать VIN и дату производства";
+            copyResultButton.setAttribute("aria-label", copyResultButton.title);
+          }, 1400);
+        } catch (error) {
+          setStatus(error.message || "Не удалось скопировать данные.", "error");
+        }
+      });
 
       function setStatus(message, tone = "") {
         statusLine.textContent = message;
@@ -1172,6 +1258,7 @@
           productionDateInput.value = result.productionDate || "";
           engineTypeInput.value = result.engineType || "";
           engineVolumeInput.value = result.engineVolume || "";
+          copyResultButton.disabled = !payload.vin || !productionDateInput.value;
           await renderDownloadLinks(files, apiBase, payload.brand, payload.vin, payload.language);
           setStatus(files.length > 1 ? "Данные получены, файлы готовы в блоке «Файл VIN»." : "Данные получены, файл готов в блоке «Файл VIN».", "success");
         } catch (error) {
