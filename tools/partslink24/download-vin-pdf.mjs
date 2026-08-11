@@ -662,14 +662,15 @@ async function saveTwoFilePanelPdf(page, target, mode) {
 
   await savePagePdf(page, target);
   await page.evaluate(() => {
-    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
+    document.querySelector("[data-autogood-print-container]")?.remove();
+    document.querySelector("[data-autogood-print-style]")?.remove();
   }).catch(() => {});
 }
 
 async function markTwoFilePrintRoot(page, mode, expectedVin) {
   return page.evaluate(({ printMode, expectedVinValue }) => {
     document.querySelector("[data-autogood-print-style]")?.remove();
-    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
+    document.querySelector("[data-autogood-print-container]")?.remove();
 
     const style = document.createElement("style");
     style.dataset.autogoodPrintStyle = "true";
@@ -692,6 +693,12 @@ async function markTwoFilePrintRoot(page, mode, expectedVin) {
           max-height: none !important;
           overflow: visible !important;
           background: #fff !important;
+        }
+        [data-autogood-print-content] {
+          width: min(100%, var(--autogood-print-content-width)) !important;
+          max-width: 100% !important;
+          margin: 0 auto !important;
+          transform: none !important;
         }
       }
     `;
@@ -719,7 +726,17 @@ async function markTwoFilePrintRoot(page, mode, expectedVin) {
 
     const chosen = candidates[0]?.element;
     if (!chosen) return false;
-    chosen.setAttribute("data-autogood-print-root", "true");
+
+    const chosenWidth = Math.ceil(chosen.getBoundingClientRect().width);
+    const printContainer = document.createElement("div");
+    printContainer.setAttribute("data-autogood-print-root", "true");
+    printContainer.setAttribute("data-autogood-print-container", "true");
+    printContainer.style.setProperty("--autogood-print-content-width", `${chosenWidth}px`);
+
+    const printContent = chosen.cloneNode(true);
+    printContent.setAttribute("data-autogood-print-content", "true");
+    printContainer.append(printContent);
+    document.body.append(printContainer);
     return true;
   }, { printMode: mode, expectedVinValue: expectedVin }).catch(() => false);
 }
