@@ -378,7 +378,7 @@
       .partslinkResultHead {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: var(--ag-space-sm);
       }
 
@@ -386,17 +386,24 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        flex: 0 0 34px;
+        gap: 6px;
+        min-height: 30px;
+        flex: 0 0 auto;
         border: 1px solid var(--ag-color-rule-2);
         border-radius: var(--ag-radius-control);
         background: var(--ag-color-surface);
         color: var(--ag-color-accent-dark);
+        padding: 4px 10px;
         font-family: var(--ag-font-body);
-        font-size: 20px;
+        font-size: 12px;
+        font-weight: 700;
         line-height: 1;
         cursor: pointer;
+      }
+
+      .partslinkCopyResultIcon {
+        font-size: 17px;
+        font-weight: 400;
       }
 
       .partslinkCopyResult:hover:not(:disabled),
@@ -407,8 +414,9 @@
 
       .partslinkCopyResult:disabled {
         color: var(--ag-color-muted);
+        background: var(--ag-color-surface-tint);
         cursor: not-allowed;
-        opacity: 0.55;
+        opacity: 1;
       }
 
       .partslinkSpecRows {
@@ -692,7 +700,8 @@
           <div class="partslinkResultHead">
             <p class="partslinkPanelTitle">Результат</p>
             <button id="partslinkCopyResult" class="partslinkCopyResult" type="button" aria-label="Скопировать VIN и дату производства" title="Скопировать VIN и дату производства" disabled>
-              <span aria-hidden="true">&#10697;</span>
+              <span class="partslinkCopyResultIcon" aria-hidden="true">&#10697;</span>
+              <span>Копировать</span>
             </button>
           </div>
           <div class="partslinkSpecRows">
