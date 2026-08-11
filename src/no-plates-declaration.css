@@ -142,3 +142,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep the identity document and its number paired on compact desktop panels.
+   The shared contract stylesheet stacks every .two-fields group too early. */
+@media (min-width: 520px) and (max-width: 700px) {
+  .declarationWorkspace .two-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
