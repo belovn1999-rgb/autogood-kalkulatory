@@ -1,0 +1,26 @@
+[Unit]
+Description=AUTOGOOD VIN to PDF API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=autogood-vin
+Group=autogood-vin
+WorkingDirectory=/opt/autogood-vin/app
+EnvironmentFile=/etc/autogood-vin/autogood-vin.env
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env pnpm run api
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/autogood-vin/output /opt/autogood-vin/profiles
+
+[Install]
+WantedBy=multi-user.target

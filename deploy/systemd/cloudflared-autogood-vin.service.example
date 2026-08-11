@@ -1,0 +1,19 @@
+[Unit]
+Description=Cloudflare Tunnel for AUTOGOOD VIN
+After=network-online.target autogood-vin-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=autogood-vin
+Group=autogood-vin
+EnvironmentFile=/etc/autogood-vin/cloudflared.env
+ExecStart=/usr/bin/cloudflared tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
