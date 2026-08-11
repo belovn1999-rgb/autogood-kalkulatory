@@ -622,13 +622,14 @@ async function downloadPdf(page, options) {
 async function downloadTwoFilePrintPdfs(page, options) {
   await waitForVehicleLoaded(page, options.vin);
   await humanDelay();
+  const centerContent = ["Ford", "Ford Pro"].includes(options.brand);
 
   const vehiclePath = join(options.outDir, makePdfName({ ...options, suffix: "vehicle" }));
-  await saveTwoFilePanelPdf(page, vehiclePath, "vehicle");
+  await saveTwoFilePanelPdf(page, vehiclePath, "vehicle", { centerContent });
 
   await openTwoFileEquipmentTab(page);
   const equipmentPath = join(options.outDir, makePdfName({ ...options, suffix: "equipment" }));
-  await saveTwoFilePanelPdf(page, equipmentPath, "equipment");
+  await saveTwoFilePanelPdf(page, equipmentPath, "equipment", { centerContent });
 
   const mergedPath = join(options.outDir, makePdfName(options));
   await mergePdfFiles([vehiclePath, equipmentPath], mergedPath);
@@ -656,21 +657,23 @@ async function openTwoFileEquipmentTab(page) {
   await humanDelay();
 }
 
-async function saveTwoFilePanelPdf(page, target, mode) {
-  const marked = await markTwoFilePrintRoot(page, mode, vin);
+async function saveTwoFilePanelPdf(page, target, mode, { centerContent = false } = {}) {
+  const marked = await markTwoFilePrintRoot(page, mode, vin, { centerContent });
   if (!marked) fail(`Не удалось подготовить ${mode} к печати.`);
 
   await savePagePdf(page, target);
   await page.evaluate(() => {
     document.querySelector("[data-autogood-print-container]")?.remove();
+    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
     document.querySelector("[data-autogood-print-style]")?.remove();
   }).catch(() => {});
 }
 
-async function markTwoFilePrintRoot(page, mode, expectedVin) {
-  return page.evaluate(({ printMode, expectedVinValue }) => {
+async function markTwoFilePrintRoot(page, mode, expectedVin, { centerContent = false } = {}) {
+  return page.evaluate(({ printMode, expectedVinValue, shouldCenterContent }) => {
     document.querySelector("[data-autogood-print-style]")?.remove();
     document.querySelector("[data-autogood-print-container]")?.remove();
+    document.querySelector("[data-autogood-print-root]")?.removeAttribute("data-autogood-print-root");
 
     const style = document.createElement("style");
     style.dataset.autogoodPrintStyle = "true";
@@ -726,6 +729,10 @@ async function markTwoFilePrintRoot(page, mode, expectedVin) {
 
     const chosen = candidates[0]?.element;
     if (!chosen) return false;
+    if (!shouldCenterContent) {
+      chosen.setAttribute("data-autogood-print-root", "true");
+      return true;
+    }
 
     const chosenWidth = Math.ceil(chosen.getBoundingClientRect().width);
     const printContainer = document.createElement("div");
@@ -738,7 +745,7 @@ async function markTwoFilePrintRoot(page, mode, expectedVin) {
     printContainer.append(printContent);
     document.body.append(printContainer);
     return true;
-  }, { printMode: mode, expectedVinValue: expectedVin }).catch(() => false);
+  }, { printMode: mode, expectedVinValue: expectedVin, shouldCenterContent: centerContent }).catch(() => false);
 }
 
 async function savePagePdf(page, target) {
