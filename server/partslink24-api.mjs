@@ -308,6 +308,7 @@ function sendStatic(request, response) {
   response.writeHead(200, {
     "content-type": type,
     "content-length": statSync(filePath).size,
+    "cache-control": type.startsWith("text/html") ? "no-store" : "no-cache",
     ...corsHeaders()
   });
   if (request.method === "HEAD") return response.end();

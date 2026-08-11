@@ -782,7 +782,7 @@
         "Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Fiat Professional", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"
       ];
       const brandGroupDividerAfter = new Set(["Volkswagen", "Vw Nutzfahrzeuge"]);
-      const defaultPartslinkApiBase = "https://phi-arlington-supplemental-lookup.trycloudflare.com";
+      const defaultPartslinkApiBase = "https://recognize-records-chicago-intermediate.trycloudflare.com";
       let brandTypeahead = "";
       let brandTypeaheadTimer;
       const brandTypeaheadTimeout = 2000;
@@ -1094,7 +1094,6 @@
         }
         selectBrandFromTypeahead(event);
       });
-      brandPickerOptions.addEventListener("keydown", selectBrandFromTypeahead);
       languagePickerButton.addEventListener("click", toggleLanguagePicker);
       languagePickerButton.addEventListener("keydown", (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -1107,6 +1106,10 @@
         if (!event.target.closest(".partslinkLanguagePicker")) closeLanguagePicker();
       });
       document.addEventListener("keydown", (event) => {
+        const isTypingField = event.target.closest?.("input, textarea, select, [contenteditable='true']");
+        if (!event.defaultPrevented && !brandPickerOptions.hidden && !isTypingField) {
+          selectBrandFromTypeahead(event);
+        }
         if (event.key === "Escape") {
           closeBrandPicker();
           closeLanguagePicker();
