@@ -201,8 +201,25 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
 Спецификации двигателей            4 цил. бенз. двигатель 2,0 л/185 кВт гибрид
 `, { brand: "Audi", language: "RU" });
   assert.equal(phev.model, "A7 Sportback");
-  assert.equal(phev.engineType, "PHEV");
+  assert.equal(phev.engineType, "Бензин + PHEV");
   assert.equal(phev.engineVolume, "2000 cm³");
+
+  const phevBrands = ["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"];
+  for (const brand of phevBrands) {
+    const gasolinePhev = extractVehicleInfoFromText(`
+Альтернативная система привода     Гибридная система привода PHEV
+Топливные системы                  Топливная система бензинового двигателя с впрыском
+Спецификации двигателей            4-цилиндровый бензиновый двигатель 1,4 л TSI
+`, { brand, language: "RU" });
+    assert.equal(gasolinePhev.engineType, "Бензин + PHEV", brand);
+  }
+
+  const dieselPhev = extractVehicleInfoFromText(`
+Alternative powertrain system      PHEV
+Fuel type                          Diesel
+Engine specification               4-cylinder diesel engine 2.0 L TDI
+`, { brand: "Volkswagen", language: "ENG" });
+  assert.equal(dieselPhev.engineType, "Дизель + PHEV");
 
   const electric = extractVehicleInfoFromText(`
 Модель                             Audi e-tron ETRSP

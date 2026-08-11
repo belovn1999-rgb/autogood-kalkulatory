@@ -220,7 +220,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     .join(" ");
   const hasExplicitPhev = /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence);
   const baseEngineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
-    ? "PHEV"
+    ? vagBrands.has(brand) ? resolveVagPhevEngineType(vagPowertrainEvidence) : "PHEV"
     : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
   const engineType = toyotaPlugInRaw && baseEngineType === "Обычный гибрид" ? "Plug-in Гибрид" : baseEngineType;
 
@@ -262,6 +262,12 @@ function resolveStellantisEngineType({
   return directType || normalizeEngineInfo({ engineTypeRaw: inferredEngineRaw }).engineType || fallbackEngineType;
 }
 
+function resolveVagPhevEngineType(evidence) {
+  const normalized = normalizeEngineInfo({ engineTypeRaw: evidence }).engineType;
+  const baseFuel = normalized.includes("Дизель") ? "Дизель" : normalized.includes("Бензин") ? "Бензин" : "";
+  return baseFuel ? `${baseFuel} + PHEV` : "PHEV";
+}
+
 export function normalizeEngineInfo(info) {
   const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
     .filter(Boolean)
@@ -275,7 +281,7 @@ export function normalizeEngineInfo(info) {
   const isHybrid = /\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(source);
   const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил/i.test(source);
   const isDiesel = /diesel|дизел|olej[\s-]*napędowy|wysokopr[eę][żz]?n|\btdci\b|\btdi\b/i.test(source);
-  const isGasoline = /gasoline|petrol|benzyn|benzin|\bbenz\.(?=\s|$)|бензин|\bбенз\.(?=\s|$)|искровым\s+зажиганием|\botto\b|\bsi\s+engine\b/i.test(source);
+  const isGasoline = /gasoline|petrol|benzyn|benzin|\bbenz\.(?=\s|$)|бенз(?:ин|\.)|искровым\s+зажиганием|\botto\b|\bsi\s+engine\b/i.test(source);
   const baseFuel = isGasoline ? "Бензин" : isDiesel ? "Дизель" : "";
 
   let engineType = "";
@@ -480,7 +486,14 @@ function inferEngineEvidence(brand, values) {
 
   if (vagBrands.has(brand)) {
     const positiveVagSource = upper.replace(/(?:WITHOUT|BEZ|БЕЗ)\s+(?:AN?\s+)?(?:ELECTRIC\s+(?:ENGINE|MOTOR)|SILNIK(?:A)?\s+ELEKTRYCZN\w*|ЭЛЕКТРОДВИГАТЕЛ\w*)\s*\(?\s*(?:HYBRID|HYBRYD|ГИБРИД)\s*\)?/gi, " ");
-    if (/\bPHEV\b|PLUG[\s-]*IN/i.test(positiveVagSource)) return " gasoline PHEV";
+    if (/\bPHEV\b|PLUG[\s-]*IN/i.test(positiveVagSource)) {
+      const fuel = /\bTDI\b|DIESEL|OLEJ[\s-]*NAPĘDOWY|WYSOKOPRĘŻ|ДИЗЕЛ/i.test(positiveVagSource)
+        ? "diesel "
+        : /\b(?:TSI|TFSI|FSI)\b|GASOLINE|PETROL|BENZYN|БЕНЗ(?:ИН|\.)/i.test(positiveVagSource)
+          ? "gasoline "
+          : "";
+      return `${fuel}PHEV`;
+    }
     if (/\bM[\s-]*HEV\b|MILD[\s-]*HYBRID/i.test(positiveVagSource)) {
       const fuel = /\bTDI\b|DIESEL|OLEJ[\s-]*NAPĘDOWY|WYSOKOPRĘŻ/i.test(positiveVagSource)
         ? "diesel "
