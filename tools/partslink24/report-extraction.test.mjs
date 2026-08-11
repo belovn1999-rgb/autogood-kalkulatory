@@ -256,10 +256,38 @@ CG02        FUEL Diesel
 
   assert.deepEqual(result, {
     model: "V60 Cross Country (19-)",
-    productionDate: "37 неделя 2022 года",
+    productionDate: "12-18.09.2022",
     engineType: "Дизель",
     engineVolume: "2.0 л"
   });
+
+  const currentV60 = extractVehicleInfoFromText(`
+Rok modelowy                         2025
+model                                V60 (19-)
+Tydzień strukturyzowany              202417
+Kod silnika                          K8
+Silnik                               BK8KERS / B420T5
+CM03  ENHANCED REGEN/48V KERS        With 48V KERS
+CF38  ENGINE VEP4 LP                 2.0L 197/300
+CG01  FUEL                           Petrol
+G602  FUEL TANK, VOLUME              Volume 60 Litre
+`, { brand: "Volvo", language: "PL" });
+
+  assert.deepEqual(currentV60, {
+    model: "V60 (19-)",
+    productionDate: "22-28.04.2024",
+    engineType: "Бензин + Мягкий гибрид",
+    engineVolume: "2.0 л"
+  });
+
+  const compactEngine = extractVehicleInfoFromText(`
+Structured week                      202401
+Engine                               B3154T9
+FUEL                                 Petrol
+FUEL TANK, VOLUME                    Volume 54 Litre
+`, { brand: "Volvo", language: "ENG" });
+  assert.equal(compactEngine.productionDate, "01-07.01.2024");
+  assert.equal(compactEngine.engineVolume, "1.5 л");
 });
 
 test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {

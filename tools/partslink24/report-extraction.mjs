@@ -119,7 +119,7 @@ const brandReportProfiles = {
   },
   Toyota: toyotaLexusProfile,
   Volvo: {
-    productionWeekLabels: [/(?:производственная\s+неделя|tydzień\s+produkcji|production\s+week)/i],
+    productionWeekLabels: [/(?:производственная\s+неделя|структурированная\s+неделя|tydzień\s+(?:produkcji|strukturyzowany)|(?:production|structured)\s+week)/i],
     modelLabels: [/(?:model|модель)/i],
     engineSpecificationLabels: [/(?:silnik|двигатель|engine)/i],
     engineTypeLabels: [/(?:silnik|двигатель|engine)/i],
@@ -149,7 +149,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
-  const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид/i)?.[0] || "";
+  const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
     modelRaw,
     engineSpecificationRaw,
@@ -256,7 +256,7 @@ export function normalizeEngineInfo(info) {
     .join(" ")
     .replace(/(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ\w*\s+двигател\w*|электродвигател\w*)\s*\(?\s*(?:hybrid|hybryd|гибрид)\s*\)?/giu, " ")
     .toLowerCase();
-  const isMildHybrid = /\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(source);
+  const isMildHybrid = /\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers/i.test(source);
   const isPlugInHybrid = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|подключаем\w*\s+гибрид|плагин[\s-]*гибрид/i.test(source);
   const isHybrid = /\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(source);
   const isElectric = /battery\s+electric|\bbev\b|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|pojazd\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил/i.test(source);
@@ -346,9 +346,10 @@ function findFirstPdfValue(text, patterns = []) {
 function collectPdfEvidence(text, patterns = []) {
   if (!patterns.length) return "";
   const matches = [];
+  const nonEngineVolume = /fuel\s+tank|zbiornik\s+paliwa|топливн\w*\s+бак|load\s+compartment|luggage/i;
   for (const line of String(text || "").split(/\r?\n/)) {
     const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-    if (normalized && patterns.some((pattern) => pattern.test(normalized))) matches.push(normalized);
+    if (normalized && !nonEngineVolume.test(normalized) && patterns.some((pattern) => pattern.test(normalized))) matches.push(normalized);
     if (matches.length === 12) break;
   }
   return matches.join(" ");
@@ -527,6 +528,14 @@ function findEngineVolumeRaw(text, brand, profile, values) {
   if (normalizePdfEngineVolume(labeledValue)) return labeledValue;
   if (normalizePdfEngineVolume(values.engineSpecificationRaw)) return values.engineSpecificationRaw;
   if (normalizePdfEngineVolume(values.engineTypeRaw)) return values.engineTypeRaw;
+
+  if (brand === "Volvo") {
+    const volvoEngine = String(text).match(/^\s*[A-Z0-9]{4}\s+ENGINE[^\r\n]*?\b(\d+(?:[.,]\d+)?)\s*L\b/im);
+    if (volvoEngine) return `${volvoEngine[1]} L`;
+    const inferredVolume = inferVolvoEngineVolume([values.engineSpecificationRaw, values.engineTypeRaw, values.engineCodeRaw].join(" "));
+    if (inferredVolume) return inferredVolume;
+  }
+
   if (normalizePdfEngineVolume(values.engineEvidenceRaw)) return values.engineEvidenceRaw;
 
   if (brand === "Nissan") {
@@ -541,12 +550,15 @@ function findEngineVolumeRaw(text, brand, profile, values) {
     if (capacity) return `${capacity[1]} L`;
   }
 
-  if (brand === "Volvo") {
-    const volvoEngine = String(text).match(/^\s*[A-Z0-9]{4}\s+ENGINE[^\r\n]*?\b(\d+(?:[.,]\d+)?)\s*L\b/im);
-    if (volvoEngine) return `${volvoEngine[1]} L`;
-  }
-
   return "";
+}
+
+function inferVolvoEngineVolume(value) {
+  const engineCode = String(value || "").match(/\b[BD]\d(\d{2})(?:\d)?(?:T\d*|S\d*)\b/i);
+  if (!engineCode) return "";
+  const decilitres = Number(engineCode[1]);
+  if (decilitres < 10 || decilitres > 60) return "";
+  return `${(decilitres / 10).toFixed(1)} L`;
 }
 
 function normalizePdfEngineVolume(value) {
@@ -576,9 +588,30 @@ function formatDamProductionDate(damCode) {
 function formatProductionWeek(value) {
   const match = String(value || "").match(/\b(19\d{2}|20\d{2})(\d{2})\b/);
   if (!match) return "";
+  const year = Number(match[1]);
   const week = Number(match[2]);
   if (week < 1 || week > 53) return "";
-  return `${String(week).padStart(2, "0")} неделя ${match[1]} года`;
+
+  const january4 = new Date(Date.UTC(year, 0, 4));
+  const january4IsoDay = january4.getUTCDay() || 7;
+  const weekStart = new Date(january4);
+  weekStart.setUTCDate(january4.getUTCDate() - january4IsoDay + 1 + (week - 1) * 7);
+  const weekAnchor = new Date(weekStart);
+  weekAnchor.setUTCDate(weekStart.getUTCDate() + 3);
+  if (weekAnchor.getUTCFullYear() !== year) return "";
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  const startDay = String(weekStart.getUTCDate()).padStart(2, "0");
+  const startMonth = String(weekStart.getUTCMonth() + 1).padStart(2, "0");
+  const endDay = String(weekEnd.getUTCDate()).padStart(2, "0");
+  const endMonth = String(weekEnd.getUTCMonth() + 1).padStart(2, "0");
+  const startYear = weekStart.getUTCFullYear();
+  const endYear = weekEnd.getUTCFullYear();
+
+  if (startYear === endYear && startMonth === endMonth) return `${startDay}-${endDay}.${endMonth}.${endYear}`;
+  if (startYear === endYear) return `${startDay}.${startMonth}-${endDay}.${endMonth}.${endYear}`;
+  return `${startDay}.${startMonth}.${startYear}-${endDay}.${endMonth}.${endYear}`;
 }
 
 function expandShortYear(value) {
