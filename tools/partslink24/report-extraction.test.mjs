@@ -330,11 +330,14 @@ FUEL TANK, VOLUME                    Volume 54 Litre
 
 test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
   const toyota = extractVehicleInfoFromText("ENGINE 1      1800CC 16-VALVE DOHC EFI (2ZRFXE)", { brand: "Toyota", language: "ENG" });
+  const toyotaGasoline = extractVehicleInfoFromText("ENGINE 1      1500CC 12-VALVE DOHC (M15AFKS)", { brand: "Toyota", language: "RU" });
   const nissan = extractVehicleInfoFromText("Od       2019-09\nSilnik   K9K TYPE ENGINE", { brand: "Nissan", language: "PL" });
   const suzuki = extractVehicleInfoFromText("Data produkcji   2016-10\nNr silnika   K12C-5104637", { brand: "Suzuki", language: "PL" });
 
   assert.equal(toyota.engineType, "Обычный гибрид");
   assert.equal(toyota.engineVolume, "1800 cm3");
+  assert.equal(toyotaGasoline.engineType, "Бензин");
+  assert.equal(toyotaGasoline.engineVolume, "1500 cm3");
   assert.equal(nissan.productionDate, "09.2019");
   assert.equal(nissan.engineType, "Дизель");
   assert.equal(nissan.engineVolume, "1461 cm3");
