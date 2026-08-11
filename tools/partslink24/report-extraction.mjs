@@ -54,6 +54,7 @@ const stellantisTransmissionLabels = [
 
 const vagBrands = new Set(["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"]);
 const mercedesBrands = new Set(["Mercedes-Benz", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans"]);
+const toyotaLexusBrands = new Set(["Toyota", "Lexus"]);
 
 const vagPowertrainLabels = [
   /(?:альтернативная\s+система\s+привода|alternatywny\s+układ\s+napędowy|alternative\s+(?:drive|powertrain)(?:\s+system)?|гибридный\s+привод|napęd\s+hybrydowy|hybrid\s+drive)/i
@@ -157,6 +158,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
+  const toyotaPlugInRaw = toyotaLexusBrands.has(brand) ? findToyotaPlugInEvidence(text) : "";
   const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers/i)?.[0] || "";
   const inferredEngineRaw = inferEngineEvidence(brand, {
     modelRaw,
@@ -216,9 +218,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     .filter(Boolean)
     .join(" ");
   const hasExplicitPhev = /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence);
-  const engineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
+  const baseEngineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
     ? "PHEV"
     : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
+  const engineType = toyotaPlugInRaw && baseEngineType === "Обычный гибрид" ? "Plug-in Гибрид" : baseEngineType;
 
   return {
     model,
@@ -384,6 +387,16 @@ function collectMercedesPowertrainEvidence(text) {
   }
 
   return matches.join(" ");
+}
+
+function findToyotaPlugInEvidence(text) {
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    if (/\bcharger\b.*\bac\s*type\s*2\b/i.test(normalized) && !/\b(?:without|w\/?o|none)\b/i.test(normalized)) {
+      return normalized;
+    }
+  }
+  return "";
 }
 
 function findFallbackEngineEvidence(text) {

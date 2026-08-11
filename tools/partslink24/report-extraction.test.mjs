@@ -342,6 +342,23 @@ test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
   assert.equal(suzuki.engineType, "Бензин");
 });
 
+test("Toyota and Lexus distinguish plug-in hybrids by the fitted AC Type 2 charger", () => {
+  const plugIn = extractVehicleInfoFromText(`
+ENGINE 1                2000CC 16-VALVE DOHC (M20AFXS)
+006I battery charging cable     without
+011D charger                    ac type2 (3.3kw)
+051I wireless charger           without
+`, { brand: "Toyota", language: "RU" });
+  const selfCharging = extractVehicleInfoFromText(`
+ENGINE 1                1800CC 16-VALVE DOHC EFI (2ZRFXE)
+006I battery charging cable     without
+051I wireless charger           without
+`, { brand: "Lexus", language: "ENG" });
+
+  assert.equal(plugIn.engineType, "Plug-in Гибрид");
+  assert.equal(selfCharging.engineType, "Обычный гибрид");
+});
+
 test("translated and shortened dates are normalized", () => {
   assert.equal(formatProductionDate("21 нояб. 2023?г.", "RU"), "21.11.2023");
   assert.equal(formatProductionDate("Nov 21, 2023", "ENG"), "21.11.2023");
