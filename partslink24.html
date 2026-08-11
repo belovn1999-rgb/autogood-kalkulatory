@@ -82,15 +82,6 @@
         white-space: nowrap;
       }
 
-      .partslinkNav {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: var(--ag-space-md);
-        flex-wrap: wrap;
-        min-width: 0;
-      }
-
       .partslinkHeaderActions {
         display: flex;
         align-items: center;
@@ -127,27 +118,6 @@
       .partslinkUiLanguageSwitch button[aria-pressed="true"] {
         background: var(--ag-color-accent-dark);
         color: var(--ag-color-accent-ink);
-      }
-
-      .partslinkNav a {
-        display: inline-flex;
-        align-items: center;
-        min-height: var(--ag-size-nav-link);
-        border-bottom: 2px solid transparent;
-        color: var(--ag-color-muted);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1;
-        text-decoration: none;
-        white-space: nowrap;
-        transition: color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out);
-      }
-
-      .partslinkNav a:hover,
-      .partslinkNav a:focus-visible,
-      .partslinkNav a[aria-current="page"] {
-        color: var(--ag-color-accent);
-        border-bottom-color: var(--ag-color-accent);
       }
 
       .partslinkHero {
@@ -616,12 +586,8 @@
           flex-direction: column;
         }
 
-        .partslinkNav {
-          justify-content: flex-start;
-        }
-
         .partslinkHeaderActions {
-          justify-content: space-between;
+          justify-content: flex-end;
           width: 100%;
         }
 
@@ -688,12 +654,6 @@
           <span>VIN Check</span>
         </a>
         <div class="partslinkHeaderActions">
-          <nav class="partslinkNav" aria-label="Навигация">
-            <a href="./" data-ui-key="navTools">Инструменты</a>
-            <a href="./calculators.html" data-ui-key="navCalculators">Калькуляторы</a>
-            <a href="./umowy.html" data-ui-key="navContracts">Договоры PDF</a>
-            <a href="./auctions.html" data-ui-key="navAuctions">Аукционы</a>
-          </nav>
           <div id="partslinkUiLanguageSwitch" class="partslinkUiLanguageSwitch" aria-label="Язык интерфейса">
             <button type="button" data-ui-language="pl" aria-pressed="false">PL</button>
             <button type="button" data-ui-language="ru" aria-pressed="true">RU</button>
@@ -811,10 +771,6 @@
       const uiCopy = {
         ru: {
           pageTitle: "AUTOGOOD VIN спецификация",
-          navTools: "Инструменты",
-          navCalculators: "Калькуляторы",
-          navContracts: "Договоры PDF",
-          navAuctions: "Аукционы",
           vinCheck: "Проверка VIN",
           checkData: "Данные проверки",
           reportLanguage: "1. Язык отчёта",
@@ -827,7 +783,6 @@
           engineType: "Тип двигателя",
           engineVolume: "Объем двигателя",
           vinFile: "Файл VIN",
-          navigationAria: "Навигация",
           uiLanguageAria: "Язык интерфейса",
           resultAria: "Результат проверки VIN",
           fileAria: "Файл VIN",
@@ -849,10 +804,6 @@
         },
         pl: {
           pageTitle: "AUTOGOOD Specyfikacja VIN",
-          navTools: "Narzędzia",
-          navCalculators: "Kalkulatory",
-          navContracts: "Umowy PDF",
-          navAuctions: "Aukcje",
           vinCheck: "Weryfikacja VIN",
           checkData: "Dane do weryfikacji",
           reportLanguage: "1. Język raportu",
@@ -865,7 +816,6 @@
           engineType: "Typ silnika",
           engineVolume: "Pojemność silnika",
           vinFile: "Plik VIN",
-          navigationAria: "Nawigacja",
           uiLanguageAria: "Język interfejsu",
           resultAria: "Wynik weryfikacji VIN",
           fileAria: "Plik VIN",
@@ -1049,7 +999,6 @@
         uiLanguageButtons.forEach((button) => {
           button.setAttribute("aria-pressed", String(button.dataset.uiLanguage === uiLanguage));
         });
-        document.querySelector(".partslinkNav")?.setAttribute("aria-label", uiText("navigationAria"));
         uiLanguageSwitch.setAttribute("aria-label", uiText("uiLanguageAria"));
         document.querySelector(".partslinkResultCard")?.setAttribute("aria-label", uiText("resultAria"));
         document.querySelector(".partslinkFileBlock")?.setAttribute("aria-label", uiText("fileAria"));
