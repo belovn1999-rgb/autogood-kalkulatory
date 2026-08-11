@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/pdf.css?v=20260810-no-plates-1" />
-    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260811-1" />
+    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260811-2" />
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
   </head>
@@ -116,6 +116,11 @@
                     <input name="importDate" type="date" />
                   </label>
                 </div>
+
+                <section class="declaration-pdf-preview" aria-label="Podgląd oświadczenia">
+                  <div class="declaration-pdf-preview-head">Podgląd oświadczenia</div>
+                  <iframe id="declarationPreview" title="Podgląd oświadczenia o braku tablic"></iframe>
+                </section>
               </section>
 
             </section>
@@ -123,6 +128,6 @@
         </section>
       </section>
     </main>
-    <script src="./src/no-plates-declaration.js?v=20260810-3"></script>
+    <script src="./src/no-plates-declaration.js?v=20260811-1"></script>
   </body>
 </html>

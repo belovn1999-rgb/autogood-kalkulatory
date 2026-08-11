@@ -91,11 +91,41 @@
 }
 
 .declaration-grid {
-  grid-template-columns: minmax(0, 1.6fr) minmax(230px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .declaration-grid .contract-card {
   align-self: start;
+}
+
+.declaration-pdf-preview {
+  display: grid;
+  gap: 0;
+  margin: 22px 16px 16px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--field);
+}
+
+.declaration-pdf-preview-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--brand-dark);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.declaration-pdf-preview iframe {
+  display: block;
+  width: 100%;
+  height: min(74vh, 860px);
+  min-height: 520px;
+  border: 0;
+  background: #fff;
 }
 
 .declaration-template-title {

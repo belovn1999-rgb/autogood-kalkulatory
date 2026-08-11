@@ -5,6 +5,7 @@ const genderChoice = document.querySelector("#clientGenderChoice");
 const autogoodFields = document.querySelector("#autogoodFields");
 const directFields = document.querySelector("#directFields");
 const hintEl = document.querySelector("#declarationHint");
+const previewFrame = document.querySelector("#declarationPreview");
 const printButton = document.querySelector("#printDeclaration");
 const saveButton = document.querySelector("#saveDeclarationPdf");
 
@@ -17,6 +18,9 @@ const templateUrls = {
 };
 
 let declarationFontBytesPromise;
+let previewUrl = "";
+let previewTimer;
+let previewRequestId = 0;
 
 function selectedValue(name) {
   return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
@@ -50,6 +54,8 @@ function updateVariant() {
   } else {
     hintEl.textContent = "Wybierz Pan albo Pani i uzupełnij dane właściciela pojazdu.";
   }
+
+  schedulePreview();
 }
 
 function collectData() {
@@ -233,6 +239,30 @@ async function buildPdf(data) {
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }
 
+function schedulePreview() {
+  window.clearTimeout(previewTimer);
+  previewTimer = window.setTimeout(updatePreview, 250);
+}
+
+async function updatePreview() {
+  const requestId = ++previewRequestId;
+  try {
+    const nextUrl = URL.createObjectURL(await buildPdf(collectData()));
+    if (requestId !== previewRequestId) {
+      URL.revokeObjectURL(nextUrl);
+      return;
+    }
+    const previousUrl = previewUrl;
+    previewUrl = nextUrl;
+    previewFrame.src = nextUrl;
+    if (previousUrl) URL.revokeObjectURL(previousUrl);
+  } catch (error) {
+    if (requestId === previewRequestId) {
+      setStatus(`Nie udało się odświeżyć podglądu: ${error.message || error}`);
+    }
+  }
+}
+
 function safeFilePart(value) {
   return String(value || "AUTO")
     .replace(/[\\/:*?"<>|]+/g, "")
@@ -271,7 +301,15 @@ async function savePdf() {
 
 async function printPdf() {
   const frame = document.createElement("iframe");
-  frame.className = "declaration-print-frame";
+  Object.assign(frame.style, {
+    position: "fixed",
+    right: "0",
+    bottom: "0",
+    width: "0",
+    height: "0",
+    border: "0",
+    visibility: "hidden",
+  });
   document.body.append(frame);
   setBusy(true);
   try {
@@ -301,6 +339,8 @@ async function printPdf() {
 document.querySelectorAll('input[name="purchaseMode"], input[name="clientGender"]').forEach((input) => {
   input.addEventListener("change", updateVariant);
 });
+declarationForm.addEventListener("input", schedulePreview);
+declarationForm.addEventListener("change", schedulePreview);
 saveButton.addEventListener("click", savePdf);
 printButton.addEventListener("click", printPdf);
 
