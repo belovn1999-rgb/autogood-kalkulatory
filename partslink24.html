@@ -429,14 +429,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        min-height: 30px;
+        width: 32px;
+        height: 32px;
         flex: 0 0 auto;
         border: 1px solid var(--ag-color-rule-2);
         border-radius: var(--ag-radius-control);
         background: var(--ag-color-surface);
         color: var(--ag-color-accent-dark);
-        padding: 4px 10px;
+        padding: 0;
         font-family: var(--ag-font-body);
         font-size: 12px;
         font-weight: 700;
@@ -755,7 +755,6 @@
             <p class="partslinkPanelTitle" data-ui-key="result">Результат</p>
             <button id="partslinkCopyResult" class="partslinkCopyResult" type="button" aria-label="Скопировать VIN и дату производства" title="Скопировать VIN и дату производства" disabled>
               <span class="partslinkCopyResultIcon" aria-hidden="true">&#10697;</span>
-              <span data-ui-key="copyButton">Копировать</span>
             </button>
           </div>
           <div class="partslinkSpecRows">
@@ -823,7 +822,6 @@
           vinHint: "17 символов.",
           checkButton: "Проверить данные",
           result: "Результат",
-          copyButton: "Копировать",
           brandAndModel: "Марка и модель авто",
           productionDate: "Дата производства",
           engineType: "Тип двигателя",
@@ -862,7 +860,6 @@
           vinHint: "17 znaków.",
           checkButton: "Sprawdź dane",
           result: "Wynik",
-          copyButton: "Kopiuj",
           brandAndModel: "Marka i model samochodu",
           productionDate: "Data produkcji",
           engineType: "Typ silnika",
