@@ -16,6 +16,7 @@ const routes = JSON.parse(readTextFile(routesPath));
 const outputDir = resolve(process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const port = Number(process.env.PORT || 4174);
 const minRunGapMs = Number(process.env.PARTSLINK24_MIN_RUN_GAP_MS || 7000);
+const publicPartslinkPage = "https://belovn1999-rgb.github.io/autogood-kalkulatory/partslink24.html";
 let partslinkQueue = Promise.resolve();
 let lastRunFinishedAt = 0;
 
@@ -297,6 +298,16 @@ function normalizeDownloadFileName(value) {
 
 function sendStatic(request, response) {
   const url = new URL(request.url || "/", "http://127.0.0.1");
+  const requestHost = String(request.headers.host || "").toLowerCase();
+  if (url.pathname === "/partslink24.html" && /^[a-z0-9-]+\.trycloudflare\.com$/.test(requestHost)) {
+    const apiBase = `https://${requestHost}`;
+    response.writeHead(302, {
+      location: `${publicPartslinkPage}?api=${encodeURIComponent(apiBase)}`,
+      "cache-control": "no-store",
+      ...corsHeaders()
+    });
+    return response.end();
+  }
   const rawPath = url.pathname === "/" ? "/index.html" : url.pathname;
   const filePath = resolve(repoRoot, `.${normalize(rawPath)}`);
 
