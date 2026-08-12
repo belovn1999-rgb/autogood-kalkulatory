@@ -4,6 +4,10 @@ const copy = {
   pl: {
     eyebrow: "LINK MOBILE.DE",
     lead: "Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.",
+    methodPrompt: "WYBIERZ METODĘ",
+    listingChoiceDescription: "Wklej link z mobile.de i pobierz dane automatycznie.",
+    manualChoiceDescription: "Uzupełnij parametry auta samodzielnie.",
+    backToMethods: "← Wybierz metodę",
     inputLabel: "Link ogłoszenia",
     loadButton: "Rozpoznaj",
     loadingButton: "Pobieram",
@@ -64,6 +68,10 @@ const copy = {
   ru: {
     eyebrow: "ССЫЛКА MOBILE.DE",
     lead: "Вставь ссылку, проверь данные авто и выбери сценарий покупки. Калькулятор получит цену, доставку, осмотр и акциз.",
+    methodPrompt: "ВЫБЕРИ СПОСОБ",
+    listingChoiceDescription: "Вставь ссылку mobile.de и получи данные автоматически.",
+    manualChoiceDescription: "Заполни параметры автомобиля вручную.",
+    backToMethods: "← Выбрать способ",
     inputLabel: "Ссылка объявления",
     loadButton: "Распознать",
     loadingButton: "Загружаю",
@@ -218,6 +226,7 @@ const modelGroupsByBrand = {
 
 const state = {
   lang: new URLSearchParams(window.location.search).get("lang") === "ru" ? "ru" : "pl",
+  mode: null,
   data: null,
   status: "idle",
   error: "",
@@ -252,6 +261,8 @@ const els = {
   powerOptions: document.querySelector("[data-mobile-power-options]"),
   drive: Array.from(document.querySelectorAll("[data-mobile-drive]")),
   gearbox: Array.from(document.querySelectorAll("[data-mobile-gearbox]")),
+  methodChooser: document.querySelector("[data-mobile-method-chooser]"),
+  methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
 };
 
 function readMobileDeApiUrl() {
@@ -316,6 +327,18 @@ function renderI18n() {
   if (label) label.textContent = state.status === "loading" ? c.loadingButton : c.loadButton;
   setRangePlaceholders();
   renderManualOptions(false);
+}
+
+function setMode(mode) {
+  state.mode = mode === "listing" || mode === "manual" ? mode : null;
+  els.methodChooser.hidden = Boolean(state.mode);
+  els.methodViews.forEach((view) => {
+    view.hidden = view.dataset.mobileMethodView !== state.mode;
+  });
+
+  if (state.mode === "listing") {
+    requestAnimationFrame(() => els.url?.focus());
+  }
 }
 
 function detailRow(label, value) {
@@ -806,6 +829,14 @@ document.querySelectorAll("[data-lang-button]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-mobile-method]").forEach((button) => {
+  button.addEventListener("click", () => setMode(button.dataset.mobileMethod));
+});
+
+document.querySelectorAll("[data-mobile-back]").forEach((button) => {
+  button.addEventListener("click", () => setMode(null));
+});
+
 document.addEventListener("click", (event) => {
   const optionsButton = event.target.closest("[data-mobile-options]");
   if (optionsButton) {
@@ -853,11 +884,13 @@ const initialParams = new URLSearchParams(window.location.search);
 const initialUrl = initialParams.get("url");
 if (initialUrl) {
   els.url.value = initialUrl;
+  setMode("listing");
 }
 
 renderManualOptions(false);
 renderI18n();
 renderData();
+setMode(state.mode);
 
 fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
   .then((response) => response.ok ? response.json() : Promise.reject())
