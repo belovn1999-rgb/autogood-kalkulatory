@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=method-picker-20260811" />
+    <link rel="stylesheet" href="./src/mobile.css?v=manual-filters-20260812" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -218,6 +218,83 @@
                 </label>
               </div>
             </fieldset>
+            <div class="mobileTradeGrid mobileWideField">
+              <label class="mobileField">
+                <span data-i18n="vatLabel">VAT</span>
+                <select data-mobile-vat></select>
+              </label>
+              <fieldset class="mobileField mobileCountryField">
+                <legend data-i18n="countryLabel">Kraj</legend>
+                <details class="mobileMultiSelect" data-mobile-country-select>
+                  <summary data-mobile-country-summary></summary>
+                  <div class="mobileMultiSelectMenu">
+                    <label><input data-mobile-country type="checkbox" value="DE" checked /> <span data-i18n="countryGermany">Niemcy</span></label>
+                    <label><input data-mobile-country type="checkbox" value="BE" /> <span data-i18n="countryBelgium">Belgia</span></label>
+                    <label><input data-mobile-country type="checkbox" value="NL" /> <span data-i18n="countryNetherlands">Holandia</span></label>
+                    <label><input data-mobile-country type="checkbox" value="FR" /> <span data-i18n="countryFrance">Francja</span></label>
+                    <label><input data-mobile-country type="checkbox" value="AT" /> <span data-i18n="countryAustria">Austria</span></label>
+                    <label><input data-mobile-country type="checkbox" value="LU" /> <span data-i18n="countryLuxembourg">Luksemburg</span></label>
+                    <label><input data-mobile-country type="checkbox" value="SE" /> <span data-i18n="countrySweden">Szwecja</span></label>
+                    <label><input data-mobile-country type="checkbox" value="IT" /> <span data-i18n="countryItaly">Włochy</span></label>
+                    <label><input data-mobile-country type="checkbox" value="DK" /> <span data-i18n="countryDenmark">Dania</span></label>
+                    <label><input data-mobile-country type="checkbox" value="CZ" /> <span data-i18n="countryCzechia">Czechy</span></label>
+                    <label><input data-mobile-country type="checkbox" value="LT" /> <span data-i18n="countryLithuania">Litwa</span></label>
+                    <label><input data-mobile-country type="checkbox" value="LV" /> <span data-i18n="countryLatvia">Łotwa</span></label>
+                    <label><input data-mobile-country type="checkbox" value="EE" /> <span data-i18n="countryEstonia">Estonia</span></label>
+                    <label><input data-mobile-country type="checkbox" value="SK" /> <span data-i18n="countrySlovakia">Słowacja</span></label>
+                  </div>
+                </details>
+              </fieldset>
+              <label class="mobileField">
+                <span data-i18n="sellerTypeLabel">Sprzedawca</span>
+                <select data-mobile-seller></select>
+              </label>
+            </div>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend data-i18n="interiorMaterialLabel">Typ salonu</legend>
+              <div class="mobileSwatchGroup">
+                <label class="mobileCheckOption"><input data-mobile-interior-material type="checkbox" value="alcantara" /> <span data-i18n="materialAlcantara">Alcantara</span></label>
+                <label class="mobileCheckOption"><input data-mobile-interior-material type="checkbox" value="cloth" /> <span data-i18n="materialCloth">Materiał</span></label>
+                <label class="mobileCheckOption"><input data-mobile-interior-material type="checkbox" value="part_leather" /> <span data-i18n="materialPartLeather">Skóra częściowa</span></label>
+                <label class="mobileCheckOption"><input data-mobile-interior-material type="checkbox" value="full_leather" /> <span data-i18n="materialFullLeather">Skóra</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend data-i18n="exteriorColorLabel">Kolor nadwozia</legend>
+              <div class="mobileSwatchGroup mobileColorGroup">
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="beige" /><i class="isBeige"></i><span data-i18n="colorBeige">beżowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="blue" /><i class="isBlue"></i><span data-i18n="colorBlue">niebieski</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="brown" /><i class="isBrown"></i><span data-i18n="colorBrown">brązowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="yellow" /><i class="isYellow"></i><span data-i18n="colorYellow">żółty</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="gold" /><i class="isGold"></i><span data-i18n="colorGold">złoty</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="green" /><i class="isGreen"></i><span data-i18n="colorGreen">zielony</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="grey" /><i class="isGrey"></i><span data-i18n="colorGrey">szary</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="orange" /><i class="isOrange"></i><span data-i18n="colorOrange">pomarańczowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="red" /><i class="isRed"></i><span data-i18n="colorRed">czerwony</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="black" /><i class="isBlack"></i><span data-i18n="colorBlack">czarny</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="silver" /><i class="isSilver"></i><span data-i18n="colorSilver">srebrny</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="purple" /><i class="isPurple"></i><span data-i18n="colorPurple">fioletowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="white" /><i class="isWhite"></i><span data-i18n="colorWhite">biały</span></label>
+                <label class="mobileCheckOption"><input data-mobile-matte type="checkbox" /> <span data-i18n="matteLabel">Matowy</span></label>
+                <label class="mobileCheckOption"><input data-mobile-metallic type="checkbox" /> <span data-i18n="metallicLabel">Metallic</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend data-i18n="interiorColorLabel">Kolor wnętrza</legend>
+              <div class="mobileSwatchGroup mobileColorGroup">
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="beige" /><i class="isBeige"></i><span data-i18n="colorBeige">beżowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="black" /><i class="isBlack"></i><span data-i18n="colorBlack">czarny</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="blue" /><i class="isBlue"></i><span data-i18n="colorBlue">niebieski</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="brown" /><i class="isBrown"></i><span data-i18n="colorBrown">brązowy</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="grey" /><i class="isGrey"></i><span data-i18n="colorGrey">szary</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="red" /><i class="isRed"></i><span data-i18n="colorRed">czerwony</span></label>
+                <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="other" /><i class="isOther"></i><span data-i18n="colorOther">inny</span></label>
+              </div>
+            </fieldset>
+            <label class="mobileCheckOption mobileWideField mobileNonSmokingField">
+              <input data-mobile-non-smoking type="checkbox" />
+              <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
+            </label>
           </div>
         </article>
       </section>
@@ -227,6 +304,6 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile.js?v=method-picker-20260811"></script>
+    <script src="./src/mobile.js?v=manual-filters-20260812"></script>
   </body>
 </html>

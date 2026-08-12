@@ -564,6 +564,154 @@ button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.mobileTradeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) minmax(0, 0.8fr);
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.mobileCountryField {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mobileCountryField legend {
+  margin-bottom: var(--space-xs);
+  padding: 0;
+}
+
+.mobileMultiSelect {
+  position: relative;
+}
+
+.mobileMultiSelect summary {
+  display: block;
+  min-height: 42px;
+  overflow: hidden;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 11px 42px 10px var(--space-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileMultiSelect summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobileMultiSelect summary::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  width: 0;
+  height: 0;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  border-top: 6px solid var(--color-ink);
+}
+
+.mobileMultiSelect[open] summary {
+  border-color: var(--color-focus);
+}
+
+.mobileMultiSelectMenu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+  max-height: 250px;
+  overflow-y: auto;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 12px 28px rgba(12, 37, 54, 0.14);
+  padding: var(--space-sm);
+}
+
+.mobileMultiSelectMenu label,
+.mobileCheckOption,
+.mobileColorOption {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.3;
+}
+
+.mobileMultiSelectMenu input,
+.mobileCheckOption input,
+.mobileColorOption input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--color-brand);
+}
+
+.mobileSwatchGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+  min-height: 42px;
+  align-items: center;
+}
+
+.mobileColorGroup {
+  gap: var(--space-sm) var(--space-md);
+}
+
+.mobileColorOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mobileColorOption i {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border: var(--rule-thin) solid rgba(12, 37, 54, 0.2);
+  border-radius: 6px;
+}
+
+.mobileColorOption:has(input:checked) i {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.mobileColorOption .isBeige { background: #ddbb83; }
+.mobileColorOption .isBlack { background: #353535; }
+.mobileColorOption .isBlue { background: #3b6ed7; }
+.mobileColorOption .isBrown { background: #8d6118; }
+.mobileColorOption .isYellow { background: #f9d500; }
+.mobileColorOption .isGold { background: linear-gradient(135deg, #b99018, #f7dd54); }
+.mobileColorOption .isGreen { background: #70b62c; }
+.mobileColorOption .isGrey { background: #b6b6b6; }
+.mobileColorOption .isOrange { background: #ff7b26; }
+.mobileColorOption .isRed { background: #ff4545; }
+.mobileColorOption .isSilver { background: linear-gradient(135deg, #f7f7f7, #aaa); }
+.mobileColorOption .isPurple { background: #8458ed; }
+.mobileColorOption .isWhite { background: #fff; }
+.mobileColorOption .isOther { background: linear-gradient(90deg, #ff4a4a, #ffd930, #41b95c, #4f77ec, #9d5be9); }
+
+.mobileNonSmokingField {
+  min-height: 42px;
+  border-top: var(--rule-thin) solid var(--color-rule-soft);
+  padding-top: var(--space-md);
+}
+
 .mobileChoiceOption {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -865,6 +1013,14 @@ button {
   .mobileChoiceGroupTwo {
     grid-template-columns: minmax(0, 1fr);
     max-width: none;
+  }
+
+  .mobileTradeGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileMultiSelectMenu {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

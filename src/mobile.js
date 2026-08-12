@@ -36,6 +36,54 @@ const copy = {
     gearboxAny: "Dowolny",
     gearboxAutomatic: "Automatyczna",
     gearboxManual: "Manualna",
+    vatLabel: "VAT",
+    vatAny: "Dowolny",
+    vatReclaimable: "VAT zwrotny",
+    vatNonReclaimable: "VAT niezwrotny",
+    countryLabel: "Kraj",
+    countryGermany: "Niemcy",
+    countryBelgium: "Belgia",
+    countryNetherlands: "Holandia",
+    countryFrance: "Francja",
+    countryAustria: "Austria",
+    countryLuxembourg: "Luksemburg",
+    countrySweden: "Szwecja",
+    countryItaly: "Włochy",
+    countryDenmark: "Dania",
+    countryCzechia: "Czechy",
+    countryLithuania: "Litwa",
+    countryLatvia: "Łotwa",
+    countryEstonia: "Estonia",
+    countrySlovakia: "Słowacja",
+    sellerTypeLabel: "Sprzedawca",
+    sellerAny: "Dowolny",
+    sellerDealer: "Dealer",
+    sellerPrivate: "Prywatny",
+    sellerCompany: "Firma",
+    interiorMaterialLabel: "Typ salonu",
+    materialAlcantara: "Alcantara",
+    materialCloth: "Materiał",
+    materialPartLeather: "Skóra częściowa",
+    materialFullLeather: "Skóra",
+    exteriorColorLabel: "Kolor nadwozia",
+    interiorColorLabel: "Kolor wnętrza",
+    colorBeige: "beżowy",
+    colorBlack: "czarny",
+    colorBlue: "niebieski",
+    colorBrown: "brązowy",
+    colorYellow: "żółty",
+    colorGold: "złoty",
+    colorGreen: "zielony",
+    colorGrey: "szary",
+    colorOrange: "pomarańczowy",
+    colorRed: "czerwony",
+    colorSilver: "srebrny",
+    colorPurple: "fioletowy",
+    colorWhite: "biały",
+    colorOther: "inny",
+    matteLabel: "Matowy",
+    metallicLabel: "Metallic",
+    nonSmokingLabel: "Auto niepalącego",
     fromPlaceholder: "od",
     toPlaceholder: "do",
     sourceEyebrow: "SPRZEDAWCA",
@@ -100,6 +148,54 @@ const copy = {
     gearboxAny: "Любая",
     gearboxAutomatic: "Автоматическая",
     gearboxManual: "Механическая",
+    vatLabel: "VAT",
+    vatAny: "Любой",
+    vatReclaimable: "VAT возвратный",
+    vatNonReclaimable: "VAT невозвратный",
+    countryLabel: "Страна",
+    countryGermany: "Германия",
+    countryBelgium: "Бельгия",
+    countryNetherlands: "Нидерланды",
+    countryFrance: "Франция",
+    countryAustria: "Австрия",
+    countryLuxembourg: "Люксембург",
+    countrySweden: "Швеция",
+    countryItaly: "Италия",
+    countryDenmark: "Дания",
+    countryCzechia: "Чехия",
+    countryLithuania: "Литва",
+    countryLatvia: "Латвия",
+    countryEstonia: "Эстония",
+    countrySlovakia: "Словакия",
+    sellerTypeLabel: "Продавец",
+    sellerAny: "Любой",
+    sellerDealer: "Дилер",
+    sellerPrivate: "Частный",
+    sellerCompany: "Фирма",
+    interiorMaterialLabel: "Материал салона",
+    materialAlcantara: "Алькантара",
+    materialCloth: "Материал",
+    materialPartLeather: "Комбинированная кожа",
+    materialFullLeather: "Кожа",
+    exteriorColorLabel: "Цвет кузова",
+    interiorColorLabel: "Цвет салона",
+    colorBeige: "бежевый",
+    colorBlack: "чёрный",
+    colorBlue: "синий",
+    colorBrown: "коричневый",
+    colorYellow: "жёлтый",
+    colorGold: "золотой",
+    colorGreen: "зелёный",
+    colorGrey: "серый",
+    colorOrange: "оранжевый",
+    colorRed: "красный",
+    colorSilver: "серебристый",
+    colorPurple: "фиолетовый",
+    colorWhite: "белый",
+    colorOther: "другой",
+    matteLabel: "Матовый",
+    metallicLabel: "Металлик",
+    nonSmokingLabel: "Авто для некурящих",
     fromPlaceholder: "от",
     toPlaceholder: "до",
     sourceEyebrow: "ПРОДАВЕЦ",
@@ -261,6 +357,16 @@ const els = {
   powerOptions: document.querySelector("[data-mobile-power-options]"),
   drive: Array.from(document.querySelectorAll("[data-mobile-drive]")),
   gearbox: Array.from(document.querySelectorAll("[data-mobile-gearbox]")),
+  vat: document.querySelector("[data-mobile-vat]"),
+  seller: document.querySelector("[data-mobile-seller]"),
+  countries: Array.from(document.querySelectorAll("[data-mobile-country]")),
+  countrySummary: document.querySelector("[data-mobile-country-summary]"),
+  interiorMaterials: Array.from(document.querySelectorAll("[data-mobile-interior-material]")),
+  exteriorColors: Array.from(document.querySelectorAll("[data-mobile-exterior-color]")),
+  interiorColors: Array.from(document.querySelectorAll("[data-mobile-interior-color]")),
+  matte: document.querySelector("[data-mobile-matte]"),
+  metallic: document.querySelector("[data-mobile-metallic]"),
+  nonSmoking: document.querySelector("[data-mobile-non-smoking]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
   methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
 };
@@ -462,6 +568,25 @@ function checkedValue(radios) {
   return radios.find((radio) => radio.checked)?.value || "";
 }
 
+function checkedValues(inputs) {
+  return inputs.filter((input) => input.checked).map((input) => input.value);
+}
+
+function setCheckedValues(inputs, values) {
+  const selected = new Set(values || []);
+  inputs.forEach((input) => {
+    input.checked = selected.has(input.value);
+  });
+}
+
+function updateCountrySummary() {
+  if (!els.countrySummary) return;
+  const selected = els.countries.filter((input) => input.checked)
+    .map((input) => input.closest("label")?.innerText.trim())
+    .filter(Boolean);
+  els.countrySummary.textContent = selected.length ? selected.join(", ") : copy[state.lang].selectEmpty;
+}
+
 function setCheckedValue(radios, value) {
   radios.forEach((radio) => {
     radio.checked = radio.value === value;
@@ -551,6 +676,15 @@ function renderManualOptions(keepValues = true) {
     powerTo: els.powerTo.value,
     drive: checkedValue(els.drive) || "any",
     gearbox: checkedValue(els.gearbox) || "any",
+    vat: els.vat.value,
+    seller: els.seller.value,
+    countries: checkedValues(els.countries),
+    interiorMaterials: checkedValues(els.interiorMaterials),
+    exteriorColors: checkedValues(els.exteriorColors),
+    interiorColors: checkedValues(els.interiorColors),
+    matte: els.matte.checked,
+    metallic: els.metallic.checked,
+    nonSmoking: els.nonSmoking.checked,
   };
 
   els.brand.innerHTML = [
@@ -570,6 +704,18 @@ function renderManualOptions(keepValues = true) {
     ...bodyOptions.map((body) => optionHtml(body.value, body[state.lang], body.value === current.body)),
   ].join("");
 
+  els.vat.innerHTML = [
+    optionHtml("", c.vatAny),
+    optionHtml("reclaimable", c.vatReclaimable, current.vat === "reclaimable"),
+    optionHtml("non_reclaimable", c.vatNonReclaimable, current.vat === "non_reclaimable"),
+  ].join("");
+  els.seller.innerHTML = [
+    optionHtml("", c.sellerAny),
+    optionHtml("dealer", c.sellerDealer, current.seller === "dealer"),
+    optionHtml("private", c.sellerPrivate, current.seller === "private"),
+    optionHtml("company", c.sellerCompany, current.seller === "company"),
+  ].join("");
+
   els.model.value = current.model || "";
   renderModelOptions(current.model);
   renderDatalist(els.mileageOptions, mileageOptions());
@@ -587,6 +733,14 @@ function renderManualOptions(keepValues = true) {
   els.powerTo.value = current.powerTo || "";
   setCheckedValue(els.drive, current.drive || "any");
   setCheckedValue(els.gearbox, current.gearbox || "any");
+  setCheckedValues(els.countries, current.countries?.length ? current.countries : ["DE"]);
+  setCheckedValues(els.interiorMaterials, current.interiorMaterials);
+  setCheckedValues(els.exteriorColors, current.exteriorColors);
+  setCheckedValues(els.interiorColors, current.interiorColors);
+  els.matte.checked = Boolean(current.matte);
+  els.metallic.checked = Boolean(current.metallic);
+  els.nonSmoking.checked = Boolean(current.nonSmoking);
+  updateCountrySummary();
 }
 
 function readManualFields() {
@@ -606,6 +760,15 @@ function readManualFields() {
     powerTo: els.powerTo?.value || "",
     drive: checkedValue(els.drive),
     gearbox: checkedValue(els.gearbox),
+    vat: els.vat?.value || "",
+    seller: els.seller?.value || "",
+    countries: checkedValues(els.countries),
+    interiorMaterials: checkedValues(els.interiorMaterials),
+    exteriorColors: checkedValues(els.exteriorColors),
+    interiorColors: checkedValues(els.interiorColors),
+    matte: els.matte?.checked || false,
+    metallic: els.metallic?.checked || false,
+    nonSmoking: els.nonSmoking?.checked || false,
   };
 }
 
@@ -868,6 +1031,8 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeComboMenus();
 });
+
+els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
 
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
