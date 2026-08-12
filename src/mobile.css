@@ -712,6 +712,10 @@ button {
   padding-top: var(--space-md);
 }
 
+.mobileDamagedField {
+  max-width: 260px;
+}
+
 .mobileChoiceOption {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -1021,6 +1025,10 @@ button {
 
   .mobileMultiSelectMenu {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileDamagedField {
+    max-width: none;
   }
 }
 

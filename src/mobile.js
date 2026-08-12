@@ -84,6 +84,9 @@ const copy = {
     matteLabel: "Matowy",
     metallicLabel: "Metallic",
     nonSmokingLabel: "Auto niepalącego",
+    damagedVehiclesLabel: "Uszkodzone pojazdy",
+    damagedVehiclesHide: "Nie pokazuj",
+    damagedVehiclesShow: "Pokaż wszystkie",
     fromPlaceholder: "od",
     toPlaceholder: "do",
     sourceEyebrow: "SPRZEDAWCA",
@@ -196,6 +199,9 @@ const copy = {
     matteLabel: "Матовый",
     metallicLabel: "Металлик",
     nonSmokingLabel: "Авто для некурящих",
+    damagedVehiclesLabel: "Повреждённые автомобили",
+    damagedVehiclesHide: "Не показывать",
+    damagedVehiclesShow: "Показывать все",
     fromPlaceholder: "от",
     toPlaceholder: "до",
     sourceEyebrow: "ПРОДАВЕЦ",
@@ -367,6 +373,7 @@ const els = {
   matte: document.querySelector("[data-mobile-matte]"),
   metallic: document.querySelector("[data-mobile-metallic]"),
   nonSmoking: document.querySelector("[data-mobile-non-smoking]"),
+  damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
   methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
 };
@@ -685,6 +692,7 @@ function renderManualOptions(keepValues = true) {
     matte: els.matte.checked,
     metallic: els.metallic.checked,
     nonSmoking: els.nonSmoking.checked,
+    damagedVehicles: els.damagedVehicles.value || "hide",
   };
 
   els.brand.innerHTML = [
@@ -715,6 +723,10 @@ function renderManualOptions(keepValues = true) {
     optionHtml("private", c.sellerPrivate, current.seller === "private"),
     optionHtml("company", c.sellerCompany, current.seller === "company"),
   ].join("");
+  els.damagedVehicles.innerHTML = [
+    optionHtml("hide", c.damagedVehiclesHide, current.damagedVehicles !== "show"),
+    optionHtml("show", c.damagedVehiclesShow, current.damagedVehicles === "show"),
+  ].join("");
 
   els.model.value = current.model || "";
   renderModelOptions(current.model);
@@ -740,6 +752,7 @@ function renderManualOptions(keepValues = true) {
   els.matte.checked = Boolean(current.matte);
   els.metallic.checked = Boolean(current.metallic);
   els.nonSmoking.checked = Boolean(current.nonSmoking);
+  els.damagedVehicles.value = current.damagedVehicles || "hide";
   updateCountrySummary();
 }
 
@@ -769,6 +782,7 @@ function readManualFields() {
     matte: els.matte?.checked || false,
     metallic: els.metallic?.checked || false,
     nonSmoking: els.nonSmoking?.checked || false,
+    damagedVehicles: els.damagedVehicles?.value || "hide",
   };
 }
 
