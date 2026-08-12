@@ -59,6 +59,7 @@ const copy = {
     commissionType: "Rodzaj prowizji",
     standard: "Standard",
     financing: "Finansowanie",
+    directCommission: "Bezpośrednio",
     inputs: "Dane",
     results: "Kalkulacja",
     total: "Razem",
@@ -130,6 +131,7 @@ const copy = {
     commissionType: "Тип комиссии",
     standard: "Стандарт",
     financing: "Финансирование",
+    directCommission: "Напрямую",
     inputs: "Данные",
     results: "Расчёт",
     total: "Итого",
@@ -423,6 +425,10 @@ const directSellerPayment = {
   pl: "Płatność za pojazd do sprzedawcy w EUR",
   ru: "Вы платите за автомобиль продавцу в EUR"
 };
+const directDealerVat23Steps = {
+  pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacasz kaucję w wys. zagranicznego VAT-u", directSellerPayment.pl],
+  ru: ["Возвращаем 70% полученной скидки от продавца", "Вы вносите депозит в размере иностранного VAT", directSellerPayment.ru]
+};
 const invoiceVat23 = {
   pl: "Sprzedajemy na Fakturę VAT 23%",
   ru: "Продаём по инвойсу VAT 23%"
@@ -443,7 +449,10 @@ const financingNotes = {
     ownContribution: "Вы вносите собственный взнос"
   }
 };
-function getProcessSteps(tab, lang, financed, hasGermanCommission = false) {
+function getProcessSteps(tab, lang, financed, hasGermanCommission = false, dealerDirect = false) {
+  if (dealerDirect && tab.id === 3) {
+    return directDealerVat23Steps[lang] || [];
+  }
   const steps = {
     0: {
       pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl],
@@ -605,6 +614,7 @@ function readCalculatorPrefill() {
       rateTouched: false,
       engineIndex: 3,
       financed: false,
+      dealerDirect: false,
       values: {},
       mobileDeUrl: ""
     };
@@ -636,6 +646,7 @@ function readCalculatorPrefill() {
     rateTouched: nextRate > 0,
     engineIndex: Number.isInteger(engineParam) && engineTypes[engineParam] ? engineParam : 3,
     financed: nextTab > 0 && params.get("financed") === "1",
+    dealerDirect: nextTab === 3 && (params.get("direct") === "1" || params.get("dealerDirect") === "1"),
     values,
     mobileDeUrl: params.get("mobileUrl") || params.get("url") || ""
   };
@@ -646,6 +657,7 @@ function historySignature(item) {
     rate: item.rate,
     engineIndex: item.engineIndex,
     financed: item.financed,
+    dealerDirect: item.dealerDirect,
     values: item.values || {},
     manualOverrides: item.manualOverrides || {}
   });
@@ -1127,7 +1139,7 @@ function HistoryPanel({
     type: "button",
     title: c.historyRestore,
     onClick: () => onRestore(item)
-  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.type === "final" ? item.finalCurrency : item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total, item.finalCurrency || "PLN"))))));
+  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.type === "final" ? item.finalCurrency : item.dealerDirect ? c.directCommission : item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total, item.finalCurrency || "PLN"))))));
 }
 function FinalModeControl({
   c,
@@ -1367,7 +1379,7 @@ function registrationRows(t, enabled, totalValue = REGISTRATION_NETTO, manualMul
 function commissionFormula(fix, pct, base, discountPart = "") {
   return `${money(fix)} + (${(pct * 100).toFixed(0)}% × ${money(base)})${discountPart}`;
 }
-function calculate(tabId, values, rate, exciseRate, financed, lang) {
+function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect = false) {
   const t = copy[lang].lines;
   const car = n(values.car);
   const fee = n(values.fee);
@@ -1442,12 +1454,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang) {
     const bruttoBase = carPln * 1.23;
     const discountPln = discount * useRate;
     const discountCommission = 0.3 * discountPln;
-    const commissionNetto = finFix + finPct * bruttoBase + discountCommission;
-    const discountText = discount > 0 ? ` + (30% × ${inputCurrencyLabel(discount)})` : "";
-    const vatBase = carPln + inspection + transport + excise + commissionNetto + TO_FEE + registrationNetto;
+    const commissionNetto = dealerDirect ? STD_FIX + 0.01 * carPln : finFix + finPct * bruttoBase + discountCommission;
+    const discountText = !dealerDirect && discount > 0 ? ` + (30% × ${inputCurrencyLabel(discount)})` : "";
+    const commissionBase = dealerDirect ? carPln : bruttoBase;
+    const commissionPct = dealerDirect ? 0.01 : finPct;
+    const vatBase = (dealerDirect ? 0 : carPln) + inspection + transport + (dealerDirect ? 0 : excise) + commissionNetto + TO_FEE + registrationNetto;
     const vat = vatBase * VAT;
-    const total = vatBase + vat + germanCommissionPln;
-    const rows = [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, bruttoBase, discountText)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`)];
+    const total = dealerDirect ? carPln + inspection + transport + excise + commissionNetto + TO_FEE + registrationNetto + vat + germanCommissionPln : vatBase + vat + germanCommissionPln;
+    const rows = [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`)];
     return {
       total,
       rows
@@ -1480,7 +1494,8 @@ function printCalculation({
   total,
   rate,
   financed,
-  hasGermanCommission
+  hasGermanCommission,
+  dealerDirect = false
 }) {
   const c = copy[lang];
   const calculationTitle = title || calculatorName(tab, lang, financed);
@@ -1504,7 +1519,7 @@ function printCalculation({
           </td>
         </tr>`;
   }).join("");
-  const processSteps = getProcessSteps(tab, lang, financed, hasGermanCommission);
+  const processSteps = getProcessSteps(tab, lang, financed, hasGermanCommission, dealerDirect);
   const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow"> → </span>' : ""}<span class="processStep">${highlightedHtml(step)}</span>`).join("");
   const html = `
 <!doctype html>
@@ -1701,6 +1716,7 @@ function App() {
   const [ratesStatus, setRatesStatus] = useState("loading");
   const [engineIndex, setEngineIndex] = useState(initialPrefill.engineIndex);
   const [financed, setFinanced] = useState(initialPrefill.financed);
+  const [dealerDirect, setDealerDirect] = useState(initialPrefill.dealerDirect);
   const [values, setValues] = useState(initialPrefill.values);
   const [mobileDeUrl, setMobileDeUrl] = useState(initialPrefill.mobileDeUrl);
   const [mobileDeStatus, setMobileDeStatus] = useState("");
@@ -1721,13 +1737,13 @@ function App() {
   const tab = tabs[activeTab];
   const isFinalBalance = activeTab === FINAL_TAB_ID;
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
-  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang), [activeTab, values, rate, exciseRate, financed, safeLang]);
+  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect), [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect]);
   const calc = useMemo(() => applyManualOverrides(baseCalc, manualOverrides, activeTab), [baseCalc, manualOverrides, activeTab]);
   const finalCalc = useMemo(() => calculateFinalBalance(finalItems), [finalItems]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
-  const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission);
+  const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect);
   const visibleHistory = isFinalBalance ? finalHistory : history;
   const avgRateLabel = formatAvgRate(Number(marketRates?.rates?.EUR_PLN?.value));
   const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : "pl-PL", {
@@ -1758,6 +1774,7 @@ function App() {
     setActiveTab(id);
     setValues({});
     setFinanced(false);
+    setDealerDirect(false);
     setManualOverrides({});
     setEditingOverride("");
     // Switching tabs wipes the imported values, so the import result no longer
@@ -1899,6 +1916,7 @@ function App() {
       rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
       engineIndex,
       financed: activeTab > 0 && financed,
+      dealerDirect: activeTab === 3 && dealerDirect,
       values: normalizeHistoryValues(values),
       manualOverrides,
       total: calc.total,
@@ -1936,6 +1954,7 @@ function App() {
     rateTouchedRef.current = true;
     setEngineIndex(Number.isInteger(item.engineIndex) && engineTypes[item.engineIndex] ? item.engineIndex : 3);
     setFinanced(nextTab > 0 && Boolean(item.financed));
+    setDealerDirect(nextTab === 3 && Boolean(item.dealerDirect));
     setMobileDeUrl("");
     setMobileDeStatus("");
     setMobileDeSummary("");
@@ -2085,7 +2104,8 @@ function App() {
       total: calc.total,
       rate: n(rate) || DEFAULT_RATE,
       financed,
-      hasGermanCommission
+      hasGermanCommission,
+      dealerDirect: activeTab === 3 && dealerDirect
     })
   }, c.print), /*#__PURE__*/React.createElement("button", {
     className: "printBtn screenshotBtn",
@@ -2145,20 +2165,29 @@ function App() {
   }), activeTab > 0 && /*#__PURE__*/React.createElement("div", {
     className: "toggleBlock"
   }, /*#__PURE__*/React.createElement("span", null, c.commissionType), /*#__PURE__*/React.createElement("div", {
-    className: "commissionSegment"
+    className: `commissionSegment ${activeTab === 3 ? "withDirect" : ""}`
   }, /*#__PURE__*/React.createElement("button", {
-    className: !financed ? "active" : "",
+    className: !financed && !dealerDirect ? "active" : "",
     onClick: () => {
       clearManualOverrides();
       setFinanced(false);
+      setDealerDirect(false);
     }
   }, c.standard), /*#__PURE__*/React.createElement("button", {
-    className: financed ? "active" : "",
+    className: financed && !dealerDirect ? "active" : "",
     onClick: () => {
       clearManualOverrides();
       setFinanced(true);
+      setDealerDirect(false);
     }
-  }, c.financing))), /*#__PURE__*/React.createElement("label", {
+  }, c.financing), activeTab === 3 && /*#__PURE__*/React.createElement("button", {
+    className: dealerDirect ? "active" : "",
+    onClick: () => {
+      clearManualOverrides();
+      setFinanced(false);
+      setDealerDirect(true);
+    }
+  }, c.directCommission))), /*#__PURE__*/React.createElement("label", {
     className: "field"
   }, /*#__PURE__*/React.createElement("span", null, c.engine), /*#__PURE__*/React.createElement("select", {
     value: engineIndex,

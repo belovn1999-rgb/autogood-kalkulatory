@@ -1515,6 +1515,11 @@ select {
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 
+.commissionSegment.withDirect button {
+  padding-inline: 6px;
+  font-size: 11.5px;
+}
+
 .commissionSegment button.active {
   background: var(--ag-blue-700);
   color: var(--ag-color-accent-ink);
