@@ -392,6 +392,8 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false, deale
 
 const processHighlights = [
   "70% uzyskanego rabatu",
+  "70% полученной скидки",
+  "Вы вносите депозит",
   "do sprzedawcy w EUR",
   "продавцу в EUR",
   "w PLN lub EUR",
