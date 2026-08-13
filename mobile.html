@@ -104,16 +104,14 @@
               <div class="mobileManualGrid">
             <label class="mobileField">
               <span data-i18n="brandLabel">Marka</span>
-              <div class="mobileComboControl mobileTextComboControl">
+              <div class="mobileComboControl mobileTextComboControl" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
                 <input data-mobile-brand type="text" autocomplete="off" />
-                <button type="button" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand" aria-label="Lista"></button>
               </div>
             </label>
             <label class="mobileField">
               <span data-i18n="modelLabel">Model</span>
-              <div class="mobileComboControl mobileTextComboControl">
+              <div class="mobileComboControl mobileTextComboControl" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
                 <input data-mobile-model type="text" autocomplete="off" />
-                <button type="button" data-mobile-options="model" data-mobile-options-target="data-mobile-model" aria-label="Lista"></button>
               </div>
             </label>
             <label class="mobileField">
@@ -132,14 +130,12 @@
             <div class="mobileField mobileRangeField">
               <span data-i18n="mileageRangeLabel">Przebieg</span>
               <div class="mobileRangePair">
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-from">
                   <input data-mobile-mileage-from inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-from" aria-label="Lista"></button>
                   <em>km</em>
                 </div>
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-to">
                   <input data-mobile-mileage-to inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-to" aria-label="Lista"></button>
                   <em>km</em>
                 </div>
               </div>
@@ -147,14 +143,12 @@
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="yearRangeLabel">Rok</span>
               <div class="mobileRangePair">
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="year" data-mobile-options-target="data-mobile-year-from">
                   <input data-mobile-year-from inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="year" data-mobile-options-target="data-mobile-year-from" aria-label="Lista"></button>
                   <em aria-hidden="true"></em>
                 </div>
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="year" data-mobile-options-target="data-mobile-year-to">
                   <input data-mobile-year-to inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="year" data-mobile-options-target="data-mobile-year-to" aria-label="Lista"></button>
                   <em aria-hidden="true"></em>
                 </div>
               </div>
@@ -162,14 +156,12 @@
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="displacementRangeLabel">Pojemność silnika</span>
               <div class="mobileRangePair">
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-from">
                   <input data-mobile-displacement-from inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-from" aria-label="Lista"></button>
                   <em>ccm</em>
                 </div>
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-to">
                   <input data-mobile-displacement-to inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-to" aria-label="Lista"></button>
                   <em>ccm</em>
                 </div>
               </div>
@@ -177,14 +169,12 @@
             <div class="mobileField mobileRangeField mobileWideField">
               <span data-i18n="powerRangeLabel">Moc silnika (KM)</span>
               <div class="mobileRangePair">
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="power" data-mobile-options-target="data-mobile-power-from">
                   <input data-mobile-power-from inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="power" data-mobile-options-target="data-mobile-power-from" aria-label="Lista"></button>
                   <em>KM</em>
                 </div>
-                <div class="mobileComboControl">
+                <div class="mobileComboControl" data-mobile-options="power" data-mobile-options-target="data-mobile-power-to">
                   <input data-mobile-power-to inputmode="numeric" autocomplete="off" />
-                  <button type="button" data-mobile-options="power" data-mobile-options-target="data-mobile-power-to" aria-label="Lista"></button>
                   <em>KM</em>
                 </div>
               </div>
@@ -346,6 +336,6 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-webids-20260813"></script>
-    <script src="./src/mobile.js?v=combo-open-20260813"></script>
+    <script src="./src/mobile.js?v=field-open-20260813"></script>
   </body>
 </html>

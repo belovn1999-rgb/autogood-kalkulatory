@@ -474,7 +474,7 @@ button {
 .mobileComboControl {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   min-width: 0;
   min-height: 42px;
@@ -485,7 +485,7 @@ button {
 }
 
 .mobileTextComboControl {
-  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .mobileField .mobileComboControl input {
@@ -515,35 +515,6 @@ button {
   line-height: 1;
   padding-right: var(--space-sm);
   white-space: nowrap;
-}
-
-.mobileComboControl > button {
-  position: relative;
-  width: 34px;
-  height: 40px;
-  border: 0;
-  border-left: var(--rule-thin) solid var(--color-field);
-  border-right: var(--rule-thin) solid var(--color-field);
-  background: var(--color-surface-tint);
-  padding: 0;
-}
-
-.mobileTextComboControl > button {
-  border-right: 0;
-  background: var(--color-surface);
-}
-
-.mobileComboControl > button::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--color-ink);
-  transform: translate(-50%, -35%);
 }
 
 .mobileComboControl.isOpen {

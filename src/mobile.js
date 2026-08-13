@@ -873,17 +873,15 @@ function closeComboMenus(exceptControl = null) {
   document.querySelectorAll(".mobileComboControl.isOpen").forEach((control) => {
     if (control === exceptControl) return;
     control.classList.remove("isOpen");
-    control.querySelector("[data-mobile-options]")?.setAttribute("aria-expanded", "false");
+    control.setAttribute("aria-expanded", "false");
   });
 }
 
 function renderComboMenus(filterControl = null) {
   const sets = comboOptionSets();
-  document.querySelectorAll("[data-mobile-options]").forEach((button) => {
-    const control = button.closest(".mobileComboControl");
-    if (!control) return;
-    const options = sets[button.dataset.mobileOptions] || [];
-    const targetName = button.dataset.mobileOptionsTarget;
+  document.querySelectorAll(".mobileComboControl[data-mobile-options]").forEach((control) => {
+    const options = sets[control.dataset.mobileOptions] || [];
+    const targetName = control.dataset.mobileOptionsTarget;
     const input = targetName ? control.querySelector(`[${targetName}]`) : null;
     const filter = control === filterControl ? normalizeToken(input?.value || "") : "";
     const visibleOptions = filter
@@ -895,7 +893,7 @@ function renderComboMenus(filterControl = null) {
       menu.className = "mobileComboMenu";
       control.append(menu);
     }
-    button.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
+    control.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
     menu.innerHTML = visibleOptions.map((option) => `
       <button type="button" data-mobile-option-value="${escapeHtml(option.value)}">
         ${escapeHtml(option.label)}
@@ -908,7 +906,7 @@ function openComboMenu(control, filterControl = null) {
   if (!control) return;
   closeComboMenus(control);
   control.classList.add("isOpen");
-  control.querySelector("[data-mobile-options]")?.setAttribute("aria-expanded", "true");
+  control.setAttribute("aria-expanded", "true");
   renderComboMenus(filterControl);
 }
 
@@ -1456,20 +1454,10 @@ document.querySelectorAll("[data-mobile-back]").forEach((button) => {
 });
 
 document.addEventListener("click", (event) => {
-  const optionsButton = event.target.closest("[data-mobile-options]");
-  if (optionsButton) {
-    const control = optionsButton.closest(".mobileComboControl");
-    const isOpen = control?.classList.contains("isOpen");
-    closeComboMenus(control);
-    if (!isOpen) openComboMenu(control);
-    else optionsButton.setAttribute("aria-expanded", "false");
-    return;
-  }
-
   const optionButton = event.target.closest("[data-mobile-option-value]");
   if (optionButton) {
     const control = optionButton.closest(".mobileComboControl");
-    const targetName = control?.querySelector("[data-mobile-options]")?.dataset.mobileOptionsTarget;
+    const targetName = control?.dataset.mobileOptionsTarget;
     const input = targetName ? control.querySelector(`[${targetName}]`) : null;
     if (input) {
       input.value = optionButton.dataset.mobileOptionValue || "";
@@ -1477,6 +1465,15 @@ document.addEventListener("click", (event) => {
       input.focus();
     }
     closeComboMenus();
+    return;
+  }
+
+  const control = event.target.closest(".mobileComboControl[data-mobile-options]");
+  if (control) {
+    const isOpen = control.classList.contains("isOpen");
+    closeComboMenus(control);
+    if (!isOpen) openComboMenu(control);
+    else control.setAttribute("aria-expanded", "false");
     return;
   }
 
@@ -1488,9 +1485,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.querySelectorAll(".mobileComboControl input").forEach((input) => {
-  input.addEventListener("click", () => {
-    openComboMenu(input.closest(".mobileComboControl"));
-  });
   input.addEventListener("input", () => {
     const control = input.closest(".mobileComboControl");
     openComboMenu(control, control);
