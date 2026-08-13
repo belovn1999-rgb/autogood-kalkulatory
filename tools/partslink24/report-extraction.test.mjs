@@ -240,6 +240,35 @@ POWER TRAIN            PHEV DRIVE TRAIN`]
   }
 });
 
+test("all Stellantis reports treat T2 charging and E-TENSE as plug-in evidence for combustion engines", () => {
+  const reports = [
+    ["RU", `ДВИГАТЕЛЬ                         EP6FADTXHPD UE64 1,6 Л БЕНЗИН
+КОРОБКА ПЕРЕДАЧ                  4X2 8-СТУП. АКП, ГИБРИДНЫЙ ПРИВОД
+БЫТОВАЯ СЕТЬ РЕЖИМ 3             РАЗЪЕМ T2 WALLBOX
+РАЗЪЕМ ЗАРЯДКИ АВТОМОБИЛЯ        РАЗЪЕМ ЗАРЯДКИ АВТОМОБИЛЯ T2
+ЭМБЛЕМЫ                          E-TENSE`],
+    ["PL", `SILNIK                            EP6FADTXHPD UE64 1,6 L BENZYNA
+SKRZYNIA BIEGÓW                   4X2 AUTOMATYCZNA 8 BIEGOWA HYBRYDA
+GNIAZDO ŁADOWANIA POJAZDU         GNIAZDO ŁADOWANIA POJAZDU T2
+EMBLEMATY                         E-TENSE`],
+    ["ENG", `ENGINE                            EP6FADTXHPD UE64 1.6 L PETROL
+TRANSMISSION                      4X2 8-SPEED AUTOMATIC HYBRID DRIVE
+VEHICLE CHARGING SOCKET           VEHICLE CHARGING SOCKET T2
+BADGES                            E-TENSE`]
+  ];
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    for (const [language, text] of reports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.engineType, "Бензин + Plug-in Гибрид", `${brand} ${language}`);
+    }
+  }
+});
+
 test("Stellantis engine rows outrank unrelated electric equipment descriptions", () => {
   const reports = [
     ["RU", `ДВИГАТЕЛЬ                 DV5RC UE64 1.5 L DIESEL

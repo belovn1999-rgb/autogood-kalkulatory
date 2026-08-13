@@ -254,8 +254,10 @@ function resolveStellantisEngineType({
   const directType = directInfo.engineType;
   const baseFuel = directType.includes("Бензин") ? "Бензин" : directType.includes("Дизель") ? "Дизель" : "";
   const powertrainEvidence = [transmissionRaw, stellantisPowertrainRaw, inferredEngineRaw, mildHybridRaw].filter(Boolean).join(" ");
+  const hasExplicitPlugIn = /\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence);
+  const hasChargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)|\bE[\s-]*TENSE\b/i.test(powertrainEvidence);
 
-  if (/\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence)) {
+  if (hasExplicitPlugIn || (baseFuel && hasChargingEvidence)) {
     return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
   }
   if (/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид/i.test(powertrainEvidence)) {
@@ -406,13 +408,14 @@ function collectStellantisPowertrainEvidence(text) {
   const explicitPlugIn = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|подключаем\w*\s+гибрид/i;
   const hybrid = /\bhybrid\b|hybryd|гибрид/i;
   const powertrainContext = /power[\s-]*train|drive[\s-]*train|układ\s+napędowy|zespół\s+napędowy|силов(?:ой|ого)\s+агрегат|привод/i;
+  const chargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)|\bE[\s-]*TENSE\b/i;
   const negative = /\b(?:without|w\/?o|none|not fitted|bez|brak|без|отсутств)\b/i;
   const matches = [];
 
   for (const line of String(text || "").split(/\r?\n/)) {
     const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
     if (!normalized || negative.test(normalized)) continue;
-    if (explicitPlugIn.test(normalized) || (hybrid.test(normalized) && powertrainContext.test(normalized))) {
+    if (explicitPlugIn.test(normalized) || chargingEvidence.test(normalized) || (hybrid.test(normalized) && powertrainContext.test(normalized))) {
       matches.push(normalized);
     }
   }
