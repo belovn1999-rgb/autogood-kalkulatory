@@ -798,6 +798,17 @@
           invalidVin: "VIN должен содержать 17 символов: проверьте ввод и повторите.",
           checking: "Проверяем данные и готовим файл VIN...",
           backendUnavailable: "Сервер проверки VIN недоступен.",
+          vinCheckFailed: (reason) => `Не удалось проверить VIN на данную модель: ${reason}`,
+          vinCheckReasons: {
+            unavailable: "сервер недоступен",
+            login: "нет входа",
+            unsupportedBrand: "марка не поддерживается",
+            brandNotFound: "марка не найдена",
+            pdf: "PDF не получен",
+            data: "данные не получены",
+            blocked: "доступ ограничен",
+            generic: "внутренняя ошибка"
+          },
           readyMany: "Данные получены, файлы готовы в блоке «Файл VIN».",
           readyOne: "Данные получены, файл готов в блоке «Файл VIN».",
           httpsError: "GitHub-странице нужен HTTPS backend. Откройте ссылку с параметром ?api=адрес_backend или локальную страницу."
@@ -831,6 +842,17 @@
           invalidVin: "VIN musi zawierać 17 znaków. Sprawdź wpisane dane i spróbuj ponownie.",
           checking: "Sprawdzamy dane i przygotowujemy plik VIN...",
           backendUnavailable: "Serwer weryfikacji VIN jest niedostępny.",
+          vinCheckFailed: (reason) => `Nie udało się zweryfikować VIN dla tego modelu: ${reason}`,
+          vinCheckReasons: {
+            unavailable: "serwer niedostępny",
+            login: "brak logowania",
+            unsupportedBrand: "marka niewspierana",
+            brandNotFound: "marka nieznaleziona",
+            pdf: "brak pliku PDF",
+            data: "brak danych",
+            blocked: "dostęp ograniczony",
+            generic: "błąd wewnętrzny"
+          },
           readyMany: "Dane zostały pobrane. Pliki są gotowe w sekcji „Plik VIN”.",
           readyOne: "Dane zostały pobrane. Plik jest gotowy w sekcji „Plik VIN”.",
           httpsError: "Strona GitHub wymaga backendu HTTPS. Otwórz link z parametrem ?api=adres_backendu albo stronę lokalną."
@@ -953,6 +975,22 @@
       function uiText(key, ...args) {
         const value = uiCopy[uiLanguage][key];
         return typeof value === "function" ? value(...args) : value;
+      }
+
+      function formatVinCheckError(error) {
+        const source = String(error?.message || error || "").toLowerCase();
+        const reasons = uiText("vinCheckReasons");
+        let reason = reasons.generic;
+
+        if (/unsupported.*brand|поддерживаемую\s+марку|марка.*поддерж/i.test(source)) reason = reasons.unsupportedBrand;
+        else if (/логотип.*марки|brand.*(?:logo|not found)|марка.*(?:не найдена|not found)/i.test(source)) reason = reasons.brandNotFound;
+        else if (/login|logowanie|вход|username|password|парол/i.test(source)) reason = reasons.login;
+        else if (/не вернул.*pdf|nie zwrócił.*pdf|did not.*pdf|pdf.*(?:not|не).*(?:returned|получен)/i.test(source)) reason = reasons.pdf;
+        else if (/не вернул.*(?:результат|данн)|nie zwrócił.*(?:wynik|dan)|did not.*(?:result|data)|сервер не вернул файл/i.test(source)) reason = reasons.data;
+        else if (/blocked|forbidden|access denied|доступ.*огранич|заблокир/i.test(source)) reason = reasons.blocked;
+        else if (/failed to fetch|network|backend|сервер|connection|соединени|unknown system error|econn/i.test(source)) reason = reasons.unavailable;
+
+        return uiText("vinCheckFailed", reason);
       }
 
       function readStoredUiLanguage() {
@@ -1441,7 +1479,7 @@
           await renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
           setStatusFromKey(files.length > 1 ? "readyMany" : "readyOne", "success");
         } catch (error) {
-          setStatus(error.message || uiText("httpsError"), "error");
+          setStatus(formatVinCheckError(error), "error");
         } finally {
           setBusy(false);
         }
