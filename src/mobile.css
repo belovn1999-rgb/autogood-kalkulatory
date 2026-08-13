@@ -490,7 +490,10 @@ button {
 
 .mobileBrandCombo .mobileComboMenu,
 .mobileModelCombo .mobileComboMenu {
-  width: 560px;
+  top: 50%;
+  width: 360px;
+  max-height: min(440px, calc(100dvh - 32px));
+  transform: translateY(-50%);
 }
 
 .mobileBrandCombo .mobileComboMenu {
@@ -1097,9 +1100,12 @@ button {
 @media (max-width: 40rem) {
   .mobileBrandCombo .mobileComboMenu,
   .mobileModelCombo .mobileComboMenu {
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
     width: auto;
+    max-height: min(320px, calc(100dvh - 120px));
+    transform: none;
   }
 
   .mobileShell {
