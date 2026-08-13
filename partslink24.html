@@ -946,8 +946,8 @@
         return defaultPartslinkApiBase;
       }
 
-      function makePdfFileName(brand, vin, language) {
-        return `${brand}_${vin}_${language}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
+      function makePdfFileName(brand, vin) {
+        return `${brand}_${vin}.pdf`.replace(/[^A-Za-z0-9_.-]/g, "_");
       }
 
       function uiText(key, ...args) {
@@ -1123,7 +1123,7 @@
         checkButton.disabled = isBusy;
       }
 
-      async function renderDownloadLinks(files, apiBase, brand, vin, language) {
+      async function renderDownloadLinks(files, apiBase, brand, vin) {
         releasePreviewUrls();
         downloadLinks.replaceChildren();
         fileViewer.replaceChildren();
@@ -1139,7 +1139,7 @@
         fileViewer.dataset.empty = "false";
 
         for (const [index, file] of usableFiles.entries()) {
-          const fileName = makePdfFileName(brand, vin, language);
+          const fileName = makePdfFileName(brand, vin);
           const separator = file.downloadUrl.includes("?") ? "&" : "?";
           const directUrl = `${apiBase}${file.downloadUrl}${separator}downloadName=${encodeURIComponent(fileName)}`;
           // The PDF route sends content-disposition: attachment, so an iframe
@@ -1436,7 +1436,7 @@
           engineVolumeInput.dataset.rawValue = result.engineVolume || "";
           renderLocalizedResultValues();
           copyResultButton.disabled = !payload.vin || !productionDateInput.value;
-          await renderDownloadLinks(files, apiBase, payload.brand, payload.vin, payload.language);
+          await renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
           setStatusFromKey(files.length > 1 ? "readyMany" : "readyOne", "success");
         } catch (error) {
           setStatus(error.message || uiText("httpsError"), "error");
