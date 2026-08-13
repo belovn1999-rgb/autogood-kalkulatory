@@ -128,6 +128,39 @@ DAM                                    16403CJ
   });
 });
 
+test("Stellantis reads a separate fuel row and infers the 1KR displacement", () => {
+  const citroen = extractVehicleInfoFromText(`
+Модель                                  C1
+DAM                                     13071UT
+ДВИГАТЕЛЬ                               1KR EURO5 INJECTION
+ТОПЛИВО                                 UNLEADED PETROL 95 QUALITY A/B/E/E+
+`, { brand: "Citroen", language: "RU" });
+
+  assert.deepEqual(citroen, {
+    model: "C1",
+    productionDate: "21.08.2012",
+    engineType: "Бензин",
+    engineVolume: "998 cm³"
+  });
+
+  const fuelRows = [
+    ["RU", "ТОПЛИВО", "НЕЭТИЛИРОВАННЫЙ БЕНЗИН"],
+    ["PL", "PALIWO", "BENZYNA BEZOŁOWIOWA"],
+    ["ENG", "FUEL", "UNLEADED PETROL"]
+  ];
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    for (const [language, label, value] of fuelRows) {
+      const result = extractVehicleInfoFromText(`${label}    ${value}`, { brand, language });
+      assert.equal(result.engineType, "Бензин", `${brand} ${language}`);
+    }
+  }
+});
+
 test("Alfa Romeo uses the commercial model row and FCA cylinder capacity", () => {
   const result = extractVehicleInfoFromText(`
 Nr nadwozia               ZAR94000007103616

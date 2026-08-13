@@ -150,9 +150,12 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const engineSpecificationLabels = stellantisBrands.has(brand)
     ? [/^(?:silnik|двигатель|engine)$/i, ...profile.engineSpecificationLabels]
     : profile.engineSpecificationLabels;
+  const fuelTypeLabels = stellantisBrands.has(brand)
+    ? [/^(?:топливо|paliwo|fuel)$/i, /^(?:тип\s+топлива|rodzaj\s+paliwa|fuel\s+type)$/i, ...profile.fuelTypeLabels]
+    : profile.fuelTypeLabels;
   const engineSpecificationRaw = findFirstPdfValue(text, engineSpecificationLabels);
   const engineTypeRaw = findFirstPdfValue(text, profile.engineTypeLabels);
-  const fuelTypeRaw = findFirstPdfValue(text, profile.fuelTypeLabels);
+  const fuelTypeRaw = findFirstPdfValue(text, fuelTypeLabels);
   const engineCodeRaw = findFirstPdfValue(text, profile.engineCodeLabels);
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
@@ -606,6 +609,11 @@ function findEngineVolumeRaw(text, brand, profile, values) {
   if (normalizePdfEngineVolume(values.engineSpecificationRaw)) return values.engineSpecificationRaw;
   if (normalizePdfEngineVolume(values.engineTypeRaw)) return values.engineTypeRaw;
 
+  if (stellantisBrands.has(brand)) {
+    const inferredVolume = inferStellantisEngineVolume([values.engineSpecificationRaw, values.engineCodeRaw].join(" "));
+    if (inferredVolume) return inferredVolume;
+  }
+
   if (brand === "Volvo") {
     const volvoEngine = String(text).match(/^\s*[A-Z0-9]{4}\s+ENGINE[^\r\n]*?\b(\d+(?:[.,]\d+)?)\s*L\b/im);
     if (volvoEngine) return `${volvoEngine[1]} L`;
@@ -627,6 +635,12 @@ function findEngineVolumeRaw(text, brand, profile, values) {
     if (capacity) return `${capacity[1]} L`;
   }
 
+  return "";
+}
+
+function inferStellantisEngineVolume(value) {
+  const engineCode = String(value || "").toUpperCase();
+  if (/\b1KR(?:-FE)?\b/.test(engineCode)) return "998 cm3";
   return "";
 }
 
