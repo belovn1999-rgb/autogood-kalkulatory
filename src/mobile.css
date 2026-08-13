@@ -392,6 +392,12 @@ button {
   padding-top: var(--space-md);
 }
 
+.mobileModelVersionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
 .mobileField {
   display: grid;
   gap: var(--space-xs);
@@ -716,6 +722,49 @@ button {
   max-width: 260px;
 }
 
+.mobileManualSearchActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  align-items: center;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: var(--rule-thick) solid var(--color-rule-soft);
+}
+
+.mobileMarketSearchStatus {
+  min-height: 1lh;
+  margin: 0;
+  color: var(--color-success);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+}
+
+.mobileMarketSearchStatus.isError {
+  color: var(--color-error);
+}
+
+.mobileMarketSearchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+  padding: 0 var(--space-lg);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileMarketSearchButton i {
+  font-size: var(--text-lg);
+  font-style: normal;
+  line-height: 1;
+}
+
 .mobileChoiceOption {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -907,6 +956,7 @@ button {
 .mobileChoiceOption:focus-within,
 .mobileField select:focus-visible,
 .mobileSearchControl button:focus-visible,
+.mobileMarketSearchButton:focus-visible,
 .mobileScenarioCard:focus-visible {
   outline: 1px solid var(--color-focus);
   outline-offset: 2px;
@@ -939,6 +989,11 @@ button {
     background: var(--color-brand-pressed);
     transform: translateY(-1px);
   }
+
+  .mobileMarketSearchButton:hover {
+    background: var(--color-brand-pressed);
+    transform: translateY(-1px);
+  }
 }
 
 .mobileGhostLink:active,
@@ -946,6 +1001,7 @@ button {
 .mobileBackButton:active,
 .mobileLang button:active,
 .mobileSearchControl button:active,
+.mobileMarketSearchButton:active,
 .mobileScenarioCard:active {
   transform: translateY(1px);
 }
@@ -1010,6 +1066,10 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .mobileModelVersionGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .mobileChoiceGroup {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1029,6 +1089,14 @@ button {
 
   .mobileDamagedField {
     max-width: none;
+  }
+
+  .mobileManualSearchActions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileMarketSearchButton {
+    width: 100%;
   }
 }
 

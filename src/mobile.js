@@ -20,6 +20,7 @@ const copy = {
     calculatorDataEyebrow: "DANE DO KALKULATORA",
     brandLabel: "Marka",
     modelLabel: "Model",
+    versionLabel: "Wersja",
     fuelLabel: "Paliwo",
     pluginLabel: "Plug-in",
     bodyLabel: "Nadwozie",
@@ -87,6 +88,11 @@ const copy = {
     damagedVehiclesLabel: "Uszkodzone pojazdy",
     damagedVehiclesHide: "Nie pokazuj",
     damagedVehiclesShow: "Pokaż wszystkie",
+    marketSearchButton: "Szukaj na mobile.de",
+    marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
+    marketSearchChooseBrand: "Wybierz markę przed wpisaniem modelu.",
+    marketSearchUnsupportedBrand: "Ta marka nie występuje w wyszukiwarce samochodów mobile.de.",
+    marketSearchInvalidRange: "Wartość „od” nie może być większa niż „do”.",
     fromPlaceholder: "od",
     toPlaceholder: "do",
     sourceEyebrow: "SPRZEDAWCA",
@@ -135,6 +141,7 @@ const copy = {
     calculatorDataEyebrow: "ДАННЫЕ ДЛЯ КАЛЬКУЛЯТОРА",
     brandLabel: "Марка",
     modelLabel: "Модель",
+    versionLabel: "Версия",
     fuelLabel: "Топливо",
     pluginLabel: "Plug-in",
     bodyLabel: "Кузов",
@@ -202,6 +209,11 @@ const copy = {
     damagedVehiclesLabel: "Повреждённые автомобили",
     damagedVehiclesHide: "Не показывать",
     damagedVehiclesShow: "Показывать все",
+    marketSearchButton: "Найти на mobile.de",
+    marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
+    marketSearchChooseBrand: "Сначала выбери марку, затем введи модель.",
+    marketSearchUnsupportedBrand: "Этой марки нет в поиске легковых автомобилей mobile.de.",
+    marketSearchInvalidRange: "Значение «от» не может быть больше значения «до».",
     fromPlaceholder: "от",
     toPlaceholder: "до",
     sourceEyebrow: "ПРОДАВЕЦ",
@@ -266,6 +278,7 @@ const fallbackBrands = {
   Suzuki: {},
   Toyota: {},
   Volvo: {},
+  Volkswagen: {},
   "Vw Nutzfahrzeuge": {},
 };
 
@@ -278,13 +291,14 @@ const favoriteBrands = [
   { value: "Renault", label: "Renault" },
   { value: "Toyota", label: "Toyota" },
   { value: "Volvo", label: "Volvo" },
-  { value: "Vw Nutzfahrzeuge", label: "Volkswagen" },
+  { value: "Volkswagen", label: "Volkswagen" },
 ];
 
 const brandAliases = {
   Citroen: ["Citroën"],
   "Mercedes-Benz": ["Mercedes Benz", "Mercedes"],
-  "Vw Nutzfahrzeuge": ["Volkswagen", "VW", "Vw"],
+  Volkswagen: ["VW", "Vw"],
+  "Vw Nutzfahrzeuge": ["Volkswagen Nutzfahrzeuge", "VW Nutzfahrzeuge", "Vw Nutzfahrzeuge"],
 };
 
 const fuelOptions = [
@@ -307,6 +321,92 @@ const bodyOptions = [
   { value: "other", pl: "Inne", ru: "Другое" },
 ];
 
+const mobileDeMakeIds = {
+  Abarth: "140",
+  "Alfa Romeo": "900",
+  Alpine: "5",
+  Audi: "1900",
+  Bentley: "3100",
+  BMW: "3500",
+  Citroen: "5900",
+  Cupra: "3",
+  Dacia: "6600",
+  DS: "235",
+  Fiat: "8800",
+  Ford: "9000",
+  Hyundai: "11600",
+  Infiniti: "11650",
+  Iveco: "12100",
+  Jaguar: "12400",
+  Jeep: "12600",
+  Kia: "13200",
+  "Land Rover": "14800",
+  Lancia: "14700",
+  Lexus: "15200",
+  MAN: "186",
+  "Mercedes-Benz": "17200",
+  Mini: "17500",
+  Mitsubishi: "17700",
+  Nissan: "18700",
+  Opel: "19000",
+  Peugeot: "19300",
+  Polestar: "4",
+  Porsche: "20100",
+  Renault: "20700",
+  Seat: "22500",
+  Skoda: "22900",
+  Smart: "23000",
+  Suzuki: "23600",
+  Toyota: "24100",
+  Volvo: "25100",
+  Volkswagen: "25200",
+  "Vw Nutzfahrzeuge": "25200",
+};
+
+const mobileDeFuelValues = {
+  petrol: "PETROL",
+  diesel: "DIESEL",
+  hybrid_diesel: "HYBRID_DIESEL",
+  hybrid_petrol: "HYBRID",
+  electric: "ELECTRIC",
+};
+
+const mobileDeBodyValues = {
+  limousine: "Limousine",
+  estate: "EstateCar",
+  suv: "OffRoad",
+  hatchback: "SmallCar",
+  coupe: "SportsCar",
+  cabrio: "Cabrio",
+  van_minibus: "Van",
+  pickup: "OffRoad",
+  other: "OtherCar",
+};
+
+const mobileDeDriveValues = {
+  awd: "ALL_WHEEL",
+  fwd: "FRONT",
+  rwd: "REAR",
+};
+
+const mobileDeGearboxValues = {
+  automatic: "AUTOMATIC_GEAR",
+  manual: "MANUAL_GEAR",
+};
+
+const mobileDeSellerValues = {
+  dealer: "DEALER",
+  private: "FSBO",
+  company: "COMM_FSBO",
+};
+
+const mobileDeInteriorMaterialValues = {
+  alcantara: "ALCANTARA",
+  cloth: "FABRIC",
+  part_leather: "PARTIAL_LEATHER",
+  full_leather: "LEATHER",
+};
+
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
 const powerOptions = ["75", "90", "101", "118", "131", "150", "200", "252", "303", "358", "402", "452"];
 
@@ -324,6 +424,178 @@ const modelGroupsByBrand = {
     { group: "Z Series", models: ["Z1", "Z3", "Z3 M", "Z4", "Z4 M", "Z4 M40", "Z8"] },
     { group: "Pozostałe BMW", models: ["2002", "840", "850", "i3", "i4", "i5", "i7", "i8", "iX", "iX1", "iX2", "iX3", "Other"] },
   ],
+};
+
+const mobileDeBmwModelIds = {
+  "114": "73",
+  "116": "2",
+  "118": "3",
+  "120": "4",
+  "123": "59",
+  "125": "61",
+  "128": "328",
+  "130": "5",
+  "135": "58",
+  "1er M Coupé": "87",
+  "2002": "71",
+  "2er Gran Coupé": "322",
+  "214 Active Tourer": "110",
+  "214 Gran Tourer": "116",
+  "216": "106",
+  "216 Active Tourer": "111",
+  "216 Gran Coupé": "345",
+  "216 Gran Tourer": "114",
+  "218": "90",
+  "218 Active Tourer": "107",
+  "218 Gran Coupé": "343",
+  "218 Gran Tourer": "112",
+  "220": "84",
+  "220 Active Tourer": "108",
+  "220 Gran Coupé": "344",
+  "220 Gran Tourer": "113",
+  "223": "351",
+  "223 Active Tourer": "333",
+  "223 Gran Coupé": "350",
+  "225": "91",
+  "225 Active Tourer": "109",
+  "228": "104",
+  "230": "125",
+  "230 Active Tourer": "334",
+  "315": "7",
+  "316": "8",
+  "318": "9",
+  "318 Gran Turismo": "75",
+  "320": "10",
+  "320 Gran Turismo": "76",
+  "323": "11",
+  "324": "12",
+  "325": "13",
+  "325 Gran Turismo": "88",
+  "328": "14",
+  "328 Gran Turismo": "77",
+  "330": "15",
+  "330 Gran Turismo": "103",
+  "335": "56",
+  "335 Gran Turismo": "78",
+  "340": "118",
+  "340 Gran Turismo": "130",
+  "ActiveHybrid 3": "72",
+  "418": "115",
+  "418 Gran Coupé": "98",
+  "420": "80",
+  "420 Gran Coupé": "99",
+  "425": "102",
+  "425 Gran Coupé": "124",
+  "428": "81",
+  "428 Gran Coupé": "100",
+  "430": "83",
+  "430 Gran Coupé": "105",
+  "435": "82",
+  "435 Gran Coupé": "101",
+  "440": "120",
+  "440 Gran Coupé": "121",
+  "518": "16",
+  "520": "17",
+  "520 Gran Turismo": "74",
+  "523": "18",
+  "524": "19",
+  "525": "20",
+  "528": "21",
+  "530": "22",
+  "530 Gran Turismo": "65",
+  "535": "23",
+  "535 Gran Turismo": "66",
+  "540": "24",
+  "545": "25",
+  "550": "26",
+  "550 Gran Turismo": "67",
+  "ActiveHybrid 5": "70",
+  "620 Gran Turismo": "144",
+  "628": "27",
+  "630": "28",
+  "630 Gran Turismo": "127",
+  "633": "29",
+  "635": "30",
+  "640": "68",
+  "640 Gran Coupé": "94",
+  "640 Gran Turismo": "128",
+  "645": "31",
+  "650": "32",
+  "650 Gran Coupé": "95",
+  "725": "33",
+  "728": "34",
+  "730": "35",
+  "732": "36",
+  "735": "37",
+  "740": "38",
+  "745": "39",
+  "750": "40",
+  "760": "41",
+  "ActiveHybrid 7": "63",
+  "840": "42",
+  "850": "43",
+  "i3": "79",
+  "i4": "330",
+  "i5": "341",
+  "i7": "336",
+  "i8": "89",
+  "iX": "331",
+  "iX1": "337",
+  "iX2": "346",
+  "iX3": "329",
+  "M135": "69",
+  "M140i": "122",
+  "M2": "117",
+  "M235": "85",
+  "M240i": "123",
+  "M3": "45",
+  "M340d": "342",
+  "M340i": "152",
+  "M4": "93",
+  "M440": "335",
+  "M5": "46",
+  "M550": "86",
+  "M6": "47",
+  "M760": "126",
+  "M8": "154",
+  "M850": "140",
+  "ActiveHybrid X6": "64",
+  "X1": "6",
+  "X2": "129",
+  "X3": "48",
+  "X3 M": "145",
+  "X3 M40": "153",
+  "X3 M50": "348",
+  "X4": "92",
+  "X4 M": "146",
+  "X4 M40": "119",
+  "X5": "49",
+  "X5 M": "53",
+  "X5 M50": "96",
+  "X5 M60": "339",
+  "X6": "60",
+  "X6 M": "62",
+  "X6 M50": "97",
+  "X6 M60": "340",
+  "X7": "143",
+  "X7 M50": "332",
+  "X7 M60": "347",
+  "XM": "338",
+  "Z1": "50",
+  "Z3": "51",
+  "Z3 M": "57",
+  "Z4": "52",
+  "Z4 M": "55",
+  "Z4 M40": "349",
+  "Z8": "54",
+  "Other": "1",
+};
+
+const generatedMobileModelCatalog = globalThis.AUTOGOOD_MOBILE_MODEL_CATALOG || {};
+Object.assign(modelGroupsByBrand, generatedMobileModelCatalog.groups || {});
+const mobileDeModelIdsByBrand = {
+  BMW: mobileDeBmwModelIds,
+  ...(generatedMobileModelCatalog.modelIds || {}),
 };
 
 const state = {
@@ -345,6 +617,7 @@ const els = {
   scenarios: document.querySelector("[data-mobile-scenarios]"),
   brand: document.querySelector("[data-mobile-brand]"),
   model: document.querySelector("[data-mobile-model]"),
+  version: document.querySelector("[data-mobile-version]"),
   modelOptions: document.querySelector("[data-mobile-model-options]"),
   fuel: document.querySelector("[data-mobile-fuel]"),
   plugin: document.querySelector("[data-mobile-plugin]"),
@@ -374,6 +647,8 @@ const els = {
   metallic: document.querySelector("[data-mobile-metallic]"),
   nonSmoking: document.querySelector("[data-mobile-non-smoking]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
+  marketSearch: document.querySelector("[data-mobile-market-search]"),
+  marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
   methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
 };
@@ -670,6 +945,7 @@ function renderManualOptions(keepValues = true) {
   const current = keepValues ? readManualFields() : {
     brand: els.brand.value,
     model: els.model.value,
+    version: els.version.value,
     fuel: els.fuel.value,
     plugin: els.plugin.checked ? "yes" : "",
     body: els.body.value,
@@ -729,6 +1005,7 @@ function renderManualOptions(keepValues = true) {
   ].join("");
 
   els.model.value = current.model || "";
+  els.version.value = current.version || "";
   renderModelOptions(current.model);
   renderDatalist(els.mileageOptions, mileageOptions());
   renderDatalist(els.yearOptions, yearOptions());
@@ -760,6 +1037,7 @@ function readManualFields() {
   return {
     brand: els.brand?.value || "",
     model: els.model?.value || "",
+    version: els.version?.value || "",
     fuel: els.fuel?.value || "",
     plugin: els.plugin?.checked ? "yes" : "",
     body: els.body?.value || "",
@@ -784,6 +1062,101 @@ function readManualFields() {
     nonSmoking: els.nonSmoking?.checked || false,
     damagedVehicles: els.damagedVehicles?.value || "hide",
   };
+}
+
+function mobileDeNumber(value) {
+  const compact = compactNumber(value);
+  if (!compact) return null;
+  const number = Number(compact);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function mobileDeModelId(brand, model) {
+  const normalized = normalizeToken(model);
+  const match = Object.entries(mobileDeModelIdsByBrand[brand] || {})
+    .find(([label]) => normalizeToken(label) === normalized);
+  return match?.[1] || "";
+}
+
+function appendMobileDeRange(params, key, fromValue, toValue, transform = (value) => value) {
+  const from = mobileDeNumber(fromValue);
+  const to = mobileDeNumber(toValue);
+  if (from !== null && to !== null && from > to) {
+    throw new Error(copy[state.lang].marketSearchInvalidRange);
+  }
+  if (from === null && to === null) return;
+  params.set(key, `${from === null ? "" : transform(from)}:${to === null ? "" : transform(to)}`);
+}
+
+function buildMobileDeSearchUrl(filters) {
+  const c = copy[state.lang];
+  const params = new URLSearchParams();
+  params.set("lang", "en");
+  params.set("isSearchRequest", "true");
+  params.set("s", "Car");
+  params.set("vc", "Car");
+
+  if (filters.damagedVehicles !== "show") params.set("dam", "false");
+
+  const makeId = filters.brand ? mobileDeMakeIds[filters.brand] : "";
+  if (filters.brand && !makeId) throw new Error(c.marketSearchUnsupportedBrand);
+  if (filters.model && !makeId) throw new Error(c.marketSearchChooseBrand);
+  if (makeId) {
+    const exactModelId = mobileDeModelId(filters.brand, filters.model);
+    if (exactModelId) params.set("ms", `${makeId};${exactModelId};;`);
+    else if (filters.model) params.set("ms", `${makeId};;;${filters.model.trim()}`);
+    else params.set("ms", makeId);
+  }
+
+  const body = mobileDeBodyValues[filters.body];
+  if (body) params.set("c", body);
+
+  appendMobileDeRange(params, "ml", filters.mileageFrom, filters.mileageTo);
+  appendMobileDeRange(params, "fr", filters.yearFrom, filters.yearTo);
+  appendMobileDeRange(params, "cc", filters.displacementFrom, filters.displacementTo);
+  appendMobileDeRange(
+    params,
+    "pw",
+    filters.powerFrom,
+    filters.powerTo,
+    (powerPs) => Math.round(powerPs * 0.735499),
+  );
+
+  const fuel = filters.plugin === "yes" ? "HYBRID_PLUGIN" : mobileDeFuelValues[filters.fuel];
+  if (fuel) params.append("ft", fuel);
+
+  const drive = mobileDeDriveValues[filters.drive];
+  if (drive) params.set("dt", drive);
+  const gearbox = mobileDeGearboxValues[filters.gearbox];
+  if (gearbox) params.set("tr", gearbox);
+
+  if (filters.vat === "reclaimable") params.set("vat", "1");
+  if (filters.vat === "non_reclaimable") params.set("vat", "0");
+  const seller = mobileDeSellerValues[filters.seller];
+  if (seller) params.set("st", seller);
+
+  filters.countries.forEach((country) => params.append("cn", country));
+  filters.interiorMaterials.forEach((material) => {
+    const value = mobileDeInteriorMaterialValues[material];
+    if (value) params.append("it", value);
+  });
+  filters.exteriorColors.forEach((color) => params.append("ecol", color.toUpperCase()));
+  filters.interiorColors.forEach((color) => {
+    params.append("icol", color === "other" ? "OTHER_INTERIOR_COLOR" : color.toUpperCase());
+  });
+  if (filters.matte) params.append("fe", "MATTE_COLOR");
+  if (filters.metallic) params.append("fe", "METALLIC");
+  if (filters.nonSmoking) params.append("fe", "NONSMOKER_VEHICLE");
+
+  params.set("sb", "p");
+  params.set("od", "up");
+  return `https://suchen.mobile.de/fahrzeuge/search.html?${params.toString()}`;
+}
+
+function setMarketSearchStatus(message, isError = false) {
+  if (!els.marketSearchStatus) return;
+  els.marketSearchStatus.textContent = message;
+  els.marketSearchStatus.classList.toggle("isError", isError);
 }
 
 function matchBrand(title) {
@@ -1047,6 +1420,18 @@ document.addEventListener("keydown", (event) => {
 });
 
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
+
+els.marketSearch?.addEventListener("click", (event) => {
+  try {
+    const searchUrl = buildMobileDeSearchUrl(readManualFields());
+    els.marketSearch.href = searchUrl;
+    setMarketSearchStatus(copy[state.lang].marketSearchOpening);
+  } catch (error) {
+    event.preventDefault();
+    els.marketSearch.href = "#";
+    setMarketSearchStatus(error.message || copy[state.lang].marketSearchInvalidRange, true);
+  }
+});
 
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
