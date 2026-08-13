@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=mobile-catalog-20260813" />
+    <link rel="stylesheet" href="./src/mobile.css?v=manual-layout-20260813" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -98,36 +98,34 @@
           <div class="mobilePanelHead">
             <p data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</p>
           </div>
-          <div class="mobileManualGrid">
-            <label class="mobileField mobileWideField">
+          <div class="mobileManualForm">
+            <section class="mobileManualSection" aria-labelledby="mobile-vehicle-data-heading">
+              <h2 id="mobile-vehicle-data-heading" class="mobileManualSectionTitle" data-i18n="vehicleDataLabel">DANE PODSTAWOWE POJAZDU</h2>
+              <div class="mobileManualGrid">
+            <label class="mobileField">
               <span data-i18n="brandLabel">Marka</span>
               <input data-mobile-brand list="mobile-brand-options" type="text" autocomplete="off" />
               <datalist id="mobile-brand-options" data-mobile-brand-options></datalist>
             </label>
-            <div class="mobileModelVersionGrid mobileWideField">
-              <label class="mobileField">
-                <span data-i18n="modelLabel">Model</span>
-                <input data-mobile-model list="mobile-model-options" type="text" autocomplete="off" />
-                <datalist id="mobile-model-options" data-mobile-model-options></datalist>
-              </label>
-              <label class="mobileField">
-                <span data-i18n="versionLabel">Wersja</span>
-                <input data-mobile-version type="text" autocomplete="off" />
-              </label>
-            </div>
+            <label class="mobileField">
+              <span data-i18n="modelLabel">Model</span>
+              <input data-mobile-model list="mobile-model-options" type="text" autocomplete="off" />
+              <datalist id="mobile-model-options" data-mobile-model-options></datalist>
+            </label>
+            <label class="mobileField">
+              <span data-i18n="versionLabel">Wersja</span>
+              <input data-mobile-version type="text" autocomplete="off" />
+            </label>
             <label class="mobileField">
               <span data-i18n="fuelLabel">Paliwo</span>
               <select data-mobile-fuel></select>
-            </label>
-            <label class="mobileField mobileCheckboxField">
-              <input data-mobile-plugin type="checkbox" />
-              <span data-i18n="pluginLabel">Plug-in</span>
+              <span class="mobileInlineCheck"><input data-mobile-plugin type="checkbox" /> <span data-i18n="pluginLabel">Plug-in</span></span>
             </label>
             <label class="mobileField">
               <span data-i18n="bodyLabel">Nadwozie</span>
               <select data-mobile-body></select>
             </label>
-            <div class="mobileField mobileRangeField mobileWideField">
+            <div class="mobileField mobileRangeField">
               <span data-i18n="mileageRangeLabel">Przebieg</span>
               <div class="mobileRangePair">
                 <div class="mobileComboControl">
@@ -187,7 +185,9 @@
                 </div>
               </div>
             </div>
-            <fieldset class="mobileField mobileChoiceField mobileWideField">
+            <div class="mobileVehicleControls mobileWideField">
+              <h3 class="mobileManualSubsectionTitle" data-i18n="drivetrainLabel">NAPĘD I SKRZYNIA</h3>
+            <fieldset class="mobileField mobileChoiceField mobileDrivetrainDrive">
               <legend data-i18n="driveLabel">Napęd</legend>
               <div class="mobileChoiceGroup">
                 <label class="mobileChoiceOption">
@@ -208,7 +208,7 @@
                 </label>
               </div>
             </fieldset>
-            <fieldset class="mobileField mobileChoiceField mobileWideField">
+            <fieldset class="mobileField mobileChoiceField mobileDrivetrainGearbox">
               <legend data-i18n="gearboxLabel">Skrzynia biegów</legend>
               <div class="mobileChoiceGroup mobileChoiceGroupTwo">
                 <label class="mobileChoiceOption">
@@ -225,38 +225,13 @@
                 </label>
               </div>
             </fieldset>
-            <div class="mobileTradeGrid mobileWideField">
-              <label class="mobileField">
-                <span data-i18n="vatLabel">VAT</span>
-                <select data-mobile-vat></select>
-              </label>
-              <fieldset class="mobileField mobileCountryField">
-                <legend data-i18n="countryLabel">Kraj</legend>
-                <details class="mobileMultiSelect" data-mobile-country-select>
-                  <summary data-mobile-country-summary></summary>
-                  <div class="mobileMultiSelectMenu">
-                    <label><input data-mobile-country type="checkbox" value="DE" checked /> <span data-i18n="countryGermany">Niemcy</span></label>
-                    <label><input data-mobile-country type="checkbox" value="BE" /> <span data-i18n="countryBelgium">Belgia</span></label>
-                    <label><input data-mobile-country type="checkbox" value="NL" /> <span data-i18n="countryNetherlands">Holandia</span></label>
-                    <label><input data-mobile-country type="checkbox" value="FR" /> <span data-i18n="countryFrance">Francja</span></label>
-                    <label><input data-mobile-country type="checkbox" value="AT" /> <span data-i18n="countryAustria">Austria</span></label>
-                    <label><input data-mobile-country type="checkbox" value="LU" /> <span data-i18n="countryLuxembourg">Luksemburg</span></label>
-                    <label><input data-mobile-country type="checkbox" value="SE" /> <span data-i18n="countrySweden">Szwecja</span></label>
-                    <label><input data-mobile-country type="checkbox" value="IT" /> <span data-i18n="countryItaly">Włochy</span></label>
-                    <label><input data-mobile-country type="checkbox" value="DK" /> <span data-i18n="countryDenmark">Dania</span></label>
-                    <label><input data-mobile-country type="checkbox" value="CZ" /> <span data-i18n="countryCzechia">Czechy</span></label>
-                    <label><input data-mobile-country type="checkbox" value="LT" /> <span data-i18n="countryLithuania">Litwa</span></label>
-                    <label><input data-mobile-country type="checkbox" value="LV" /> <span data-i18n="countryLatvia">Łotwa</span></label>
-                    <label><input data-mobile-country type="checkbox" value="EE" /> <span data-i18n="countryEstonia">Estonia</span></label>
-                    <label><input data-mobile-country type="checkbox" value="SK" /> <span data-i18n="countrySlovakia">Słowacja</span></label>
-                  </div>
-                </details>
-              </fieldset>
-              <label class="mobileField">
-                <span data-i18n="sellerTypeLabel">Sprzedawca</span>
-                <select data-mobile-seller></select>
-              </label>
             </div>
+              </div>
+            </section>
+
+            <section class="mobileManualSection" aria-labelledby="mobile-condition-heading">
+              <h2 id="mobile-condition-heading" class="mobileManualSectionTitle" data-i18n="conditionLabel">WNĘTRZE I STAN</h2>
+              <div class="mobileManualGrid">
             <fieldset class="mobileField mobileChoiceField mobileWideField">
               <legend data-i18n="interiorMaterialLabel">Typ salonu</legend>
               <div class="mobileSwatchGroup">
@@ -298,14 +273,52 @@
                 <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="other" /><i class="isOther"></i><span data-i18n="colorOther">inny</span></label>
               </div>
             </fieldset>
-            <label class="mobileCheckOption mobileWideField mobileNonSmokingField">
-              <input data-mobile-non-smoking type="checkbox" />
-              <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
-            </label>
             <label class="mobileField mobileDamagedField mobileWideField">
               <span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span>
               <select data-mobile-damaged-vehicles></select>
             </label>
+              </div>
+            </section>
+
+            <section class="mobileManualSection" aria-labelledby="mobile-trade-heading">
+              <h2 id="mobile-trade-heading" class="mobileManualSectionTitle" data-i18n="tradeConditionsLabel">WARUNKI ZAKUPU</h2>
+              <div class="mobileTradeGrid">
+                <label class="mobileField">
+                  <span data-i18n="vatLabel">VAT</span>
+                  <select data-mobile-vat></select>
+                </label>
+                <fieldset class="mobileField mobileCountryField">
+                  <legend data-i18n="countryLabel">Kraj</legend>
+                  <details class="mobileMultiSelect" data-mobile-country-select>
+                    <summary data-mobile-country-summary></summary>
+                    <div class="mobileMultiSelectMenu">
+                      <label><input data-mobile-country type="checkbox" value="DE" checked /> <span data-i18n="countryGermany">Niemcy</span></label>
+                      <label><input data-mobile-country type="checkbox" value="BE" /> <span data-i18n="countryBelgium">Belgia</span></label>
+                      <label><input data-mobile-country type="checkbox" value="NL" /> <span data-i18n="countryNetherlands">Holandia</span></label>
+                      <label><input data-mobile-country type="checkbox" value="FR" /> <span data-i18n="countryFrance">Francja</span></label>
+                      <label><input data-mobile-country type="checkbox" value="AT" /> <span data-i18n="countryAustria">Austria</span></label>
+                      <label><input data-mobile-country type="checkbox" value="LU" /> <span data-i18n="countryLuxembourg">Luksemburg</span></label>
+                      <label><input data-mobile-country type="checkbox" value="SE" /> <span data-i18n="countrySweden">Szwecja</span></label>
+                      <label><input data-mobile-country type="checkbox" value="IT" /> <span data-i18n="countryItaly">Włochy</span></label>
+                      <label><input data-mobile-country type="checkbox" value="DK" /> <span data-i18n="countryDenmark">Dania</span></label>
+                      <label><input data-mobile-country type="checkbox" value="CZ" /> <span data-i18n="countryCzechia">Czechy</span></label>
+                      <label><input data-mobile-country type="checkbox" value="LT" /> <span data-i18n="countryLithuania">Litwa</span></label>
+                      <label><input data-mobile-country type="checkbox" value="LV" /> <span data-i18n="countryLatvia">Łotwa</span></label>
+                      <label><input data-mobile-country type="checkbox" value="EE" /> <span data-i18n="countryEstonia">Estonia</span></label>
+                      <label><input data-mobile-country type="checkbox" value="SK" /> <span data-i18n="countrySlovakia">Słowacja</span></label>
+                    </div>
+                  </details>
+                </fieldset>
+                <label class="mobileField">
+                  <span data-i18n="sellerTypeLabel">Sprzedawca</span>
+                  <select data-mobile-seller></select>
+                </label>
+                <label class="mobileCheckOption mobileNonSmokingField">
+                  <input data-mobile-non-smoking type="checkbox" />
+                  <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
+                </label>
+              </div>
+            </section>
           </div>
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
@@ -329,6 +342,6 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-search-version-20260813"></script>
-    <script src="./src/mobile.js?v=mobile-search-version-20260813"></script>
+    <script src="./src/mobile.js?v=manual-layout-20260813"></script>
   </body>
 </html>
