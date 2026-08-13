@@ -616,6 +616,7 @@ const els = {
   title: document.querySelector("[data-mobile-title]"),
   scenarios: document.querySelector("[data-mobile-scenarios]"),
   brand: document.querySelector("[data-mobile-brand]"),
+  brandOptions: document.querySelector("[data-mobile-brand-options]"),
   model: document.querySelector("[data-mobile-model]"),
   version: document.querySelector("[data-mobile-version]"),
   modelOptions: document.querySelector("[data-mobile-model-options]"),
@@ -762,6 +763,35 @@ function brandDisplayOptions() {
   ];
 }
 
+function canonicalBrand(value) {
+  const normalized = normalizeToken(value);
+  if (!normalized) return "";
+  return Object.keys(state.brandRoutes).find((brand) => {
+    const aliases = [brand, ...(brandAliases[brand] || [])];
+    return aliases.some((alias) => normalizeToken(alias) === normalized);
+  }) || "";
+}
+
+function brandCatalogOptions() {
+  const favoriteValues = new Set(favoriteBrands.map((brand) => brand.value));
+  const favorites = favoriteBrands.filter((brand) => state.brandRoutes[brand.value]);
+  const regularBrands = Object.keys(state.brandRoutes)
+    .filter((brand) => !favoriteValues.has(brand))
+    .sort((left, right) => left.localeCompare(right, "pl"));
+  return [
+    ...favorites.map((brand) => ({ value: brand.value, label: brand.label })),
+    ...regularBrands.map((brand) => ({ value: brand, label: brand })),
+  ];
+}
+
+function renderBrandOptions(extraBrand = "") {
+  if (!els.brandOptions) return;
+  const options = brandCatalogOptions();
+  const known = options.some((brand) => normalizeToken(brand.value) === normalizeToken(extraBrand));
+  if (extraBrand && !known) options.unshift({ value: extraBrand, label: extraBrand });
+  els.brandOptions.innerHTML = options.map((brand) => datalistOptionHtml(brand.value, brand.label)).join("");
+}
+
 function mileageOptions() {
   const values = [];
   for (let value = 0; value <= 500000; value += 10000) values.push(value);
@@ -781,7 +811,7 @@ function renderDatalist(el, values) {
 }
 
 function modelGroupsForBrand(brand) {
-  return modelGroupsByBrand[brand] || [];
+  return modelGroupsByBrand[canonicalBrand(brand) || brand] || [];
 }
 
 function renderModelOptions(extraModel = "") {
@@ -971,10 +1001,10 @@ function renderManualOptions(keepValues = true) {
     damagedVehicles: els.damagedVehicles.value || "hide",
   };
 
-  els.brand.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...brandDisplayOptions().map((brand) => optionHtml(brand.value, brand.label, brand.value === current.brand)),
-  ].join("");
+  const currentBrand = canonicalBrand(current.brand) || current.brand || "";
+  els.brand.value = currentBrand;
+  els.brand.placeholder = c.selectEmpty;
+  renderBrandOptions(currentBrand);
 
   els.fuel.innerHTML = [
     optionHtml("", c.selectEmpty),
@@ -1035,7 +1065,7 @@ function renderManualOptions(keepValues = true) {
 
 function readManualFields() {
   return {
-    brand: els.brand?.value || "",
+    brand: canonicalBrand(els.brand?.value) || String(els.brand?.value || "").trim(),
     model: els.model?.value || "",
     version: els.version?.value || "",
     fuel: els.fuel?.value || "",
@@ -1440,9 +1470,14 @@ els.form.addEventListener("submit", (event) => {
   loadMobileDeData(sourceUrl);
 });
 
-els.brand.addEventListener("change", () => {
+function handleBrandInput() {
+  const canonical = canonicalBrand(els.brand.value);
+  if (canonical && els.brand.value !== canonical) els.brand.value = canonical;
   renderModelOptions(els.model.value);
-});
+}
+
+els.brand.addEventListener("input", handleBrandInput);
+els.brand.addEventListener("change", handleBrandInput);
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialUrl = initialParams.get("url");

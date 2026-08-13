@@ -101,7 +101,8 @@
           <div class="mobileManualGrid">
             <label class="mobileField mobileWideField">
               <span data-i18n="brandLabel">Marka</span>
-              <select data-mobile-brand></select>
+              <input data-mobile-brand list="mobile-brand-options" type="text" autocomplete="off" />
+              <datalist id="mobile-brand-options" data-mobile-brand-options></datalist>
             </label>
             <div class="mobileModelVersionGrid mobileWideField">
               <label class="mobileField">
@@ -327,7 +328,7 @@
         <span data-i18n="footer">Mobile.de → kalkulatory operacyjne</span>
       </footer>
     </main>
-    <script src="./src/mobile-model-catalog.generated.js?v=mobile-catalog-20260813"></script>
-    <script src="./src/mobile.js?v=mobile-catalog-20260813"></script>
+    <script src="./src/mobile-model-catalog.generated.js?v=brand-catalog-20260813"></script>
+    <script src="./src/mobile.js?v=brand-catalog-20260813"></script>
   </body>
 </html>
