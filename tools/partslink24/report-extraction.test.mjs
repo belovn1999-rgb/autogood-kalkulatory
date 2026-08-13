@@ -269,6 +269,31 @@ BADGES                            E-TENSE`]
   }
 });
 
+test("all Stellantis reports recognize BSG and H:DRIVE as mild-hybrid evidence", () => {
+  const reports = [
+    ["RU", `ДВИГАТЕЛЬ                    1,0 Л БЕНЗИН
+ELT BSG12                       ТИП ЭЛЕКТРИФИКАЦИИ = BELT STARTER GENERATOR 12V
+ЭМБЛЕМЫ                         BADGE H:DRIVE`],
+    ["PL", `SILNIK                        1,0 L BENZYNA
+ELT BSG12                       TYP ELEKTRYFIKACJI = BELT STARTER GENERATOR 12V
+EMBLEMATY                       BADGE H:DRIVE`],
+    ["ENG", `ENGINE                        1.0 L PETROL
+ELT BSG12                       ELECTRIFICATION TYPE = BELT STARTER GENERATOR 12V
+BADGES                          H:DRIVE`]
+  ];
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    for (const [language, text] of reports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.engineType, "Бензин + Мягкий гибрид", `${brand} ${language}`);
+    }
+  }
+});
+
 test("Stellantis engine rows outrank unrelated electric equipment descriptions", () => {
   const reports = [
     ["RU", `ДВИГАТЕЛЬ                 DV5RC UE64 1.5 L DIESEL
