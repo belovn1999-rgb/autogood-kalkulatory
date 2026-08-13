@@ -629,6 +629,7 @@ const els = {
   version: document.querySelector("[data-mobile-version]"),
   modelOptions: document.querySelector("[data-mobile-model-options]"),
   fuel: document.querySelector("[data-mobile-fuel]"),
+  fuelLabel: document.querySelector("[data-mobile-fuel-label]"),
   plugin: document.querySelector("[data-mobile-plugin]"),
   body: document.querySelector("[data-mobile-body]"),
   bodyLabel: document.querySelector("[data-mobile-body-label]"),
@@ -647,7 +648,9 @@ const els = {
   drive: Array.from(document.querySelectorAll("[data-mobile-drive]")),
   gearbox: Array.from(document.querySelectorAll("[data-mobile-gearbox]")),
   vat: document.querySelector("[data-mobile-vat]"),
+  vatLabel: document.querySelector("[data-mobile-vat-label]"),
   seller: document.querySelector("[data-mobile-seller]"),
+  sellerLabel: document.querySelector("[data-mobile-seller-label]"),
   countries: Array.from(document.querySelectorAll("[data-mobile-country]")),
   countrySummary: document.querySelector("[data-mobile-country-summary]"),
   interiorMaterials: Array.from(document.querySelectorAll("[data-mobile-interior-material]")),
@@ -657,6 +660,7 @@ const els = {
   metallic: document.querySelector("[data-mobile-metallic]"),
   nonSmoking: document.querySelector("[data-mobile-non-smoking]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
+  damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
   marketSearch: document.querySelector("[data-mobile-market-search]"),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
@@ -840,6 +844,7 @@ function renderModelOptions(extraModel = "") {
 
 function comboOptionSets() {
   const modelGroups = modelGroupsForBrand(els.brand?.value || "");
+  const c = copy[state.lang];
   const seenModels = new Set();
   const models = modelGroups.flatMap((group) => group.models.flatMap((model) => {
     const normalized = normalizeToken(model);
@@ -851,26 +856,73 @@ function comboOptionSets() {
   if (currentModel && !seenModels.has(normalizeToken(currentModel))) {
     models.unshift({ value: currentModel, label: currentModel });
   }
+  const valuesAfter = (values, fromValue, allowSame = false) => {
+    const from = mobileDeNumber(fromValue);
+    if (from === null) return values;
+    return values.filter((value) => {
+      const number = mobileDeNumber(value);
+      return number !== null && (allowSame ? number >= from : number > from);
+    });
+  };
+  const mileage = mileageOptions();
+  const years = yearOptions();
+  const displacement = displacementOptions;
+  const power = powerOptions;
   return {
     brand: brandCatalogOptions(),
     model: models,
-    mileage: mileageOptions().map((value) => ({
+    mileage: mileage.map((value) => ({
       value: String(value),
       label: `${value.toLocaleString("pl-PL")} km`,
     })),
-    year: yearOptions().map((value) => ({ value, label: value })),
-    displacement: displacementOptions.map((value) => ({
+    mileageTo: valuesAfter(mileage, els.mileageFrom?.value).map((value) => ({
+      value: String(value),
+      label: `${value.toLocaleString("pl-PL")} km`,
+    })),
+    year: years.map((value) => ({ value, label: value })),
+    yearTo: valuesAfter(years, els.yearFrom?.value, true).map((value) => ({ value, label: value })),
+    displacement: displacement.map((value) => ({
       value,
       label: `${value} ccm`,
     })),
-    power: powerOptions.map((value) => ({
+    displacementTo: valuesAfter(displacement, els.displacementFrom?.value).map((value) => ({
+      value,
+      label: `${value} ccm`,
+    })),
+    power: power.map((value) => ({
       value,
       label: `${value} KM`,
     })),
-    body: bodyOptions.map((body) => ({
+    powerTo: valuesAfter(power, els.powerFrom?.value).map((value) => ({
+      value,
+      label: `${value} KM`,
+    })),
+    fuel: [
+      { value: "", label: c.selectEmpty },
+      ...fuelOptions.map((fuel) => ({ value: fuel.value, label: fuel[state.lang] })),
+    ],
+    body: [
+      { value: "", label: c.selectEmpty },
+      ...bodyOptions.map((body) => ({
       value: body.value,
       label: body[state.lang],
-    })),
+      })),
+    ],
+    vat: [
+      { value: "", label: c.vatAny },
+      { value: "reclaimable", label: c.vatReclaimable },
+      { value: "non_reclaimable", label: c.vatNonReclaimable },
+    ],
+    seller: [
+      { value: "", label: c.sellerAny },
+      { value: "dealer", label: c.sellerDealer },
+      { value: "private", label: c.sellerPrivate },
+      { value: "company", label: c.sellerCompany },
+    ],
+    damaged: [
+      { value: "hide", label: c.damagedVehiclesHide },
+      { value: "show", label: c.damagedVehiclesShow },
+    ],
   };
 }
 
@@ -984,10 +1036,32 @@ function optionLabel(options, value) {
   return option ? option[state.lang] : "";
 }
 
+function setComboDisplay(input, value, options, emptyLabel = copy[state.lang].selectEmpty) {
+  if (!input) return;
+  input.value = value ? optionLabel(options, value) : "";
+  input.placeholder = emptyLabel;
+}
+
 function setBodyDisplay(value) {
-  if (!els.bodyLabel) return;
-  els.bodyLabel.value = optionLabel(bodyOptions, value);
-  els.bodyLabel.placeholder = copy[state.lang].selectEmpty;
+  setComboDisplay(els.bodyLabel, value, bodyOptions);
+}
+
+function setSimpleSelectDisplays(values) {
+  const c = copy[state.lang];
+  setComboDisplay(els.fuelLabel, values.fuel, fuelOptions);
+  setComboDisplay(els.vatLabel, values.vat, [
+    { value: "reclaimable", [state.lang]: c.vatReclaimable },
+    { value: "non_reclaimable", [state.lang]: c.vatNonReclaimable },
+  ], c.vatAny);
+  setComboDisplay(els.sellerLabel, values.seller, [
+    { value: "dealer", [state.lang]: c.sellerDealer },
+    { value: "private", [state.lang]: c.sellerPrivate },
+    { value: "company", [state.lang]: c.sellerCompany },
+  ], c.sellerAny);
+  setComboDisplay(els.damagedVehiclesLabel, values.damagedVehicles, [
+    { value: "hide", [state.lang]: c.damagedVehiclesHide },
+    { value: "show", [state.lang]: c.damagedVehiclesShow },
+  ], c.damagedVehiclesHide);
 }
 
 function listingBodyLabel(value) {
@@ -1051,31 +1125,22 @@ function renderManualOptions(keepValues = true) {
   els.brand.placeholder = c.selectEmpty;
   renderBrandOptions(currentBrand);
 
-  els.fuel.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...fuelOptions.map((fuel) => optionHtml(fuel.value, fuel[state.lang], fuel.value === current.fuel)),
-  ].join("");
+  els.fuel.value = current.fuel || "";
 
   els.plugin.checked = current.plugin === "yes";
 
   els.body.value = current.body || "";
   setBodyDisplay(current.body);
 
-  els.vat.innerHTML = [
-    optionHtml("", c.vatAny),
-    optionHtml("reclaimable", c.vatReclaimable, current.vat === "reclaimable"),
-    optionHtml("non_reclaimable", c.vatNonReclaimable, current.vat === "non_reclaimable"),
-  ].join("");
-  els.seller.innerHTML = [
-    optionHtml("", c.sellerAny),
-    optionHtml("dealer", c.sellerDealer, current.seller === "dealer"),
-    optionHtml("private", c.sellerPrivate, current.seller === "private"),
-    optionHtml("company", c.sellerCompany, current.seller === "company"),
-  ].join("");
-  els.damagedVehicles.innerHTML = [
-    optionHtml("hide", c.damagedVehiclesHide, current.damagedVehicles !== "show"),
-    optionHtml("show", c.damagedVehiclesShow, current.damagedVehicles === "show"),
-  ].join("");
+  els.vat.value = current.vat || "";
+  els.seller.value = current.seller || "";
+  els.damagedVehicles.value = current.damagedVehicles || "hide";
+  setSimpleSelectDisplays({
+    fuel: current.fuel,
+    vat: current.vat,
+    seller: current.seller,
+    damagedVehicles: current.damagedVehicles || "hide",
+  });
 
   els.model.value = current.model || "";
   els.version.value = current.version || "";
@@ -1102,7 +1167,6 @@ function renderManualOptions(keepValues = true) {
   els.matte.checked = Boolean(current.matte);
   els.metallic.checked = Boolean(current.metallic);
   els.nonSmoking.checked = Boolean(current.nonSmoking);
-  els.damagedVehicles.value = current.damagedVehicles || "hide";
   updateCountrySummary();
 }
 
@@ -1320,6 +1384,7 @@ function applyRecognizedManualFields(data) {
   els.brand.value = next.brand;
   els.model.value = next.model;
   els.fuel.value = next.fuel;
+  setComboDisplay(els.fuelLabel, next.fuel, fuelOptions);
   els.plugin.checked = next.plugin === "yes";
   els.body.value = next.body;
   setBodyDisplay(next.body);
@@ -1474,7 +1539,7 @@ document.addEventListener("click", (event) => {
       const valueTargetName = control?.dataset.mobileValueTarget;
       const valueTarget = valueTargetName ? control.querySelector(`[${valueTargetName}]`) : null;
       if (valueTarget && valueTarget !== input) {
-        input.value = optionButton.dataset.mobileOptionLabel || value;
+        input.value = value ? optionButton.dataset.mobileOptionLabel || value : "";
         valueTarget.value = value;
       } else {
         input.value = value;

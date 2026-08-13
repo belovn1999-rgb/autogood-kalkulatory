@@ -488,6 +488,10 @@ button {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.mobileSelectCombo input[readonly] {
+  cursor: pointer;
+}
+
 .mobileBrandCombo .mobileComboMenu,
 .mobileModelCombo .mobileComboMenu {
   top: 50%;

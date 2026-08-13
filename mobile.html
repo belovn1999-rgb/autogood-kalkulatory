@@ -121,7 +121,10 @@
             </label>
             <label class="mobileField">
               <span data-i18n="fuelLabel">Paliwo</span>
-              <select data-mobile-fuel></select>
+              <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="fuel" data-mobile-options-target="data-mobile-fuel-label" data-mobile-value-target="data-mobile-fuel">
+                <input data-mobile-fuel-label type="text" autocomplete="off" readonly />
+                <input data-mobile-fuel type="hidden" />
+              </div>
               <span class="mobileInlineCheck"><input data-mobile-plugin type="checkbox" /> <span data-i18n="pluginLabel">Plug-in</span></span>
             </label>
             <label class="mobileField">
@@ -138,7 +141,7 @@
                   <input data-mobile-mileage-from inputmode="numeric" autocomplete="off" />
                   <em>km</em>
                 </div>
-                <div class="mobileComboControl" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-to">
+                <div class="mobileComboControl" data-mobile-options="mileageTo" data-mobile-options-target="data-mobile-mileage-to">
                   <input data-mobile-mileage-to inputmode="numeric" autocomplete="off" />
                   <em>km</em>
                 </div>
@@ -151,7 +154,7 @@
                   <input data-mobile-year-from inputmode="numeric" autocomplete="off" />
                   <em aria-hidden="true"></em>
                 </div>
-                <div class="mobileComboControl" data-mobile-options="year" data-mobile-options-target="data-mobile-year-to">
+                <div class="mobileComboControl" data-mobile-options="yearTo" data-mobile-options-target="data-mobile-year-to">
                   <input data-mobile-year-to inputmode="numeric" autocomplete="off" />
                   <em aria-hidden="true"></em>
                 </div>
@@ -164,7 +167,7 @@
                   <input data-mobile-displacement-from inputmode="numeric" autocomplete="off" />
                   <em>ccm</em>
                 </div>
-                <div class="mobileComboControl" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-to">
+                <div class="mobileComboControl" data-mobile-options="displacementTo" data-mobile-options-target="data-mobile-displacement-to">
                   <input data-mobile-displacement-to inputmode="numeric" autocomplete="off" />
                   <em>ccm</em>
                 </div>
@@ -177,7 +180,7 @@
                   <input data-mobile-power-from inputmode="numeric" autocomplete="off" />
                   <em>KM</em>
                 </div>
-                <div class="mobileComboControl" data-mobile-options="power" data-mobile-options-target="data-mobile-power-to">
+                <div class="mobileComboControl" data-mobile-options="powerTo" data-mobile-options-target="data-mobile-power-to">
                   <input data-mobile-power-to inputmode="numeric" autocomplete="off" />
                   <em>KM</em>
                 </div>
@@ -273,10 +276,13 @@
             </fieldset>
             <label class="mobileField mobileDamagedField">
               <span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span>
-              <select data-mobile-damaged-vehicles></select>
+              <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="damaged" data-mobile-options-target="data-mobile-damaged-label" data-mobile-value-target="data-mobile-damaged-vehicles">
+                <input data-mobile-damaged-label type="text" autocomplete="off" readonly />
+                <input data-mobile-damaged-vehicles type="hidden" />
+              </div>
             </label>
             <label class="mobileCheckOption mobileNonSmokingField">
-              <input data-mobile-non-smoking type="checkbox" />
+              <input data-mobile-non-smoking type="checkbox" checked />
               <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
             </label>
               </div>
@@ -287,7 +293,10 @@
               <div class="mobileTradeGrid">
                 <label class="mobileField">
                   <span data-i18n="vatLabel">VAT</span>
-                  <select data-mobile-vat></select>
+                  <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="vat" data-mobile-options-target="data-mobile-vat-label" data-mobile-value-target="data-mobile-vat">
+                    <input data-mobile-vat-label type="text" autocomplete="off" readonly />
+                    <input data-mobile-vat type="hidden" />
+                  </div>
                 </label>
                 <fieldset class="mobileField mobileCountryField">
                   <legend data-i18n="countryLabel">Kraj</legend>
@@ -313,7 +322,10 @@
                 </fieldset>
                 <label class="mobileField">
                   <span data-i18n="sellerTypeLabel">Sprzedawca</span>
-                  <select data-mobile-seller></select>
+                  <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="seller" data-mobile-options-target="data-mobile-seller-label" data-mobile-value-target="data-mobile-seller">
+                    <input data-mobile-seller-label type="text" autocomplete="off" readonly />
+                    <input data-mobile-seller type="hidden" />
+                  </div>
                 </label>
               </div>
             </section>
@@ -353,7 +365,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-webids-20260813"></script>
-    <script src="./src/mobile.js?v=wide-brand-body-20260813"></script>
+    <script src="./src/mobile.js?v=selects-and-ranges-20260813"></script>
     <script src="./src/mobile-market-analysis.js?v=market-analysis-20260813"></script>
   </body>
 </html>
