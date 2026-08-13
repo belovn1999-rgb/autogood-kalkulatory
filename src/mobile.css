@@ -548,12 +548,16 @@ button {
 }
 
 .mobileComboControl em {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
   color: var(--color-muted);
   font-size: var(--text-sm);
   font-style: normal;
   font-weight: 700;
   line-height: 1;
-  padding-right: var(--space-sm);
+  padding: 0 var(--space-xs);
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -619,6 +623,10 @@ button {
 
 .mobileChoiceGroupTwo {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mobileInteriorMaterialGroup {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .mobileVehicleControls {
