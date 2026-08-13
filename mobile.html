@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=manual-layout-20260813" />
+    <link rel="stylesheet" href="./src/mobile.css?v=combo-open-20260813" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -104,13 +104,17 @@
               <div class="mobileManualGrid">
             <label class="mobileField">
               <span data-i18n="brandLabel">Marka</span>
-              <input data-mobile-brand list="mobile-brand-options" type="text" autocomplete="off" />
-              <datalist id="mobile-brand-options" data-mobile-brand-options></datalist>
+              <div class="mobileComboControl mobileTextComboControl">
+                <input data-mobile-brand type="text" autocomplete="off" />
+                <button type="button" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand" aria-label="Lista"></button>
+              </div>
             </label>
             <label class="mobileField">
               <span data-i18n="modelLabel">Model</span>
-              <input data-mobile-model list="mobile-model-options" type="text" autocomplete="off" />
-              <datalist id="mobile-model-options" data-mobile-model-options></datalist>
+              <div class="mobileComboControl mobileTextComboControl">
+                <input data-mobile-model type="text" autocomplete="off" />
+                <button type="button" data-mobile-options="model" data-mobile-options-target="data-mobile-model" aria-label="Lista"></button>
+              </div>
             </label>
             <label class="mobileField">
               <span data-i18n="versionLabel">Wersja</span>
@@ -342,6 +346,6 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-webids-20260813"></script>
-    <script src="./src/mobile.js?v=manual-layout-20260813"></script>
+    <script src="./src/mobile.js?v=combo-open-20260813"></script>
   </body>
 </html>

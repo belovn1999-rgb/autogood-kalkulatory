@@ -477,10 +477,16 @@ button {
   transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
 }
 
-.mobileComboControl input {
+.mobileTextComboControl {
+  grid-template-columns: minmax(0, 1fr) 34px;
+}
+
+.mobileField .mobileComboControl input {
   min-width: 0;
   height: 40px;
+  width: 100%;
   border: 0;
+  border-radius: 0;
   background: transparent;
   color: var(--color-ink);
   outline: 0;
@@ -513,6 +519,11 @@ button {
   border-right: var(--rule-thin) solid var(--color-field);
   background: var(--color-surface-tint);
   padding: 0;
+}
+
+.mobileTextComboControl > button {
+  border-right: 0;
+  background: var(--color-surface);
 }
 
 .mobileComboControl > button::before {

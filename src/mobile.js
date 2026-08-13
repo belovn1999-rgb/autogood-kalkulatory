@@ -838,7 +838,21 @@ function renderModelOptions(extraModel = "") {
 }
 
 function comboOptionSets() {
+  const modelGroups = modelGroupsForBrand(els.brand?.value || "");
+  const seenModels = new Set();
+  const models = modelGroups.flatMap((group) => group.models.flatMap((model) => {
+    const normalized = normalizeToken(model);
+    if (seenModels.has(normalized)) return [];
+    seenModels.add(normalized);
+    return [{ value: model, label: `${group.group} · ${model}` }];
+  }));
+  const currentModel = String(els.model?.value || "").trim();
+  if (currentModel && !seenModels.has(normalizeToken(currentModel))) {
+    models.unshift({ value: currentModel, label: currentModel });
+  }
   return {
+    brand: brandCatalogOptions(),
+    model: models,
     mileage: mileageOptions().map((value) => ({
       value: String(value),
       label: `${value.toLocaleString("pl-PL")} km`,
@@ -863,12 +877,18 @@ function closeComboMenus(exceptControl = null) {
   });
 }
 
-function renderComboMenus() {
+function renderComboMenus(filterControl = null) {
   const sets = comboOptionSets();
   document.querySelectorAll("[data-mobile-options]").forEach((button) => {
     const control = button.closest(".mobileComboControl");
     if (!control) return;
     const options = sets[button.dataset.mobileOptions] || [];
+    const targetName = button.dataset.mobileOptionsTarget;
+    const input = targetName ? control.querySelector(`[${targetName}]`) : null;
+    const filter = control === filterControl ? normalizeToken(input?.value || "") : "";
+    const visibleOptions = filter
+      ? options.filter((option) => normalizeToken(`${option.label} ${option.value}`).includes(filter))
+      : options;
     let menu = control.querySelector(".mobileComboMenu");
     if (!menu) {
       menu = document.createElement("div");
@@ -876,12 +896,20 @@ function renderComboMenus() {
       control.append(menu);
     }
     button.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
-    menu.innerHTML = options.map((option) => `
+    menu.innerHTML = visibleOptions.map((option) => `
       <button type="button" data-mobile-option-value="${escapeHtml(option.value)}">
         ${escapeHtml(option.label)}
       </button>
     `).join("");
   });
+}
+
+function openComboMenu(control, filterControl = null) {
+  if (!control) return;
+  closeComboMenus(control);
+  control.classList.add("isOpen");
+  control.querySelector("[data-mobile-options]")?.setAttribute("aria-expanded", "true");
+  renderComboMenus(filterControl);
 }
 
 function checkedValue(radios) {
@@ -1433,8 +1461,8 @@ document.addEventListener("click", (event) => {
     const control = optionsButton.closest(".mobileComboControl");
     const isOpen = control?.classList.contains("isOpen");
     closeComboMenus(control);
-    control?.classList.toggle("isOpen", !isOpen);
-    optionsButton.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    if (!isOpen) openComboMenu(control);
+    else optionsButton.setAttribute("aria-expanded", "false");
     return;
   }
 
@@ -1459,6 +1487,16 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeComboMenus();
 });
 
+document.querySelectorAll(".mobileComboControl input").forEach((input) => {
+  input.addEventListener("click", () => {
+    openComboMenu(input.closest(".mobileComboControl"));
+  });
+  input.addEventListener("input", () => {
+    const control = input.closest(".mobileComboControl");
+    openComboMenu(control, control);
+  });
+});
+
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
 
 els.marketSearch?.addEventListener("click", (event) => {
@@ -1480,10 +1518,11 @@ els.form.addEventListener("submit", (event) => {
   loadMobileDeData(sourceUrl);
 });
 
-function handleBrandInput() {
+function handleBrandInput(event) {
   const canonical = canonicalBrand(els.brand.value);
   if (canonical && els.brand.value !== canonical) els.brand.value = canonical;
   renderModelOptions(els.model.value);
+  renderComboMenus(event?.currentTarget?.closest(".mobileComboControl") || null);
 }
 
 els.brand.addEventListener("input", handleBrandInput);
