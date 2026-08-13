@@ -1133,9 +1133,11 @@ function buildMobileDeSearchUrl(filters) {
   if (filters.model && !makeId) throw new Error(c.marketSearchChooseBrand);
   if (makeId) {
     const exactModelId = mobileDeModelId(filters.brand, filters.model);
-    if (exactModelId) params.set("ms", `${makeId};${exactModelId};;`);
-    else if (filters.model) params.set("ms", `${makeId};;;${filters.model.trim()}`);
-    else params.set("ms", makeId);
+    const version = String(filters.version || "").trim();
+    if (exactModelId) params.set("ms", `${makeId};${exactModelId};;${version}`);
+    else if (filters.model || version) {
+      params.set("ms", `${makeId};;;${[filters.model, version].filter(Boolean).join(" ").trim()}`);
+    } else params.set("ms", makeId);
   }
 
   const body = mobileDeBodyValues[filters.body];
