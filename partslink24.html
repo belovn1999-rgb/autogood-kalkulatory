@@ -1157,7 +1157,9 @@
 
           const link = document.createElement("a");
           link.className = "partslinkDownloadLink";
-          link.href = previewUrl || directUrl;
+          // Always download from the server URL. The server enforces the final
+          // filename, while the blob URL is used only for the embedded preview.
+          link.href = directUrl;
           link.download = fileName;
           link.textContent = usableFiles.length > 1 ? uiText("downloadFileNumber", index + 1) : uiText("downloadFile");
           downloadLinks.append(link);
