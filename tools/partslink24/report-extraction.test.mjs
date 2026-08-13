@@ -215,6 +215,31 @@ TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID DRIVE`]
   assert.equal(diesel.engineType, "Дизель");
 });
 
+test("all Stellantis reports upgrade a generic hybrid to plug-in from full-report evidence", () => {
+  const reports = [
+    ["RU", `ДВИГАТЕЛЬ              EP6FADTXHP 1.6L PETROL
+КОРОБКА ПЕРЕДАЧ       4X2 8-SPEED AUTOMATIC HYBRID
+СИЛОВОЙ АГРЕГАТ       PHEV DRIVE TRAIN`],
+    ["PL", `SILNIK                 EP6FADTXHP 1.6L PETROL
+SKRZYNIA BIEGÓW        4X2 8-SPEED AUTOMATIC HYBRID
+UKŁAD NAPĘDOWY         PHEV DRIVE TRAIN`],
+    ["ENG", `ENGINE                 EP6FADTXHP 1.6L PETROL
+TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID
+POWER TRAIN            PHEV DRIVE TRAIN`]
+  ];
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    for (const [language, text] of reports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.engineType, "Бензин + Plug-in Гибрид", `${brand} ${language}`);
+    }
+  }
+});
+
 test("Stellantis engine rows outrank unrelated electric equipment descriptions", () => {
   const reports = [
     ["RU", `ДВИГАТЕЛЬ                 DV5RC UE64 1.5 L DIESEL

@@ -158,6 +158,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const fuelTypeRaw = findFirstPdfValue(text, fuelTypeLabels);
   const engineCodeRaw = findFirstPdfValue(text, profile.engineCodeLabels);
   const transmissionRaw = stellantisBrands.has(brand) ? findFirstPdfValue(text, stellantisTransmissionLabels) : "";
+  const stellantisPowertrainRaw = stellantisBrands.has(brand) ? collectStellantisPowertrainEvidence(text) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
   const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
@@ -192,6 +193,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
       engineTypeRaw,
       fuelTypeRaw,
       transmissionRaw,
+      stellantisPowertrainRaw,
       inferredEngineRaw,
       mildHybridRaw,
       fallbackEngineType: primaryEngineInfo.engineType
@@ -240,6 +242,7 @@ function resolveStellantisEngineType({
   engineTypeRaw,
   fuelTypeRaw,
   transmissionRaw,
+  stellantisPowertrainRaw,
   inferredEngineRaw,
   mildHybridRaw,
   fallbackEngineType
@@ -250,7 +253,7 @@ function resolveStellantisEngineType({
   });
   const directType = directInfo.engineType;
   const baseFuel = directType.includes("Бензин") ? "Бензин" : directType.includes("Дизель") ? "Дизель" : "";
-  const powertrainEvidence = [transmissionRaw, inferredEngineRaw, mildHybridRaw].filter(Boolean).join(" ");
+  const powertrainEvidence = [transmissionRaw, stellantisPowertrainRaw, inferredEngineRaw, mildHybridRaw].filter(Boolean).join(" ");
 
   if (/\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence)) {
     return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
@@ -394,6 +397,24 @@ function collectMercedesPowertrainEvidence(text) {
     const powertrainBlock = [normalized, lines[index + 1], lines[index + 2]].filter(Boolean).join(" ");
     if (!explicitHybrid.test(powertrainBlock) && !hybridPowertrain.test(powertrainBlock)) continue;
     matches.push(hybridPowertrain.test(powertrainBlock) && plugInQualifier.test(powertrainBlock) ? `${powertrainBlock} PHEV` : powertrainBlock);
+  }
+
+  return matches.join(" ");
+}
+
+function collectStellantisPowertrainEvidence(text) {
+  const explicitPlugIn = /\bphev\b|plug[\s-]*in|hybryd[\s-]*plug[\s-]*in|подключаем\w*\s+гибрид/i;
+  const hybrid = /\bhybrid\b|hybryd|гибрид/i;
+  const powertrainContext = /power[\s-]*train|drive[\s-]*train|układ\s+napędowy|zespół\s+napędowy|силов(?:ой|ого)\s+агрегат|привод/i;
+  const negative = /\b(?:without|w\/?o|none|not fitted|bez|brak|без|отсутств)\b/i;
+  const matches = [];
+
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    if (!normalized || negative.test(normalized)) continue;
+    if (explicitPlugIn.test(normalized) || (hybrid.test(normalized) && powertrainContext.test(normalized))) {
+      matches.push(normalized);
+    }
   }
 
   return matches.join(" ");
