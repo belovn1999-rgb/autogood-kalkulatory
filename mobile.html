@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=combo-open-20260813" />
+    <link rel="stylesheet" href="./src/mobile.css?v=trade-block-20260813" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -277,14 +277,18 @@
                 <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="other" /><i class="isOther"></i><span data-i18n="colorOther">inny</span></label>
               </div>
             </fieldset>
-            <label class="mobileField mobileDamagedField mobileWideField">
+            <label class="mobileField mobileDamagedField">
               <span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span>
               <select data-mobile-damaged-vehicles></select>
+            </label>
+            <label class="mobileCheckOption mobileNonSmokingField">
+              <input data-mobile-non-smoking type="checkbox" />
+              <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
             </label>
               </div>
             </section>
 
-            <section class="mobileManualSection" aria-labelledby="mobile-trade-heading">
+            <section class="mobileManualSection mobileTradeSection" aria-labelledby="mobile-trade-heading">
               <h2 id="mobile-trade-heading" class="mobileManualSectionTitle" data-i18n="tradeConditionsLabel">WARUNKI ZAKUPU</h2>
               <div class="mobileTradeGrid">
                 <label class="mobileField">
@@ -316,10 +320,6 @@
                 <label class="mobileField">
                   <span data-i18n="sellerTypeLabel">Sprzedawca</span>
                   <select data-mobile-seller></select>
-                </label>
-                <label class="mobileCheckOption mobileNonSmokingField">
-                  <input data-mobile-non-smoking type="checkbox" />
-                  <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
                 </label>
               </div>
             </section>

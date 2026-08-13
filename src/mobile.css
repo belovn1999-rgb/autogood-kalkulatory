@@ -406,6 +406,13 @@ button {
   border-top: var(--rule-thick) solid var(--color-rule-soft);
 }
 
+.mobileManualSection.mobileTradeSection {
+  padding: var(--space-lg);
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
 .mobileManualSectionTitle,
 .mobileManualSubsectionTitle {
   margin: 0 0 var(--space-md);
@@ -769,6 +776,7 @@ button {
   display: inline-flex;
   align-items: center;
   align-self: end;
+  width: 100%;
   min-height: 42px;
   border: var(--rule-thin) solid var(--color-field);
   border-radius: var(--radius-md);
