@@ -70,10 +70,11 @@ async function handleVinCheck(request, response) {
     ? result.pdfPaths
     : [result.pdfPath].filter(Boolean);
   const files = pdfPaths.map((pdfPath) => {
-    const fileName = basename(pdfPath || "");
+    const storedFileName = basename(pdfPath || "");
+    const fileName = makeVinPdfDownloadName(brand, vin);
     return {
       fileName,
-      downloadUrl: `/api/partslink24/pdf/${encodeURIComponent(fileName)}`
+      downloadUrl: `/api/partslink24/pdf/${encodeURIComponent(storedFileName)}?downloadName=${encodeURIComponent(fileName)}`
     };
   });
   const firstFile = files[0] || {};
@@ -276,6 +277,7 @@ function sendPdf(request, response) {
   const fileName = basename(decodeURIComponent(encodedName));
   const filePath = resolve(outputDir, fileName);
   const requestedDownloadName = normalizeDownloadFileName(requestUrl.searchParams.get("downloadName"));
+  const downloadName = requestedDownloadName || normalizeDownloadFileName(fileName) || fileName;
 
   if (!filePath.startsWith(`${outputDir}/`) || extname(filePath).toLowerCase() !== ".pdf" || !existsSync(filePath)) {
     return sendJson(response, 404, { ok: false, error: "PDF не найден." });
@@ -283,17 +285,22 @@ function sendPdf(request, response) {
 
   response.writeHead(200, {
     "content-type": "application/pdf",
-    "content-disposition": `attachment; filename="${requestedDownloadName || fileName}"`,
+    "content-disposition": `attachment; filename="${downloadName}"`,
     "content-length": statSync(filePath).size,
     ...corsHeaders()
   });
   return createReadStream(filePath).pipe(response);
 }
 
-function normalizeDownloadFileName(value) {
+export function normalizeDownloadFileName(value) {
   const fileName = basename(String(value || ""))
     .replace(/[^A-Za-z0-9_.-]/g, "_");
-  return fileName.toLowerCase().endsWith(".pdf") ? fileName : "";
+  if (!fileName.toLowerCase().endsWith(".pdf")) return "";
+  return fileName.replace(/_(?:RU|PL|ENG)(?=(?:_(?:vehicle|equipment|\d+))?\.pdf$)/i, "");
+}
+
+export function makeVinPdfDownloadName(brand, vin) {
+  return normalizeDownloadFileName(`${brand}_${vin}.pdf`);
 }
 
 function sendStatic(request, response) {
