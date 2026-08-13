@@ -23,7 +23,7 @@ const psaProfile = {
 };
 
 const fcaProfile = {
-  modelLabels: [/(?:ввод\s+данных\s+по\s+модели|wprowadz(?:enie|anie)\s+danych\s+(?:do|dla)\s+modelu|model\s+data\s+entry)/i],
+  modelLabels: [/(?:podanie\s+modelu|ввод\s+данных\s+по\s+модели|wprowadz(?:enie|anie)\s+danych\s+(?:do|dla)\s+modelu|model\s+data\s+entry)/i],
   engineTypeLabels: [/(?:CMB|ELT)/i],
   engineVolumeLabels: [/(?:CC)/i],
   engineEvidenceLabels: [/(?:CMB|ELT|ENG)/i]
@@ -599,6 +599,10 @@ function inferBmwEngineVolume(value) {
 function findEngineVolumeRaw(text, brand, profile, values) {
   const labeledValue = findFirstPdfValue(text, profile.engineVolumeLabels);
   if (normalizePdfEngineVolume(labeledValue)) return labeledValue;
+  if (["Abarth", "Alfa Romeo", "Fiat", "Fiat Professional", "Jeep", "Lancia"].includes(brand)) {
+    const fcaCapacity = String(labeledValue).match(/^\s*(\d+(?:[.,]\d+)?)\b/);
+    if (fcaCapacity && Number(fcaCapacity[1].replace(",", ".")) > 0) return `${fcaCapacity[1]} L`;
+  }
   if (normalizePdfEngineVolume(values.engineSpecificationRaw)) return values.engineSpecificationRaw;
   if (normalizePdfEngineVolume(values.engineTypeRaw)) return values.engineTypeRaw;
 

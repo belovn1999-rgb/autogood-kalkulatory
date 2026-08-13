@@ -128,6 +128,24 @@ DAM                                    16403CJ
   });
 });
 
+test("Alfa Romeo uses the commercial model row and FCA cylinder capacity", () => {
+  const result = extractVehicleInfoFromText(`
+Nr nadwozia               ZAR94000007103616
+model                     191C56001000 (X7)
+Podanie modelu            GIULIETTA 1.6 JTD 105CV CM 6M DISTINCTIVE
+Data produkcji            09/07/2011
+CC              1.6      POJ. CYLINDRÓW = 1.6
+CMB             DS       PALIWO = DIESEL
+`, { brand: "Alfa Romeo", language: "PL" });
+
+  assert.deepEqual(result, {
+    model: "GIULIETTA 1.6 JTD 105CV CM 6M DISTINCTIVE",
+    productionDate: "09.07.2011",
+    engineType: "Дизель",
+    engineVolume: "1600 cm³"
+  });
+});
+
 test("Peugeot reads engine volume from the translated power row", () => {
   const latinUnitResult = extractVehicleInfoFromText(`
 МОДЕЛЬНЫЙ РЯД                           3008 (P84E)
