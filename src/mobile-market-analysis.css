@@ -1,0 +1,452 @@
+.mobileManualSearchButtons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.mobileMarketAnalysisButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 46px;
+  border: var(--rule-thin) solid var(--color-brand);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+  padding: 0 var(--space-lg);
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileMarketAnalysisButton i {
+  font-size: var(--text-lg);
+  font-style: normal;
+  line-height: 1;
+}
+
+.mobileMarketAnalysisButton:focus-visible,
+.mobileMarketPoint:focus-visible,
+.mobileMarketSearchLink:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.mobileMarketAnalysisView {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mobileMarketAnalysisPanel {
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-xl);
+}
+
+.mobileMarketAnalysisHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-lg);
+  align-items: start;
+  padding-bottom: var(--space-lg);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileMarketAnalysisHead h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: 1.25;
+}
+
+.mobileMarketAnalysisHead p {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.mobileMarketTestLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: var(--rule-thin) solid var(--color-primary-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  color: var(--color-brand-pressed);
+  padding: 0 var(--space-sm);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mobileMarketFilterSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  margin: var(--space-md) 0 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.mobileMarketStats {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-top: var(--space-xl);
+  border-block: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileMarketStat {
+  min-width: 0;
+  padding: var(--space-md) var(--space-sm);
+}
+
+.mobileMarketStat + .mobileMarketStat {
+  border-left: var(--rule-thin) solid var(--color-rule-soft);
+}
+
+.mobileMarketStat dt {
+  margin: 0 0 var(--space-2xs);
+  color: var(--color-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.mobileMarketStat dd {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileMarketChartHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+.mobileMarketChartHead h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  line-height: 1.3;
+}
+
+.mobileMarketLegend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-sm) var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.mobileMarketLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.mobileMarketLegend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-soft);
+}
+
+.mobileMarketLegend .isMiddle i {
+  background: var(--color-brand);
+}
+
+.mobileMarketLegend .isHigh i {
+  background: var(--color-brand-pressed);
+}
+
+.mobileMarketScale {
+  position: relative;
+  height: 220px;
+  margin-top: var(--space-md);
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  overflow: visible;
+  background:
+    linear-gradient(90deg,
+      color-mix(in oklch, var(--color-soft) 8%, transparent) 0 var(--market-p25),
+      color-mix(in oklch, var(--color-brand) 7%, transparent) var(--market-p25) var(--market-p75),
+      color-mix(in oklch, var(--color-brand-pressed) 8%, transparent) var(--market-p75) 100%);
+}
+
+.mobileMarketScale::after {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-md);
+  content: "EUR";
+  color: var(--color-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.mobileMarketAxis {
+  position: absolute;
+  right: var(--space-lg);
+  bottom: 42px;
+  left: var(--space-lg);
+  height: var(--rule-thin);
+  background: var(--color-primary-rule);
+}
+
+.mobileMarketBoundary,
+.mobileMarketMedian {
+  position: absolute;
+  top: 18px;
+  bottom: 42px;
+  width: var(--rule-thin);
+  background: var(--color-rule);
+  pointer-events: none;
+}
+
+.mobileMarketMedian {
+  width: var(--rule-thick);
+  background: var(--color-brand);
+}
+
+.mobileMarketTick {
+  position: absolute;
+  bottom: 16px;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.mobileMarketTick.isStart {
+  transform: none;
+}
+
+.mobileMarketTick.isEnd {
+  transform: translateX(-100%);
+}
+
+.mobileMarketPoint {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.mobileMarketPoint::before {
+  position: absolute;
+  inset: 9px;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-soft);
+  box-shadow: 0 0 0 1px var(--color-soft);
+  content: "";
+  transition: inset var(--dur-micro) var(--ease-out), background-color var(--dur-short) var(--ease-out);
+}
+
+.mobileMarketPoint.isMiddle::before {
+  background: var(--color-brand);
+  box-shadow: 0 0 0 1px var(--color-brand);
+}
+
+.mobileMarketPoint.isHigh::before {
+  background: var(--color-brand-pressed);
+  box-shadow: 0 0 0 1px var(--color-brand-pressed);
+}
+
+.mobileMarketPointTooltip {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  display: none;
+  width: max-content;
+  max-width: 230px;
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: var(--space-xs) var(--space-sm);
+  box-shadow: 0 8px 24px rgba(12, 37, 54, 0.14);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.mobileMarketPointTooltip strong,
+.mobileMarketPointTooltip span {
+  display: block;
+}
+
+.mobileMarketPointTooltip span {
+  color: var(--color-muted);
+}
+
+.mobileMarketPoint:hover,
+.mobileMarketPoint:focus-visible {
+  z-index: 5;
+}
+
+.mobileMarketPoint:hover::before,
+.mobileMarketPoint:focus-visible::before {
+  inset: 6px;
+}
+
+.mobileMarketPoint:hover .mobileMarketPointTooltip,
+.mobileMarketPoint:focus-visible .mobileMarketPointTooltip {
+  display: block;
+}
+
+.mobileMarketNotice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-lg);
+  align-items: center;
+  margin-top: var(--space-lg);
+  border-top: var(--rule-thin) solid var(--color-rule);
+  padding-top: var(--space-lg);
+}
+
+.mobileMarketNotice p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.mobileMarketSearchLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  color: var(--color-brand-pressed);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mobileMarketAnalysisButton:hover,
+  .mobileMarketSearchLink:hover {
+    background: var(--color-surface-tint);
+    transform: translateY(-1px);
+  }
+}
+
+.mobileMarketAnalysisButton:active,
+.mobileMarketSearchLink:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 60rem) {
+  .mobileMarketStats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .mobileMarketStat:nth-child(5) {
+    border-left: 0;
+  }
+
+  .mobileMarketStat:nth-child(n + 5) {
+    border-top: var(--rule-thin) solid var(--color-rule-soft);
+  }
+}
+
+@media (max-width: 40rem) {
+  .mobileManualSearchButtons,
+  .mobileMarketAnalysisButton,
+  .mobileMarketSearchButton,
+  .mobileMarketSearchLink {
+    width: 100%;
+  }
+
+  .mobileMarketAnalysisPanel {
+    padding: var(--space-md);
+  }
+
+  .mobileMarketAnalysisHead,
+  .mobileMarketNotice {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileMarketTestLabel {
+    justify-self: start;
+  }
+
+  .mobileMarketStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobileMarketStat:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .mobileMarketStat:nth-child(n + 3) {
+    border-top: var(--rule-thin) solid var(--color-rule-soft);
+  }
+
+  .mobileMarketChartHead {
+    display: grid;
+    align-items: start;
+  }
+
+  .mobileMarketLegend {
+    justify-content: flex-start;
+  }
+
+  .mobileMarketScale {
+    height: 250px;
+  }
+
+  .mobileMarketBoundary,
+  .mobileMarketMedian {
+    bottom: 48px;
+  }
+
+  .mobileMarketAxis {
+    right: var(--space-sm);
+    bottom: 48px;
+    left: var(--space-sm);
+  }
+
+  .mobileMarketPointTooltip {
+    max-width: 180px;
+  }
+
+  .mobileMarketTick.isQuartile {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileMarketAnalysisButton,
+  .mobileMarketSearchLink,
+  .mobileMarketPoint::before {
+    transition: none;
+  }
+}
