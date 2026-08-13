@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/mobile.css?v=trade-block-20260813" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-analysis-20260813" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -104,13 +105,13 @@
               <div class="mobileManualGrid">
             <label class="mobileField">
               <span data-i18n="brandLabel">Marka</span>
-              <div class="mobileComboControl mobileTextComboControl" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
+              <div class="mobileComboControl mobileTextComboControl mobileBrandCombo" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
                 <input data-mobile-brand type="text" autocomplete="off" />
               </div>
             </label>
             <label class="mobileField">
               <span data-i18n="modelLabel">Model</span>
-              <div class="mobileComboControl mobileTextComboControl" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
+              <div class="mobileComboControl mobileTextComboControl mobileModelCombo" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
                 <input data-mobile-model type="text" autocomplete="off" />
               </div>
             </label>
@@ -125,7 +126,10 @@
             </label>
             <label class="mobileField">
               <span data-i18n="bodyLabel">Nadwozie</span>
-              <select data-mobile-body></select>
+              <div class="mobileComboControl mobileTextComboControl" data-mobile-options="body" data-mobile-options-target="data-mobile-body-label" data-mobile-value-target="data-mobile-body">
+                <input data-mobile-body-label type="text" autocomplete="off" readonly />
+                <input data-mobile-body type="hidden" />
+              </div>
             </label>
             <div class="mobileField mobileRangeField">
               <span data-i18n="mileageRangeLabel">Przebieg</span>
@@ -316,18 +320,31 @@
           </div>
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
-            <a
-              class="mobileMarketSearchButton"
-              href="#"
-              target="_blank"
-              rel="noopener"
-              data-mobile-market-search
-            >
-              <span data-i18n="marketSearchButton">Szukaj na mobile.de</span>
-              <i aria-hidden="true">&#8599;</i>
-            </a>
+            <div class="mobileManualSearchButtons">
+              <button class="mobileMarketAnalysisButton" type="button" data-mobile-market-analysis-open>
+                <span data-market-i18n="analysisButton">Analiza rynku</span>
+                <i aria-hidden="true">&#8594;</i>
+              </button>
+              <a
+                class="mobileMarketSearchButton"
+                href="#"
+                target="_blank"
+                rel="noopener"
+                data-mobile-market-search
+              >
+                <span data-i18n="marketSearchButton">Szukaj na mobile.de</span>
+                <i aria-hidden="true">&#8599;</i>
+              </a>
+            </div>
           </div>
         </article>
+      </section>
+
+      <section class="mobileMethodView mobileMarketAnalysisView" data-mobile-market-analysis-view hidden>
+        <button class="mobileBackButton" type="button" data-mobile-market-analysis-back>
+          <span data-market-i18n="backToFilters">&#8592; Wróć do filtrów</span>
+        </button>
+        <div data-mobile-market-analysis-content></div>
       </section>
 
       <footer class="mobileFooter">
@@ -336,6 +353,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-webids-20260813"></script>
-    <script src="./src/mobile.js?v=field-open-20260813"></script>
+    <script src="./src/mobile.js?v=wide-brand-body-20260813"></script>
+    <script src="./src/mobile-market-analysis.js?v=market-analysis-20260813"></script>
   </body>
 </html>

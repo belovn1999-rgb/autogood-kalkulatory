@@ -631,6 +631,7 @@ const els = {
   fuel: document.querySelector("[data-mobile-fuel]"),
   plugin: document.querySelector("[data-mobile-plugin]"),
   body: document.querySelector("[data-mobile-body]"),
+  bodyLabel: document.querySelector("[data-mobile-body-label]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
   mileageTo: document.querySelector("[data-mobile-mileage-to]"),
   mileageOptions: document.querySelector("[data-mobile-mileage-options]"),
@@ -866,6 +867,10 @@ function comboOptionSets() {
       value,
       label: `${value} KM`,
     })),
+    body: bodyOptions.map((body) => ({
+      value: body.value,
+      label: body[state.lang],
+    })),
   };
 }
 
@@ -895,7 +900,7 @@ function renderComboMenus(filterControl = null) {
     }
     control.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
     menu.innerHTML = visibleOptions.map((option) => `
-      <button type="button" data-mobile-option-value="${escapeHtml(option.value)}">
+      <button type="button" data-mobile-option-value="${escapeHtml(option.value)}" data-mobile-option-label="${escapeHtml(option.label)}">
         ${escapeHtml(option.label)}
       </button>
     `).join("");
@@ -979,6 +984,12 @@ function optionLabel(options, value) {
   return option ? option[state.lang] : "";
 }
 
+function setBodyDisplay(value) {
+  if (!els.bodyLabel) return;
+  els.bodyLabel.value = optionLabel(bodyOptions, value);
+  els.bodyLabel.placeholder = copy[state.lang].selectEmpty;
+}
+
 function listingBodyLabel(value) {
   const normalized = normalizeBody(value);
   return optionLabel(bodyOptions, normalized) || text(value);
@@ -1047,10 +1058,8 @@ function renderManualOptions(keepValues = true) {
 
   els.plugin.checked = current.plugin === "yes";
 
-  els.body.innerHTML = [
-    optionHtml("", c.selectEmpty),
-    ...bodyOptions.map((body) => optionHtml(body.value, body[state.lang], body.value === current.body)),
-  ].join("");
+  els.body.value = current.body || "";
+  setBodyDisplay(current.body);
 
   els.vat.innerHTML = [
     optionHtml("", c.vatAny),
@@ -1313,6 +1322,7 @@ function applyRecognizedManualFields(data) {
   els.fuel.value = next.fuel;
   els.plugin.checked = next.plugin === "yes";
   els.body.value = next.body;
+  setBodyDisplay(next.body);
   els.mileageFrom.value = next.mileageFrom;
   els.mileageTo.value = next.mileageTo;
   els.yearFrom.value = next.yearFrom;
@@ -1460,8 +1470,16 @@ document.addEventListener("click", (event) => {
     const targetName = control?.dataset.mobileOptionsTarget;
     const input = targetName ? control.querySelector(`[${targetName}]`) : null;
     if (input) {
-      input.value = optionButton.dataset.mobileOptionValue || "";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+      const value = optionButton.dataset.mobileOptionValue || "";
+      const valueTargetName = control?.dataset.mobileValueTarget;
+      const valueTarget = valueTargetName ? control.querySelector(`[${valueTargetName}]`) : null;
+      if (valueTarget && valueTarget !== input) {
+        input.value = optionButton.dataset.mobileOptionLabel || value;
+        valueTarget.value = value;
+      } else {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
       input.focus();
     }
     closeComboMenus();
