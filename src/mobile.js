@@ -856,14 +856,8 @@ function comboOptionSets() {
   if (currentModel && !seenModels.has(normalizeToken(currentModel))) {
     models.unshift({ value: currentModel, label: currentModel });
   }
-  const valuesAfter = (values, fromValue, allowSame = false) => {
-    const from = mobileDeNumber(fromValue);
-    if (from === null) return values;
-    return values.filter((value) => {
-      const number = mobileDeNumber(value);
-      return number !== null && (allowSame ? number >= from : number > from);
-    });
-  };
+  const valuesAfter = (values, fromValue, allowSame = false) => values
+    .filter((value) => isAllowedRangeEndValue(value, fromValue, allowSame));
   const mileage = mileageOptions();
   const years = yearOptions();
   const displacement = displacementOptions;
@@ -1206,6 +1200,22 @@ function mobileDeNumber(value) {
   if (!compact) return null;
   const number = Number(compact);
   return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function isAllowedRangeEndValue(value, fromValue, allowSame = false) {
+  const from = mobileDeNumber(fromValue);
+  if (from === null) return true;
+  const rawValue = String(value || "").trim();
+  if (/^<\s*\d/.test(rawValue)) return false;
+  const to = mobileDeNumber(rawValue);
+  if (to === null) return false;
+  if (/^>\s*\d/.test(rawValue)) return to >= from;
+  return allowSame ? to >= from : to > from;
+}
+
+function syncRangeEndValue(fromInput, toInput, allowSame = false) {
+  if (!fromInput?.value || !toInput?.value) return;
+  if (!isAllowedRangeEndValue(toInput.value, fromInput.value, allowSame)) toInput.value = "";
 }
 
 function mobileDeModelId(brand, model) {
@@ -1567,8 +1577,17 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeComboMenus();
 });
 
+const rangeEndsByStart = new Map([
+  [els.mileageFrom, [els.mileageTo, false]],
+  [els.yearFrom, [els.yearTo, true]],
+  [els.displacementFrom, [els.displacementTo, false]],
+  [els.powerFrom, [els.powerTo, false]],
+]);
+
 document.querySelectorAll(".mobileComboControl input").forEach((input) => {
   input.addEventListener("input", () => {
+    const rangeEnd = rangeEndsByStart.get(input);
+    if (rangeEnd) syncRangeEndValue(input, ...rangeEnd);
     const control = input.closest(".mobileComboControl");
     openComboMenu(control, control);
   });
