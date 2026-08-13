@@ -462,13 +462,27 @@ button {
 }
 
 .mobileRangeField.mobileWideField {
+  width: min(100%, 720px);
   max-width: 720px;
+  justify-self: center;
 }
 
 .mobileRangePair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-sm);
+}
+
+.mobileVehicleTripleRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.mobileRangeDivider {
+  grid-column: 1 / -1;
+  margin: var(--space-xs) 0;
+  border-top: var(--rule-thick) solid var(--color-rule-soft);
 }
 
 .mobileComboControl {
@@ -1151,6 +1165,10 @@ button {
   }
 
   .mobileManualGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileVehicleTripleRow {
     grid-template-columns: minmax(0, 1fr);
   }
 
