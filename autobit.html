@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AUTOGOOD AutoBit</title>
+    <link rel="stylesheet" href="./src/tools.css?v=header-unified-20260721" />
+    <link rel="stylesheet" href="./src/auto1.css?v=20260621-app" />
+    <script type="module" src="./src/autobit.js?v=20260814-upload"></script>
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="workspaceHeader">
+        <a class="brand compact" href="./auctions.html" aria-label="AUTOGOOD Auctions">
+          <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+          <span class="brandDivider" aria-hidden="true"></span>
+          <span>AutoBit</span>
+        </a>
+        <nav class="workspaceNav" aria-label="Workspace navigation">
+          <a href="./">Tools</a>
+          <a href="./auctions.html">Auctions</a>
+          <a href="./auto1.html">Auto1</a>
+          <a href="./autobit.html" aria-current="page">AutoBit</a>
+        </nav>
+      </header>
+
+      <section class="auto1App" aria-label="AutoBit PDF cleanup">
+        <div class="auto1Main">
+          <div class="auto1Intro">
+            <p class="eyebrow">AUTOBIT CLIENT PDF</p>
+            <h1>Prepare a clean client PDF</h1>
+            <p>
+              Upload the original PDF downloaded from AutoBit. The cleanup rules
+              will be added after the AutoBit document structure is defined.
+            </p>
+          </div>
+
+          <label class="auto1Drop" id="dropZone">
+            <input id="pdfInput" type="file" accept="application/pdf,.pdf" />
+            <span class="auto1DropIcon">PDF</span>
+            <strong id="dropTitle">Choose or drag a PDF file here</strong>
+            <small id="fileMeta">The file stays on this device and is not uploaded to a server.</small>
+          </label>
+
+          <div class="auto1Progress" aria-live="polite">
+            <div class="auto1ProgressBar">
+              <span id="progressBar"></span>
+            </div>
+            <p id="statusText">Waiting for an AutoBit PDF.</p>
+          </div>
+        </div>
+
+        <aside class="auto1Side" aria-label="AutoBit cleanup status">
+          <h2>PDF cleanup</h2>
+          <p>
+            The upload area is ready. AutoBit-specific cleanup rules will be
+            configured once the required changes are confirmed.
+          </p>
+        </aside>
+      </section>
+    </main>
+  </body>
+</html>
