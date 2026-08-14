@@ -28,6 +28,10 @@ const FOOTER_FRAME = {
 let selectedFile = null;
 let resultUrl = null;
 
+function t(key, values) {
+  return window.AUTOGOOD_AUCTION_LANGUAGE.translate(key, values);
+}
+
 function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -37,9 +41,9 @@ function setFile(file) {
   if (!file) return;
 
   if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-    dropTitle.textContent = "Please choose a PDF file";
-    fileMeta.textContent = "Only PDF files can be prepared for cleanup.";
-    statusText.textContent = "The selected file is not a PDF.";
+    dropTitle.textContent = t("autobid.wrongFile");
+    fileMeta.textContent = t("autobid.onlyPdf");
+    statusText.textContent = t("autobid.notPdf");
     progressBar.style.width = "0%";
     processButton.disabled = true;
     return;
@@ -47,10 +51,10 @@ function setFile(file) {
 
   selectedFile = file;
   dropTitle.textContent = file.name;
-  fileMeta.textContent = `${formatBytes(file.size)} — ready for cleanup`;
+  fileMeta.textContent = t("autobid.fileReady", { size: formatBytes(file.size) });
   processButton.disabled = false;
   resetResult();
-  statusText.textContent = "PDF selected. Ready to clean.";
+  statusText.textContent = t("autobid.selected");
   progressBar.style.width = "0%";
 }
 
@@ -60,7 +64,7 @@ function resetResult() {
   downloadButton.removeAttribute("href");
   downloadButton.classList.add("isDisabled");
   resultPreview.removeAttribute("src");
-  resultMeta.textContent = "The cleaned PDF will appear here.";
+  resultMeta.textContent = t("autobid.previewEmpty");
 }
 
 function setStatus(message, progress) {
@@ -125,12 +129,12 @@ function cleanedFileName(name) {
 async function cleanPdf() {
   if (!selectedFile) return;
   if (!window.PDFLib?.PDFDocument) {
-    setStatus("The PDF editor did not load. Please refresh the page and try again.", 0);
+    setStatus(t("autobid.editorMissing"), 0);
     return;
   }
 
   processButton.disabled = true;
-  setStatus("Opening the AutoBit PDF…", 10);
+  setStatus(t("autobid.opening"), 10);
 
   try {
     const bytes = await selectedFile.arrayBuffer();
@@ -144,7 +148,7 @@ async function cleanPdf() {
       if (index === 0) coverArea(page, CLEANUP_AREAS.startingPrice);
     });
 
-    setStatus(`Cleaning ${pages.length} page${pages.length === 1 ? "" : "s"}…`, 70);
+    setStatus(t("autobid.cleaning", { pages: pages.length, pagesLabel: t("autobid.pageLabel") }), 70);
     const cleanedBytes = await pdf.save();
     const blob = new Blob([cleanedBytes], { type: "application/pdf" });
     resultUrl = URL.createObjectURL(blob);
@@ -154,12 +158,12 @@ async function cleanPdf() {
     downloadButton.download = fileName;
     downloadButton.classList.remove("isDisabled");
     resultPreview.src = resultUrl;
-    resultMeta.textContent = `${fileName} — ${pages.length} page${pages.length === 1 ? "" : "s"}`;
-    setStatus("Done. Preview the cleaned PDF or download it.", 100);
+    resultMeta.textContent = `${fileName} — ${pages.length} ${t("autobid.pageLabel")}`;
+    setStatus(t("autobid.done"), 100);
   } catch (error) {
     console.error(error);
     resetResult();
-    setStatus("This PDF could not be processed. Please try the original AutoBit report.", 0);
+    setStatus(t("autobid.processingError"), 0);
   } finally {
     processButton.disabled = false;
   }

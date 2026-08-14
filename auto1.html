@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Auto1</title>
     <link rel="stylesheet" href="./src/tools.css?v=header-unified-20260721" />
-    <link rel="stylesheet" href="./src/auto1.css?v=20260621-app" />
+    <link rel="stylesheet" href="./src/auto1.css?v=20260814-auction-language" />
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script type="module" src="./src/auto1.js?v=20260714-copy-fallback-no-mask"></script>
+    <script type="module" src="./src/auction-language.js?v=20260814-pl-ru"></script>
+    <script type="module" src="./src/auto1.js?v=20260814-pl-ru"></script>
   </head>
   <body>
     <main class="workspaceShell">
@@ -17,19 +18,25 @@
           <span class="brandDivider" aria-hidden="true"></span>
           <span>Auto1</span>
         </a>
-        <nav class="workspaceNav" aria-label="Workspace navigation">
-          <a href="./">Tools</a>
-          <a href="./auctions.html">Aukcje</a>
-          <a href="./auto1.html" aria-current="page">Auto1</a>
-        </nav>
+        <div class="auctionHeaderControls">
+          <nav class="workspaceNav" aria-label="Workspace navigation">
+            <a href="./" data-i18n="nav.tools">Narzędzia</a>
+            <a href="./auctions.html" data-i18n="nav.auctions">Aukcje</a>
+            <a href="./auto1.html" aria-current="page">Auto1</a>
+          </nav>
+          <div class="auctionLanguage" aria-label="Language">
+            <button type="button" data-language="pl">PL</button>
+            <button type="button" data-language="ru">RU</button>
+          </div>
+        </div>
       </header>
 
       <section class="auto1App" aria-label="Auto1 client PDF maker">
         <div class="auto1Main">
           <div class="auto1Intro">
             <p class="eyebrow">AUTO1 client PDF</p>
-            <h1>Przygotuj raport dla klienta</h1>
-            <p>
+            <h1 data-i18n="auto1.title">Przygotuj raport dla klienta</h1>
+            <p data-i18n="auto1.intro">
               Wgraj surowy raport PDF pobrany z AUTO1. Program oczyści go z
               elementow aukcyjnych i zapisze z powrotem jako edytowalny PDF.
             </p>
@@ -38,15 +45,15 @@
           <label class="auto1Drop" id="dropZone">
             <input id="pdfInput" type="file" accept="application/pdf,.pdf" />
             <span class="auto1DropIcon">PDF</span>
-            <strong id="dropTitle">Wybierz albo przeciagnij plik PDF</strong>
-            <small id="fileMeta">Dziala lokalnie w przegladarce. Plik nie jest wysylany na serwer i nie jest zamieniany w obraz.</small>
+            <strong id="dropTitle" data-i18n="upload.prompt">Wybierz albo przeciagnij plik PDF</strong>
+            <small id="fileMeta" data-i18n="upload.local">Dziala lokalnie w przegladarce. Plik nie jest wysylany na serwer i nie jest zamieniany w obraz.</small>
           </label>
 
           <div class="auto1Actions">
-            <button class="primaryButton" id="processButton" type="button" disabled>
+            <button class="primaryButton" id="processButton" type="button" disabled data-i18n="action.cleanDownload">
               Oczyść i pobierz PDF
             </button>
-            <a class="secondaryButton isDisabled" id="downloadButton" download>
+            <a class="secondaryButton isDisabled" id="downloadButton" download data-i18n="action.download">
               Pobierz gotowy PDF
             </a>
           </div>
@@ -55,22 +62,22 @@
             <div class="auto1ProgressBar">
               <span id="progressBar"></span>
             </div>
-            <p id="statusText">Czekam na plik AUTO1.</p>
+            <p id="statusText" data-i18n="auto1.waiting">Czekam na plik AUTO1.</p>
           </div>
         </div>
 
         <aside class="auto1Side" aria-label="Auto1 cleanup rules">
-          <h2>Automatycznie usuwane</h2>
+          <h2 data-i18n="sidebar.removed">Automatycznie usuwane</h2>
           <ul>
-            <li>voucher, Save cash, Export advantage</li>
-            <li>stock number i wewnetrzne numery aukcji</li>
-            <li>watchlist, high demand i podobne komunikaty</li>
-            <li>delivery, pickup, logistics, ceny i terminy odbioru</li>
-            <li>video overlay, pasek postepu i czas odtwarzacza</li>
-            <li>Total Pictures i techniczne komunikaty galerii</li>
-            <li>puste strony prawne / stopki AUTO1</li>
+            <li data-i18n="auto1.rule1">voucher, Save cash, Export advantage</li>
+            <li data-i18n="auto1.rule2">stock number i wewnetrzne numery aukcji</li>
+            <li data-i18n="auto1.rule3">watchlist, high demand i podobne komunikaty</li>
+            <li data-i18n="auto1.rule4">delivery, pickup, logistics, ceny i terminy odbioru</li>
+            <li data-i18n="auto1.rule5">video overlay, pasek postepu i czas odtwarzacza</li>
+            <li data-i18n="auto1.rule6">Total Pictures i techniczne komunikaty galerii</li>
+            <li data-i18n="auto1.rule7">puste strony prawne / stopki AUTO1</li>
           </ul>
-          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md">
+          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md" data-i18n="auto1.rulesLink">
             Zobacz reguly z przykladu Jeep
           </a>
         </aside>
@@ -78,8 +85,8 @@
 
       <section class="auto1Preview" aria-label="Preview">
         <div class="auto1PreviewHeader">
-          <h2>Podglad wyniku</h2>
-          <span id="resultMeta">Po obrobce pojawi sie tutaj gotowy PDF.</span>
+          <h2 data-i18n="preview.title">Podglad wyniku</h2>
+          <span id="resultMeta" data-i18n="auto1.previewEmpty">Po obrobce pojawi sie tutaj gotowy PDF.</span>
         </div>
         <iframe id="resultPreview" title="Auto1 client PDF preview"></iframe>
       </section>

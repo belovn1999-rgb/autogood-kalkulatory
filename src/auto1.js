@@ -20,6 +20,10 @@ let resultUrl = null;
 let resultFileName = "";
 let pdfjsPromise = null;
 
+function t(key, values) {
+  return window.AUTOGOOD_AUCTION_LANGUAGE.translate(key, values);
+}
+
 function setStatus(message, progress = null) {
   statusText.textContent = message;
   if (progress !== null) {
@@ -36,10 +40,10 @@ function setFile(file) {
   if (!file) return;
   selectedFile = file;
   dropTitle.textContent = file.name;
-  fileMeta.textContent = `${formatBytes(file.size)} - gotowy do obrobki`;
+  fileMeta.textContent = t("auto1.fileReady", { size: formatBytes(file.size) });
   processButton.disabled = false;
   resetResult();
-  setStatus("Plik wybrany. Mozesz uruchomic czyszczenie.", 0);
+  setStatus(t("auto1.fileSelected"), 0);
 }
 
 function resetResult() {
@@ -49,7 +53,7 @@ function resetResult() {
   downloadButton.removeAttribute("href");
   downloadButton.classList.add("isDisabled");
   resultPreview.removeAttribute("src");
-  resultMeta.textContent = "Po obrobce pojawi sie tutaj gotowy PDF.";
+  resultMeta.textContent = t("auto1.previewEmpty");
 }
 
 function normalizeText(value) {
@@ -632,7 +636,7 @@ async function buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData
     const viewport = sourcePage.getViewport({ scale: 1 });
     const targetPage = pdfDoc.addPage([viewport.width, viewport.height]);
 
-    setStatus(`Buduje czysty PDF: strona ${pageNumber}/${pageData.length}`, 35 + (pageNumber / pageData.length) * 55);
+    setStatus(t("auto1.buildingPage", { page: pageNumber, total: pageData.length }), 35 + (pageNumber / pageData.length) * 55);
 
     if (pageNumber === 1 || isFixedPriceCover(data.text, pageNumber)) {
       const tailText = pageNumber === 1 && isCoverTailPage(pageData[index + 1]?.text || "") ? pageData[index + 1].text : "";
@@ -662,7 +666,7 @@ async function readPageData(pdf) {
       text: buildText(textContent),
       textContent,
     });
-    setStatus(`Czytam raport AUTO1: strona ${pageNumber}/${pdf.numPages}`, (pageNumber / pdf.numPages) * 25);
+    setStatus(t("auto1.readingPage", { page: pageNumber, total: pdf.numPages }), (pageNumber / pdf.numPages) * 25);
   }
   return pages;
 }
@@ -673,7 +677,7 @@ async function processPdf() {
   resetResult();
   processButton.disabled = true;
   downloadButton.classList.add("isDisabled");
-  setStatus("Laduje silnik PDF...", 5);
+  setStatus(t("auto1.loadingEngine"), 5);
 
   const pdfLib = ensurePdfLib();
   const pdfjsLib = await loadPdfJs();
@@ -683,11 +687,11 @@ async function processPdf() {
   const sourcePdfLib = await pdfLib.PDFDocument.load(bytes);
   const pageData = await readPageData(sourcePdf);
 
-  setStatus("Buduje czysty PDF bez maskowania...", 35);
+  setStatus(t("auto1.building"), 35);
   const { pdfDoc, removedPages } = await buildCleanPdf(pdfLib, pdfjsLib, sourcePdf, sourcePdfLib, pageData);
   const removedRightLines = stripRightScrollbarsFromPdf(pdfLib, pdfDoc);
 
-  setStatus("Zapisuje czysty PDF...", 90);
+  setStatus(t("auto1.saving"), 90);
   const outputBytes = await pdfDoc.save({ useObjectStreams: false });
   const blob = new Blob([outputBytes], { type: "application/pdf" });
   resultUrl = URL.createObjectURL(blob);
@@ -696,8 +700,12 @@ async function processPdf() {
   downloadButton.download = resultFileName;
   downloadButton.classList.remove("isDisabled");
   resultPreview.src = resultUrl;
-  resultMeta.textContent = `${pdfDoc.getPageCount()} stron gotowych, usunieto ${removedPages} stron, ${removedRightLines} prawych linii.`;
-  setStatus("Gotowe. PDF przebudowany bez bialych masek.", 100);
+  resultMeta.textContent = t("auto1.resultMeta", {
+    pages: pdfDoc.getPageCount(),
+    removedPages,
+    removedRightLines,
+  });
+  setStatus(t("auto1.done"), 100);
 }
 
 input.addEventListener("change", () => {
@@ -724,7 +732,7 @@ processButton.addEventListener("click", async () => {
   try {
     await processPdf();
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Nie udalo sie obrobic PDF.", 0);
+    setStatus(error instanceof Error ? error.message : t("auto1.error"), 0);
   } finally {
     processButton.disabled = !selectedFile;
   }
