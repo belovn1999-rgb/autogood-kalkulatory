@@ -6,8 +6,10 @@ const autogoodFields = document.querySelector("#autogoodFields");
 const directFields = document.querySelector("#directFields");
 const hintEl = document.querySelector("#declarationHint");
 const previewFrame = document.querySelector("#declarationPreview");
+const resetButton = document.querySelector("#resetDeclaration");
+const saveDataButton = document.querySelector("#saveDeclarationData");
 const printButton = document.querySelector("#printDeclaration");
-const saveButton = document.querySelector("#saveDeclarationPdf");
+const downloadButton = document.querySelector("#downloadDeclarationPdf");
 
 const historyKey = "autogood-no-plates-declaration-history:v1";
 const historyLimit = 5;
@@ -196,8 +198,10 @@ function setStatus(message) {
 }
 
 function setBusy(busy) {
+  resetButton.disabled = busy;
+  saveDataButton.disabled = busy;
   printButton.disabled = busy;
-  saveButton.disabled = busy;
+  downloadButton.disabled = busy;
 }
 
 async function declarationFontBytes() {
@@ -325,7 +329,21 @@ function pdfFileName(data) {
   return `Oswiadczenie_brak_tablic_${type}_${safeFilePart(data.vehicleVin || data.vehicleMakeModel)}.pdf`;
 }
 
-async function savePdf() {
+function saveData() {
+  saveToHistory(collectData());
+  setStatus("Dane zostały zapisane w historii.");
+}
+
+function resetData() {
+  if (!window.confirm("Wyczyścić bieżące dane oświadczenia?")) return;
+  declarationForm.reset();
+  pdfFontSizes = { ...defaultFontSizes };
+  renderFontControls();
+  updateVariant();
+  setStatus("Bieżące dane zostały wyzerowane.");
+}
+
+async function downloadPdf() {
   setBusy(true);
   try {
     setStatus("Przygotowuję PDF...");
@@ -338,11 +356,10 @@ async function savePdf() {
     document.body.append(link);
     link.click();
     link.remove();
-    saveToHistory(data);
-    setStatus("PDF zostało zapisane.");
+    setStatus("PDF został pobrany.");
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch (error) {
-    setStatus(`Nie udało się zapisać PDF: ${error.message || error}`);
+    setStatus(`Nie udało się pobrać PDF: ${error.message || error}`);
   } finally {
     setBusy(false);
   }
@@ -375,7 +392,6 @@ async function printPdf() {
       }, 60_000);
     };
     frame.src = url;
-    saveToHistory(data);
     setStatus("PDF jest gotowy do druku.");
   } catch (error) {
     frame.remove();
@@ -396,7 +412,9 @@ declarationForm.querySelectorAll('[name="documentDate"], [name="importDate"]').f
 });
 declarationForm.addEventListener("input", schedulePreview);
 declarationForm.addEventListener("change", schedulePreview);
-saveButton.addEventListener("click", savePdf);
+resetButton.addEventListener("click", resetData);
+saveDataButton.addEventListener("click", saveData);
+downloadButton.addEventListener("click", downloadPdf);
 printButton.addEventListener("click", printPdf);
 
 updateVariant();
