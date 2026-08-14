@@ -21,6 +21,9 @@ let declarationFontBytesPromise;
 let previewUrl = "";
 let previewTimer;
 let previewRequestId = 0;
+const defaultFontSizes = { clientName: 12, vehicleMakeModel: 12 };
+const fontSizeLimits = { min: 7, max: 18 };
+let pdfFontSizes = { ...defaultFontSizes };
 
 function selectedValue(name) {
   return document.querySelector(`input[name="${name}"]:checked`)?.value || "";
@@ -58,6 +61,35 @@ function updateVariant() {
   schedulePreview();
 }
 
+function normalizeFontSize(value, fallback) {
+  const size = Number(value);
+  if (!Number.isFinite(size)) return fallback;
+  return Math.min(fontSizeLimits.max, Math.max(fontSizeLimits.min, size));
+}
+
+function renderFontControls() {
+  document.querySelectorAll("[data-font-size-field]").forEach((button) => {
+    const field = button.dataset.fontSizeField;
+    const step = Number(button.dataset.fontSizeStep);
+    const currentSize = pdfFontSizes[field] ?? defaultFontSizes[field];
+    button.disabled = step < 0 ? currentSize <= fontSizeLimits.min : currentSize >= fontSizeLimits.max;
+  });
+}
+
+function changeFontSize(field, step) {
+  const currentSize = pdfFontSizes[field] ?? defaultFontSizes[field];
+  pdfFontSizes[field] = normalizeFontSize(currentSize + step, defaultFontSizes[field]);
+  renderFontControls();
+  schedulePreview();
+}
+
+function syncDeclarationDates(source) {
+  const documentDate = declarationForm.querySelector('[name="documentDate"]');
+  const importDate = declarationForm.querySelector('[name="importDate"]');
+  if (!documentDate || !importDate || !source.value) return;
+  (source === documentDate ? importDate : documentDate).value = source.value;
+}
+
 function collectData() {
   return {
     purchaseMode: selectedValue("purchaseMode") || "autogood",
@@ -71,6 +103,8 @@ function collectData() {
     vehicleMakeModel: formValue("vehicleMakeModel"),
     vehicleVin: formValue("vehicleVin"),
     importDate: formValue("importDate"),
+    clientNameFontSize: pdfFontSizes.clientName,
+    vehicleMakeModelFontSize: pdfFontSizes.vehicleMakeModel,
   };
 }
 
@@ -80,11 +114,16 @@ function applyData(data) {
   document.querySelector(`input[name="purchaseMode"][value="${mode}"]`).checked = true;
   document.querySelector(`input[name="clientGender"][value="${gender}"]`).checked = true;
   Object.entries(data).forEach(([name, value]) => {
-    if (name === "purchaseMode" || name === "clientGender") return;
+    if (name === "purchaseMode" || name === "clientGender" || name.endsWith("FontSize")) return;
     declarationForm.querySelectorAll(`[name="${name}"]`).forEach((field) => {
       field.value = value || "";
     });
   });
+  pdfFontSizes = {
+    clientName: normalizeFontSize(data.clientNameFontSize, defaultFontSizes.clientName),
+    vehicleMakeModel: normalizeFontSize(data.vehicleMakeModelFontSize, defaultFontSizes.vehicleMakeModel),
+  };
+  renderFontControls();
   updateVariant();
 }
 
@@ -223,10 +262,10 @@ async function buildPdf(data) {
     form.flatten();
   } else {
     setPdfField(form, "Miasto", data.city, 10);
-    setPdfField(form, "Imię i Nazwisko", data.clientName, 12);
+    setPdfField(form, "Imię i Nazwisko", data.clientName, data.clientNameFontSize);
     setPdfField(form, "Dokument tożsamości", data.identityDocument, 10);
     setPdfField(form, "Numer dokumentu", data.identityNumber, 12);
-    setPdfField(form, "Marka i Model", data.vehicleMakeModel, 12);
+    setPdfField(form, "Marka i Model", data.vehicleMakeModel, data.vehicleMakeModelFontSize);
     setPdfField(form, "VIN", data.vehicleVin, 12);
     setPdfField(form, "Data", formatPolishDate(data.importDate), 12);
     setPdfField(form, "Kraj", "", 12);
@@ -339,10 +378,17 @@ async function printPdf() {
 document.querySelectorAll('input[name="purchaseMode"], input[name="clientGender"]').forEach((input) => {
   input.addEventListener("change", updateVariant);
 });
+document.querySelectorAll("[data-font-size-field]").forEach((button) => {
+  button.addEventListener("click", () => changeFontSize(button.dataset.fontSizeField, Number(button.dataset.fontSizeStep)));
+});
+declarationForm.querySelectorAll('[name="documentDate"], [name="importDate"]').forEach((input) => {
+  input.addEventListener("change", () => syncDeclarationDates(input));
+});
 declarationForm.addEventListener("input", schedulePreview);
 declarationForm.addEventListener("change", schedulePreview);
 saveButton.addEventListener("click", savePdf);
 printButton.addEventListener("click", printPdf);
 
 updateVariant();
+renderFontControls();
 renderHistory();

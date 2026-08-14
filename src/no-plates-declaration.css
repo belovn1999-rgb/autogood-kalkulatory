@@ -90,6 +90,44 @@
   line-height: 1.45;
 }
 
+.field-with-font-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+}
+
+.pdf-font-controls {
+  display: flex;
+  gap: 4px;
+  padding-bottom: 1px;
+}
+
+.pdf-font-controls button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--brand-dark);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pdf-font-controls button:hover,
+.pdf-font-controls button:focus-visible {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+
+.pdf-font-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .declaration-grid {
   grid-template-columns: minmax(0, 1fr);
 }
