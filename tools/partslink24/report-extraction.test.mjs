@@ -29,7 +29,8 @@ test("BMW market names determine d, e and i powertrains and retain MHEV evidence
     ["330e Touring", "", "PHEV"],
     ["320i Limousine", "", "Бензин"],
     ["i4 eDrive40", "", "Электрический"],
-    ["M340d xDrive Touring", "48 V MHEV mild hybrid system", "Дизель + Мягкий гибрид"]
+    ["M340d xDrive Touring", "48 V MHEV mild hybrid system", "Дизель + Мягкий гибрид"],
+    ["318d Touring", "S1CEA Рекуперационная система", "Дизель + Мягкий гибрид"]
   ];
 
   for (const [marketName, extraEvidence, engineType] of reports) {
