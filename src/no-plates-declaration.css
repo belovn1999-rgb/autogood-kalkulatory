@@ -90,29 +90,41 @@
   line-height: 1.45;
 }
 
-.field-with-font-control {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: end;
+.field > .font-field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
 .pdf-font-controls {
-  display: flex;
-  gap: 4px;
-  padding-bottom: 1px;
+  display: grid;
+  grid-template-rows: repeat(2, 13px);
+  gap: 2px;
+  flex: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.field:hover .pdf-font-controls,
+.field:focus-within .pdf-font-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
 }
 
 .pdf-font-controls button {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 18px;
+  height: 13px;
   place-items: center;
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: 3px;
   background: #fff;
   color: var(--brand-dark);
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1;
 }

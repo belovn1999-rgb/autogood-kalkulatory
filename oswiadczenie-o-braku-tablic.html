@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/pdf.css?v=20260810-no-plates-1" />
-    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260814-1" />
+    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260814-2" />
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
   </head>
@@ -89,24 +89,24 @@
                       <input name="documentDate" type="date" />
                     </label>
                   </div>
-                  <div class="field-with-font-control">
-                    <div class="pdf-font-controls" aria-label="Rozmiar tekstu imienia i nazwiska w PDF">
-                      <button type="button" data-font-size-field="clientName" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst imienia i nazwiska o 0,5 pt">−</button>
-                      <button type="button" data-font-size-field="clientName" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst imienia i nazwiska o 0,5 pt">+</button>
-                    </div>
-                    <label class="field">
+                  <label class="field">
+                    <span class="font-field-label">
                       <span>Imię i nazwisko:</span>
-                      <input name="clientName" type="text" autocomplete="name" />
-                    </label>
-                  </div>
+                      <span class="pdf-font-controls" aria-label="Rozmiar tekstu imienia i nazwiska w PDF">
+                        <button type="button" data-font-size-field="clientName" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst imienia i nazwiska o 0,5 pt">−</button>
+                        <button type="button" data-font-size-field="clientName" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst imienia i nazwiska o 0,5 pt">+</button>
+                      </span>
+                    </span>
+                    <input name="clientName" type="text" autocomplete="name" aria-label="Imię i nazwisko" />
+                  </label>
                   <div class="two-fields">
                     <label class="field">
                       <span>Dokument tożsamości:</span>
                       <select name="identityDocument" autocomplete="off">
                         <option value="">Wybierz dokument</option>
-                        <option value="Karta pobytu">Karta pobytu</option>
-                        <option value="Paszport">Paszport</option>
-                        <option value="Dowód osobisty">Dowód osobisty</option>
+                        <option value="kartą pobytu">kartą pobytu</option>
+                        <option value="paszportem">paszportem</option>
+                        <option value="dowodem osobistym">dowodem osobistym</option>
                       </select>
                     </label>
                     <label class="field">
@@ -114,16 +114,16 @@
                       <input name="identityNumber" type="text" autocomplete="off" />
                     </label>
                   </div>
-                  <div class="field-with-font-control">
-                    <div class="pdf-font-controls" aria-label="Rozmiar tekstu marki i modelu w PDF">
-                      <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst marki i modelu o 0,5 pt">−</button>
-                      <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst marki i modelu o 0,5 pt">+</button>
-                    </div>
-                    <label class="field">
+                  <label class="field">
+                    <span class="font-field-label">
                       <span>Marka i model:</span>
-                      <input name="vehicleMakeModel" type="text" autocomplete="off" />
-                    </label>
-                  </div>
+                      <span class="pdf-font-controls" aria-label="Rozmiar tekstu marki i modelu w PDF">
+                        <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst marki i modelu o 0,5 pt">−</button>
+                        <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst marki i modelu o 0,5 pt">+</button>
+                      </span>
+                    </span>
+                    <input name="vehicleMakeModel" type="text" autocomplete="off" aria-label="Marka i model" />
+                  </label>
                   <label class="field">
                     <span>VIN:</span>
                     <input name="vehicleVin" type="text" autocomplete="off" />
