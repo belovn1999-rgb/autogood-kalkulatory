@@ -1260,6 +1260,15 @@ function MarginAuctionResultLines({ c, rows, manualOverrides, editingOverride, o
               aria-label={c.flexibleEditTitle}
               onDragStart={() => onDragStart(item.id)}
               onDragEnd={onDragEnd}
+              onPointerDown={(event) => {
+                if (event.pointerType !== "mouse") onDragStart(item.id);
+              }}
+              onPointerUp={(event) => {
+                if (event.pointerType === "mouse") return;
+                const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-margin-auction-row-id]");
+                if (target?.dataset.marginAuctionRowId) onDrop(target.dataset.marginAuctionRowId);
+                else onDragEnd();
+              }}
             >
               ::
             </button>

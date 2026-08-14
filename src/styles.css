@@ -1773,6 +1773,7 @@ select {
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 1px;
+  touch-action: none;
 }
 
 .marginAuctionRemove {

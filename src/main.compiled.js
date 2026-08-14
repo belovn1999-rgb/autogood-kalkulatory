@@ -1455,7 +1455,15 @@ function MarginAuctionResultLines({
       title: c.flexibleEditTitle,
       "aria-label": c.flexibleEditTitle,
       onDragStart: () => onDragStart(item.id),
-      onDragEnd: onDragEnd
+      onDragEnd: onDragEnd,
+      onPointerDown: event => {
+        if (event.pointerType !== "mouse") onDragStart(item.id);
+      },
+      onPointerUp: event => {
+        if (event.pointerType === "mouse") return;
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-margin-auction-row-id]");
+        if (target?.dataset.marginAuctionRowId) onDrop(target.dataset.marginAuctionRowId);else onDragEnd();
+      }
     }, "::"), /*#__PURE__*/React.createElement("span", {
       className: "resultLineMarker",
       "aria-hidden": "true"
