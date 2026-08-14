@@ -273,7 +273,7 @@ function applySaleContract(data) {
       field.checked = Boolean(data[field.name]);
       return;
     }
-    field.value = data[field.name];
+    field.value = field.type === "date" ? normalizeDateForInput(data[field.name]) : data[field.name];
   });
   restoreDamageMarks(data.damageMarks);
   updateSummary();
@@ -389,6 +389,35 @@ function normalizeSpace(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function normalizeDateForInput(value) {
+  const raw = normalizeSpace(value);
+  if (!raw) return "";
+
+  let year;
+  let month;
+  let day;
+  let match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (match) {
+    [, year, month, day] = match;
+  } else {
+    match = raw.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+    if (!match) return "";
+    [, day, month, year] = match;
+  }
+
+  const normalized = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const parsed = new Date(`${normalized}T12:00:00`);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== Number(year) ||
+    parsed.getMonth() + 1 !== Number(month) ||
+    parsed.getDate() !== Number(day)
+  ) {
+    return "";
+  }
+  return normalized;
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -396,7 +425,7 @@ function escapeRegExp(value) {
 function setField(name, value) {
   const field = form.querySelector(`[name="${name}"]`);
   if (!field || !value) return;
-  field.value = value;
+  field.value = field.type === "date" ? normalizeDateForInput(value) : value;
 }
 
 function setBuyerIdentifierType(value) {
@@ -1270,8 +1299,8 @@ function fillVehicleHistoryTable(root, data) {
   setCellText(makeRowCells[1], data.vehicleMakeModel);
   setCellText(vinRowCells[1], data.vehicleVin);
   setCellText(vinRowCells[3], data.fuelType);
-  setCellText(dateRowCells[1], data.firstRegistration);
-  setCellText(dateRowCells[3], data.lastTechnicalInspection);
+  setCellText(dateRowCells[1], polishDate(data.firstRegistration));
+  setCellText(dateRowCells[3], polishDate(data.lastTechnicalInspection));
 }
 
 function closeVehicleFaultsBox(root) {
