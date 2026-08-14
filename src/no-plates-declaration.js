@@ -222,8 +222,8 @@ function drawTopDate(page, date, { x, y, size, font }) {
 }
 
 function replaceClientTopDate(page, date, font) {
-  page.drawRectangle({ x: 500, y: 760, width: 55, height: 15, color: window.PDFLib.rgb(1, 1, 1) });
-  drawTopDate(page, date, { x: 501, y: 760, size: 10, font });
+  page.drawRectangle({ x: 500, y: 758, width: 55, height: 19, color: window.PDFLib.rgb(1, 1, 1) });
+  drawTopDate(page, date, { x: 501, y: 764, size: 10, font });
 }
 
 function removeCountryStatement(page, font) {
