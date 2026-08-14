@@ -1744,7 +1744,8 @@ select {
 
 .marginAuctionDragHandle,
 .marginAuctionRemove {
-  position: static;
+  position: absolute;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2558,44 +2559,34 @@ body {
 
 }
 
-/* The row controls sit in their own narrow columns, outside calculation data. */
-.marginAuctionResultLine {
-  grid-template-columns: 18px 24px minmax(0, 1fr) auto auto auto 22px;
-}
-
+/* Controls are outside the grid, so they never narrow calculation data. */
 .marginAuctionResultLine .marginAuctionDragHandle {
-  order: 0;
+  left: -34px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .marginAuctionResultLine .marginAuctionRemove {
-  order: 6;
+  right: -34px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 @media (max-width: 620px) {
-  .marginAuctionResultLine {
-    grid-template-columns: 18px 20px minmax(0, 1fr) auto 22px;
-    grid-template-areas:
-      "drag marker label label remove"
-      "drag marker prefix amount remove"
-      "drag marker tag tag remove";
-    row-gap: 2px;
-    column-gap: 8px;
+  .marginAuctionResultLine .marginAuctionDragHandle {
+    left: -25px;
   }
 
-  .marginAuctionResultLine .marginAuctionDragHandle { grid-area: drag; }
-  .marginAuctionResultLine .resultLineMarker { grid-area: marker; }
-  .marginAuctionResultLine .resultLineBody { grid-area: label; }
-  .marginAuctionResultLine .resultLinePrefix { grid-area: prefix; }
-  .marginAuctionResultLine .resultLineAmount { grid-area: amount; }
-  .marginAuctionResultLine .resultLineTag { grid-area: tag; }
-  .marginAuctionResultLine .marginAuctionRemove { grid-area: remove; }
+  .marginAuctionResultLine .marginAuctionRemove {
+    right: -25px;
+  }
 
   .marginAuctionResultLine.isPrimaryLine {
     grid-template-areas:
-      "drag marker label label remove"
-      "drag marker prefix prefix remove"
-      "drag marker amount amount remove"
-      "drag marker tag tag remove";
+      "marker label label"
+      "marker prefix prefix"
+      "marker amount amount"
+      "marker tag tag";
   }
 }
 
