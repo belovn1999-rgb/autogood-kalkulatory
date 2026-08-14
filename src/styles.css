@@ -429,6 +429,68 @@ select:focus-visible,
   grid-column: 1 / -1;
 }
 
+.marginAuctionWorkbench {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--ag-line-150);
+  border-bottom: 1px solid var(--ag-line-150);
+  padding: 18px 0;
+}
+
+.marginAuctionWorkbench h2,
+.marginAuctionBreakdown h3 {
+  margin: 0;
+  color: var(--ag-ink-600);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.marginAuctionWorkbenchFields {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.8fr) minmax(110px, .75fr) 92px auto auto;
+  align-items: end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.marginAuctionWorkbench .field {
+  gap: 6px;
+}
+
+.marginAuctionWorkbench .field > span {
+  font-size: 10px;
+}
+
+.marginAuctionVatToggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  gap: 7px;
+  color: var(--ag-ink-600);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.marginAuctionVatToggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--ag-blue-700);
+}
+
+.marginAuctionAddButton {
+  min-height: 42px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 15px;
+  background: var(--ag-blue-700);
+  color: var(--ag-color-accent-ink);
+  font-family: var(--ag-font-body);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 @media (max-width: 780px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1672,6 +1734,192 @@ select {
   cursor: text;
 }
 
+.marginAuctionResultLine {
+  position: relative;
+}
+
+.marginAuctionResultLine.isDragging {
+  opacity: .45;
+}
+
+.marginAuctionDragHandle,
+.marginAuctionRemove {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ag-ink-400);
+  font-family: var(--ag-font-body);
+  line-height: 1;
+  cursor: grab;
+  opacity: .46;
+  transition: color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+
+.marginAuctionDragHandle:hover,
+.marginAuctionDragHandle:focus-visible,
+.marginAuctionRemove:hover,
+.marginAuctionRemove:focus-visible {
+  color: var(--ag-blue-700);
+  opacity: 1;
+  outline: 0;
+}
+
+.marginAuctionDragHandle {
+  width: 18px;
+  min-height: 28px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.marginAuctionRemove {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.marginAuctionTextEdit,
+.marginAuctionAddNote {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--ag-font-body);
+  text-align: left;
+  cursor: text;
+}
+
+.marginAuctionTextEdit:focus-visible,
+.marginAuctionAddNote:focus-visible {
+  outline: 1px solid var(--ag-blue-500);
+  outline-offset: 2px;
+}
+
+.marginAuctionTextEdit.resultLineSub {
+  margin-top: 2px;
+}
+
+.marginAuctionAddNote {
+  width: max-content;
+  margin-top: 3px;
+  color: var(--ag-ink-400);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.marginAuctionResultLine:hover .marginAuctionAddNote,
+.marginAuctionAddNote:focus-visible {
+  opacity: 1;
+}
+
+.marginAuctionTextInput {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--ag-blue-500);
+  outline: 0;
+  background: transparent;
+  color: var(--ag-ink-900);
+  font-family: var(--ag-font-body);
+  padding: 0 0 2px;
+}
+
+.marginAuctionLabelInput {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.marginAuctionSubInput {
+  margin-top: 2px;
+  color: var(--ag-ink-400);
+  font-size: 13px;
+}
+
+.marginAuctionBreakdown {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ag-line-150);
+}
+
+.marginAuctionBreakdownHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.marginAuctionBreakdownHeader strong {
+  color: var(--ag-blue-700);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.marginAuctionBreakdownBar {
+  display: flex;
+  overflow: hidden;
+  height: 10px;
+  margin-top: 11px;
+  border-radius: 4px;
+  background: var(--ag-line-150);
+}
+
+.marginAuctionBreakdownBar span {
+  min-width: 3px;
+}
+
+.marginAuctionBreakdownLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 8px 14px;
+  margin-top: 12px;
+}
+
+.marginAuctionBreakdownItem {
+  min-width: 0;
+  border-left: 3px solid var(--breakdown-color);
+  padding-left: 7px;
+}
+
+.marginAuctionBreakdownItem span,
+.marginAuctionBreakdownItem strong,
+.marginAuctionBreakdownItem em {
+  display: block;
+}
+
+.marginAuctionBreakdownItem span {
+  overflow: hidden;
+  color: var(--ag-ink-600);
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marginAuctionBreakdownItem strong {
+  margin-top: 2px;
+  color: var(--ag-ink-900);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.marginAuctionBreakdownItem em {
+  margin-top: 2px;
+  color: var(--ag-ink-400);
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1.25;
+}
+
 .resultLineAmountInput {
   width: 92px;
   min-width: 92px;
@@ -2276,6 +2524,73 @@ body {
   .tabs {
     order: 2;
     flex-basis: 100%;
+  }
+
+  .marginAuctionWorkbenchFields {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, .7fr);
+  }
+
+  .marginAuctionNameField {
+    grid-column: 1 / -1;
+  }
+
+  .marginAuctionCurrencyField,
+  .marginAuctionVatToggle,
+  .marginAuctionAddButton {
+    grid-column: auto;
+  }
+
+  .marginAuctionVatToggle {
+    min-height: 38px;
+  }
+
+  .marginAuctionAddButton {
+    grid-column: 1 / -1;
+  }
+
+  .marginAuctionBreakdownLegend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The row controls sit in their own narrow columns, outside calculation data. */
+.marginAuctionResultLine {
+  grid-template-columns: 18px 24px minmax(0, 1fr) auto auto auto 22px;
+}
+
+.marginAuctionResultLine .marginAuctionDragHandle {
+  order: 0;
+}
+
+.marginAuctionResultLine .marginAuctionRemove {
+  order: 6;
+}
+
+@media (max-width: 620px) {
+  .marginAuctionResultLine {
+    grid-template-columns: 18px 20px minmax(0, 1fr) auto 22px;
+    grid-template-areas:
+      "drag marker label label remove"
+      "drag marker prefix amount remove"
+      "drag marker tag tag remove";
+    row-gap: 2px;
+    column-gap: 8px;
+  }
+
+  .marginAuctionResultLine .marginAuctionDragHandle { grid-area: drag; }
+  .marginAuctionResultLine .resultLineMarker { grid-area: marker; }
+  .marginAuctionResultLine .resultLineBody { grid-area: label; }
+  .marginAuctionResultLine .resultLinePrefix { grid-area: prefix; }
+  .marginAuctionResultLine .resultLineAmount { grid-area: amount; }
+  .marginAuctionResultLine .resultLineTag { grid-area: tag; }
+  .marginAuctionResultLine .marginAuctionRemove { grid-area: remove; }
+
+  .marginAuctionResultLine.isPrimaryLine {
+    grid-template-areas:
+      "drag marker label label remove"
+      "drag marker prefix prefix remove"
+      "drag marker amount amount remove"
+      "drag marker tag tag remove";
   }
 }
 

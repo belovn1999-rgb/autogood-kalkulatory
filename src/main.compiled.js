@@ -28,6 +28,7 @@ const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
 const HISTORY_LIMIT = 8;
 const FINAL_TAB_ID = 5;
+const MARGIN_AUCTION_TAB_ID = 2;
 const SCREENSHOT_EDGE_PADDING = 2;
 const RATES_FALLBACK = {
   source: "Walutomat",
@@ -69,6 +70,26 @@ const copy = {
     historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
     historyDelete: "Usuń z historii",
+    flexibleTitle: "Dostosuj kalkulację",
+    flexibleAddTitle: "Dodaj pozycję",
+    flexibleName: "Nazwa pozycji",
+    flexibleAmount: "Kwota",
+    flexibleCurrency: "Waluta",
+    flexibleVat: "Dolicz VAT 23%",
+    flexibleAdd: "Dodaj pozycję",
+    flexibleEditTitle: "Edytuj nazwę",
+    flexibleEditNote: "Edytuj opis",
+    flexibleAddNote: "Dodaj opis",
+    flexibleRemove: "Usuń pozycję z kalkulacji",
+    breakdownTitle: "Struktura całkowitego kosztu",
+    breakdownTaxesNote: "Podatki nie są przychodem AUTOGOOD",
+    breakdownVehicle: "Pojazd",
+    breakdownAuctionFee: "Opłata aukcyjna",
+    breakdownTransport: "Transport",
+    breakdownTaxes: "Podatki",
+    breakdownOther: "Pozostałe opłaty",
+    breakdownExtra: "Dodatkowe pozycje",
+    breakdownCommission: "Prowizja AUTOGOOD",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
     finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
@@ -142,6 +163,26 @@ const copy = {
     historyEmpty: "Здесь появятся 8 последних расчётов.",
     historyRestore: "Вернуть расчёт",
     historyDelete: "Удалить из истории",
+    flexibleTitle: "Настройка расчёта",
+    flexibleAddTitle: "Добавить позицию",
+    flexibleName: "Название позиции",
+    flexibleAmount: "Сумма",
+    flexibleCurrency: "Валюта",
+    flexibleVat: "Добавить VAT 23%",
+    flexibleAdd: "Добавить позицию",
+    flexibleEditTitle: "Изменить название",
+    flexibleEditNote: "Изменить описание",
+    flexibleAddNote: "Добавить описание",
+    flexibleRemove: "Удалить позицию из расчёта",
+    breakdownTitle: "Структура общей суммы",
+    breakdownTaxesNote: "Налоги не являются доходом AUTOGOOD",
+    breakdownVehicle: "Автомобиль",
+    breakdownAuctionFee: "Аукционный сбор",
+    breakdownTransport: "Транспорт",
+    breakdownTaxes: "Налоги",
+    breakdownOther: "Другие обязательные оплаты",
+    breakdownExtra: "Дополнительные позиции",
+    breakdownCommission: "Комиссия AUTOGOOD",
     finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
@@ -215,6 +256,26 @@ const copy = {
     historyEmpty: "Your last 8 calculations will appear here.",
     historyRestore: "Restore calculation",
     historyDelete: "Remove from history",
+    flexibleTitle: "Customize calculation",
+    flexibleAddTitle: "Add a position",
+    flexibleName: "Position name",
+    flexibleAmount: "Amount",
+    flexibleCurrency: "Currency",
+    flexibleVat: "Add VAT 23%",
+    flexibleAdd: "Add position",
+    flexibleEditTitle: "Edit title",
+    flexibleEditNote: "Edit note",
+    flexibleAddNote: "Add note",
+    flexibleRemove: "Remove position from calculation",
+    breakdownTitle: "Total cost breakdown",
+    breakdownTaxesNote: "Taxes are not AUTOGOOD revenue",
+    breakdownVehicle: "Vehicle",
+    breakdownAuctionFee: "Auction fee",
+    breakdownTransport: "Transport",
+    breakdownTaxes: "Taxes",
+    breakdownOther: "Other mandatory costs",
+    breakdownExtra: "Additional positions",
+    breakdownCommission: "AUTOGOOD commission",
     finalHistoryEmpty: "Your last 8 final settlements will appear here.",
     finalBalance: "Final settlement",
     finalCurrency: "Settlement currency",
@@ -701,8 +762,8 @@ function rowContribution(item) {
   const value = Number(item?.totalValue);
   return Number.isFinite(value) ? value : n(item?.value);
 }
-function rowOverrideKey(tabId, index) {
-  return `${tabId}:${index}`;
+function rowOverrideKey(tabId, rowId) {
+  return `${tabId}:${String(rowId)}`;
 }
 function rowEditValue(item) {
   return String(Math.round(item.exact ? n(item.value) : roundedCurrencyValue(n(item.value), "PLN")));
@@ -710,7 +771,7 @@ function rowEditValue(item) {
 function applyManualOverrides(calc, overrides, tabId) {
   let hasOverrides = false;
   const rows = calc.rows.map((item, index) => {
-    const key = rowOverrideKey(tabId, index);
+    const key = rowOverrideKey(tabId, item.id || index);
     if (!Object.prototype.hasOwnProperty.call(overrides, key)) {
       return {
         ...item,
@@ -732,6 +793,25 @@ function applyManualOverrides(calc, overrides, tabId) {
     ...calc,
     rows,
     total: hasOverrides ? rows.reduce((sum, item) => sum + rowContribution(item), 0) : calc.total
+  };
+}
+function applyMarginAuctionPresentation(calc, state) {
+  const options = normalizeMarginAuctionState(state);
+  const byId = new Map(calc.rows.map(item => [item.id, item]));
+  const orderedIds = [...options.rowOrder.filter(id => byId.has(id)), ...calc.rows.map(item => item.id).filter(id => !options.rowOrder.includes(id))];
+  const rows = orderedIds.map(id => {
+    const item = byId.get(id);
+    const edit = options.rowEdits[id] || {};
+    return {
+      ...item,
+      label: Object.prototype.hasOwnProperty.call(edit, "label") ? edit.label : item.label,
+      sub: Object.prototype.hasOwnProperty.call(edit, "sub") ? edit.sub : item.sub,
+      valuePrefix: Object.prototype.hasOwnProperty.call(edit, "valuePrefix") ? edit.valuePrefix : item.valuePrefix
+    };
+  });
+  return {
+    ...calc,
+    rows
   };
 }
 function formatHistoryDate(value, lang) {
@@ -820,7 +900,8 @@ function historySignature(item) {
     financed: item.financed,
     dealerDirect: item.dealerDirect,
     values: item.values || {},
-    manualOverrides: item.manualOverrides || {}
+    manualOverrides: item.manualOverrides || {},
+    marginAuctionState: item.marginAuctionState || {}
   });
 }
 function percentLabel(value) {
@@ -1296,6 +1377,232 @@ function ProcessFlow({
     className: "processStep"
   }, renderHighlightedText(step))));
 }
+function MarginAuctionBreakdown({
+  c,
+  composition
+}) {
+  const categories = [["vehicle", c.breakdownVehicle, "#14658f"], ["auctionFee", c.breakdownAuctionFee, "#477ba1"], ["transport", c.breakdownTransport, "#4c9488"], ["taxes", c.breakdownTaxes, "#c18337"], ["other", c.breakdownOther, "#7a8798"], ["extra", c.breakdownExtra, "#9b6393"], ["commission", c.breakdownCommission, "#17466d"]].map(([key, label, color]) => ({
+    key,
+    label,
+    color,
+    value: Math.max(0, n(composition?.[key]))
+  })).filter(item => item.value > 0);
+  const total = categories.reduce((sum, item) => sum + item.value, 0);
+  if (total <= 0) return null;
+  return /*#__PURE__*/React.createElement("section", {
+    className: "marginAuctionBreakdown",
+    "aria-label": c.breakdownTitle
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionBreakdownHeader"
+  }, /*#__PURE__*/React.createElement("h3", null, c.breakdownTitle), /*#__PURE__*/React.createElement("strong", null, "100%")), /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionBreakdownBar",
+    "aria-hidden": "true"
+  }, categories.map(item => /*#__PURE__*/React.createElement("span", {
+    key: item.key,
+    style: {
+      width: `${item.value / total * 100}%`,
+      backgroundColor: item.color
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionBreakdownLegend"
+  }, categories.map(item => {
+    const percentage = item.value / total * 100;
+    return /*#__PURE__*/React.createElement("div", {
+      key: item.key,
+      className: "marginAuctionBreakdownItem",
+      style: {
+        "--breakdown-color": item.color
+      }
+    }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("strong", null, percentage.toFixed(percentage < 10 ? 1 : 0).replace(".", ","), "%"), item.key === "taxes" && /*#__PURE__*/React.createElement("em", null, c.breakdownTaxesNote));
+  })));
+}
+function MarginAuctionResultLines({
+  c,
+  rows,
+  manualOverrides,
+  editingOverride,
+  onStartAmountEdit,
+  onAmountChange,
+  onFinishAmountEdit,
+  editingText,
+  onStartTextEdit,
+  onTextChange,
+  onFinishTextEdit,
+  onRemove,
+  draggedRowId,
+  onDragStart,
+  onDragEnd,
+  onDrop
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "resultsList marginAuctionResultsList"
+  }, rows.map(item => {
+    const overrideKey = rowOverrideKey(MARGIN_AUCTION_TAB_ID, item.id);
+    const isAmountEditing = editingOverride === overrideKey;
+    const textEditing = editingText?.id === item.id ? editingText.field : "";
+    const isPrimary = item.id === "car";
+    return /*#__PURE__*/React.createElement("div", {
+      key: item.id,
+      className: `resultLine marginAuctionResultLine ${isPrimary ? "isPrimaryLine" : ""} ${draggedRowId === item.id ? "isDragging" : ""}`,
+      "data-margin-auction-row-id": item.id,
+      onDragOver: event => event.preventDefault(),
+      onDrop: () => onDrop(item.id)
+    }, /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionDragHandle",
+      "data-html2canvas-ignore": true,
+      draggable: true,
+      title: c.flexibleEditTitle,
+      "aria-label": c.flexibleEditTitle,
+      onDragStart: () => onDragStart(item.id),
+      onDragEnd: onDragEnd
+    }, "::"), /*#__PURE__*/React.createElement("span", {
+      className: "resultLineMarker",
+      "aria-hidden": "true"
+    }, isPrimary ? "" : "+"), /*#__PURE__*/React.createElement("div", {
+      className: "resultLineBody"
+    }, textEditing === "label" ? /*#__PURE__*/React.createElement("input", {
+      className: "marginAuctionTextInput marginAuctionLabelInput",
+      autoFocus: true,
+      value: item.label,
+      onChange: event => onTextChange(item.id, "label", event.target.value),
+      onBlur: onFinishTextEdit,
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+      }
+    }) : /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionTextEdit resultLineLabel",
+      onClick: () => onStartTextEdit(item.id, "label")
+    }, item.label || c.flexibleEditTitle), textEditing === "sub" ? /*#__PURE__*/React.createElement("input", {
+      className: "marginAuctionTextInput marginAuctionSubInput",
+      autoFocus: true,
+      value: item.sub || "",
+      placeholder: c.flexibleAddNote,
+      onChange: event => onTextChange(item.id, "sub", event.target.value),
+      onBlur: onFinishTextEdit,
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+      }
+    }) : item.sub ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionTextEdit resultLineSub",
+      onClick: () => onStartTextEdit(item.id, "sub")
+    }, item.sub) : /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionAddNote",
+      "data-html2canvas-ignore": true,
+      onClick: () => onStartTextEdit(item.id, "sub")
+    }, c.flexibleAddNote)), textEditing === "valuePrefix" ? /*#__PURE__*/React.createElement("input", {
+      className: "marginAuctionTextInput marginAuctionPrefixInput resultLinePrefix",
+      autoFocus: true,
+      value: item.valuePrefix || "",
+      onChange: event => onTextChange(item.id, "valuePrefix", event.target.value),
+      onBlur: onFinishTextEdit,
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+      }
+    }) : item.valuePrefix ? /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionTextEdit resultLinePrefix",
+      title: c.flexibleEditTitle,
+      onClick: () => onStartTextEdit(item.id, "valuePrefix")
+    }, item.valuePrefix) : /*#__PURE__*/React.createElement("span", {
+      className: "resultLinePrefix"
+    }), isAmountEditing ? /*#__PURE__*/React.createElement("input", {
+      className: "resultLineAmount resultLineAmountInput",
+      autoFocus: true,
+      inputMode: "decimal",
+      type: "text",
+      value: manualOverrides[overrideKey] ?? rowEditValue(item),
+      onChange: event => onAmountChange(overrideKey, event.target.value),
+      onBlur: onFinishAmountEdit,
+      onKeyDown: event => {
+        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+      }
+    }) : /*#__PURE__*/React.createElement("strong", {
+      className: `resultLineAmount ${item.derived ? "" : "resultLineAmountEdit"}`,
+      role: item.derived ? undefined : "button",
+      tabIndex: item.derived ? undefined : 0,
+      onClick: item.derived ? undefined : () => onStartAmountEdit(overrideKey, item),
+      onKeyDown: item.derived ? undefined : event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onStartAmountEdit(overrideKey, item);
+        }
+      }
+    }, item.exact ? moneyExact(item.value) : money(item.value)), /*#__PURE__*/React.createElement("span", {
+      className: "resultLineTag"
+    }, item.tag), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "marginAuctionRemove",
+      "data-html2canvas-ignore": true,
+      title: c.flexibleRemove,
+      "aria-label": c.flexibleRemove,
+      onClick: () => onRemove(item.id)
+    }, "-"));
+  }));
+}
+function MarginAuctionWorkbench({
+  c,
+  draft,
+  onDraftChange,
+  onAdd
+}) {
+  return /*#__PURE__*/React.createElement("section", {
+    className: "marginAuctionWorkbench",
+    "aria-label": c.flexibleTitle
+  }, /*#__PURE__*/React.createElement("h2", null, c.flexibleTitle), /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionWorkbenchFields"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "field marginAuctionNameField"
+  }, /*#__PURE__*/React.createElement("span", null, c.flexibleName), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: draft.label,
+    onChange: event => onDraftChange({
+      ...draft,
+      label: event.target.value
+    })
+  })), /*#__PURE__*/React.createElement("label", {
+    className: "field marginAuctionAmountField"
+  }, /*#__PURE__*/React.createElement("span", null, c.flexibleAmount), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    inputMode: "decimal",
+    value: draft.amount,
+    onChange: event => onDraftChange({
+      ...draft,
+      amount: event.target.value
+    }),
+    onKeyDown: event => {
+      if (event.key === "Enter") onAdd();
+    }
+  })), /*#__PURE__*/React.createElement("label", {
+    className: "field marginAuctionCurrencyField"
+  }, /*#__PURE__*/React.createElement("span", null, c.flexibleCurrency), /*#__PURE__*/React.createElement("select", {
+    value: draft.currency,
+    onChange: event => onDraftChange({
+      ...draft,
+      currency: event.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "PLN"
+  }, "PLN"), /*#__PURE__*/React.createElement("option", {
+    value: "EUR"
+  }, "EUR"))), /*#__PURE__*/React.createElement("label", {
+    className: "marginAuctionVatToggle"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: draft.vat,
+    onChange: event => onDraftChange({
+      ...draft,
+      vat: event.target.checked
+    })
+  }), /*#__PURE__*/React.createElement("span", null, c.flexibleVat)), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "marginAuctionAddButton",
+    onClick: onAdd
+  }, c.flexibleAdd)));
+}
 function HistoryPanel({
   c,
   history,
@@ -1557,6 +1864,44 @@ function row(label, value, tag, sub, highlight = false, exact = false, valuePref
     manualMultiplier
   };
 }
+function marginAuctionRow(id, label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1, extra = {}) {
+  return {
+    id,
+    ...row(label, value, tag, sub, highlight, exact, valuePrefix, totalValue, manualMultiplier),
+    ...extra
+  };
+}
+function initialMarginAuctionState() {
+  return {
+    excludedRowIds: [],
+    rowOrder: [],
+    rowEdits: {},
+    customRows: []
+  };
+}
+function normalizeMarginAuctionState(value) {
+  const state = value && typeof value === "object" ? value : {};
+  return {
+    excludedRowIds: Array.isArray(state.excludedRowIds) ? state.excludedRowIds.filter(id => typeof id === "string") : [],
+    rowOrder: Array.isArray(state.rowOrder) ? state.rowOrder.filter(id => typeof id === "string") : [],
+    rowEdits: state.rowEdits && typeof state.rowEdits === "object" ? state.rowEdits : {},
+    customRows: Array.isArray(state.customRows) ? state.customRows.filter(item => item && typeof item.id === "string") : []
+  };
+}
+function marginAuctionCustomRow(item, rate, vatEnabled = true) {
+  const amount = n(item.amount);
+  const currency = item.currency === "EUR" ? "EUR" : "PLN";
+  const value = currency === "EUR" ? amount * rate : amount;
+  const hasVat = Boolean(item.vat && vatEnabled);
+  const vatMultiplier = hasVat ? 1 + VAT : 1;
+  const gross = value * vatMultiplier;
+  const sub = hasVat ? `${money(gross)} brutto` : "";
+  return marginAuctionRow(item.id, String(item.label || ""), value, "", sub, false, false, currency === "EUR" ? conversionPrefix(amount, "EUR") : "", gross, vatMultiplier, {
+    custom: true,
+    vatEligible: hasVat,
+    customCurrency: currency
+  });
+}
 function registrationRows(t, enabled, totalValue = REGISTRATION_NETTO, manualMultiplier = 1) {
   if (!enabled) return [];
   return [row(t.registration, REGISTRATION_NETTO, "", `${moneyExact(REGISTRATION_NETTO * (1 + VAT))} brutto`, false, true, "", totalValue, manualMultiplier)];
@@ -1564,7 +1909,48 @@ function registrationRows(t, enabled, totalValue = REGISTRATION_NETTO, manualMul
 function commissionFormula(fix, pct, base, discountPart = "") {
   return `${money(fix)} + (${(pct * 100).toFixed(0)}% × ${money(base)})${discountPart}`;
 }
-function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect = false) {
+function calculateMarginAuction(values, rate, exciseRate, financed, lang, state) {
+  const t = copy[lang].lines;
+  const options = normalizeMarginAuctionState(state);
+  const excluded = new Set(options.excludedRowIds);
+  const include = id => !excluded.has(id);
+  const useRate = rate > 0 ? rate : DEFAULT_RATE;
+  const vatEnabled = include("vat");
+  const vatMultiplier = vatEnabled ? 1 + VAT : 1;
+  const carPln = include("car") ? n(values.car) * useRate : 0;
+  const feePln = include("auctionFee") ? n(values.fee) * useRate : 0;
+  const transportNetto = include("transport") ? n(values.transport) : 0;
+  const base = carPln + feePln;
+  const excise = include("excise") ? exciseRate * base : 0;
+  const finFix = financed ? FIN_FIX : STD_FIX;
+  const finPct = financed ? 0.05 : 0.02;
+  const commissionNetto = include("commission") ? finFix + finPct * base : 0;
+  const technicalNetto = include("technical") ? TO_FEE : 0;
+  const registrationNetto = include("registration") && values.registrationEnabled ? REGISTRATION_NETTO : 0;
+  const customRows = options.customRows.map(item => marginAuctionCustomRow(item, useRate, vatEnabled));
+  const customNetto = customRows.reduce((sum, item) => sum + n(item.value), 0);
+  const customVatBase = customRows.reduce((sum, item) => sum + (item.vatEligible ? n(item.value) : 0), 0);
+  const vatBase = feePln + transportNetto + excise + commissionNetto + technicalNetto + registrationNetto + customVatBase;
+  const vat = vatEnabled ? vatBase * VAT : 0;
+  const total = carPln + feePln + transportNetto + excise + commissionNetto + technicalNetto + registrationNetto + customNetto + vat;
+  const rows = [...(include("car") ? [marginAuctionRow("car", t.car, carPln, "", "", false, false, conversionPrefix(n(values.car)))] : []), ...(include("auctionFee") ? [marginAuctionRow("auctionFee", t.auctionFee, feePln, "", vatEnabled ? `${money(feePln * vatMultiplier)} brutto` : "", false, false, conversionPrefix(n(values.fee)), feePln * vatMultiplier, vatMultiplier)] : []), ...(include("transport") ? [marginAuctionRow("transport", t.transport, transportNetto, "", vatEnabled ? `${money(transportNetto * vatMultiplier)} brutto` : "", false, false, "", transportNetto * vatMultiplier, vatMultiplier)] : []), ...(include("excise") ? [marginAuctionRow("excise", t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`, false, false, "", excise * vatMultiplier, vatMultiplier)] : []), ...(include("commission") ? [marginAuctionRow("commission", t.commission, commissionNetto, "", commissionFormula(finFix, finPct, base), false, false, "", commissionNetto * vatMultiplier, vatMultiplier)] : []), ...(include("technical") ? [marginAuctionRow("technical", t.to, technicalNetto, "", "", false, true, "", technicalNetto * vatMultiplier, vatMultiplier)] : []), ...(registrationNetto > 0 ? [marginAuctionRow("registration", t.registration, registrationNetto, "", vatEnabled ? `${money(registrationNetto * vatMultiplier)} brutto` : "", false, true, "", registrationNetto * vatMultiplier, vatMultiplier)] : []), ...customRows, ...(vatEnabled ? [marginAuctionRow("vat", t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0, {
+    derived: true
+  })] : [])];
+  return {
+    total,
+    rows,
+    composition: {
+      vehicle: carPln,
+      auctionFee: feePln,
+      transport: transportNetto,
+      taxes: excise + vat,
+      other: technicalNetto + registrationNetto,
+      extra: customNetto,
+      commission: commissionNetto
+    }
+  };
+}
+function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect = false, marginAuctionState) {
   const t = copy[lang].lines;
   const car = n(values.car);
   const fee = n(values.fee);
@@ -1613,25 +1999,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
       rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", `${money(feePln * 1.23)} brutto`, false, false, conversionPrefix(fee)), row(t.transport, transPln, "", `${money(transPln * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, commissionBase)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0)]
     };
   }
-  if (tabId === 2) {
-    const carPln = car * useRate;
-    const feePln = fee * useRate;
-    const feeBrutto = feePln * 1.23;
-    const transNetto = transport;
-    const transBrutto = transNetto * 1.23;
-    const base = carPln + feePln;
-    const excise = exciseRate * base;
-    const exciseBrutto = excise * 1.23;
-    const commissionNetto = finFix + finPct * base;
-    const commissionBrutto = commissionNetto * 1.23;
-    const vatBase = feePln + transNetto + excise + commissionNetto + TO_FEE + registrationNetto;
-    const vat = vatBase * VAT;
-    const total = carPln + feeBrutto + transBrutto + exciseBrutto + commissionBrutto + technicalBrutto + registrationBrutto;
-    return {
-      total,
-      rows: [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", `${money(feeBrutto)} brutto`, false, false, conversionPrefix(fee), feeBrutto, 1.23), row(t.transport, transNetto, "", `${money(transBrutto)} brutto`, false, false, "", transBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, base), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23), ...registrationRows(t, values.registrationEnabled, registrationBrutto, 1.23), row(t.vat, vat, "", `23% × ${money(vatBase)}`)]
-    };
-  }
+  if (tabId === MARGIN_AUCTION_TAB_ID) return calculateMarginAuction(values, rate, exciseRate, financed, lang, marginAuctionState);
   if (tabId === 3) {
     const carPln = car * useRate;
     const inspectionBrutto = inspection * 1.23;
@@ -1915,6 +2283,15 @@ function App() {
   const [finalCustomName, setFinalCustomName] = useState("");
   const [manualOverrides, setManualOverrides] = useState({});
   const [editingOverride, setEditingOverride] = useState("");
+  const [marginAuctionState, setMarginAuctionState] = useState(() => initialMarginAuctionState());
+  const [marginAuctionDraft, setMarginAuctionDraft] = useState({
+    label: "",
+    amount: "",
+    currency: "PLN",
+    vat: false
+  });
+  const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
+  const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
   const safeLang = lang || "pl";
@@ -1922,8 +2299,9 @@ function App() {
   const tab = tabs[activeTab];
   const isFinalBalance = activeTab === FINAL_TAB_ID;
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
-  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect), [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect]);
-  const calc = useMemo(() => applyManualOverrides(baseCalc, manualOverrides, activeTab), [baseCalc, manualOverrides, activeTab]);
+  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect, activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined), [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect, marginAuctionState]);
+  const presentedCalc = useMemo(() => activeTab === MARGIN_AUCTION_TAB_ID ? applyMarginAuctionPresentation(baseCalc, marginAuctionState) : baseCalc, [activeTab, baseCalc, marginAuctionState]);
+  const calc = useMemo(() => applyManualOverrides(presentedCalc, manualOverrides, activeTab), [presentedCalc, manualOverrides, activeTab]);
   const finalCalc = useMemo(() => calculateFinalBalance(finalItems), [finalItems]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
@@ -1962,6 +2340,15 @@ function App() {
     setDealerDirect(false);
     setManualOverrides({});
     setEditingOverride("");
+    setMarginAuctionState(initialMarginAuctionState());
+    setMarginAuctionDraft({
+      label: "",
+      amount: "",
+      currency: "PLN",
+      vat: false
+    });
+    setEditingMarginAuctionText(null);
+    setDraggedMarginAuctionRow("");
     // Switching tabs wipes the imported values, so the import result no longer
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
@@ -2063,6 +2450,72 @@ function App() {
     });
     setEditingOverride(key);
   };
+  const updateMarginAuctionState = updater => {
+    setMarginAuctionState(current => normalizeMarginAuctionState(updater(normalizeMarginAuctionState(current))));
+  };
+  const addMarginAuctionRow = () => {
+    const label = String(marginAuctionDraft.label || "").trim();
+    const amount = n(marginAuctionDraft.amount);
+    if (!label || amount <= 0) return;
+    updateMarginAuctionState(current => ({
+      ...current,
+      customRows: [...current.customRows, {
+        id: `custom-${Date.now()}-${Math.round(Math.random() * 100000)}`,
+        label,
+        amount: String(marginAuctionDraft.amount),
+        currency: marginAuctionDraft.currency === "EUR" ? "EUR" : "PLN",
+        vat: Boolean(marginAuctionDraft.vat)
+      }]
+    }));
+    setMarginAuctionDraft(current => ({
+      ...current,
+      label: "",
+      amount: "",
+      vat: false
+    }));
+  };
+  const removeMarginAuctionRow = id => {
+    clearManualOverrides();
+    updateMarginAuctionState(current => {
+      const isCustom = current.customRows.some(item => item.id === id);
+      const rowEdits = {
+        ...current.rowEdits
+      };
+      delete rowEdits[id];
+      return {
+        ...current,
+        excludedRowIds: isCustom || current.excludedRowIds.includes(id) ? current.excludedRowIds.filter(rowId => rowId !== id) : [...current.excludedRowIds, id],
+        rowOrder: current.rowOrder.filter(rowId => rowId !== id),
+        rowEdits,
+        customRows: isCustom ? current.customRows.filter(item => item.id !== id) : current.customRows
+      };
+    });
+  };
+  const setMarginAuctionText = (id, field, value) => {
+    updateMarginAuctionState(current => ({
+      ...current,
+      rowEdits: {
+        ...current.rowEdits,
+        [id]: {
+          ...(current.rowEdits[id] || {}),
+          [field]: value
+        }
+      }
+    }));
+  };
+  const moveMarginAuctionRow = (sourceId, targetId) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+    const ids = calc.rows.map(item => item.id);
+    const sourceIndex = ids.indexOf(sourceId);
+    if (sourceIndex < 0 || !ids.includes(targetId)) return;
+    const nextOrder = ids.filter(id => id !== sourceId);
+    const targetIndex = nextOrder.indexOf(targetId);
+    nextOrder.splice(targetIndex, 0, sourceId);
+    updateMarginAuctionState(current => ({
+      ...current,
+      rowOrder: nextOrder
+    }));
+  };
   const saveCalculation = () => {
     if (isFinalBalance) {
       if (!hasFinalInput(finalItems)) {
@@ -2104,6 +2557,7 @@ function App() {
       dealerDirect: activeTab === 3 && dealerDirect,
       values: normalizeHistoryValues(values),
       manualOverrides,
+      marginAuctionState: activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined,
       total: calc.total,
       title: activeTabName
     };
@@ -2119,6 +2573,17 @@ function App() {
     if (item.type === "final") {
       setLang(["pl", "ru", "en"].includes(item.lang) ? item.lang : "pl");
       setActiveTab(FINAL_TAB_ID);
+      setManualOverrides({});
+      setEditingOverride("");
+      setMarginAuctionState(initialMarginAuctionState());
+      setMarginAuctionDraft({
+        label: "",
+        amount: "",
+        currency: "PLN",
+        vat: false
+      });
+      setEditingMarginAuctionText(null);
+      setDraggedMarginAuctionRow("");
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length ? item.items.map(normalizeFinalItem) : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
       setRate(item.rate || DEFAULT_RATE);
@@ -2134,6 +2599,15 @@ function App() {
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
+    setMarginAuctionState(nextTab === MARGIN_AUCTION_TAB_ID ? normalizeMarginAuctionState(item.marginAuctionState) : initialMarginAuctionState());
+    setMarginAuctionDraft({
+      label: "",
+      amount: "",
+      currency: "PLN",
+      vat: false
+    });
+    setEditingMarginAuctionText(null);
+    setDraggedMarginAuctionRow("");
     setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
@@ -2437,7 +2911,30 @@ function App() {
     alt: "AUTOGOOD"
   }), /*#__PURE__*/React.createElement("h2", {
     className: "calcEyebrow"
-  }, c.results, " \u2014 ", activeTabName), /*#__PURE__*/React.createElement("div", {
+  }, c.results, " \u2014 ", activeTabName), activeTab === MARGIN_AUCTION_TAB_ID ? /*#__PURE__*/React.createElement(MarginAuctionResultLines, {
+    c: c,
+    rows: calc.rows,
+    manualOverrides: manualOverrides,
+    editingOverride: editingOverride,
+    onStartAmountEdit: startManualOverride,
+    onAmountChange: setManualOverride,
+    onFinishAmountEdit: () => setEditingOverride(""),
+    editingText: editingMarginAuctionText,
+    onStartTextEdit: (id, field) => setEditingMarginAuctionText({
+      id,
+      field
+    }),
+    onTextChange: setMarginAuctionText,
+    onFinishTextEdit: () => setEditingMarginAuctionText(null),
+    onRemove: removeMarginAuctionRow,
+    draggedRowId: draggedMarginAuctionRow,
+    onDragStart: setDraggedMarginAuctionRow,
+    onDragEnd: () => setDraggedMarginAuctionRow(""),
+    onDrop: targetId => {
+      moveMarginAuctionRow(draggedMarginAuctionRow, targetId);
+      setDraggedMarginAuctionRow("");
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
     className: "resultsList"
   }, calc.rows.map((item, index) => {
     const overrideKey = rowOverrideKey(activeTab, index);
@@ -2466,9 +2963,7 @@ function App() {
       onChange: event => setManualOverride(overrideKey, event.target.value),
       onBlur: () => setEditingOverride(""),
       onKeyDown: event => {
-        if (event.key === "Enter" || event.key === "Escape") {
-          event.currentTarget.blur();
-        }
+        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
       }
     }) : /*#__PURE__*/React.createElement("strong", {
       className: "resultLineAmount resultLineAmountEdit",
@@ -2505,7 +3000,15 @@ function App() {
     className: "totalBarRate"
   }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN"))), /*#__PURE__*/React.createElement(ProcessFlow, {
     steps: processSteps
-  }))), /*#__PURE__*/React.createElement(HistoryPanel, {
+  }), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionBreakdown, {
+    c: c,
+    composition: calc.composition
+  }))), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionWorkbench, {
+    c: c,
+    draft: marginAuctionDraft,
+    onDraftChange: setMarginAuctionDraft,
+    onAdd: addMarginAuctionRow
+  }), /*#__PURE__*/React.createElement(HistoryPanel, {
     c: c,
     history: visibleHistory,
     lang: safeLang,
