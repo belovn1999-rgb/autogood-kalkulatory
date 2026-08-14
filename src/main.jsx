@@ -60,6 +60,7 @@ const copy = {
     historyTitle: "Historia zmian",
     historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
+    historyDelete: "Usuń z historii",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
     finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
@@ -132,6 +133,7 @@ const copy = {
     historyTitle: "История изменений",
     historyEmpty: "Здесь появятся 8 последних расчётов.",
     historyRestore: "Вернуть расчёт",
+    historyDelete: "Удалить из истории",
     finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
@@ -204,6 +206,7 @@ const copy = {
     historyTitle: "History",
     historyEmpty: "Your last 8 calculations will appear here.",
     historyRestore: "Restore calculation",
+    historyDelete: "Remove from history",
     finalHistoryEmpty: "Your last 8 final settlements will appear here.",
     finalBalance: "Final settlement",
     finalCurrency: "Settlement currency",
@@ -1106,7 +1109,7 @@ function ProcessFlow({ steps }) {
   );
 }
 
-function HistoryPanel({ c, history, lang, onRestore, emptyText }) {
+function HistoryPanel({ c, history, lang, onRestore, onDelete, emptyText }) {
   return (
     <aside className="card historyPanel">
       <h2>{c.historyTitle}</h2>
@@ -1115,19 +1118,29 @@ function HistoryPanel({ c, history, lang, onRestore, emptyText }) {
       ) : (
         <div className="historyList">
           {history.map((item) => (
-            <button
-              key={item.id}
-              className="historyItem"
-              type="button"
-              title={c.historyRestore}
-              onClick={() => onRestore(item)}
-            >
-              <strong>{item.title}</strong>
-              <span>
-                {formatHistoryDate(item.savedAt, lang)} · {item.type === "final" ? item.finalCurrency : (item.dealerDirect ? c.directCommission : (item.financed ? c.financing : c.standard))}
-              </span>
-              <em>{money(item.total, item.finalCurrency || "PLN")}</em>
-            </button>
+            <div key={item.id} className="historyEntry">
+              <button
+                className="historyItem"
+                type="button"
+                title={c.historyRestore}
+                onClick={() => onRestore(item)}
+              >
+                <strong>{item.title}</strong>
+                <span>
+                  {formatHistoryDate(item.savedAt, lang)} · {item.type === "final" ? item.finalCurrency : (item.dealerDirect ? c.directCommission : (item.financed ? c.financing : c.standard))}
+                </span>
+                <em>{money(item.total, item.finalCurrency || "PLN")}</em>
+              </button>
+              <button
+                className="historyDelete"
+                type="button"
+                title={c.historyDelete}
+                aria-label={c.historyDelete}
+                onClick={() => onDelete(item)}
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -2024,6 +2037,23 @@ function App() {
     setMobileDeNotice("");
   };
 
+  const deleteHistoryItem = (item) => {
+    if (item.type === "final") {
+      setFinalHistory((current) => {
+        const next = current.filter((saved) => saved.id !== item.id);
+        writeHistory(next, FINAL_HISTORY_KEY);
+        return next;
+      });
+      return;
+    }
+
+    setHistory((current) => {
+      const next = current.filter((saved) => saved.id !== item.id);
+      writeHistory(next);
+      return next;
+    });
+  };
+
   const loadMobileDeData = async () => {
     const sourceUrl = mobileDeUrl.trim();
     if (!sourceUrl) return;
@@ -2390,6 +2420,7 @@ function App() {
           history={visibleHistory}
           lang={safeLang}
           onRestore={restoreHistoryItem}
+          onDelete={deleteHistoryItem}
           emptyText={isFinalBalance ? c.finalHistoryEmpty : c.historyEmpty}
         />
       </section>

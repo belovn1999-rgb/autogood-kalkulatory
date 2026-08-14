@@ -68,6 +68,7 @@ const copy = {
     historyTitle: "Historia zmian",
     historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
+    historyDelete: "Usuń z historii",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
     finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
@@ -140,6 +141,7 @@ const copy = {
     historyTitle: "История изменений",
     historyEmpty: "Здесь появятся 8 последних расчётов.",
     historyRestore: "Вернуть расчёт",
+    historyDelete: "Удалить из истории",
     finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
@@ -212,6 +214,7 @@ const copy = {
     historyTitle: "History",
     historyEmpty: "Your last 8 calculations will appear here.",
     historyRestore: "Restore calculation",
+    historyDelete: "Remove from history",
     finalHistoryEmpty: "Your last 8 final settlements will appear here.",
     finalBalance: "Final settlement",
     finalCurrency: "Settlement currency",
@@ -1298,6 +1301,7 @@ function HistoryPanel({
   history,
   lang,
   onRestore,
+  onDelete,
   emptyText
 }) {
   return /*#__PURE__*/React.createElement("aside", {
@@ -1306,13 +1310,21 @@ function HistoryPanel({
     className: "historyEmpty"
   }, emptyText || c.historyEmpty) : /*#__PURE__*/React.createElement("div", {
     className: "historyList"
-  }, history.map(item => /*#__PURE__*/React.createElement("button", {
+  }, history.map(item => /*#__PURE__*/React.createElement("div", {
     key: item.id,
+    className: "historyEntry"
+  }, /*#__PURE__*/React.createElement("button", {
     className: "historyItem",
     type: "button",
     title: c.historyRestore,
     onClick: () => onRestore(item)
-  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.type === "final" ? item.finalCurrency : item.dealerDirect ? c.directCommission : item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total, item.finalCurrency || "PLN"))))));
+  }, /*#__PURE__*/React.createElement("strong", null, item.title), /*#__PURE__*/React.createElement("span", null, formatHistoryDate(item.savedAt, lang), " \xB7 ", item.type === "final" ? item.finalCurrency : item.dealerDirect ? c.directCommission : item.financed ? c.financing : c.standard), /*#__PURE__*/React.createElement("em", null, money(item.total, item.finalCurrency || "PLN"))), /*#__PURE__*/React.createElement("button", {
+    className: "historyDelete",
+    type: "button",
+    title: c.historyDelete,
+    "aria-label": c.historyDelete,
+    onClick: () => onDelete(item)
+  }, "\xD7")))));
 }
 function FinalModeControl({
   c,
@@ -2133,6 +2145,21 @@ function App() {
     setMobileDeSummary("");
     setMobileDeNotice("");
   };
+  const deleteHistoryItem = item => {
+    if (item.type === "final") {
+      setFinalHistory(current => {
+        const next = current.filter(saved => saved.id !== item.id);
+        writeHistory(next, FINAL_HISTORY_KEY);
+        return next;
+      });
+      return;
+    }
+    setHistory(current => {
+      const next = current.filter(saved => saved.id !== item.id);
+      writeHistory(next);
+      return next;
+    });
+  };
   const loadMobileDeData = async () => {
     const sourceUrl = mobileDeUrl.trim();
     if (!sourceUrl) return;
@@ -2483,6 +2510,7 @@ function App() {
     history: visibleHistory,
     lang: safeLang,
     onRestore: restoreHistoryItem,
+    onDelete: deleteHistoryItem,
     emptyText: isFinalBalance ? c.finalHistoryEmpty : c.historyEmpty
   })), screenshotStatus && /*#__PURE__*/React.createElement("div", {
     className: `toast ${screenshotStatus}`

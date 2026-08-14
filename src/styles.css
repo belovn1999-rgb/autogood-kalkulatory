@@ -1289,6 +1289,12 @@ select {
   gap: 10px;
 }
 
+.historyEntry {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
 .historyItem {
   display: flex;
   align-items: center;
@@ -1333,6 +1339,50 @@ select {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--ag-blue-700);
+}
+
+.historyDelete {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 1;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid #d92d20;
+  border-radius: 50%;
+  background: var(--ag-surface);
+  color: #d92d20;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.82);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.historyEntry:hover .historyDelete,
+.historyEntry:focus-within .historyDelete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.historyDelete:hover,
+.historyDelete:focus-visible {
+  background: #d92d20;
+  color: #fff;
+}
+
+@media (hover: none) {
+  .historyDelete {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
 }
 
 .errorBox {
