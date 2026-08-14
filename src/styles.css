@@ -430,10 +430,11 @@ select:focus-visible,
 }
 
 .marginAuctionWorkbench {
-  grid-column: 1 / -1;
-  border-top: 1px solid var(--ag-line-150);
-  border-bottom: 1px solid var(--ag-line-150);
-  padding: 18px 0;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid var(--ag-line-150);
+  border-radius: 8px;
+  background: var(--ag-fill-tint);
 }
 
 .marginAuctionWorkbench h2,
@@ -447,10 +448,14 @@ select:focus-visible,
 
 .marginAuctionWorkbenchFields {
   display: grid;
-  grid-template-columns: minmax(180px, 1.8fr) minmax(110px, .75fr) 92px auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, .65fr);
   align-items: end;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.marginAuctionNameField {
+  grid-column: 1 / -1;
 }
 
 .marginAuctionWorkbench .field {
@@ -464,7 +469,7 @@ select:focus-visible,
 .marginAuctionVatToggle {
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 38px;
   gap: 7px;
   color: var(--ag-ink-600);
   font-size: 12px;
@@ -479,7 +484,7 @@ select:focus-visible,
 }
 
 .marginAuctionAddButton {
-  min-height: 42px;
+  min-height: 38px;
   border: 0;
   border-radius: 6px;
   padding: 0 15px;

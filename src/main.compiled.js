@@ -85,6 +85,7 @@ const copy = {
     breakdownTaxesNote: "Podatki nie są przychodem AUTOGOOD",
     breakdownVehicle: "Pojazd",
     breakdownTransport: "Transport",
+    breakdownInspection: "Przegląd",
     breakdownTaxes: "Podatki",
     breakdownOther: "Pozostałe opłaty",
     breakdownExtra: "Dodatkowe pozycje",
@@ -177,6 +178,7 @@ const copy = {
     breakdownTaxesNote: "Налоги не являются доходом AUTOGOOD",
     breakdownVehicle: "Автомобиль",
     breakdownTransport: "Транспорт",
+    breakdownInspection: "Техосмотр",
     breakdownTaxes: "Налоги",
     breakdownOther: "Другие обязательные оплаты",
     breakdownExtra: "Дополнительные позиции",
@@ -269,6 +271,7 @@ const copy = {
     breakdownTaxesNote: "Taxes are not AUTOGOOD revenue",
     breakdownVehicle: "Vehicle",
     breakdownTransport: "Transport",
+    breakdownInspection: "Inspection",
     breakdownTaxes: "Taxes",
     breakdownOther: "Other mandatory costs",
     breakdownExtra: "Additional positions",
@@ -1378,7 +1381,7 @@ function MarginAuctionBreakdown({
   c,
   composition
 }) {
-  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["other", c.breakdownOther, "#14b8a6", n(composition?.auctionFee) + n(composition?.other)], ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)]].map(([key, label, color, value]) => ({
+  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["inspection", c.breakdownInspection, "#14b8a6", n(composition?.inspection)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["other", c.breakdownOther, "#64748b", n(composition?.other)], ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)]].map(([key, label, color, value]) => ({
     key,
     label,
     color,
@@ -1950,10 +1953,10 @@ function calculateMarginAuction(values, rate, exciseRate, financed, lang, state)
     rows,
     composition: {
       vehicle: carPln,
-      auctionFee: feePln,
       transport: transportNetto,
+      inspection: technicalNetto,
       taxes: excise + vat,
-      other: technicalNetto + registrationNetto,
+      other: feePln + registrationNetto,
       extra: customNetto,
       commission: commissionNetto
     }
@@ -2904,7 +2907,12 @@ function App() {
     value: values[field.key] || "",
     onChange: value => setField(field.key, value),
     suffix: field.currency
-  })))), /*#__PURE__*/React.createElement("section", {
+  })), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionWorkbench, {
+    c: c,
+    draft: marginAuctionDraft,
+    onDraftChange: setMarginAuctionDraft,
+    onAdd: addMarginAuctionRow
+  }))), /*#__PURE__*/React.createElement("section", {
     className: isFinalBalance ? "panelCalc results finalResults" : "panelCalc",
     ref: resultsRef
   }, isFinalBalance ? /*#__PURE__*/React.createElement(FinalBalanceResults, {
@@ -3012,12 +3020,7 @@ function App() {
   }), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionBreakdown, {
     c: c,
     composition: calc.composition
-  }))), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionWorkbench, {
-    c: c,
-    draft: marginAuctionDraft,
-    onDraftChange: setMarginAuctionDraft,
-    onAdd: addMarginAuctionRow
-  }), /*#__PURE__*/React.createElement(HistoryPanel, {
+  }))), /*#__PURE__*/React.createElement(HistoryPanel, {
     c: c,
     history: visibleHistory,
     lang: safeLang,
