@@ -596,6 +596,26 @@ button {
   text-align: left;
 }
 
+.mobileComboMenu button.isPopular {
+  font-weight: 800;
+}
+
+.mobileComboMenuDivider {
+  height: 1px;
+  margin: var(--space-2xs) var(--space-xs);
+  background: var(--color-rule-soft);
+}
+
+.mobileComboMenuGroup {
+  margin-top: var(--space-2xs);
+  padding: var(--space-sm) var(--space-sm) var(--space-2xs);
+  border-top: var(--rule-thin) solid var(--color-rule-soft);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .mobileComboMenu button:hover,
 .mobileComboMenu button:focus-visible {
   background: var(--color-surface-tint);

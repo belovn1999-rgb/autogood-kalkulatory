@@ -792,8 +792,8 @@ function brandCatalogOptions() {
     .filter((brand) => !favoriteValues.has(brand))
     .sort((left, right) => left.localeCompare(right, "pl"));
   return [
-    ...favorites.map((brand) => ({ value: brand.value, label: brand.label })),
-    ...regularBrands.map((brand) => ({ value: brand, label: brand })),
+    ...favorites.map((brand) => ({ value: brand.value, label: brand.label, isPopular: true })),
+    ...regularBrands.map((brand) => ({ value: brand, label: brand, isPopular: false })),
   ];
 }
 
@@ -833,7 +833,7 @@ function renderModelOptions(extraModel = "") {
   const seen = new Set();
   const options = groups.flatMap((group) => group.models.map((model) => {
     seen.add(normalizeToken(model));
-    return datalistOptionHtml(model, `${group.group} · ${model}`);
+    return datalistOptionHtml(model, model);
   }));
   const normalizedExtra = normalizeToken(extraModel);
   if (extraModel && !seen.has(normalizedExtra)) {
@@ -850,7 +850,7 @@ function comboOptionSets() {
     const normalized = normalizeToken(model);
     if (seenModels.has(normalized)) return [];
     seenModels.add(normalized);
-    return [{ value: model, label: `${group.group} · ${model}` }];
+    return [{ value: model, label: model, group: group.group }];
   }));
   const currentModel = String(els.model?.value || "").trim();
   if (currentModel && !seenModels.has(normalizeToken(currentModel))) {
@@ -945,11 +945,26 @@ function renderComboMenus(filterControl = null) {
       control.append(menu);
     }
     control.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
-    menu.innerHTML = visibleOptions.map((option) => `
-      <button type="button" data-mobile-option-value="${escapeHtml(option.value)}" data-mobile-option-label="${escapeHtml(option.label)}">
-        ${escapeHtml(option.label)}
-      </button>
-    `).join("");
+    const menuType = control.dataset.mobileOptions;
+    let previousGroup = null;
+    let previousPopular = null;
+    menu.innerHTML = visibleOptions.flatMap((option) => {
+      const items = [];
+      if (menuType === "brand" && previousPopular === true && !option.isPopular) {
+        items.push('<div class="mobileComboMenuDivider" aria-hidden="true"></div>');
+      }
+      if (menuType === "model" && option.group && option.group !== previousGroup) {
+        items.push(`<div class="mobileComboMenuGroup">${escapeHtml(option.group)}</div>`);
+      }
+      items.push(`
+        <button class="${option.isPopular ? "isPopular" : ""}" type="button" data-mobile-option-value="${escapeHtml(option.value)}" data-mobile-option-label="${escapeHtml(option.label)}">
+          ${escapeHtml(option.label)}
+        </button>
+      `);
+      previousGroup = option.group || previousGroup;
+      previousPopular = Boolean(option.isPopular);
+      return items;
+    }).join("");
   });
 }
 
