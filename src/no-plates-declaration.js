@@ -222,8 +222,18 @@ function drawTopDate(page, date, { x, y, size, font }) {
 }
 
 function replaceClientTopDate(page, date, font) {
+  const x = 500.205;
+  const width = 52.765;
+  const size = 10;
   page.drawRectangle({ x: 500, y: 758, width: 55, height: 19, color: window.PDFLib.rgb(1, 1, 1) });
-  drawTopDate(page, date, { x: 501, y: 764, size: 10, font });
+  page.drawLine({
+    start: { x, y: 759.101 },
+    end: { x: x + width, y: 759.101 },
+    thickness: 0.65,
+    color: window.PDFLib.rgb(0, 0, 0),
+  });
+  const centeredX = x + Math.max(0, (width - font.widthOfTextAtSize(date, size)) / 2);
+  drawTopDate(page, date, { x: centeredX, y: 763, size, font });
 }
 
 function removeCountryStatement(page, font) {
