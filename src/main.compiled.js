@@ -81,6 +81,8 @@ const copy = {
     flexibleEditNote: "Edytuj opis",
     flexibleAddNote: "Dodaj opis",
     flexibleRemove: "Usuń pozycję z kalkulacji",
+    flexibleRemoved: "Usunięte pozycje",
+    flexibleRestore: "Przywróć do kalkulacji",
     breakdownTitle: "Struktura całkowitego kosztu",
     breakdownTaxesNote: "Podatki nie są przychodem AUTOGOOD",
     breakdownVehicle: "Pojazd",
@@ -174,6 +176,8 @@ const copy = {
     flexibleEditNote: "Изменить описание",
     flexibleAddNote: "Добавить описание",
     flexibleRemove: "Удалить позицию из расчёта",
+    flexibleRemoved: "Удалённые позиции",
+    flexibleRestore: "Вернуть в расчёт",
     breakdownTitle: "Структура общей суммы",
     breakdownTaxesNote: "Налоги не являются доходом AUTOGOOD",
     breakdownVehicle: "Автомобиль",
@@ -267,6 +271,8 @@ const copy = {
     flexibleEditNote: "Edit note",
     flexibleAddNote: "Add note",
     flexibleRemove: "Remove position from calculation",
+    flexibleRemoved: "Removed positions",
+    flexibleRestore: "Return to calculation",
     breakdownTitle: "Total cost breakdown",
     breakdownTaxesNote: "Taxes are not AUTOGOOD revenue",
     breakdownVehicle: "Vehicle",
@@ -1559,7 +1565,9 @@ function MarginAuctionWorkbench({
   c,
   draft,
   onDraftChange,
-  onAdd
+  onAdd,
+  removedRows,
+  onRestore
 }) {
   return /*#__PURE__*/React.createElement("section", {
     className: "marginAuctionWorkbench",
@@ -1613,7 +1621,17 @@ function MarginAuctionWorkbench({
     type: "button",
     className: "marginAuctionAddButton",
     onClick: onAdd
-  }, c.flexibleAdd)));
+  }, c.flexibleAdd)), removedRows.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionRemovedRows"
+  }, /*#__PURE__*/React.createElement("span", null, c.flexibleRemoved), /*#__PURE__*/React.createElement("div", null, removedRows.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.id,
+    className: "marginAuctionRemovedRow"
+  }, /*#__PURE__*/React.createElement("span", null, item.label), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    title: c.flexibleRestore,
+    "aria-label": `${c.flexibleRestore}: ${item.label}`,
+    onClick: () => onRestore(item.id)
+  }, "+"))))));
 }
 function HistoryPanel({
   c,
@@ -1888,7 +1906,8 @@ function initialMarginAuctionState() {
     excludedRowIds: [],
     rowOrder: [],
     rowEdits: {},
-    customRows: []
+    customRows: [],
+    removedRows: []
   };
 }
 function normalizeMarginAuctionState(value) {
@@ -1897,7 +1916,8 @@ function normalizeMarginAuctionState(value) {
     excludedRowIds: Array.isArray(state.excludedRowIds) ? state.excludedRowIds.filter(id => typeof id === "string") : [],
     rowOrder: Array.isArray(state.rowOrder) ? state.rowOrder.filter(id => typeof id === "string") : [],
     rowEdits: state.rowEdits && typeof state.rowEdits === "object" ? state.rowEdits : {},
-    customRows: Array.isArray(state.customRows) ? state.customRows.filter(item => item && typeof item.id === "string") : []
+    customRows: Array.isArray(state.customRows) ? state.customRows.filter(item => item && typeof item.id === "string") : [],
+    removedRows: Array.isArray(state.removedRows) ? state.removedRows.filter(item => item && typeof item.id === "string") : []
   };
 }
 function marginAuctionCustomRow(item, rate, vatEnabled = true) {
@@ -2488,18 +2508,32 @@ function App() {
   };
   const removeMarginAuctionRow = id => {
     clearManualOverrides();
+    const row = calc.rows.find(item => item.id === id);
     updateMarginAuctionState(current => {
-      const isCustom = current.customRows.some(item => item.id === id);
-      const rowEdits = {
-        ...current.rowEdits
-      };
-      delete rowEdits[id];
+      const customRow = current.customRows.find(item => item.id === id);
+      if (!row && !customRow) return current;
       return {
         ...current,
-        excludedRowIds: isCustom || current.excludedRowIds.includes(id) ? current.excludedRowIds.filter(rowId => rowId !== id) : [...current.excludedRowIds, id],
+        excludedRowIds: customRow || current.excludedRowIds.includes(id) ? current.excludedRowIds.filter(rowId => rowId !== id) : [...current.excludedRowIds, id],
         rowOrder: current.rowOrder.filter(rowId => rowId !== id),
-        rowEdits,
-        customRows: isCustom ? current.customRows.filter(item => item.id !== id) : current.customRows
+        customRows: customRow ? current.customRows.filter(item => item.id !== id) : current.customRows,
+        removedRows: [...current.removedRows.filter(item => item.id !== id), {
+          id,
+          label: row?.label || customRow?.label || id,
+          customRow: customRow || undefined
+        }]
+      };
+    });
+  };
+  const restoreMarginAuctionRow = id => {
+    updateMarginAuctionState(current => {
+      const removedRow = current.removedRows.find(item => item.id === id);
+      if (!removedRow) return current;
+      return {
+        ...current,
+        excludedRowIds: current.excludedRowIds.filter(rowId => rowId !== id),
+        customRows: removedRow.customRow ? [...current.customRows.filter(item => item.id !== id), removedRow.customRow] : current.customRows,
+        removedRows: current.removedRows.filter(item => item.id !== id)
       };
     });
   };
@@ -2911,7 +2945,9 @@ function App() {
     c: c,
     draft: marginAuctionDraft,
     onDraftChange: setMarginAuctionDraft,
-    onAdd: addMarginAuctionRow
+    onAdd: addMarginAuctionRow,
+    removedRows: marginAuctionState.removedRows,
+    onRestore: restoreMarginAuctionRow
   }))), /*#__PURE__*/React.createElement("section", {
     className: isFinalBalance ? "panelCalc results finalResults" : "panelCalc",
     ref: resultsRef

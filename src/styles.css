@@ -496,6 +496,63 @@ select:focus-visible,
   cursor: pointer;
 }
 
+.marginAuctionRemovedRows {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ag-line-150);
+}
+
+.marginAuctionRemovedRows > span {
+  color: var(--ag-ink-400);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.marginAuctionRemovedRows > div {
+  display: grid;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.marginAuctionRemovedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  padding: 5px 7px 5px 9px;
+  border: 1px solid var(--ag-line-150);
+  border-radius: 5px;
+  background: var(--ag-surface);
+}
+
+.marginAuctionRemovedRow > span {
+  overflow: hidden;
+  color: var(--ag-ink-600);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marginAuctionRemovedRow button {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ag-blue-700);
+  color: var(--ag-color-accent-ink);
+  font-family: var(--ag-font-body);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 @media (max-width: 780px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1760,17 +1817,28 @@ select {
   font-family: var(--ag-font-body);
   line-height: 1;
   cursor: grab;
-  opacity: .46;
+  opacity: 0;
   transition: color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 
+.marginAuctionResultLine:has(.resultLineBody:hover) .marginAuctionDragHandle,
+.marginAuctionResultLine:has(.resultLineBody:focus-within) .marginAuctionDragHandle,
 .marginAuctionDragHandle:hover,
 .marginAuctionDragHandle:focus-visible,
+.marginAuctionResultLine:has(.resultLineAmount:hover) .marginAuctionRemove,
+.marginAuctionResultLine:has(.resultLineAmount:focus-visible) .marginAuctionRemove,
 .marginAuctionRemove:hover,
 .marginAuctionRemove:focus-visible {
   color: var(--ag-blue-700);
-  opacity: 1;
+  opacity: .8;
   outline: 0;
+}
+
+@media (hover: none) {
+  .marginAuctionDragHandle,
+  .marginAuctionRemove {
+    opacity: .52;
+  }
 }
 
 .marginAuctionDragHandle {
