@@ -1387,7 +1387,7 @@ function MarginAuctionBreakdown({
   c,
   composition
 }) {
-  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["inspection", c.breakdownInspection, "#14b8a6", n(composition?.inspection)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["other", c.breakdownOther, "#64748b", n(composition?.other)], ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)]].map(([key, label, color, value]) => ({
+  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["inspection", c.breakdownInspection, "#14b8a6", n(composition?.inspection)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["other", c.breakdownOther, "#64748b", n(composition?.other)], ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)]].map(([key, label, color, value]) => ({
     key,
     label,
     color,
@@ -1403,13 +1403,17 @@ function MarginAuctionBreakdown({
   }, /*#__PURE__*/React.createElement("h3", null, c.breakdownTitle), /*#__PURE__*/React.createElement("strong", null, "100%")), /*#__PURE__*/React.createElement("div", {
     className: "marginAuctionBreakdownBar",
     "aria-hidden": "true"
-  }, categories.map(item => /*#__PURE__*/React.createElement("span", {
-    key: item.key,
-    style: {
-      width: `${item.value / total * 100}%`,
-      backgroundColor: item.color
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
+  }, categories.map(item => {
+    const percentage = `${item.value / total * 100}%`;
+    return /*#__PURE__*/React.createElement("span", {
+      key: item.key,
+      style: {
+        width: percentage,
+        flexBasis: percentage,
+        backgroundColor: item.color
+      }
+    });
+  })), /*#__PURE__*/React.createElement("div", {
     className: "marginAuctionBreakdownLegend"
   }, categories.map(item => {
     const percentage = item.value / total * 100;

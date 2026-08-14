@@ -1200,11 +1200,11 @@ function ProcessFlow({ steps }) {
 function MarginAuctionBreakdown({ c, composition }) {
   const categories = [
     ["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)],
-    ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)],
     ["inspection", c.breakdownInspection, "#14b8a6", n(composition?.inspection)],
-    ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)],
+    ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)],
     ["other", c.breakdownOther, "#64748b", n(composition?.other)],
     ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)],
+    ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)],
     ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)],
   ]
     .map(([key, label, color, value]) => ({ key, label, color, value: Math.max(0, value) }))
@@ -1220,9 +1220,10 @@ function MarginAuctionBreakdown({ c, composition }) {
         <strong>100%</strong>
       </div>
       <div className="marginAuctionBreakdownBar" aria-hidden="true">
-        {categories.map((item) => (
-          <span key={item.key} style={{ width: `${(item.value / total) * 100}%`, backgroundColor: item.color }} />
-        ))}
+        {categories.map((item) => {
+          const percentage = `${(item.value / total) * 100}%`;
+          return <span key={item.key} style={{ width: percentage, flexBasis: percentage, backgroundColor: item.color }} />;
+        })}
       </div>
       <div className="marginAuctionBreakdownLegend">
         {categories.map((item) => {

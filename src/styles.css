@@ -1949,7 +1949,8 @@ select {
 }
 
 .marginAuctionBreakdownBar span {
-  min-width: 3px;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .marginAuctionBreakdownLegend {
