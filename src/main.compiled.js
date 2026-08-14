@@ -185,60 +185,158 @@ const copy = {
       directCarBrutto: "Цена автомобиля brutto",
       germanCommission: "Комиссия немецкой фирмы"
     }
+  },
+  en: {
+    appTitle: "AUTOGOOD Calculators",
+    navTitle: "Calculators",
+    print: "Print / PDF",
+    screenshot: "Copy image",
+    screenshotReady: "Image copied.",
+    screenshotOpened: "Image opened in a new tab.",
+    screenshotError: "Unable to copy the image.",
+    saveCalculation: "Save calculation",
+    saveCalculationReady: "Calculation saved.",
+    saveCalculationEmpty: "Enter calculation data first.",
+    exchange: "EUR/PLN exchange rate",
+    avgRate: "Average rate",
+    engine: "Engine type",
+    commissionType: "Commission type",
+    standard: "Standard",
+    financing: "Financing",
+    directCommission: "Direct",
+    inputs: "Inputs",
+    results: "Calculation",
+    total: "Total",
+    totalJoin: "or",
+    rateLine: "Calculated at the rate",
+    historyTitle: "History",
+    historyEmpty: "Your last 8 calculations will appear here.",
+    historyRestore: "Restore calculation",
+    finalHistoryEmpty: "Your last 8 final settlements will appear here.",
+    finalBalance: "Final settlement",
+    finalCurrency: "Settlement currency",
+    finalFixedCosts: "Active items",
+    finalExtras: "Inactive items",
+    finalAddExtra: "Add",
+    finalRemove: "Remove",
+    finalModePlus: "To pay",
+    finalModeMinus: "Paid / deduct",
+    finalModeOff: "Do not include",
+    finalDue: "Amount due",
+    finalOverpaid: "Overpayment / refund due",
+    finalRateLine: "EUR/PLN exchange rate",
+    finalCustomTitle: "Add a custom cost",
+    finalCustomPlaceholder: "Cost name",
+    finalCustomAdd: "Add cost",
+    finalCustomDelete: "Remove item",
+    finalVatToggle: "Add VAT 23%",
+    mobileImportTitle: "Mobile.de link",
+    mobileImportPlaceholder: "Paste the listing link",
+    mobileImportButton: "Load data",
+    mobileImportLoading: "Loading data...",
+    mobileImportReady: "Data filled in: gross price, engine, excise duty and listing data.",
+    mobileImportError: "Unable to load data. Check the link or backend.",
+    mobileImportFound: "Found",
+    mobileImportNoNetto: "The listing has no net price (VAT is not shown separately) - enter \"Vehicle price net\" manually.",
+    errorTitle: "Something went wrong.",
+    errorBody: "Refresh the page and try again.",
+    selectPlaceholder: "Select engine type",
+    lines: {
+      car: "Vehicle price",
+      carNetto: "Vehicle price net",
+      carBrutto: "Vehicle price gross",
+      inspection: "Specialist inspection",
+      transport: "Transport by car carrier",
+      auctionFee: "Auction fee",
+      excise: "Excise duty",
+      commission: "AUTOGOOD commission",
+      vat: "VAT 23%",
+      to: "Technical inspection",
+      doc: "Document translation",
+      registration: "Registration",
+      directCarBrutto: "Vehicle price gross",
+      germanCommission: "German company commission"
+    }
   }
 };
 const engineTypes = [{
-  label: "EL / PHEV <=2000cm³",
+  label: {
+    pl: "EL / PHEV <=2000cm³",
+    ru: "Электро / PHEV <=2000см³",
+    en: "Electric / PHEV <=2000cc"
+  },
   rate: 0
 }, {
-  label: "PHEV / HEV >2000cm³",
+  label: {
+    pl: "PHEV / HEV >2000cm³",
+    ru: "PHEV / HEV >2000см³",
+    en: "PHEV / HEV >2000cc"
+  },
   rate: 0.093
 }, {
-  label: "HEV <=2000cm³",
+  label: {
+    pl: "HEV <=2000cm³",
+    ru: "HEV <=2000см³",
+    en: "HEV <=2000cc"
+  },
   rate: 0.0155
 }, {
-  label: "Spalinowy <=2000cm³",
+  label: {
+    pl: "Spalinowy <=2000cm³",
+    ru: "ДВС <=2000см³",
+    en: "Combustion <=2000cc"
+  },
   rate: 0.031
 }, {
-  label: "Spalinowy >2000cm³",
+  label: {
+    pl: "Spalinowy >2000cm³",
+    ru: "ДВС >2000см³",
+    en: "Combustion >2000cc"
+  },
   rate: 0.186
 }];
 const tabs = [{
   id: 0,
   name: {
     pl: "Zakup bezpośredni",
-    ru: "Прямая покупка"
+    ru: "Прямая покупка",
+    en: "Direct purchase"
   },
   subtitle: {
     pl: "Klient płaci dealerowi bezpośrednio. VAT Marża.",
-    ru: "Клиент платит дилеру напрямую. VAT Marża."
+    ru: "Клиент платит дилеру напрямую. VAT Marża.",
+    en: "The client pays the dealer directly. VAT Margin."
   },
   fields: [{
     key: "car",
     label: {
       pl: "Cena pojazdu",
-      ru: "Цена автомобиля"
+      ru: "Цена автомобиля",
+      en: "Vehicle price"
     },
     currency: "EUR"
   }, {
     key: "inspection",
     label: {
       pl: "Oględziny specjalisty netto",
-      ru: "Инспекция специалиста netto"
+      ru: "Инспекция специалиста netto",
+      en: "Specialist inspection net"
     },
     currency: "PLN"
   }, {
     key: "transport",
     label: {
       pl: "Transport na lawecie netto",
-      ru: "Транспорт на автовозе netto"
+      ru: "Транспорт на автовозе netto",
+      en: "Transport by car carrier net"
     },
     currency: "PLN"
   }, {
     key: "discount",
     label: {
       pl: "Rabat",
-      ru: "Скидка"
+      ru: "Скидка",
+      en: "Discount"
     },
     currency: "EUR"
   }]
@@ -246,31 +344,36 @@ const tabs = [{
   id: 1,
   name: {
     pl: "Aukcje VAT 23%",
-    ru: "Аукционы VAT 23%"
+    ru: "Аукционы VAT 23%",
+    en: "Auctions VAT 23%"
   },
   subtitle: {
     pl: "Aukcja zagraniczna. Wszystkie wartości netto, VAT na końcu.",
-    ru: "Зарубежный аукцион. Все значения netto, VAT в конце."
+    ru: "Зарубежный аукцион. Все значения netto, VAT в конце.",
+    en: "Foreign auction. All values are net, VAT is added at the end."
   },
   fields: [{
     key: "car",
     label: {
       pl: "Cena pojazdu netto",
-      ru: "Цена авто netto"
+      ru: "Цена авто netto",
+      en: "Vehicle price net"
     },
     currency: "EUR"
   }, {
     key: "fee",
     label: {
       pl: "Opłata aukcyjna netto",
-      ru: "Аукционный сбор netto"
+      ru: "Аукционный сбор netto",
+      en: "Auction fee net"
     },
     currency: "EUR"
   }, {
     key: "transport",
     label: {
       pl: "Transport na lawecie netto",
-      ru: "Транспорт на автовозе netto"
+      ru: "Транспорт на автовозе netto",
+      en: "Transport by car carrier net"
     },
     currency: "PLN"
   }]
@@ -278,31 +381,36 @@ const tabs = [{
   id: 2,
   name: {
     pl: "Aukcje VAT Marża",
-    ru: "Аукционы VAT Маржа"
+    ru: "Аукционы VAT Маржа",
+    en: "Auctions VAT Margin"
   },
   subtitle: {
     pl: "Aukcja zagraniczna. Pojazd brutto, transport netto + VAT.",
-    ru: "Зарубежный аукцион. Авто brutto, транспорт netto + VAT."
+    ru: "Зарубежный аукцион. Авто brutto, транспорт netto + VAT.",
+    en: "Foreign auction. Vehicle gross, transport net plus VAT."
   },
   fields: [{
     key: "car",
     label: {
       pl: "Cena pojazdu",
-      ru: "Цена автомобиля"
+      ru: "Цена автомобиля",
+      en: "Vehicle price"
     },
     currency: "EUR"
   }, {
     key: "fee",
     label: {
       pl: "Opłata aukcyjna",
-      ru: "Аукционный сбор"
+      ru: "Аукционный сбор",
+      en: "Auction fee"
     },
     currency: "EUR"
   }, {
     key: "transport",
     label: {
       pl: "Transport na lawecie netto",
-      ru: "Транспорт на автовозе netto"
+      ru: "Транспорт на автовозе netto",
+      en: "Transport by car carrier net"
     },
     currency: "PLN"
   }]
@@ -310,38 +418,44 @@ const tabs = [{
   id: 3,
   name: {
     pl: "Dealerzy VAT 23%",
-    ru: "Дилеры VAT 23%"
+    ru: "Дилеры VAT 23%",
+    en: "Dealers VAT 23%"
   },
   subtitle: {
     pl: "Dealer zagraniczny przez AUTOGOOD. Auto netto, VAT na końcu.",
-    ru: "Иностранный дилер через AUTOGOOD. Авто netto, VAT в конце."
+    ru: "Иностранный дилер через AUTOGOOD. Авто netto, VAT в конце.",
+    en: "Foreign dealer via AUTOGOOD. Vehicle net, VAT is added at the end."
   },
   fields: [{
     key: "car",
     label: {
       pl: "Cena pojazdu netto",
-      ru: "Цена авто netto"
+      ru: "Цена авто netto",
+      en: "Vehicle price net"
     },
     currency: "EUR"
   }, {
     key: "inspection",
     label: {
       pl: "Oględziny specjalisty netto",
-      ru: "Инспекция специалиста netto"
+      ru: "Инспекция специалиста netto",
+      en: "Specialist inspection net"
     },
     currency: "PLN"
   }, {
     key: "transport",
     label: {
       pl: "Transport na lawecie netto",
-      ru: "Транспорт на автовозе netto"
+      ru: "Транспорт на автовозе netto",
+      en: "Transport by car carrier net"
     },
     currency: "PLN"
   }, {
     key: "germanCommission",
     label: {
       pl: "Prowizja firmy niemieckiej",
-      ru: "Комиссия немецкой фирмы"
+      ru: "Комиссия немецкой фирмы",
+      en: "German company commission"
     },
     currency: "EUR",
     optional: true
@@ -349,7 +463,8 @@ const tabs = [{
     key: "discount",
     label: {
       pl: "Rabat",
-      ru: "Скидка"
+      ru: "Скидка",
+      en: "Discount"
     },
     currency: "EUR"
   }]
@@ -357,38 +472,44 @@ const tabs = [{
   id: 4,
   name: {
     pl: "Dealerzy VAT Marża",
-    ru: "Дилеры VAT Маржа"
+    ru: "Дилеры VAT Маржа",
+    en: "Dealers VAT Margin"
   },
   subtitle: {
     pl: "Dealer zagraniczny przez AUTOGOOD. Auto brutto, bez osobnej linii VAT.",
-    ru: "Иностранный дилер через AUTOGOOD. Авто brutto, без отдельной строки VAT."
+    ru: "Иностранный дилер через AUTOGOOD. Авто brutto, без отдельной строки VAT.",
+    en: "Foreign dealer via AUTOGOOD. Vehicle gross, without a separate VAT line."
   },
   fields: [{
     key: "car",
     label: {
       pl: "Cena pojazdu",
-      ru: "Цена автомобиля"
+      ru: "Цена автомобиля",
+      en: "Vehicle price"
     },
     currency: "EUR"
   }, {
     key: "inspection",
     label: {
       pl: "Oględziny specjalisty netto",
-      ru: "Инспекция специалиста netto"
+      ru: "Инспекция специалиста netto",
+      en: "Specialist inspection net"
     },
     currency: "PLN"
   }, {
     key: "transport",
     label: {
       pl: "Transport na lawecie netto",
-      ru: "Транспорт на автовозе netto"
+      ru: "Транспорт на автовозе netto",
+      en: "Transport by car carrier net"
     },
     currency: "PLN"
   }, {
     key: "germanCommission",
     label: {
       pl: "Prowizja firmy niemieckiej",
-      ru: "Комиссия немецкой фирмы"
+      ru: "Комиссия немецкой фирмы",
+      en: "German company commission"
     },
     currency: "EUR",
     optional: true
@@ -396,7 +517,8 @@ const tabs = [{
     key: "discount",
     label: {
       pl: "Rabat",
-      ru: "Скидка"
+      ru: "Скидка",
+      en: "Discount"
     },
     currency: "EUR"
   }]
@@ -404,38 +526,52 @@ const tabs = [{
   id: FINAL_TAB_ID,
   name: {
     pl: "Finalne rozliczenie",
-    ru: "Финальный расчёт"
+    ru: "Финальный расчёт",
+    en: "Final settlement"
   },
   subtitle: {
     pl: "Bilans dla klienta: co już zapłacono i co zostało do dopłaty.",
-    ru: "Баланс для клиента: что уже оплачено и что осталось доплатить."
+    ru: "Баланс для клиента: что уже оплачено и что осталось доплатить.",
+    en: "Client balance: what has been paid and what remains due."
   },
   fields: []
 }];
 function calculatorName(tab, lang, financed) {
   if (financed && tab?.id === 1) {
-    return lang === "ru" ? "Аукцион Лизинг VAT 23%" : "Aukcja Leasing VAT 23%";
+    return {
+      pl: "Aukcja Leasing VAT 23%",
+      ru: "Аукцион Лизинг VAT 23%",
+      en: "Auction Leasing VAT 23%"
+    }[lang] || "Aukcja Leasing VAT 23%";
   }
   if (financed && tab?.id === 3) {
-    return lang === "ru" ? "Дилер Лизинг VAT 23%" : "Dealer Leasing VAT 23%";
+    return {
+      pl: "Dealer Leasing VAT 23%",
+      ru: "Дилер Лизинг VAT 23%",
+      en: "Dealer Leasing VAT 23%"
+    }[lang] || "Dealer Leasing VAT 23%";
   }
   return tab?.name?.[lang] || "";
 }
 const directSellerPayment = {
   pl: "Płatność za pojazd do sprzedawcy w EUR",
-  ru: "Вы платите за автомобиль продавцу в EUR"
+  ru: "Вы платите за автомобиль продавцу в EUR",
+  en: "Payment to the seller in EUR"
 };
 const directDealerVat23Steps = {
   pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacasz kaucję w wys. zagranicznego VAT-u", directSellerPayment.pl],
-  ru: ["Возвращаем 70% полученной скидки от продавца", "Вы вносите депозит в размере иностранного VAT", directSellerPayment.ru]
+  ru: ["Возвращаем 70% полученной скидки от продавца", "Вы вносите депозит в размере иностранного VAT", directSellerPayment.ru],
+  en: ["We return 70% of the discount received from the seller", "You pay a deposit equal to the foreign VAT", directSellerPayment.en]
 };
 const invoiceVat23 = {
   pl: "Sprzedajemy na Fakturę VAT 23%",
-  ru: "Продаём по инвойсу VAT 23%"
+  ru: "Продаём по инвойсу VAT 23%",
+  en: "Sold with a VAT 23% invoice"
 };
 const invoiceVatMargin = {
   pl: "Sprzedajemy na Fakturę VAT Marża",
-  ru: "Продаём по инвойсу VAT Marża"
+  ru: "Продаём по инвойсу VAT Marża",
+  en: "Sold with a VAT Margin invoice"
 };
 const financingNotes = {
   pl: {
@@ -447,6 +583,11 @@ const financingNotes = {
     ownFunds: "Покупаем автомобиль за собственные средства",
     ownFundsDeposit: "Покупаем автомобиль за собственные средства и вносим депозит в размере иностранного VAT",
     ownContribution: "Вы вносите собственный взнос"
+  },
+  en: {
+    ownFunds: "We buy the vehicle with our own funds",
+    ownFundsDeposit: "We buy the vehicle with our own funds and pay a deposit equal to the foreign VAT",
+    ownContribution: "You pay the down payment"
   }
 };
 function getProcessSteps(tab, lang, financed, hasGermanCommission = false, dealerDirect = false) {
@@ -456,34 +597,51 @@ function getProcessSteps(tab, lang, financed, hasGermanCommission = false, deale
   const steps = {
     0: {
       pl: ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl],
-      ru: ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru]
+      ru: ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru],
+      en: ["We return 70% of the discount received from the seller", directSellerPayment.en]
     },
     1: {
       pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVat23.pl] : ["Płatność w PLN lub EUR", invoiceVat23.pl],
-      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVat23.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru]
+      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVat23.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru],
+      en: financed ? [financingNotes.en.ownContribution, financingNotes.en.ownFunds, invoiceVat23.en] : ["Payment in PLN or EUR", invoiceVat23.en]
     },
     2: {
       pl: financed ? [financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVatMargin.pl] : ["Płatność w PLN lub EUR", invoiceVatMargin.pl],
-      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru]
+      ru: financed ? [financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru] : ["Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru],
+      en: financed ? [financingNotes.en.ownContribution, financingNotes.en.ownFunds, invoiceVatMargin.en] : ["Payment in PLN or EUR", invoiceVatMargin.en]
     },
     3: {
       pl: financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, invoiceVat23.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", "Płatność w PLN lub EUR", invoiceVat23.pl],
-      ru: financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, invoiceVat23.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru]
+      ru: financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, invoiceVat23.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVat23.ru],
+      en: financed ? ["We return 70% of the discount received from the seller", financingNotes.en.ownContribution, financingNotes.en.ownFundsDeposit, invoiceVat23.en] : ["We return 70% of the discount received from the seller", "You pay a deposit equal to the foreign VAT", "Payment in PLN or EUR", invoiceVat23.en]
     },
     4: {
       pl: financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, invoiceVatMargin.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Płatność w PLN lub EUR", invoiceVatMargin.pl],
-      ru: financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru]
+      ru: financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, invoiceVatMargin.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вы оплачиваете всю сумму в PLN или EUR", invoiceVatMargin.ru],
+      en: financed ? ["We return 70% of the discount received from the seller", financingNotes.en.ownContribution, financingNotes.en.ownFunds, invoiceVatMargin.en] : ["We return 70% of the discount received from the seller", "Payment in PLN or EUR", invoiceVatMargin.en]
     }
   };
   if (hasGermanCommission && tab.id === 3) {
-    return lang === "ru" ? financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, directSellerPayment.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", directSellerPayment.ru] : financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, directSellerPayment.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", directSellerPayment.pl];
+    if (lang === "ru") {
+      return financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFundsDeposit, directSellerPayment.ru] : ["Возвращаем 70% полученной скидки от продавца", "Вносим депозит в размере иностранного VAT", directSellerPayment.ru];
+    }
+    if (lang === "en") {
+      return financed ? ["We return 70% of the discount received from the seller", financingNotes.en.ownContribution, financingNotes.en.ownFundsDeposit, directSellerPayment.en] : ["We return 70% of the discount received from the seller", "You pay a deposit equal to the foreign VAT", directSellerPayment.en];
+    }
+    return financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFundsDeposit, directSellerPayment.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", "Wpłacamy kaucję w wys. zagranicznego VAT-u", directSellerPayment.pl];
   }
   if (hasGermanCommission && tab.id === 4) {
-    return lang === "ru" ? financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, directSellerPayment.ru] : ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru] : financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, directSellerPayment.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl];
+    if (lang === "ru") {
+      return financed ? ["Возвращаем 70% полученной скидки от продавца", financingNotes.ru.ownContribution, financingNotes.ru.ownFunds, directSellerPayment.ru] : ["Возвращаем 70% полученной скидки от продавца", directSellerPayment.ru];
+    }
+    if (lang === "en") {
+      return financed ? ["We return 70% of the discount received from the seller", financingNotes.en.ownContribution, financingNotes.en.ownFunds, directSellerPayment.en] : ["We return 70% of the discount received from the seller", directSellerPayment.en];
+    }
+    return financed ? ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", financingNotes.pl.ownContribution, financingNotes.pl.ownFunds, directSellerPayment.pl] : ["Oddajemy 70% uzyskanego rabatu od sprzedawcy", directSellerPayment.pl];
   }
   return steps[tab.id]?.[lang] || [];
 }
-const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Вы вносите депозит", "do sprzedawcy w EUR", "продавцу в EUR", "w PLN lub EUR", "PLN lub EUR", "PLN или EUR", "na Fakturę VAT 23%", "Fakturę VAT 23%", "Faktura VAT 23%", "na Fakturę VAT Marża", "Fakturę VAT Marża", "Faktura VAT Marża", "инвойсу VAT 23%", "инвойсу VAT Marża", "własnych środków", "wkładu własnego", "Wpłacamy kaucję", "wpłacamy kaucję"];
+const processHighlights = ["70% uzyskanego rabatu", "70% полученной скидки", "Вы вносите депозит", "do sprzedawcy w EUR", "продавцу в EUR", "w PLN lub EUR", "PLN lub EUR", "PLN или EUR", "na Fakturę VAT 23%", "Fakturę VAT 23%", "Faktura VAT 23%", "na Fakturę VAT Marża", "Fakturę VAT Marża", "Faktura VAT Marża", "инвойсу VAT 23%", "инвойсу VAT Marża", "własnych środków", "wkładu własnego", "Wpłacamy kaucję", "wpłacamy kaucję", "70% of the discount received", "You pay a deposit", "to the seller in EUR", "in PLN or EUR", "VAT 23% invoice", "VAT Margin invoice", "with our own funds", "down payment"];
 function splitHighlightedText(text) {
   const escaped = processHighlights.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const pattern = new RegExp(`(${escaped})`, "gi");
@@ -576,7 +734,7 @@ function applyManualOverrides(calc, overrides, tabId) {
 function formatHistoryDate(value, lang) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "pl-PL", {
+  return new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : lang === "en" ? "en-GB" : "pl-PL", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -640,7 +798,7 @@ function readCalculatorPrefill() {
     values.registrationEnabled = true;
   }
   return {
-    lang: params.get("lang") === "ru" ? "ru" : "pl",
+    lang: ["pl", "ru", "en"].includes(params.get("lang")) ? params.get("lang") : "pl",
     activeTab: nextTab,
     rate: nextRate > 0 ? calculationRateLabel(nextRate) : DEFAULT_RATE,
     rateTouched: nextRate > 0,
@@ -694,7 +852,8 @@ const finalFixedTemplates = [{
   key: "inspection",
   label: {
     pl: "Oględziny specjalisty",
-    ru: "Осмотр специалиста"
+    ru: "Осмотр специалиста",
+    en: "Specialist inspection"
   },
   mode: "plus",
   vat: true
@@ -702,7 +861,8 @@ const finalFixedTemplates = [{
   key: "delivery",
   label: {
     pl: "Dostawa na lawecie",
-    ru: "Доставка на автовозе"
+    ru: "Доставка на автовозе",
+    en: "Transport by car carrier"
   },
   mode: "plus",
   vat: true
@@ -710,7 +870,8 @@ const finalFixedTemplates = [{
   key: "translation",
   label: {
     pl: "Tłumaczenie dokumentów",
-    ru: "Перевод документов"
+    ru: "Перевод документов",
+    en: "Document translation"
   },
   mode: "plus",
   defaultPln: DOC_TRANSLATION
@@ -718,7 +879,8 @@ const finalFixedTemplates = [{
   key: "technical",
   label: {
     pl: "Przegląd techniczny",
-    ru: "Техосмотр"
+    ru: "Техосмотр",
+    en: "Technical inspection"
   },
   mode: "plus",
   defaultPln: TO_FEE
@@ -726,7 +888,8 @@ const finalFixedTemplates = [{
   key: "commission",
   label: {
     pl: "Prowizja AUTOGOOD",
-    ru: "Комиссия AUTOGOOD"
+    ru: "Комиссия AUTOGOOD",
+    en: "AUTOGOOD commission"
   },
   mode: "plus",
   vat: true
@@ -734,7 +897,8 @@ const finalFixedTemplates = [{
   key: "deposit",
   label: {
     pl: "Zaliczka",
-    ru: "Аванс"
+    ru: "Аванс",
+    en: "Deposit"
   },
   mode: "minus"
 }];
@@ -742,7 +906,8 @@ const finalExtraTemplates = [{
   key: "dealerDiscount30",
   label: {
     pl: "30% rabatu dealera",
-    ru: "30% скидки дилера"
+    ru: "30% скидки дилера",
+    en: "30% of dealer discount"
   },
   group: "extra",
   mode: "off",
@@ -751,7 +916,8 @@ const finalExtraTemplates = [{
   key: "germanCompanyCommission",
   label: {
     pl: "Prowizja firmy niemieckiej",
-    ru: "Комиссия немецкой фирмы"
+    ru: "Комиссия немецкой фирмы",
+    en: "German company commission"
   },
   group: "extra",
   mode: "off",
@@ -760,7 +926,8 @@ const finalExtraTemplates = [{
   key: "inspection2",
   label: {
     pl: "Oględziny x2",
-    ru: "Осмотр x2"
+    ru: "Осмотр x2",
+    en: "Second inspection"
   },
   group: "extra",
   mode: "off",
@@ -770,7 +937,8 @@ const finalExtraTemplates = [{
   key: "detailing",
   label: {
     pl: "Detailing",
-    ru: "Дитейлинг"
+    ru: "Дитейлинг",
+    en: "Detailing"
   },
   group: "extra",
   mode: "off",
@@ -779,7 +947,8 @@ const finalExtraTemplates = [{
   key: "painting",
   label: {
     pl: "Lakierowanie",
-    ru: "Покраска"
+    ru: "Покраска",
+    en: "Painting"
   },
   group: "extra",
   mode: "off",
@@ -788,7 +957,8 @@ const finalExtraTemplates = [{
   key: "service",
   label: {
     pl: "Serwis",
-    ru: "Сервис"
+    ru: "Сервис",
+    en: "Service"
   },
   group: "extra",
   mode: "off",
@@ -797,7 +967,8 @@ const finalExtraTemplates = [{
   key: "registration",
   label: {
     pl: "Rejestracja",
-    ru: "Регистрация"
+    ru: "Регистрация",
+    en: "Registration"
   },
   group: "extra",
   mode: "off",
@@ -806,7 +977,8 @@ const finalExtraTemplates = [{
   key: "deposit2",
   label: {
     pl: "Zaliczka 2",
-    ru: "Аванс 2"
+    ru: "Аванс 2",
+    en: "Deposit 2"
   },
   group: "extra",
   mode: "off",
@@ -909,7 +1081,8 @@ function customFinalItem(label, currency) {
     key: `custom-${Date.now()}-${Math.round(Math.random() * 100000)}`,
     label: {
       pl: safeLabel,
-      ru: safeLabel
+      ru: safeLabel,
+      en: safeLabel
     },
     group: "custom",
     amount: "",
@@ -1746,7 +1919,7 @@ function App() {
   const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect);
   const visibleHistory = isFinalBalance ? finalHistory : history;
   const avgRateLabel = formatAvgRate(Number(marketRates?.rates?.EUR_PLN?.value));
-  const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : "pl-PL", {
+  const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : safeLang === "en" ? "en-GB" : "pl-PL", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
@@ -1932,7 +2105,7 @@ function App() {
   };
   const restoreHistoryItem = item => {
     if (item.type === "final") {
-      setLang(item.lang === "ru" ? "ru" : "pl");
+      setLang(["pl", "ru", "en"].includes(item.lang) ? item.lang : "pl");
       setActiveTab(FINAL_TAB_ID);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length ? item.items.map(normalizeFinalItem) : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
@@ -1945,7 +2118,7 @@ function App() {
       return;
     }
     const nextTab = tabs[item.activeTab] ? item.activeTab : 0;
-    setLang(item.lang === "ru" ? "ru" : "pl");
+    setLang(["pl", "ru", "en"].includes(item.lang) ? item.lang : "pl");
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
@@ -2088,7 +2261,10 @@ function App() {
   }, "PL"), /*#__PURE__*/React.createElement("button", {
     className: lang === "ru" ? "active" : "",
     onClick: () => setLang("ru")
-  }, "RU")), /*#__PURE__*/React.createElement("button", {
+  }, "RU"), /*#__PURE__*/React.createElement("button", {
+    className: lang === "en" ? "active" : "",
+    onClick: () => setLang("en")
+  }, "EN")), /*#__PURE__*/React.createElement("button", {
     className: "printBtn",
     onClick: () => isFinalBalance ? printFinalBalance({
       lang: safeLang,
@@ -2196,9 +2372,9 @@ function App() {
       setEngineIndex(Number(event.target.value));
     }
   }, engineTypes.map((engine, index) => /*#__PURE__*/React.createElement("option", {
-    key: engine.label,
+    key: engine.label.pl,
     value: index
-  }, engine.label, " \u2014 ", percentLabel(engine.rate))))), /*#__PURE__*/React.createElement("div", {
+  }, engine.label[safeLang], " \u2014 ", percentLabel(engine.rate))))), /*#__PURE__*/React.createElement("div", {
     className: "divider"
   }), /*#__PURE__*/React.createElement(OptionalFixedCostToggle, {
     label: c.lines.registration,
