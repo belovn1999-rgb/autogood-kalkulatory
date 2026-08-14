@@ -76,7 +76,6 @@ const copy = {
     breakdownTitle: "Struktura całkowitego kosztu",
     breakdownTaxesNote: "Podatki nie są przychodem AUTOGOOD",
     breakdownVehicle: "Pojazd",
-    breakdownAuctionFee: "Opłata aukcyjna",
     breakdownTransport: "Transport",
     breakdownTaxes: "Podatki",
     breakdownOther: "Pozostałe opłaty",
@@ -169,7 +168,6 @@ const copy = {
     breakdownTitle: "Структура общей суммы",
     breakdownTaxesNote: "Налоги не являются доходом AUTOGOOD",
     breakdownVehicle: "Автомобиль",
-    breakdownAuctionFee: "Аукционный сбор",
     breakdownTransport: "Транспорт",
     breakdownTaxes: "Налоги",
     breakdownOther: "Другие обязательные оплаты",
@@ -262,7 +260,6 @@ const copy = {
     breakdownTitle: "Total cost breakdown",
     breakdownTaxesNote: "Taxes are not AUTOGOOD revenue",
     breakdownVehicle: "Vehicle",
-    breakdownAuctionFee: "Auction fee",
     breakdownTransport: "Transport",
     breakdownTaxes: "Taxes",
     breakdownOther: "Other mandatory costs",
@@ -1193,15 +1190,14 @@ function ProcessFlow({ steps }) {
 
 function MarginAuctionBreakdown({ c, composition }) {
   const categories = [
-    ["vehicle", c.breakdownVehicle, "#14658f"],
-    ["auctionFee", c.breakdownAuctionFee, "#477ba1"],
-    ["transport", c.breakdownTransport, "#4c9488"],
-    ["taxes", c.breakdownTaxes, "#c18337"],
-    ["other", c.breakdownOther, "#7a8798"],
-    ["extra", c.breakdownExtra, "#9b6393"],
-    ["commission", c.breakdownCommission, "#17466d"],
+    ["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)],
+    ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)],
+    ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)],
+    ["other", c.breakdownOther, "#14b8a6", n(composition?.auctionFee) + n(composition?.other)],
+    ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)],
+    ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)],
   ]
-    .map(([key, label, color]) => ({ key, label, color, value: Math.max(0, n(composition?.[key])) }))
+    .map(([key, label, color, value]) => ({ key, label, color, value: Math.max(0, value) }))
     .filter((item) => item.value > 0);
   const total = categories.reduce((sum, item) => sum + item.value, 0);
 
@@ -1223,13 +1219,14 @@ function MarginAuctionBreakdown({ c, composition }) {
           const percentage = (item.value / total) * 100;
           return (
             <div key={item.key} className="marginAuctionBreakdownItem" style={{ "--breakdown-color": item.color }}>
+              <i aria-hidden="true" />
               <span>{item.label}</span>
               <strong>{percentage.toFixed(percentage < 10 ? 1 : 0).replace(".", ",")}%</strong>
-              {item.key === "taxes" && <em>{c.breakdownTaxesNote}</em>}
             </div>
           );
         })}
       </div>
+      <p className="marginAuctionBreakdownTaxesNote">{c.breakdownTaxesNote}</p>
     </section>
   );
 }
