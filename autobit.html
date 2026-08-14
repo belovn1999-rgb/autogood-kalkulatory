@@ -6,7 +6,8 @@
     <title>AUTOGOOD AutoBit</title>
     <link rel="stylesheet" href="./src/tools.css?v=header-unified-20260721" />
     <link rel="stylesheet" href="./src/auto1.css?v=20260621-app" />
-    <script type="module" src="./src/autobit.js?v=20260814-upload"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="module" src="./src/autobit.js?v=20260814-cleanup"></script>
   </head>
   <body>
     <main class="workspaceShell">
@@ -30,8 +31,8 @@
             <p class="eyebrow">AUTOBIT CLIENT PDF</p>
             <h1>Prepare a clean client PDF</h1>
             <p>
-              Upload the original PDF downloaded from AutoBit. The cleanup rules
-              will be added after the AutoBit document structure is defined.
+              Upload the original PDF downloaded from AutoBit. The report is
+              cleaned locally in your browser and remains a PDF.
             </p>
           </div>
 
@@ -42,6 +43,15 @@
             <small id="fileMeta">The file stays on this device and is not uploaded to a server.</small>
           </label>
 
+          <div class="auto1Actions">
+            <button class="primaryButton" id="processButton" type="button" disabled>
+              Clean and download PDF
+            </button>
+            <a class="secondaryButton isDisabled" id="downloadButton" download>
+              Download cleaned PDF
+            </a>
+          </div>
+
           <div class="auto1Progress" aria-live="polite">
             <div class="auto1ProgressBar">
               <span id="progressBar"></span>
@@ -51,12 +61,22 @@
         </div>
 
         <aside class="auto1Side" aria-label="AutoBit cleanup status">
-          <h2>PDF cleanup</h2>
-          <p>
-            The upload area is ready. AutoBit-specific cleanup rules will be
-            configured once the required changes are confirmed.
-          </p>
+          <h2>Automatically removed</h2>
+          <ul>
+            <li>AutoBid logo in the top-right corner on every page</li>
+            <li>auction number, category number, auction date and print timestamp in the footer</li>
+            <li>starting price on the first page</li>
+          </ul>
+          <p>The page number in the footer is retained.</p>
         </aside>
+      </section>
+
+      <section class="auto1Preview" aria-label="Preview">
+        <div class="auto1PreviewHeader">
+          <h2>Result preview</h2>
+          <span id="resultMeta">The cleaned PDF will appear here.</span>
+        </div>
+        <iframe id="resultPreview" title="AutoBit cleaned PDF preview"></iframe>
       </section>
     </main>
   </body>
