@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/pdf.css?v=20260810-input-panel-1" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=20260810-identifier-type-2" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260814-section-layout-1" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -133,40 +133,6 @@
                   </select>
                 </label>
 
-                <div class="card-head compact">PRZEDMIOT UMOWY:</div>
-                <label class="field">
-                  <span>Marka i model:</span>
-                  <input name="vehicleMakeModel" type="text" />
-                </label>
-                <div class="two-fields">
-                  <label class="field">
-                    <span>VIN:</span>
-                    <input name="vehicleVin" type="text" />
-                  </label>
-                  <label class="field">
-                    <span>Stan licznika:</span>
-                    <input name="vehicleMileage" type="text" />
-                  </label>
-                </div>
-
-                <div class="card-head compact">CENA:</div>
-                <label class="field">
-                  <span>Cena sprzedaży:</span>
-                  <div class="amount-control">
-                    <input name="salePrice" type="text" inputmode="decimal" placeholder="np. 124 700" />
-                    <select name="saleCurrency">
-                      <option value="PLN" selected>PLN</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
-                </label>
-                <label class="field">
-                  <span>Zniżka lub dodatkowa korzyść po negocjacjach:</span>
-                  <textarea name="discountBenefit" placeholder="Kwota rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
-                </label>
-
-                <div class="card-head compact">NABYCIE I SPRAWDZENIE POJAZDU:</div>
-                <div id="purchaseChecklist" class="yesNoChecklist"></div>
               </div>
 
               <div class="contract-card">
@@ -213,8 +179,51 @@
                   </div>
                   <input id="damageMarks" name="damageMarks" type="hidden" />
                 </div>
+              </div>
 
-                <div class="card-head compact">DOKUMENTY I EMISJE:</div>
+              <div class="contract-card sale-layout-card">
+                <div class="card-head">PRZEDMIOT UMOWY:</div>
+                <label class="field">
+                  <span>Marka i model:</span>
+                  <input name="vehicleMakeModel" type="text" />
+                </label>
+                <div class="two-fields">
+                  <label class="field">
+                    <span>VIN:</span>
+                    <input name="vehicleVin" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Stan licznika:</span>
+                    <input name="vehicleMileage" type="text" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="contract-card sale-layout-card">
+                <div class="card-head">CENA:</div>
+                <label class="field">
+                  <span>Cena sprzedaży:</span>
+                  <div class="amount-control">
+                    <input name="salePrice" type="text" inputmode="decimal" placeholder="np. 124 700" />
+                    <select name="saleCurrency">
+                      <option value="PLN" selected>PLN</option>
+                      <option value="EUR">EUR</option>
+                    </select>
+                  </div>
+                </label>
+                <label class="field">
+                  <span>Zniżka lub dodatkowa korzyść po negocjacjach:</span>
+                  <textarea name="discountBenefit" placeholder="Kwota rabatu, opis korzyści albo '-' jeśli nie było."></textarea>
+                </label>
+              </div>
+
+              <div class="contract-card sale-layout-card">
+                <div class="card-head">NABYCIE I SPRAWDZENIE POJAZDU:</div>
+                <div id="purchaseChecklist" class="yesNoChecklist"></div>
+              </div>
+
+              <div class="contract-card sale-layout-card">
+                <div class="card-head">DOKUMENTY I EMISJE:</div>
                 <div id="documentsChecklist" class="yesNoChecklist"></div>
               </div>
 

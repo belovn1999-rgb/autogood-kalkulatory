@@ -51,6 +51,10 @@
   grid-column: 1 / -1;
 }
 
+.sale-layout-card {
+  align-self: stretch;
+}
+
 #rawSaleData {
   border: 1px solid var(--line-strong);
   border-radius: 6px;
