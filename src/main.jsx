@@ -75,14 +75,11 @@ const copy = {
     flexibleRemove: "Usuń pozycję z kalkulacji",
     flexibleRemoved: "Usunięte pozycje",
     flexibleRestore: "Przywróć do kalkulacji",
-    breakdownTitle: "Struktura całkowitego kosztu",
-    breakdownTaxesNote: "Podatki nie są przychodem AUTOGOOD",
     breakdownVehicle: "Pojazd",
     breakdownTransport: "Transport",
-    breakdownInspection: "Przegląd",
+    breakdownAuctionFee: "Opłata aukcyjna",
     breakdownTaxes: "Podatki",
     breakdownOther: "Pozostałe opłaty",
-    breakdownExtra: "Dodatkowe pozycje",
     breakdownCommission: "Prowizja AUTOGOOD",
     finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
     finalBalance: "Rozliczenie końcowe",
@@ -170,14 +167,11 @@ const copy = {
     flexibleRemove: "Удалить позицию из расчёта",
     flexibleRemoved: "Удалённые позиции",
     flexibleRestore: "Вернуть в расчёт",
-    breakdownTitle: "Структура общей суммы",
-    breakdownTaxesNote: "Налоги не являются доходом AUTOGOOD",
     breakdownVehicle: "Автомобиль",
     breakdownTransport: "Транспорт",
-    breakdownInspection: "Техосмотр",
+    breakdownAuctionFee: "Аукционный сбор",
     breakdownTaxes: "Налоги",
     breakdownOther: "Другие обязательные оплаты",
-    breakdownExtra: "Дополнительные позиции",
     breakdownCommission: "Комиссия AUTOGOOD",
     finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
@@ -265,14 +259,11 @@ const copy = {
     flexibleRemove: "Remove position from calculation",
     flexibleRemoved: "Removed positions",
     flexibleRestore: "Return to calculation",
-    breakdownTitle: "Total cost breakdown",
-    breakdownTaxesNote: "Taxes are not AUTOGOOD revenue",
     breakdownVehicle: "Vehicle",
     breakdownTransport: "Transport",
-    breakdownInspection: "Inspection",
+    breakdownAuctionFee: "Auction fee",
     breakdownTaxes: "Taxes",
     breakdownOther: "Other mandatory costs",
-    breakdownExtra: "Additional positions",
     breakdownCommission: "AUTOGOOD commission",
     finalHistoryEmpty: "Your last 8 final settlements will appear here.",
     finalBalance: "Final settlement",
@@ -1200,12 +1191,11 @@ function ProcessFlow({ steps }) {
 function MarginAuctionBreakdown({ c, composition }) {
   const categories = [
     ["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)],
-    ["inspection", c.breakdownInspection, "#14b8a6", n(composition?.inspection)],
-    ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)],
-    ["other", c.breakdownOther, "#64748b", n(composition?.other)],
-    ["extra", c.breakdownExtra, "#d946ef", n(composition?.extra)],
     ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)],
+    ["auctionFee", c.breakdownAuctionFee, "#14b8a6", n(composition?.auctionFee)],
+    ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)],
     ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)],
+    ["other", c.breakdownOther, "#64748b", n(composition?.other)],
   ]
     .map(([key, label, color, value]) => ({ key, label, color, value: Math.max(0, value) }))
     .filter((item) => item.value > 0);
@@ -1214,11 +1204,7 @@ function MarginAuctionBreakdown({ c, composition }) {
   if (total <= 0) return null;
 
   return (
-    <section className="marginAuctionBreakdown" aria-label={c.breakdownTitle}>
-      <div className="marginAuctionBreakdownHeader">
-        <h3>{c.breakdownTitle}</h3>
-        <strong>100%</strong>
-      </div>
+    <section className="marginAuctionBreakdown" aria-label={c.results}>
       <div className="marginAuctionBreakdownBar" aria-hidden="true">
         {categories.map((item) => {
           const percentage = `${(item.value / total) * 100}%`;
@@ -1237,7 +1223,6 @@ function MarginAuctionBreakdown({ c, composition }) {
           );
         })}
       </div>
-      <p className="marginAuctionBreakdownTaxesNote">{c.breakdownTaxesNote}</p>
     </section>
   );
 }
@@ -1809,12 +1794,11 @@ function calculateMarginAuction(values, rate, exciseRate, financed, lang, state)
     rows,
     composition: {
       vehicle: carPln,
-      transport: transportNetto,
-      inspection: technicalNetto,
       taxes: excise + vat,
-      other: feePln + registrationNetto,
-      extra: customNetto,
+      auctionFee: feePln,
+      transport: transportNetto,
       commission: commissionNetto,
+      other: technicalNetto + registrationNetto + customNetto,
     },
   };
 }
