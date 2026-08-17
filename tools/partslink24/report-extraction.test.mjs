@@ -467,6 +467,17 @@ CG02        FUEL Diesel
     engineVolume: "2000 cm³"
   });
 
+  const dieselPhev = extractVehicleInfoFromText(`
+Модель                                 V60 (-18)
+Дата производства                      12.01.15
+Двигатель                              D82PHEV
+CG02        FUEL                       Diesel
+3B03        DIM SKINS                  DIM skin PHEV
+`, { brand: "Volvo", language: "RU" });
+
+  assert.equal(dieselPhev.model, "V60 (-18)");
+  assert.equal(dieselPhev.engineType, "Дизель + PHEV");
+
   const currentV60 = extractVehicleInfoFromText(`
 Rok modelowy                         2025
 model                                V60 (19-)

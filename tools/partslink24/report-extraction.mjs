@@ -225,7 +225,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     .filter(Boolean)
     .join(" ");
   const hasExplicitPhev = /\bphev\b|plug[\s-]*in/i.test(vagPowertrainEvidence);
-  const baseEngineType = (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
+  const volvoPhevEvidence = brand === "Volvo" && /\b[A-Z0-9-]*PHEV\b/i.test(vagPowertrainEvidence);
+  const baseEngineType = volvoPhevEvidence
+    ? resolveVolvoPhevEngineType(vagPowertrainEvidence)
+    : (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
     ? vagBrands.has(brand) ? resolveVagPhevEngineType(vagPowertrainEvidence) : "PHEV"
     : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
   const engineType = toyotaPlugInRaw && baseEngineType === "Обычный гибрид" ? "Plug-in Гибрид" : baseEngineType;
@@ -277,6 +280,16 @@ function resolveStellantisEngineType({
 function resolveVagPhevEngineType(evidence) {
   const normalized = normalizeEngineInfo({ engineTypeRaw: evidence }).engineType;
   const baseFuel = normalized.includes("Дизель") ? "Дизель" : normalized.includes("Бензин") ? "Бензин" : "";
+  return baseFuel ? `${baseFuel} + PHEV` : "PHEV";
+}
+
+function resolveVolvoPhevEngineType(evidence) {
+  const source = String(evidence || "");
+  const baseFuel = /diesel|дизел|\bD\d+[A-Z0-9-]*PHEV\b/i.test(source)
+    ? "Дизель"
+    : /gasoline|petrol|benzyn|бензин|\bT\d+[A-Z0-9-]*PHEV\b/i.test(source)
+      ? "Бензин"
+      : "";
   return baseFuel ? `${baseFuel} + PHEV` : "PHEV";
 }
 
