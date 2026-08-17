@@ -270,6 +270,26 @@ BADGES                            E-TENSE`]
   }
 });
 
+test("all Stellantis reports ignore explicitly absent charging equipment", () => {
+  const text = `ДВИГАТЕЛЬ                              DV5RC UE64 1,5 Л ДИЗЕЛЬ
+КОРОБКА ПЕРЕДАЧ                        АКП 8 СТУП. ТИПА STT
+БЫТОВАЯ СЕТЬ РЕЖИМ 3                   БЕЗ РАЗЪЕМА БЫТОВОЙ СЕТИ
+ВАРИАНТ, СВЯЗАННЫЙ С БОРТОВЫМ          БЕЗ УСТАНОВЛЕННОГО ЗАРЯДНОГО УСТРОЙСТВА
+ЗАРЯДНЫМ УСТРОЙСТВОМ
+РАЗЪЕМ ЗАРЯДКИ АВТОМОБИЛЯ              БЕЗ РАЗЪЕМА ЗАРЯДКИ АВТОМОБИЛЯ
+ШТЕПСЕЛЬНЫЙ РАЗЪЕМ ДЛЯ ЗАРЯДКИ          БЕЗ ДАТЧИКА ЗАГРУЗКИ АВТОМОБИЛЯ
+ЭМБЛЕМЫ                                E-TENSE`;
+  const brands = [
+    "Abarth", "Alfa Romeo", "Citroen", "DS", "Fiat", "Fiat Professional", "Jeep", "Lancia",
+    "Opel", "Opel Legacy", "Peugeot", "Vauxhall", "Vauxhall Legacy"
+  ];
+
+  for (const brand of brands) {
+    const result = extractVehicleInfoFromText(text, { brand, language: "RU" });
+    assert.equal(result.engineType, "Дизель", brand);
+  }
+});
+
 test("all Stellantis reports recognize BSG and H:DRIVE as mild-hybrid evidence", () => {
   const reports = [
     ["RU", `ДВИГАТЕЛЬ                    1,0 Л БЕНЗИН

@@ -254,9 +254,12 @@ function resolveStellantisEngineType({
   });
   const directType = directInfo.engineType;
   const baseFuel = directType.includes("Бензин") ? "Бензин" : directType.includes("Дизель") ? "Дизель" : "";
-  const powertrainEvidence = [transmissionRaw, stellantisPowertrainRaw, inferredEngineRaw, mildHybridRaw].filter(Boolean).join(" ");
+  // Only use explicit drivetrain rows from the report for electrification.
+  // Generic fallback text can mention charging accessories or badges that are
+  // explicitly absent on the vehicle.
+  const powertrainEvidence = [transmissionRaw, stellantisPowertrainRaw, mildHybridRaw].filter(Boolean).join(" ");
   const hasExplicitPlugIn = /\bphev\b|plug[\s-]*in|подключаем\w*\s+гибрид|hybryd[\s-]*plug[\s-]*in/i.test(powertrainEvidence);
-  const hasChargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)|\bE[\s-]*TENSE\b/i.test(powertrainEvidence);
+  const hasChargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)/i.test(powertrainEvidence);
 
   if (hasExplicitPlugIn || (baseFuel && hasChargingEvidence)) {
     return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
@@ -410,14 +413,26 @@ function collectStellantisPowertrainEvidence(text) {
   const hybrid = /\bhybrid\b|hybryd|гибрид/i;
   const mildHybrid = /\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид|\bBSG\d*\b|belt[\s-]*starter[\s-]*generator|\bH[\s:.-]*DRIVE\b/i;
   const powertrainContext = /power[\s-]*train|drive[\s-]*train|układ\s+napędowy|zespół\s+napędowy|силов(?:ой|ого)\s+агрегат|привод/i;
-  const chargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)|\bE[\s-]*TENSE\b/i;
-  const negative = /\b(?:without|w\/?o|none|not fitted|bez|brak|без|отсутств)\b/i;
+  const chargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)/i;
+  const eTense = /\bE[\s-]*TENSE\b/i;
+  // JavaScript \b does not recognize Cyrillic characters as word characters,
+  // so Russian "без" must be checked outside the ASCII-word-boundary group.
+  const negative = /\b(?:without|w\/?o|none|not fitted|bez|brak)\b|без|отсутств/i;
   const matches = [];
 
-  for (const line of String(text || "").split(/\r?\n/)) {
-    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-    if (!normalized || negative.test(normalized)) continue;
-    if (explicitPlugIn.test(normalized) || chargingEvidence.test(normalized) || mildHybrid.test(normalized) || (hybrid.test(normalized) && powertrainContext.test(normalized))) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim());
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const normalized = lines[index];
+    if (!normalized) continue;
+    // PDF tables may split a label and its value into adjacent lines. Inspect
+    // both so a following "без/without" value cannot become PHEV evidence.
+    const evidenceBlock = [normalized, lines[index + 1]].filter(Boolean).join(" ");
+    if (negative.test(evidenceBlock)) continue;
+    if (explicitPlugIn.test(evidenceBlock) || chargingEvidence.test(evidenceBlock) || mildHybrid.test(evidenceBlock) || (hybrid.test(evidenceBlock) && powertrainContext.test(evidenceBlock))) {
+      matches.push(evidenceBlock);
+    } else if (eTense.test(normalized)) {
+      // E-TENSE is supporting trim information, never standalone plug-in proof.
       matches.push(normalized);
     }
   }
