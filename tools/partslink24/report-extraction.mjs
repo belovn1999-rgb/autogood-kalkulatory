@@ -229,9 +229,9 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const baseEngineType = volvoPhevEvidence
     ? resolveVolvoPhevEngineType(vagPowertrainEvidence)
     : (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
-    ? vagBrands.has(brand) ? resolveVagPhevEngineType(vagPowertrainEvidence) : "PHEV"
+    ? resolveVagPhevEngineType(vagPowertrainEvidence)
     : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
-  const engineType = toyotaPlugInRaw && baseEngineType === "Обычный гибрид" ? "Plug-in Гибрид" : baseEngineType;
+  const engineType = toyotaPlugInRaw && baseEngineType === hevEngineType ? formatPhevEngineType() : baseEngineType;
 
   return {
     model,
@@ -265,12 +265,12 @@ function resolveStellantisEngineType({
   const hasChargingEvidence = /\bwallbox\b|(?:charging|ładowania|зарядк\w*)[^\r\n]{0,80}\bT2\b|(?:vehicle|auto|samochod\w*|автомобил\w*)[^\r\n]{0,80}(?:charging|ładowania|зарядк\w*)/i.test(powertrainEvidence);
 
   if (hasExplicitPlugIn || (baseFuel && hasChargingEvidence)) {
-    return baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
+    return formatPhevEngineType(baseFuel);
   }
   if (/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd|мягк(?:ий|ая)[\s-]*гибрид|\bBSG\d*\b|belt[\s-]*starter[\s-]*generator|\bH[\s:.-]*DRIVE\b/i.test(powertrainEvidence)) {
-    return baseFuel ? `${baseFuel} + Мягкий гибрид` : "Мягкий гибрид";
+    return formatMhevEngineType(baseFuel);
   }
-  if (/\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(transmissionRaw)) return "Обычный гибрид";
+  if (/\bhybrid\b|hybryd|гибрид|\bhev\b/i.test(transmissionRaw)) return hevEngineType;
 
   // Equipment descriptions often mention electric motors. A labeled engine or
   // fuel row is authoritative unless the drivetrain explicitly says hybrid.
@@ -280,7 +280,7 @@ function resolveStellantisEngineType({
 function resolveVagPhevEngineType(evidence) {
   const normalized = normalizeEngineInfo({ engineTypeRaw: evidence }).engineType;
   const baseFuel = normalized.includes("Дизель") ? "Дизель" : normalized.includes("Бензин") ? "Бензин" : "";
-  return baseFuel ? `${baseFuel} + PHEV` : "PHEV";
+  return formatPhevEngineType(baseFuel);
 }
 
 function resolveVolvoPhevEngineType(evidence) {
@@ -290,8 +290,18 @@ function resolveVolvoPhevEngineType(evidence) {
     : /gasoline|petrol|benzyn|бензин|\bT\d+[A-Z0-9-]*PHEV\b/i.test(source)
       ? "Бензин"
       : "";
-  return baseFuel ? `${baseFuel} + PHEV` : "PHEV";
+  return formatPhevEngineType(baseFuel);
 }
+
+function formatPhevEngineType(baseFuel = "") {
+  return baseFuel ? `${baseFuel} + PHEV (подключаемый гибрид)` : "PHEV (подключаемый гибрид)";
+}
+
+function formatMhevEngineType(baseFuel = "") {
+  return baseFuel ? `${baseFuel} + MHEV (мягкий гибрид)` : "MHEV (мягкий гибрид)";
+}
+
+const hevEngineType = "HEV (обычный гибрид)";
 
 export function normalizeEngineInfo(info) {
   const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
@@ -311,11 +321,11 @@ export function normalizeEngineInfo(info) {
 
   let engineType = "";
   if (isPlugInHybrid) {
-    engineType = baseFuel ? `${baseFuel} + Plug-in Гибрид` : "Plug-in Гибрид";
+    engineType = formatPhevEngineType(baseFuel);
   } else if (isMildHybrid) {
-    engineType = baseFuel ? `${baseFuel} + Мягкий гибрид` : "Мягкий гибрид";
+    engineType = formatMhevEngineType(baseFuel);
   } else if (isHybrid) {
-    engineType = "Обычный гибрид";
+    engineType = hevEngineType;
   } else if (isElectric) {
     engineType = "Электрический";
   } else {

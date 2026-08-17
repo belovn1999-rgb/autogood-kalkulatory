@@ -26,11 +26,11 @@ Pojemność skokowa                1,50
 test("BMW market names determine d, e and i powertrains and retain MHEV evidence", () => {
   const reports = [
     ["320dA Touring", "", "Дизель"],
-    ["330e Touring", "", "PHEV"],
+    ["330e Touring", "", "Бензин + PHEV (подключаемый гибрид)"],
     ["320i Limousine", "", "Бензин"],
     ["i4 eDrive40", "", "Электрический"],
-    ["M340d xDrive Touring", "48 V MHEV mild hybrid system", "Дизель + Мягкий гибрид"],
-    ["318d Touring", "S1CEA Рекуперационная система", "Дизель + Мягкий гибрид"]
+    ["M340d xDrive Touring", "48 V MHEV mild hybrid system", "Дизель + MHEV (мягкий гибрид)"],
+    ["318d Touring", "S1CEA Рекуперационная система", "Дизель + MHEV (мягкий гибрид)"]
   ];
 
   for (const [marketName, extraEvidence, engineType] of reports) {
@@ -71,7 +71,7 @@ test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
   for (const [language, text] of reports) {
     const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
     assert.equal(result.productionDate, "16.10.2023 (дата поставки)");
-    assert.equal(result.engineType, "Бензин + Plug-in Гибрид");
+    assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
     assert.equal(result.engineVolume, "2000 cm³");
   }
 });
@@ -94,7 +94,7 @@ ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT),
 
   for (const [language, text] of reports) {
     const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
-    assert.equal(result.engineType, "Дизель + Plug-in Гибрид", language);
+    assert.equal(result.engineType, "Дизель + PHEV (подключаемый гибрид)", language);
   }
 });
 
@@ -206,7 +206,7 @@ TRANSMISSION           4X2 8-SPEED AUTOMATIC HYBRID DRIVE`]
 
   for (const [language, text] of reports) {
     const result = extractVehicleInfoFromText(text, { brand: "DS", language });
-    assert.equal(result.engineType, "Обычный гибрид");
+    assert.equal(result.engineType, "HEV (обычный гибрид)");
   }
 
   const diesel = extractVehicleInfoFromText(`
@@ -236,7 +236,7 @@ POWER TRAIN            PHEV DRIVE TRAIN`]
   for (const brand of brands) {
     for (const [language, text] of reports) {
       const result = extractVehicleInfoFromText(text, { brand, language });
-      assert.equal(result.engineType, "Бензин + Plug-in Гибрид", `${brand} ${language}`);
+      assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)", `${brand} ${language}`);
     }
   }
 });
@@ -265,7 +265,7 @@ BADGES                            E-TENSE`]
   for (const brand of brands) {
     for (const [language, text] of reports) {
       const result = extractVehicleInfoFromText(text, { brand, language });
-      assert.equal(result.engineType, "Бензин + Plug-in Гибрид", `${brand} ${language}`);
+      assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)", `${brand} ${language}`);
     }
   }
 });
@@ -310,7 +310,7 @@ BADGES                          H:DRIVE`]
   for (const brand of brands) {
     for (const [language, text] of reports) {
       const result = extractVehicleInfoFromText(text, { brand, language });
-      assert.equal(result.engineType, "Бензин + Мягкий гибрид", `${brand} ${language}`);
+      assert.equal(result.engineType, "Бензин + MHEV (мягкий гибрид)", `${brand} ${language}`);
     }
   }
 });
@@ -352,7 +352,7 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
 Спецификации двигателей            4 цил. бенз. двигатель 2,0 л/185 кВт гибрид
 `, { brand: "Audi", language: "RU" });
   assert.equal(phev.model, "A7 Sportback");
-  assert.equal(phev.engineType, "Бензин + PHEV");
+  assert.equal(phev.engineType, "Бензин + PHEV (подключаемый гибрид)");
   assert.equal(phev.engineVolume, "2000 cm³");
 
   const phevBrands = ["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"];
@@ -362,7 +362,7 @@ test("VAG reports separate model, powertrain type and engine volume", () => {
 Топливные системы                  Топливная система бензинового двигателя с впрыском
 Спецификации двигателей            4-цилиндровый бензиновый двигатель 1,4 л TSI
 `, { brand, language: "RU" });
-    assert.equal(gasolinePhev.engineType, "Бензин + PHEV", brand);
+    assert.equal(gasolinePhev.engineType, "Бензин + PHEV (подключаемый гибрид)", brand);
   }
 
   const dieselPhev = extractVehicleInfoFromText(`
@@ -370,7 +370,7 @@ Alternative powertrain system      PHEV
 Fuel type                          Diesel
 Engine specification               4-cylinder diesel engine 2.0 L TDI
 `, { brand: "Volkswagen", language: "ENG" });
-  assert.equal(dieselPhev.engineType, "Дизель + PHEV");
+  assert.equal(dieselPhev.engineType, "Дизель + PHEV (подключаемый гибрид)");
 
   const electric = extractVehicleInfoFromText(`
 Модель                             Audi e-tron ETRSP
@@ -387,7 +387,7 @@ Alternatywny układ napędowy          0K4  Hybrydowy układ napędowy M-HEV
 Napęd hybrydowy                      20A  Bez silnika elektrycznego (Hybrid)
 Specyfikacja silnika                 DE9  4-cyl. silnik wysokoprężny 2,0 l/100 kW TDI
 `, { brand: "Audi", language: "PL" });
-  assert.equal(mildHybridDiesel.engineType, "Дизель + Мягкий гибрид");
+  assert.equal(mildHybridDiesel.engineType, "Дизель + MHEV (мягкий гибрид)");
   assert.equal(mildHybridDiesel.engineVolume, "2000 cm³");
 
   const sharedModels = [
@@ -431,7 +431,7 @@ FUEL TYPE           GASOLINE - UNLEADED
 SPECIAL CAR         ELECTRIC VEHICLE - HEV(HYBRID ELECTRIC VEHICLE)
 `, { brand: "Hyundai", language: "ENG" });
 
-  assert.equal(result.engineType, "Обычный гибрид");
+  assert.equal(result.engineType, "HEV (обычный гибрид)");
   assert.equal(result.engineVolume, "1600 cm³");
 });
 
@@ -476,7 +476,7 @@ CG02        FUEL                       Diesel
 `, { brand: "Volvo", language: "RU" });
 
   assert.equal(dieselPhev.model, "V60 (-18)");
-  assert.equal(dieselPhev.engineType, "Дизель + PHEV");
+  assert.equal(dieselPhev.engineType, "Дизель + PHEV (подключаемый гибрид)");
 
   const currentV60 = extractVehicleInfoFromText(`
 Rok modelowy                         2025
@@ -493,7 +493,7 @@ G602  FUEL TANK, VOLUME              Volume 60 Litre
   assert.deepEqual(currentV60, {
     model: "V60 (19-)",
     productionDate: "22-28.04.2024",
-    engineType: "Бензин + Мягкий гибрид",
+    engineType: "Бензин + MHEV (мягкий гибрид)",
     engineVolume: "2000 cm³"
   });
 
@@ -513,7 +513,7 @@ test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
   const nissan = extractVehicleInfoFromText("Od       2019-09\nSilnik   K9K TYPE ENGINE", { brand: "Nissan", language: "PL" });
   const suzuki = extractVehicleInfoFromText("Data produkcji   2016-10\nNr silnika   K12C-5104637", { brand: "Suzuki", language: "PL" });
 
-  assert.equal(toyota.engineType, "Обычный гибрид");
+  assert.equal(toyota.engineType, "HEV (обычный гибрид)");
   assert.equal(toyota.engineVolume, "1800 cm³");
   assert.equal(toyotaGasoline.engineType, "Бензин");
   assert.equal(toyotaGasoline.engineVolume, "1500 cm³");
@@ -537,8 +537,8 @@ ENGINE 1                1800CC 16-VALVE DOHC EFI (2ZRFXE)
 051I wireless charger           without
 `, { brand: "Lexus", language: "ENG" });
 
-  assert.equal(plugIn.engineType, "Plug-in Гибрид");
-  assert.equal(selfCharging.engineType, "Обычный гибрид");
+  assert.equal(plugIn.engineType, "PHEV (подключаемый гибрид)");
+  assert.equal(selfCharging.engineType, "HEV (обычный гибрид)");
 });
 
 test("Toyota reads fuel and displacement from a first-page powertrain row", () => {

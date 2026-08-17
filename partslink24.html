@@ -1003,9 +1003,9 @@
       function localizeEngineType(value) {
         if (uiLanguage !== "pl") return value;
         return value
-          .replace(/Plug-in Гибрид/gi, "Hybryda Plug-in")
-          .replace(/Обычный гибрид/gi, "Hybryda")
-          .replace(/Мягкий гибрид/gi, "Miękka hybryda")
+          .replace(/PHEV \(подключаемый гибрид\)/gi, "PHEV (Hybryda Plug-in)")
+          .replace(/MHEV \(мягкий гибрид\)/gi, "MHEV (Miękka hybryda)")
+          .replace(/HEV \(обычный гибрид\)/gi, "HEV (Hybryda)")
           .replace(/Электрический/gi, "Elektryczny")
           .replace(/Бензин/gi, "Benzyna")
           .replace(/Дизель/gi, "Diesel");
