@@ -435,6 +435,19 @@ SPECIAL CAR         ELECTRIC VEHICLE - HEV(HYBRID ELECTRIC VEHICLE)
   assert.equal(result.engineVolume, "1600 cm³");
 });
 
+test("Hyundai ignores hybrid wording in non-powertrain equipment", () => {
+  const result = extractVehicleInfoFromText(`
+model               TUCSON 18 HEURPD718 /
+Date of production  2018-10-08
+ENGINE CAPACITY     1600 CC - GAMMA
+Топливо             GASOLINE - UNLEADED
+9819A2              BLADE TYPE - HYBRID
+`, { brand: "Hyundai", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "1600 cm³");
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19

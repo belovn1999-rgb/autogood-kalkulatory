@@ -622,7 +622,7 @@ async function downloadPdf(page, options) {
 async function downloadTwoFilePrintPdfs(page, options) {
   await waitForVehicleLoaded(page, options.vin);
   await humanDelay();
-  const centerContent = ["Ford", "Ford Pro"].includes(options.brand);
+  const centerContent = ["Ford", "Ford Pro", "Hyundai"].includes(options.brand);
 
   const vehiclePath = join(options.outDir, makePdfName({ ...options, suffix: "vehicle" }));
   await saveTwoFilePanelPdf(page, vehiclePath, "vehicle", { centerContent });

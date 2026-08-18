@@ -97,7 +97,8 @@ const brandReportProfiles = {
     engineVolumeLabels: [/(?:rodzaj\s+silnika|engine\s+type|тип\s+двигателя)/i]
   },
   Hyundai: {
-    engineEvidenceLabels: [/(?:SPECIAL\s+CAR|HEV|HYBRID|PHEV|M[\s-]*HEV|ELECTRIC\s+VEHICLE)/i]
+    fuelTypeLabels: [/^(?:топливо|paliwo|fuel)$/i],
+    engineEvidenceLabels: [/(?:SPECIAL\s+CAR|ELECTRIC\s+VEHICLE|\b(?:HEV|PHEV|M[\s-]*HEV)\b)/i]
   },
   Jaguar: jaguarLandRoverProfile,
   Jeep: fcaProfile,
