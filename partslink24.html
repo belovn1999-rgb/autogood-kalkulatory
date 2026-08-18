@@ -291,10 +291,8 @@
         border-bottom: 0;
       }
 
-      .partslinkBrandGroupDivider {
-        height: 0;
-        margin: 2px 0;
-        border-top: 2px solid var(--ag-color-ink);
+      .partslinkBrandOption--group-end {
+        border-bottom: 2px solid var(--ag-color-ink);
       }
 
       .partslinkBrandOption[data-favorite="true"] {
@@ -302,10 +300,16 @@
       }
 
       .partslinkBrandOption:hover,
-      .partslinkBrandOption:focus-visible,
-      .partslinkBrandOption[aria-selected="true"] {
+      .partslinkBrandOption:focus-visible {
         background: var(--ag-color-surface-tint);
         color: var(--ag-color-accent-dark);
+      }
+
+      .partslinkBrandOption[aria-selected="true"] {
+        background: oklch(93% 0.025 240);
+        color: var(--ag-color-accent-dark);
+        box-shadow: inset 3px 0 0 var(--ag-color-accent);
+        font-weight: 600;
       }
 
       .partslinkBrandOption:focus-visible {
@@ -931,7 +935,7 @@
         "Fiat Professional": "Fiat",
         "Ford Pro": "Ford Vans",
         "Mercedes Vans": "Mercedes Vans",
-        "Vw Nutzfahrzeuge": "Volkswagen"
+        "Vw Nutzfahrzeuge": "Volkswagen Vans"
       };
       const brandDisplayOrder = [
         "Audi", "BMW", "Ford", "Mercedes-Benz", "Peugeot", "Toyota", "Volvo", "Volkswagen",
@@ -1258,10 +1262,7 @@
           });
           brandPickerOptions.append(pickerOption);
           if (brandGroupDividerAfter.has(brand.value)) {
-            const divider = document.createElement("div");
-            divider.className = "partslinkBrandGroupDivider";
-            divider.setAttribute("role", "separator");
-            brandPickerOptions.append(divider);
+            pickerOption.classList.add("partslinkBrandOption--group-end");
           }
         });
         applyBrandLogic();
