@@ -1382,25 +1382,27 @@ function MarginAuctionWorkbench({ c, draft, onDraftChange, onAdd, removedRows, o
           <span>{c.flexibleName}</span>
           <input type="text" value={draft.label} onChange={(event) => onDraftChange({ ...draft, label: event.target.value })} />
         </label>
-        <label className="field marginAuctionAmountField">
-          <span>{c.flexibleAmount}</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={draft.amount}
-            onChange={(event) => onDraftChange({ ...draft, amount: event.target.value })}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") onAdd();
-            }}
-          />
-        </label>
-        <label className="field marginAuctionCurrencyField">
-          <span>{c.flexibleCurrency}</span>
-          <select value={draft.currency} onChange={(event) => onDraftChange({ ...draft, currency: event.target.value })}>
-            <option value="PLN">PLN</option>
-            <option value="EUR">EUR</option>
-          </select>
-        </label>
+        <div className="marginAuctionAmountGroup">
+          <label className="field marginAuctionAmountField">
+            <span>{c.flexibleAmount}</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={draft.amount}
+              onChange={(event) => onDraftChange({ ...draft, amount: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") onAdd();
+              }}
+            />
+          </label>
+          <label className="field marginAuctionCurrencyField">
+            <span>{c.flexibleCurrency}</span>
+            <select value={draft.currency} onChange={(event) => onDraftChange({ ...draft, currency: event.target.value })}>
+              <option value="PLN">PLN</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </label>
+        </div>
         <label className="marginAuctionVatToggle">
           <input type="checkbox" checked={draft.vat} onChange={(event) => onDraftChange({ ...draft, vat: event.target.checked })} />
           <span>{c.flexibleVat}</span>
