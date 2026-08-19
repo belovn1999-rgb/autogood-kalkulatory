@@ -1574,9 +1574,7 @@ function MarginAuctionWorkbench({
       ...draft,
       label: event.target.value
     })
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "marginAuctionAmountGroup"
-  }, /*#__PURE__*/React.createElement("label", {
+  })), /*#__PURE__*/React.createElement("label", {
     className: "field marginAuctionAmountField"
   }, /*#__PURE__*/React.createElement("span", null, c.flexibleAmount), /*#__PURE__*/React.createElement("input", {
     type: "text",
@@ -1601,7 +1599,7 @@ function MarginAuctionWorkbench({
     value: "PLN"
   }, "PLN"), /*#__PURE__*/React.createElement("option", {
     value: "EUR"
-  }, "EUR")))), /*#__PURE__*/React.createElement("label", {
+  }, "EUR"))), /*#__PURE__*/React.createElement("label", {
     className: "marginAuctionVatToggle"
   }, /*#__PURE__*/React.createElement("input", {
     type: "checkbox",
