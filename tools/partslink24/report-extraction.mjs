@@ -103,7 +103,8 @@ const brandReportProfiles = {
   Jaguar: jaguarLandRoverProfile,
   Jeep: fcaProfile,
   Kia: {
-    fuelTypeLabels: [/^(?:топливо|paliwo|fuel)$/i]
+    fuelTypeLabels: [/^(?:топливо|paliwo|fuel)$/i],
+    engineEvidenceLabels: [/(?:SPECIAL\s+CAR|POJAZD\s+SPECJALNY|СПЕЦИАЛЬН\w*\s+(?:АВТОМОБИЛ|ТРАНСПОРТ)|ELECTRIC\s+VEHICLE|\b(?:HEV|PHEV|M[\s-]*HEV)\b)/i]
   },
   "Land Rover": jaguarLandRoverProfile,
   Lexus: toyotaLexusProfile,

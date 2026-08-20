@@ -486,6 +486,15 @@ test("Kia reads gasoline from the dedicated fuel row in every report language", 
   }
 });
 
+test("Kia upgrades gasoline to PHEV from the special-car powertrain row", () => {
+  const result = extractVehicleInfoFromText(`
+Топливо                    GASOLINE - UNLEADED
+SPECIAL CAR                ELECTRIC VEHICLE - PHEV(PLUG-IN HYBRID ELECTRIC VEHICLE)
+`, { brand: "Kia", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19
