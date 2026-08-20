@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260810-input-panel-1" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=20260814-section-layout-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260820-history-icons-1" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260820-history-icons-1" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -44,8 +44,8 @@
               <textarea id="rawSaleData" spellcheck="false" placeholder="Wklej dane: klient, telefon, e-mail, marka i model, VIN, przebieg, cena, badanie techniczne..."></textarea>
               <div class="example-actions">
                 <button id="parseSaleData" class="secondary-btn" type="button">Rozpoznaj dane</button>
-                <button id="resetSaleContract" class="ghost-btn" type="button">Wyzeruj dane</button>
-                <button id="saveSaleContract" class="ghost-btn" type="button">Zapisz</button>
+                <button id="resetSaleContract" class="ghost-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7L21 16"/></svg><span>Wyzeruj dane</span></button>
+                <button id="saveSaleContract" class="ghost-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span>Zapisz</span></button>
               </div>
               <div id="saleStatus" class="status" aria-live="polite"></div>
             </div>
@@ -271,6 +271,6 @@
 
     <script src="./src/pdf-config.js?v=20260616-4"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/sale-contract.js?v=20260814-date-fields-1"></script>
+    <script src="./src/sale-contract.js?v=20260820-recognition-history-1"></script>
   </body>
 </html>

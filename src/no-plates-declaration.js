@@ -168,10 +168,13 @@ function renderHistory() {
     return;
   }
 
-  entries.forEach((entry) => {
+  entries.forEach((entry, index) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "history-item";
+    button.className = "history-restore";
     const title = document.createElement("strong");
     title.textContent = historyTitle(entry);
     const meta = document.createElement("span");
@@ -181,7 +184,21 @@ function renderHistory() {
       applyData(entry.data || {});
       setStatus("Dane z historii zostały wczytane.");
     });
-    historyList.append(button);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "history-delete";
+    remove.setAttribute("aria-label", "Usuń zapis z historii");
+    remove.title = "Usuń z historii";
+    remove.textContent = "×";
+    remove.addEventListener("click", () => {
+      writeHistory(entries.filter((candidate, candidateIndex) => (entry.id ? candidate.id !== entry.id : candidateIndex !== index)));
+      renderHistory();
+      setStatus("Zapis usunięty z historii.");
+    });
+
+    item.append(button, remove);
+    historyList.append(item);
   });
 }
 

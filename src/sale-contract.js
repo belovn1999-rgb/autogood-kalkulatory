@@ -321,9 +321,12 @@ function renderSaleHistory() {
   }
 
   history.forEach((entry, index) => {
+    const item = document.createElement("div");
+    item.className = "history-item";
+
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "history-item";
+    button.className = "history-restore";
     button.dataset.index = String(index);
 
     const title = document.createElement("strong");
@@ -335,7 +338,21 @@ function renderSaleHistory() {
       applySaleContract(entry.data || {});
       setStatus("Dane z historii wczytane.");
     });
-    saleHistoryList.append(button);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "history-delete";
+    remove.setAttribute("aria-label", "Usuń zapis z historii");
+    remove.title = "Usuń z historii";
+    remove.textContent = "×";
+    remove.addEventListener("click", () => {
+      writeSaleHistory(history.filter((candidate, candidateIndex) => (entry.id ? candidate.id !== entry.id : candidateIndex !== index)));
+      renderSaleHistory();
+      setStatus("Zapis usunięty z historii.");
+    });
+
+    item.append(button, remove);
+    saleHistoryList.append(item);
   });
 }
 
@@ -494,7 +511,7 @@ function linesFromText(text) {
 
 function isAddressStreetLine(line) {
   const clean = stripKnownNoise(line);
-  return /^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)?\s*[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[/-]\d+[A-Z]?)?$/u.test(clean);
+  return /^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)?\s*[\p{Lu}\p{Ll}][\p{L}.'-]+(?:\s+[\p{Lu}\p{Ll}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:[/-]\d+[A-Za-z]?)?$/u.test(clean);
 }
 
 function isPostalCityLine(line) {
@@ -514,7 +531,7 @@ function isPolishAddressLine(line) {
   if (!polishCityPattern.test(clean)) return false;
   if (/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/.test(clean)) return false;
   if (/\b(?:PESEL|NIP|Dow[oó]d|Dokument|Paszport|Karta pobytu|Telefon|Tel\.?|Email|E-mail|Auto|Pojazd|Marka|Model|Cena|Rabat|VIN)\b/i.test(clean)) return false;
-  return /\d{2}-\d{3}|\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\b|\b\d+[A-Z]?(?:[/-]\d+[A-Z]?)?\b|,/.test(clean);
+  return /\d{2}-\d{3}|\b(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\b|\b\d+[A-Za-z]?(?:[/-]\d+[A-Za-z]?)?\b|,/.test(clean);
 }
 
 function addressFallback(text) {
@@ -531,7 +548,7 @@ function addressFallback(text) {
   }
   const compact = normalizeSpace(text);
   const postalAddress = compact.match(
-    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
   if (postalAddress) return stripKnownNoise(postalAddress[0]);
   const cityAddressLine = lines.find((line) => isPolishAddressLine(line));
@@ -544,10 +561,38 @@ function addressFallback(text) {
 function parseDocumentValue(text) {
   const compact = normalizeSpace(text);
   const shorthand = compact.match(/\b(?:DO|D\.O\.)\s*(?::|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
-  if (shorthand) return normalizeSpace(`dowód osobisty ${shorthand[1]}`);
+  if (shorthand) return normalizeSpace(`dowód osobisty ${extractDocumentNumber(shorthand[1])}`);
   const exact = compact.match(/\b(dow[oó]d osobisty|paszport|karta pobytu)\b\s*(?::|nr|numer|seria|-)?\s*([A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)/i);
-  if (exact) return normalizeSpace(`${exact[1]} ${exact[2]}`);
-  return extractLabeled(compact, saleRecognitionLabels.document);
+  if (exact) return normalizeSpace(`${exact[1]} ${extractDocumentNumber(exact[2])}`);
+  const labeled = extractLabeled(compact, saleRecognitionLabels.document);
+  const number = extractDocumentNumber(labeled);
+  return number ? normalizeSpace(`${normalizeDocumentType(labeled)} ${number}`) : "";
+}
+
+function extractDocumentNumber(value) {
+  return normalizeSpace(
+    String(value || "").match(/\b(?:[A-Z]{1,4}\s*\d[A-Z0-9]{2,}|\d{5,}[A-Z0-9]*)\b/i)?.[0] || ""
+  );
+}
+
+function normalizeDocumentType(value) {
+  const lower = normalizeSpace(value).toLowerCase();
+  if (/\bdow[oó]d(?: osobisty)?\b|\bdo\b|\bd\.o\.\b/.test(lower)) return "dowód osobisty";
+  if (/\bpaszport\b/.test(lower)) return "paszport";
+  if (/\bkarta pobytu\b/.test(lower)) return "karta pobytu";
+  return "";
+}
+
+function personNameOnly(value) {
+  return normalizeSpace(
+    String(value || "").match(/\b[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+\b/u)?.[0] || ""
+  );
+}
+
+function normalizePhoneNumber(value) {
+  return normalizeSpace(
+    String(value || "").match(/(?:\+48[\s-]?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}/)?.[0] || ""
+  );
 }
 
 function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = "", document = "" } = {}) {
@@ -561,9 +606,14 @@ function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = ""
     .replace(/\b\d{11}\b/g, " ")
     .replace(/\b(?:PESEL|NIP|Telefon|Tel\.?|Phone|Email|E-mail|Mail|Dokument|Dow[oó]d osobisty|Paszport|Karta pobytu)\b.*$/i, " ");
   const postalAddress = normalizeSpace(cleaned).match(
-    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Z]?(?:[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
-  return stripKnownNoise(postalAddress?.[0] || cleaned);
+  if (!postalAddress) return "";
+  let address = stripKnownNoise(postalAddress[0])
+    .replace(/\s*\/\s*/g, "/")
+    .replace(/\s*,\s*/g, ", ");
+  if (!/^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\s+/i.test(address)) address = `ul. ${address}`;
+  return address.replace(/^ul\.?\s*/i, "ul. ");
 }
 
 function parseMoneyValue(value) {
@@ -624,7 +674,7 @@ function parseBuyerName(text, isCompany) {
   if (clientLine) {
     const candidate = stripKnownNoise(clientLine.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
     if (candidate && !isPolishAddressLine(candidate) && !isAddressStreetLine(candidate) && !isPostalCityLine(candidate) && !isClientDataMarkerLine(candidate)) {
-      return candidate;
+      return isCompany ? candidate : personNameOnly(candidate);
     }
   }
 
@@ -633,7 +683,7 @@ function parseBuyerName(text, isCompany) {
     const cleanLabeled = stripKnownNoise(labeled);
     if (!isCompany) {
       const personName = cleanLabeled.match(/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
-      if (personName) return stripKnownNoise(personName);
+      if (personName) return personNameOnly(personName);
     }
     return cleanLabeled;
   }
@@ -648,15 +698,15 @@ function parseBuyerName(text, isCompany) {
     const words = candidate.match(/[\p{L}'-]+/gu) || [];
     return words.length >= 2 && words.length <= 4;
   });
-  if (firstNameLine) return stripKnownNoise(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
+  if (firstNameLine) return personNameOnly(firstNameLine.replace(/\b(?:Kupujący|Nabywca|Zleceniodawca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, ""));
 
   const beforeAddress = compact.split(/\b(?:Adres|Адрес|PESEL|NIP|Dokument|Telefon|Email|Auto|Pojazd)\b/i)[0];
   const upperPerson = beforeAddress.match(/[\p{Lu}]{2,}(?:\s+[\p{Lu}]{2,}){1,3}/u)?.[0];
-  if (upperPerson) return stripKnownNoise(upperPerson);
+  if (upperPerson) return normalizeSpace(upperPerson.match(/[\p{Lu}]{2,}\s+[\p{Lu}]{2,}/u)?.[0] || "");
   const person = beforeAddress
     .replace(/\b(?:Kupujący|Nabywca|Klient|Client|Клиент)\b\s*(?::|=|–|-)?/i, "")
     .match(/\b[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+(?:\s+[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż-]+){1,3}\b/u)?.[0];
-  return stripKnownNoise(person || "");
+  return personNameOnly(person || "");
 }
 
 function parseBuyerContactData(text) {
@@ -714,7 +764,7 @@ function parseBuyerContactData(text) {
     address: cleanAddressValue(rawAddressValue, { phone, email, pesel, nip, document: documentValue }),
     identifier: isCompany ? nip : pesel,
     identifierType: isCompany ? "nip" : "pesel",
-    phone: normalizeSpace(phone),
+    phone: normalizePhoneNumber(phone),
     email,
   };
 }

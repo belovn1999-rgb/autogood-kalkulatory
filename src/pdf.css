@@ -385,6 +385,20 @@ body.export-contract .brandTitle::after {
   width: 100%;
 }
 
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.button-icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  opacity: 0.68;
+}
+
 .status {
   min-height: 20px;
   min-width: 0;
@@ -483,34 +497,73 @@ body.export-contract .brandTitle::after {
 }
 
 .history-item {
+  position: relative;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
-  padding: 9px 10px;
   background: #fff;
+}
+
+.history-restore {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 34px 9px 10px;
+  background: transparent;
   color: var(--text);
   text-align: left;
 }
 
-.history-item strong,
-.history-item span {
+.history-restore strong,
+.history-restore span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.history-item strong {
+.history-restore strong {
   color: var(--brand-dark);
   font-size: 13px;
 }
 
-.history-item span {
+.history-restore span {
   margin-top: 3px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.history-delete {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: #b42318;
+  background: transparent;
+  font-size: 19px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 140ms ease, background-color 140ms ease;
+}
+
+.history-item:hover .history-delete,
+.history-item:focus-within .history-delete {
+  opacity: 0.76;
+}
+
+.history-delete:hover,
+.history-delete:focus-visible {
+  opacity: 1;
+  background: #fff1f0;
 }
 
 .contract-grid {
