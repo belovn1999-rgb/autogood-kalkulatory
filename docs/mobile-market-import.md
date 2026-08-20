@@ -48,3 +48,15 @@ niebieskie środek, a czerwone górę. Środek rynku nie jest stałym kwartylem:
 szuka przedziału o największym skupieniu ofert. Szerokość badanego przedziału skaluje
 się z medianą ceny i liczbą ofert, a jego granice są zaokrąglane do czytelnego kroku
 cenowego. Statystyka „Środek rynku” pokazuje obie granice tego przedziału.
+
+## Historia wyszukiwania
+
+Przycisk „Zapisz dane” zapisuje bieżący zestaw filtrów lokalnie w przeglądarce.
+Historia przechowuje maksymalnie 15 zestawów, najnowsze na górze. Ponowne zapisanie
+identycznego zestawu aktualizuje istniejący wpis, a dodanie szesnastego usuwa
+najstarszy.
+
+Jeżeli dla zapisanego zestawu zostanie zaimportowany plik ofert, ceny i bezpośrednie
+linki ogłoszeń są dopisywane do tego wpisu. Przycisk „Analiza rynku” w historii
+odtwarza filtry oraz zapisany wykres również po ponownym otwarciu strony. Dane nie są
+synchronizowane między przeglądarkami ani urządzeniami.

@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./src/mobile.css?v=grouped-brand-model-menus-20260814" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-density-20260820" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-history-20260820" />
   </head>
   <body class="mobileBody">
     <main class="mobileShell">
@@ -333,6 +333,9 @@
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
             <div class="mobileManualSearchButtons">
+              <button class="mobileMarketSaveButton" type="button" data-mobile-market-history-save>
+                <span data-market-i18n="saveButton">Zapisz dane</span>
+              </button>
               <button class="mobileMarketAnalysisButton" type="button" data-mobile-market-analysis-open>
                 <span data-market-i18n="analysisButton">Analiza rynku</span>
                 <i aria-hidden="true">&#8594;</i>
@@ -350,6 +353,17 @@
             </div>
           </div>
         </article>
+
+        <section class="mobileMarketHistory" data-mobile-market-history>
+          <header class="mobileMarketHistoryHead">
+            <div>
+              <h2 data-market-i18n="historyHeading">Historia wyszukiwania</h2>
+              <p data-market-i18n="historyDescription">Maksymalnie 15 zapisanych zestawów danych w tej przeglądarce.</p>
+            </div>
+            <span data-mobile-market-history-count>0 / 15</span>
+          </header>
+          <div class="mobileMarketHistoryList" data-mobile-market-history-list></div>
+        </section>
       </section>
 
       <section class="mobileMethodView mobileMarketAnalysisView" data-mobile-market-analysis-view hidden>
@@ -366,6 +380,6 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-webids-20260813"></script>
     <script src="./src/mobile.js?v=clean-model-group-labels-20260814"></script>
-    <script src="./src/mobile-market-analysis.js?v=market-density-20260820"></script>
+    <script src="./src/mobile-market-analysis.js?v=market-history-20260820"></script>
   </body>
 </html>

@@ -4,12 +4,24 @@
   const analysisView = document.querySelector("[data-mobile-market-analysis-view]");
   const analysisContent = document.querySelector("[data-mobile-market-analysis-content]");
   const manualView = document.querySelector('[data-mobile-method-view="manual"]');
+  const historySave = document.querySelector("[data-mobile-market-history-save]");
+  const historyList = document.querySelector("[data-mobile-market-history-list]");
+  const historyCount = document.querySelector("[data-mobile-market-history-count]");
 
-  if (!analysisOpen || !analysisBack || !analysisView || !analysisContent || !manualView) return;
+  if (!analysisOpen || !analysisBack || !analysisView || !analysisContent || !manualView || !historySave || !historyList || !historyCount) return;
 
   const marketCopy = {
     pl: {
       analysisButton: "Analiza rynku",
+      saveButton: "Zapisz dane",
+      saveSuccess: "Dane zapisane w historii.",
+      historyHeading: "Historia wyszukiwania",
+      historyDescription: "Maksymalnie 15 zapisanych zestawów danych w tej przeglądarce.",
+      historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
+      historyAnalysis: "Analiza rynku",
+      historyReady: "{count} ofert · wykres gotowy",
+      historyWaiting: "Brak danych rynku",
+      historyStorageError: "Nie udało się zapisać historii w tej przeglądarce.",
       backToFilters: "← Wróć do filtrów",
       heading: "Analiza rynku",
       waitingLabel: "Brak danych ofert",
@@ -49,6 +61,15 @@
     },
     ru: {
       analysisButton: "Анализ рынка",
+      saveButton: "Сохрани данные",
+      saveSuccess: "Данные сохранены в истории.",
+      historyHeading: "История поиска",
+      historyDescription: "До 15 сохранённых наборов данных в этом браузере.",
+      historyEmpty: "Сохранённых поисков пока нет.",
+      historyAnalysis: "Анализ рынка",
+      historyReady: "Объявлений: {count} · график готов",
+      historyWaiting: "Нет данных рынка",
+      historyStorageError: "Не удалось сохранить историю в этом браузере.",
       backToFilters: "← Вернуться к фильтрам",
       heading: "Анализ рынка",
       waitingLabel: "Нет данных объявлений",
@@ -88,8 +109,12 @@
     },
   };
 
+  const HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v1";
+  const HISTORY_LIMIT = 15;
+
   let activeAnalysis = null;
   let importedDataset = null;
+  let marketHistory = [];
 
   function currentLanguage() {
     return document.documentElement.lang === "ru" ? "ru" : "pl";
@@ -99,8 +124,8 @@
     return marketCopy[currentLanguage()];
   }
 
-  function vehicleFilterKey(filters) {
-    return [filters.brand, filters.model, filters.version].map((value) => String(value || "").trim()).join("|");
+  function filterSignature(filters) {
+    return JSON.stringify(filters || {});
   }
 
   function escapeMarketHtml(value) {
@@ -182,6 +207,214 @@
     return (Array.isArray(rows) ? rows : [])
       .map(normalizeListing)
       .filter((listing) => listing && !seenUrls.has(listing.url) && seenUrls.add(listing.url));
+  }
+
+  function loadMarketHistory() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter((entry) => entry?.filters?.brand && entry?.filters?.model)
+        .map((entry, index) => ({
+          id: String(entry.id || `legacy-${index}`),
+          filters: entry.filters,
+          signature: filterSignature(entry.filters),
+          listings: normalizeListings(entry.listings),
+          sourceFileName: String(entry.sourceFileName || ""),
+          searchUrl: String(entry.searchUrl || ""),
+          createdAt: String(entry.createdAt || entry.updatedAt || new Date().toISOString()),
+          updatedAt: String(entry.updatedAt || entry.createdAt || new Date().toISOString()),
+        }))
+        .slice(0, HISTORY_LIMIT);
+    } catch {
+      return [];
+    }
+  }
+
+  function storeMarketHistory(entries) {
+    try {
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(entries.slice(0, HISTORY_LIMIT)));
+      marketHistory = entries.slice(0, HISTORY_LIMIT);
+      return true;
+    } catch {
+      setAnalysisStatus(copy().historyStorageError, true);
+      return false;
+    }
+  }
+
+  function historyEntryForFilters(filters) {
+    const signature = filterSignature(filters);
+    return marketHistory.find((entry) => entry.signature === signature) || null;
+  }
+
+  function formatHistoryDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return new Intl.DateTimeFormat(currentLanguage() === "ru" ? "ru-RU" : "pl-PL", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(date);
+  }
+
+  function historyMeta(filters) {
+    const c = copy();
+    return [
+      rangeSummary(c.year, filters.yearFrom, filters.yearTo),
+      rangeSummary(c.mileage, filters.mileageFrom, filters.mileageTo, "km"),
+      filters.countries?.length ? `${c.countries}: ${filters.countries.join(", ")}` : "",
+    ].filter(Boolean);
+  }
+
+  function renderHistory() {
+    const c = copy();
+    historyCount.textContent = `${marketHistory.length} / ${HISTORY_LIMIT}`;
+    if (!marketHistory.length) {
+      historyList.innerHTML = `<p class="mobileMarketHistoryEmpty">${escapeMarketHtml(c.historyEmpty)}</p>`;
+      return;
+    }
+
+    historyList.innerHTML = marketHistory.map((entry) => {
+      const title = [entry.filters.brand, entry.filters.model, entry.filters.version].filter(Boolean).join(" ");
+      const meta = historyMeta(entry.filters);
+      const ready = entry.listings.length >= 3;
+      const status = ready
+        ? c.historyReady.replace("{count}", String(entry.listings.length))
+        : c.historyWaiting;
+      return `
+        <article class="mobileMarketHistoryItem${ready ? " isReady" : ""}">
+          <div class="mobileMarketHistoryMain">
+            <div class="mobileMarketHistoryTitleRow">
+              <strong>${escapeMarketHtml(title)}</strong>
+              <time datetime="${escapeMarketHtml(entry.updatedAt)}">${escapeMarketHtml(formatHistoryDate(entry.updatedAt))}</time>
+            </div>
+            ${meta.length ? `<div class="mobileMarketHistoryMeta">${meta.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}</div>` : ""}
+            <span class="mobileMarketHistoryStatus">${escapeMarketHtml(status)}</span>
+          </div>
+          <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
+        </article>`;
+    }).join("");
+  }
+
+  function setElementValue(selector, value) {
+    const element = document.querySelector(selector);
+    if (element) element.value = value || "";
+  }
+
+  function setHistoryCheckboxes(selector, values) {
+    const selected = new Set(Array.isArray(values) ? values : []);
+    document.querySelectorAll(selector).forEach((input) => {
+      input.checked = selected.has(input.value);
+    });
+  }
+
+  function restoreManualFilters(filters) {
+    const valueSelectors = {
+      brand: "[data-mobile-brand]",
+      model: "[data-mobile-model]",
+      version: "[data-mobile-version]",
+      fuel: "[data-mobile-fuel]",
+      body: "[data-mobile-body]",
+      mileageFrom: "[data-mobile-mileage-from]",
+      mileageTo: "[data-mobile-mileage-to]",
+      yearFrom: "[data-mobile-year-from]",
+      yearTo: "[data-mobile-year-to]",
+      displacementFrom: "[data-mobile-displacement-from]",
+      displacementTo: "[data-mobile-displacement-to]",
+      powerFrom: "[data-mobile-power-from]",
+      powerTo: "[data-mobile-power-to]",
+      vat: "[data-mobile-vat]",
+      seller: "[data-mobile-seller]",
+      damagedVehicles: "[data-mobile-damaged-vehicles]",
+    };
+    Object.entries(valueSelectors).forEach(([key, selector]) => setElementValue(selector, filters[key]));
+    document.querySelectorAll("[data-mobile-drive]").forEach((input) => {
+      input.checked = input.value === (filters.drive || "any");
+    });
+    document.querySelectorAll("[data-mobile-gearbox]").forEach((input) => {
+      input.checked = input.value === (filters.gearbox || "any");
+    });
+    setHistoryCheckboxes("[data-mobile-country]", filters.countries?.length ? filters.countries : ["DE"]);
+    setHistoryCheckboxes("[data-mobile-interior-material]", filters.interiorMaterials);
+    setHistoryCheckboxes("[data-mobile-exterior-color]", filters.exteriorColors);
+    setHistoryCheckboxes("[data-mobile-interior-color]", filters.interiorColors);
+    const booleanSelectors = {
+      plugin: "[data-mobile-plugin]",
+      matte: "[data-mobile-matte]",
+      metallic: "[data-mobile-metallic]",
+      nonSmoking: "[data-mobile-non-smoking]",
+    };
+    Object.entries(booleanSelectors).forEach(([key, selector]) => {
+      const input = document.querySelector(selector);
+      if (input) input.checked = key === "plugin" ? filters[key] === "yes" : Boolean(filters[key]);
+    });
+    if (typeof renderManualOptions === "function") renderManualOptions(true);
+  }
+
+  function saveCurrentHistory() {
+    const c = copy();
+    try {
+      const filters = readManualFields();
+      if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
+      const searchUrl = buildMobileDeSearchUrl(filters);
+      const signature = filterSignature(filters);
+      const existing = historyEntryForFilters(filters);
+      const matchingImport = importedDataset?.filterKey === signature ? importedDataset : null;
+      const now = new Date().toISOString();
+      const entry = {
+        id: existing?.id || `${Date.now()}-${seededNumber(signature).toString(16)}`,
+        filters,
+        signature,
+        listings: matchingImport?.listings || existing?.listings || [],
+        sourceFileName: matchingImport?.fileName || existing?.sourceFileName || "",
+        searchUrl,
+        createdAt: existing?.createdAt || now,
+        updatedAt: now,
+      };
+      const nextHistory = [entry, ...marketHistory.filter((item) => item.id !== entry.id)].slice(0, HISTORY_LIMIT);
+      if (!storeMarketHistory(nextHistory)) return;
+      renderHistory();
+      setAnalysisStatus(c.saveSuccess);
+    } catch (error) {
+      setAnalysisStatus(error.message || c.missingVehicle, true);
+    }
+  }
+
+  function updateHistoryListings(historyId, filters, listings, sourceFileName) {
+    const historyEntry = marketHistory.find((entry) => entry.id === historyId) || historyEntryForFilters(filters);
+    if (!historyEntry) return;
+    const updatedEntry = {
+      ...historyEntry,
+      listings,
+      sourceFileName,
+      updatedAt: new Date().toISOString(),
+    };
+    storeMarketHistory([updatedEntry, ...marketHistory.filter((entry) => entry.id !== updatedEntry.id)]);
+    renderHistory();
+  }
+
+  function openHistoryAnalysis(historyId) {
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry) return;
+    restoreManualFilters(entry.filters);
+    const searchUrl = buildMobileDeSearchUrl(entry.filters);
+    importedDataset = entry.listings.length >= 3 ? {
+      listings: entry.listings,
+      fileName: entry.sourceFileName,
+      filterKey: entry.signature,
+    } : null;
+    activeAnalysis = {
+      filters: entry.filters,
+      listings: entry.listings,
+      searchUrl,
+      providerId: entry.listings.length >= 3 ? "history" : "empty",
+      sourceFileName: entry.sourceFileName,
+      historyId: entry.id,
+    };
+    renderAnalysis();
+    manualView.hidden = true;
+    analysisView.hidden = false;
+    setAnalysisStatus("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function csvDelimiter(text) {
@@ -388,7 +621,7 @@
     if (!activeAnalysis) return;
     const c = copy();
     const { filters, listings, searchUrl, providerId, sourceFileName } = activeAnalysis;
-    const imported = providerId === "import";
+    const stored = providerId === "import" || providerId === "history";
     const hasListings = listings.length >= 3;
     const summary = filterSummary(filters);
     let marketContent = `
@@ -493,14 +726,14 @@
           <div class="mobileMarketImportCopy">
             <strong>${escapeMarketHtml(c.importHeading)}</strong>
             <span>${escapeMarketHtml(c.importDescription)}</span>
-            ${imported ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName || "—"))}</small>` : ""}
+            ${stored ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName || "—"))}</small>` : ""}
           </div>
           <div class="mobileMarketImportActions">
             <label class="mobileMarketImportButton">
               <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
               <span>${escapeMarketHtml(c.importButton)}</span>
             </label>
-            ${imported ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
+            ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
           </div>
         </section>
 
@@ -518,19 +751,26 @@
       const filters = readManualFields();
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
-      if (importedDataset?.filterKey !== vehicleFilterKey(filters)) importedDataset = null;
+      const signature = filterSignature(filters);
+      if (importedDataset?.filterKey !== signature) importedDataset = null;
+      const savedEntry = historyEntryForFilters(filters);
+      const savedListings = savedEntry?.listings?.length >= 3 ? savedEntry.listings : null;
       setAnalysisStatus(c.preparing);
       analysisOpen.disabled = true;
-      const provider = importedDataset ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
-      const rawListings = importedDataset?.listings || (provider ? await provider.getListings({ filters, searchUrl }) : []);
+      const provider = importedDataset || savedListings ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
+      const rawListings = importedDataset?.listings || savedListings || (provider ? await provider.getListings({ filters, searchUrl }) : []);
       const listings = normalizeListings(rawListings);
       activeAnalysis = {
         filters,
         listings,
         searchUrl,
-        providerId: importedDataset ? "import" : (provider?.id || "empty"),
-        sourceFileName: importedDataset?.fileName || "",
+        providerId: importedDataset ? "import" : (savedListings ? "history" : (provider?.id || "empty")),
+        sourceFileName: importedDataset?.fileName || savedEntry?.sourceFileName || "",
+        historyId: savedEntry?.id || "",
       };
+      if (savedEntry && listings.length >= 3 && savedEntry.listings.length < 3) {
+        updateHistoryListings(savedEntry.id, filters, listings, activeAnalysis.sourceFileName);
+      }
       renderAnalysis();
       manualView.hidden = true;
       analysisView.hidden = false;
@@ -555,6 +795,7 @@
       const value = c[node.dataset.marketI18n];
       if (value) node.textContent = value;
     });
+    renderHistory();
     renderAnalysis();
   }
 
@@ -568,7 +809,7 @@
       importedDataset = {
         listings,
         fileName: input.files[0].name,
-        filterKey: vehicleFilterKey(activeAnalysis.filters),
+        filterKey: filterSignature(activeAnalysis.filters),
       };
       activeAnalysis = {
         ...activeAnalysis,
@@ -576,6 +817,7 @@
         providerId: "import",
         sourceFileName: input.files[0].name,
       };
+      updateHistoryListings(activeAnalysis.historyId, activeAnalysis.filters, listings, input.files[0].name);
       setAnalysisStatus("");
       renderAnalysis();
     } catch (error) {
@@ -594,14 +836,21 @@
       providerId: "empty",
       sourceFileName: "",
     };
+    updateHistoryListings(activeAnalysis.historyId, activeAnalysis.filters, [], "");
     renderAnalysis();
   });
 
+  historySave.addEventListener("click", saveCurrentHistory);
+  historyList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-mobile-market-history-analysis]");
+    if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
+  });
   analysisOpen.addEventListener("click", openAnalysis);
   analysisBack.addEventListener("click", closeAnalysis);
   document.querySelectorAll("[data-lang-button]").forEach((button) => {
     button.addEventListener("click", () => requestAnimationFrame(renderMarketTranslations));
   });
 
+  marketHistory = loadMarketHistory();
   renderMarketTranslations();
 })();
