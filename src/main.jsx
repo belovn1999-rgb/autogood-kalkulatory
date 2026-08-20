@@ -692,12 +692,28 @@ function applyManualOverrides(calc, overrides, tabId) {
   };
 }
 
-function applyMarginAuctionPresentation(calc, state) {
+function applyFlexiblePresentation(calc, state, rate) {
   const options = normalizeMarginAuctionState(state);
-  const byId = new Map(calc.rows.map((item) => [item.id, item]));
+  const managedByCalculation = Boolean(calc.flexibleManaged);
+  const standardRows = calc.rows.map((item, index) => item.id ? item : { ...item, id: `standard-${index}` });
+  const customRows = managedByCalculation
+    ? []
+    : options.customRows.map((item) => marginAuctionCustomRow(item, rate, true));
+  const allRows = [...standardRows, ...customRows];
+  const excluded = new Set(options.excludedRowIds);
+  const visibleRows = allRows.filter((item) => !excluded.has(item.id));
+  const removedContribution = managedByCalculation
+    ? 0
+    : standardRows
+      .filter((item) => excluded.has(item.id))
+      .reduce((sum, item) => sum + rowContribution(item), 0);
+  const customContribution = managedByCalculation
+    ? 0
+    : customRows.reduce((sum, item) => sum + rowContribution(item), 0);
+  const byId = new Map(visibleRows.map((item) => [item.id, item]));
   const orderedIds = [
     ...options.rowOrder.filter((id) => byId.has(id)),
-    ...calc.rows.map((item) => item.id).filter((id) => !options.rowOrder.includes(id)),
+    ...visibleRows.map((item) => item.id).filter((id) => !options.rowOrder.includes(id)),
   ];
   const rows = orderedIds.map((id) => {
     const item = byId.get(id);
@@ -709,7 +725,11 @@ function applyMarginAuctionPresentation(calc, state) {
       valuePrefix: Object.prototype.hasOwnProperty.call(edit, "valuePrefix") ? edit.valuePrefix : item.valuePrefix,
     };
   });
-  return { ...calc, rows };
+  return {
+    ...calc,
+    total: managedByCalculation ? calc.total : calc.total - removedContribution + customContribution,
+    rows,
+  };
 }
 
 function formatHistoryDate(value, lang) {
@@ -1227,14 +1247,14 @@ function MarginAuctionBreakdown({ c, composition }) {
   );
 }
 
-function MarginAuctionResultLines({ c, rows, manualOverrides, editingOverride, onStartAmountEdit, onAmountChange, onFinishAmountEdit, editingText, onStartTextEdit, onTextChange, onFinishTextEdit, onRemove, draggedRowId, onDragStart, onDragEnd, onDrop }) {
+function MarginAuctionResultLines({ c, tabId, rows, manualOverrides, editingOverride, onStartAmountEdit, onAmountChange, onFinishAmountEdit, editingText, onStartTextEdit, onTextChange, onFinishTextEdit, onRemove, draggedRowId, onDragStart, onDragEnd, onDrop }) {
   return (
     <div className="resultsList marginAuctionResultsList">
       {rows.map((item) => {
-        const overrideKey = rowOverrideKey(MARGIN_AUCTION_TAB_ID, item.id);
+        const overrideKey = rowOverrideKey(tabId, item.id);
         const isAmountEditing = editingOverride === overrideKey;
         const textEditing = editingText?.id === item.id ? editingText.field : "";
-        const isPrimary = item.id === "car";
+        const isPrimary = item.id === "car" || item.id === "standard-0";
 
         return (
           <div
@@ -1792,6 +1812,7 @@ function calculateMarginAuction(values, rate, exciseRate, financed, lang, state)
   return {
     total,
     rows,
+    flexibleManaged: true,
     composition: {
       vehicle: carPln,
       taxes: excise + vat,
@@ -2191,12 +2212,12 @@ function App() {
   const isFinalBalance = activeTab === FINAL_TAB_ID;
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
   const baseCalc = useMemo(
-    () => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect, activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined),
+    () => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect, marginAuctionState),
     [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect, marginAuctionState]
   );
   const presentedCalc = useMemo(
-    () => activeTab === MARGIN_AUCTION_TAB_ID ? applyMarginAuctionPresentation(baseCalc, marginAuctionState) : baseCalc,
-    [activeTab, baseCalc, marginAuctionState]
+    () => isFinalBalance ? baseCalc : applyFlexiblePresentation(baseCalc, marginAuctionState, n(rate) || DEFAULT_RATE),
+    [baseCalc, isFinalBalance, marginAuctionState, rate]
   );
   const calc = useMemo(
     () => applyManualOverrides(presentedCalc, manualOverrides, activeTab),
@@ -2473,7 +2494,7 @@ function App() {
       dealerDirect: activeTab === 3 && dealerDirect,
       values: normalizeHistoryValues(values),
       manualOverrides,
-      marginAuctionState: activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined,
+      marginAuctionState,
       total: calc.total,
       title: activeTabName,
     };
@@ -2515,7 +2536,7 @@ function App() {
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
-    setMarginAuctionState(nextTab === MARGIN_AUCTION_TAB_ID ? normalizeMarginAuctionState(item.marginAuctionState) : initialMarginAuctionState());
+    setMarginAuctionState(normalizeMarginAuctionState(item.marginAuctionState));
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
@@ -2821,7 +2842,7 @@ function App() {
             )
           ))}
 
-          {activeTab === MARGIN_AUCTION_TAB_ID && (
+          {!isFinalBalance && (
             <MarginAuctionWorkbench
               c={c}
               draft={marginAuctionDraft}
@@ -2850,78 +2871,28 @@ function App() {
           <img className="resultCornerLogo" src="./assets/ag-opt.svg" alt="AUTOGOOD" />
           <h2 className="calcEyebrow">{c.results} — {activeTabName}</h2>
 
-          {activeTab === MARGIN_AUCTION_TAB_ID ? (
-            <MarginAuctionResultLines
-              c={c}
-              rows={calc.rows}
-              manualOverrides={manualOverrides}
-              editingOverride={editingOverride}
-              onStartAmountEdit={startManualOverride}
-              onAmountChange={setManualOverride}
-              onFinishAmountEdit={() => setEditingOverride("")}
-              editingText={editingMarginAuctionText}
-              onStartTextEdit={(id, field) => setEditingMarginAuctionText({ id, field })}
-              onTextChange={setMarginAuctionText}
-              onFinishTextEdit={() => setEditingMarginAuctionText(null)}
-              onRemove={removeMarginAuctionRow}
-              draggedRowId={draggedMarginAuctionRow}
-              onDragStart={setDraggedMarginAuctionRow}
-              onDragEnd={() => setDraggedMarginAuctionRow("")}
-              onDrop={(targetId) => {
-                moveMarginAuctionRow(draggedMarginAuctionRow, targetId);
-                setDraggedMarginAuctionRow("");
-              }}
-            />
-          ) : (
-            <div className="resultsList">
-              {calc.rows.map((item, index) => {
-                const overrideKey = rowOverrideKey(activeTab, index);
-                const isEditing = editingOverride === overrideKey;
-                const isPrimary = index === 0;
-
-                return (
-                  <div key={`${item.label}-${index}`} className={`resultLine ${isPrimary ? "isPrimaryLine" : ""}`}>
-                    <span className="resultLineMarker" aria-hidden="true">{isPrimary ? "" : "+"}</span>
-                    <div className="resultLineBody">
-                      <span className="resultLineLabel">{item.label}</span>
-                      {item.sub && <div className="resultLineSub">{item.sub}</div>}
-                    </div>
-                    <span className="resultLinePrefix">{item.valuePrefix}</span>
-                    {isEditing ? (
-                      <input
-                        className="resultLineAmount resultLineAmountInput"
-                        autoFocus
-                        inputMode="decimal"
-                        type="text"
-                        value={manualOverrides[overrideKey] ?? rowEditValue(item)}
-                        onChange={(event) => setManualOverride(overrideKey, event.target.value)}
-                        onBlur={() => setEditingOverride("")}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
-                        }}
-                      />
-                    ) : (
-                      <strong
-                        className="resultLineAmount resultLineAmountEdit"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => startManualOverride(overrideKey, item)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            startManualOverride(overrideKey, item);
-                          }
-                        }}
-                      >
-                        {item.exact ? moneyExact(item.value) : money(item.value)}
-                      </strong>
-                    )}
-                    <span className="resultLineTag">{item.tag}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <MarginAuctionResultLines
+            c={c}
+            tabId={activeTab}
+            rows={calc.rows}
+            manualOverrides={manualOverrides}
+            editingOverride={editingOverride}
+            onStartAmountEdit={startManualOverride}
+            onAmountChange={setManualOverride}
+            onFinishAmountEdit={() => setEditingOverride("")}
+            editingText={editingMarginAuctionText}
+            onStartTextEdit={(id, field) => setEditingMarginAuctionText({ id, field })}
+            onTextChange={setMarginAuctionText}
+            onFinishTextEdit={() => setEditingMarginAuctionText(null)}
+            onRemove={removeMarginAuctionRow}
+            draggedRowId={draggedMarginAuctionRow}
+            onDragStart={setDraggedMarginAuctionRow}
+            onDragEnd={() => setDraggedMarginAuctionRow("")}
+            onDrop={(targetId) => {
+              moveMarginAuctionRow(draggedMarginAuctionRow, targetId);
+              setDraggedMarginAuctionRow("");
+            }}
+          />
 
           <div className="totalBar">
             <div className="totalBarLeft">

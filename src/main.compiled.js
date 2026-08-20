@@ -792,10 +792,21 @@ function applyManualOverrides(calc, overrides, tabId) {
     total: hasOverrides ? rows.reduce((sum, item) => sum + rowContribution(item), 0) : calc.total
   };
 }
-function applyMarginAuctionPresentation(calc, state) {
+function applyFlexiblePresentation(calc, state, rate) {
   const options = normalizeMarginAuctionState(state);
-  const byId = new Map(calc.rows.map(item => [item.id, item]));
-  const orderedIds = [...options.rowOrder.filter(id => byId.has(id)), ...calc.rows.map(item => item.id).filter(id => !options.rowOrder.includes(id))];
+  const managedByCalculation = Boolean(calc.flexibleManaged);
+  const standardRows = calc.rows.map((item, index) => item.id ? item : {
+    ...item,
+    id: `standard-${index}`
+  });
+  const customRows = managedByCalculation ? [] : options.customRows.map(item => marginAuctionCustomRow(item, rate, true));
+  const allRows = [...standardRows, ...customRows];
+  const excluded = new Set(options.excludedRowIds);
+  const visibleRows = allRows.filter(item => !excluded.has(item.id));
+  const removedContribution = managedByCalculation ? 0 : standardRows.filter(item => excluded.has(item.id)).reduce((sum, item) => sum + rowContribution(item), 0);
+  const customContribution = managedByCalculation ? 0 : customRows.reduce((sum, item) => sum + rowContribution(item), 0);
+  const byId = new Map(visibleRows.map(item => [item.id, item]));
+  const orderedIds = [...options.rowOrder.filter(id => byId.has(id)), ...visibleRows.map(item => item.id).filter(id => !options.rowOrder.includes(id))];
   const rows = orderedIds.map(id => {
     const item = byId.get(id);
     const edit = options.rowEdits[id] || {};
@@ -808,6 +819,7 @@ function applyMarginAuctionPresentation(calc, state) {
   });
   return {
     ...calc,
+    total: managedByCalculation ? calc.total : calc.total - removedContribution + customContribution,
     rows
   };
 }
@@ -1419,6 +1431,7 @@ function MarginAuctionBreakdown({
 }
 function MarginAuctionResultLines({
   c,
+  tabId,
   rows,
   manualOverrides,
   editingOverride,
@@ -1438,10 +1451,10 @@ function MarginAuctionResultLines({
   return /*#__PURE__*/React.createElement("div", {
     className: "resultsList marginAuctionResultsList"
   }, rows.map(item => {
-    const overrideKey = rowOverrideKey(MARGIN_AUCTION_TAB_ID, item.id);
+    const overrideKey = rowOverrideKey(tabId, item.id);
     const isAmountEditing = editingOverride === overrideKey;
     const textEditing = editingText?.id === item.id ? editingText.field : "";
-    const isPrimary = item.id === "car";
+    const isPrimary = item.id === "car" || item.id === "standard-0";
     return /*#__PURE__*/React.createElement("div", {
       key: item.id,
       className: `resultLine marginAuctionResultLine ${isPrimary ? "isPrimaryLine" : ""} ${draggedRowId === item.id ? "isDragging" : ""}`,
@@ -1962,6 +1975,7 @@ function calculateMarginAuction(values, rate, exciseRate, financed, lang, state)
   return {
     total,
     rows,
+    flexibleManaged: true,
     composition: {
       vehicle: carPln,
       taxes: excise + vat,
@@ -2321,8 +2335,8 @@ function App() {
   const tab = tabs[activeTab];
   const isFinalBalance = activeTab === FINAL_TAB_ID;
   const exciseRate = engineTypes[engineIndex]?.rate ?? 0;
-  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect, activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined), [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect, marginAuctionState]);
-  const presentedCalc = useMemo(() => activeTab === MARGIN_AUCTION_TAB_ID ? applyMarginAuctionPresentation(baseCalc, marginAuctionState) : baseCalc, [activeTab, baseCalc, marginAuctionState]);
+  const baseCalc = useMemo(() => calculate(activeTab, values, n(rate), exciseRate, financed, safeLang, dealerDirect, marginAuctionState), [activeTab, values, rate, exciseRate, financed, safeLang, dealerDirect, marginAuctionState]);
+  const presentedCalc = useMemo(() => isFinalBalance ? baseCalc : applyFlexiblePresentation(baseCalc, marginAuctionState, n(rate) || DEFAULT_RATE), [baseCalc, isFinalBalance, marginAuctionState, rate]);
   const calc = useMemo(() => applyManualOverrides(presentedCalc, manualOverrides, activeTab), [presentedCalc, manualOverrides, activeTab]);
   const finalCalc = useMemo(() => calculateFinalBalance(finalItems), [finalItems]);
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
@@ -2593,7 +2607,7 @@ function App() {
       dealerDirect: activeTab === 3 && dealerDirect,
       values: normalizeHistoryValues(values),
       manualOverrides,
-      marginAuctionState: activeTab === MARGIN_AUCTION_TAB_ID ? marginAuctionState : undefined,
+      marginAuctionState,
       total: calc.total,
       title: activeTabName
     };
@@ -2635,7 +2649,7 @@ function App() {
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
-    setMarginAuctionState(nextTab === MARGIN_AUCTION_TAB_ID ? normalizeMarginAuctionState(item.marginAuctionState) : initialMarginAuctionState());
+    setMarginAuctionState(normalizeMarginAuctionState(item.marginAuctionState));
     setMarginAuctionDraft({
       label: "",
       amount: "",
@@ -2931,7 +2945,7 @@ function App() {
     value: values[field.key] || "",
     onChange: value => setField(field.key, value),
     suffix: field.currency
-  })), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionWorkbench, {
+  })), !isFinalBalance && /*#__PURE__*/React.createElement(MarginAuctionWorkbench, {
     c: c,
     draft: marginAuctionDraft,
     onDraftChange: setMarginAuctionDraft,
@@ -2954,8 +2968,9 @@ function App() {
     alt: "AUTOGOOD"
   }), /*#__PURE__*/React.createElement("h2", {
     className: "calcEyebrow"
-  }, c.results, " \u2014 ", activeTabName), activeTab === MARGIN_AUCTION_TAB_ID ? /*#__PURE__*/React.createElement(MarginAuctionResultLines, {
+  }, c.results, " \u2014 ", activeTabName), /*#__PURE__*/React.createElement(MarginAuctionResultLines, {
     c: c,
+    tabId: activeTab,
     rows: calc.rows,
     manualOverrides: manualOverrides,
     editingOverride: editingOverride,
@@ -2977,52 +2992,7 @@ function App() {
       moveMarginAuctionRow(draggedMarginAuctionRow, targetId);
       setDraggedMarginAuctionRow("");
     }
-  }) : /*#__PURE__*/React.createElement("div", {
-    className: "resultsList"
-  }, calc.rows.map((item, index) => {
-    const overrideKey = rowOverrideKey(activeTab, index);
-    const isEditing = editingOverride === overrideKey;
-    const isPrimary = index === 0;
-    return /*#__PURE__*/React.createElement("div", {
-      key: `${item.label}-${index}`,
-      className: `resultLine ${isPrimary ? "isPrimaryLine" : ""}`
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "resultLineMarker",
-      "aria-hidden": "true"
-    }, isPrimary ? "" : "+"), /*#__PURE__*/React.createElement("div", {
-      className: "resultLineBody"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "resultLineLabel"
-    }, item.label), item.sub && /*#__PURE__*/React.createElement("div", {
-      className: "resultLineSub"
-    }, item.sub)), /*#__PURE__*/React.createElement("span", {
-      className: "resultLinePrefix"
-    }, item.valuePrefix), isEditing ? /*#__PURE__*/React.createElement("input", {
-      className: "resultLineAmount resultLineAmountInput",
-      autoFocus: true,
-      inputMode: "decimal",
-      type: "text",
-      value: manualOverrides[overrideKey] ?? rowEditValue(item),
-      onChange: event => setManualOverride(overrideKey, event.target.value),
-      onBlur: () => setEditingOverride(""),
-      onKeyDown: event => {
-        if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
-      }
-    }) : /*#__PURE__*/React.createElement("strong", {
-      className: "resultLineAmount resultLineAmountEdit",
-      role: "button",
-      tabIndex: 0,
-      onClick: () => startManualOverride(overrideKey, item),
-      onKeyDown: event => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          startManualOverride(overrideKey, item);
-        }
-      }
-    }, item.exact ? moneyExact(item.value) : money(item.value)), /*#__PURE__*/React.createElement("span", {
-      className: "resultLineTag"
-    }, item.tag));
-  })), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "totalBar"
   }, /*#__PURE__*/React.createElement("div", {
     className: "totalBarLeft"
