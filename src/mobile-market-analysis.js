@@ -14,6 +14,15 @@
       heading: "Analiza rynku",
       testLabel: "Dane testowe",
       testDescription: "Podgląd działania wykresu przed podłączeniem oficjalnego źródła danych.",
+      importedLabel: "Dane importowane",
+      importedDescription: "Wykres przygotowany z wczytanych ofert i ich bezpośrednich linków.",
+      importHeading: "Wczytaj realne oferty",
+      importDescription: "JSON lub CSV: wymagane kolumny price i url; title, year oraz mileage są opcjonalne. Plik pozostaje tylko w tej przeglądarce.",
+      importButton: "Importuj JSON / CSV",
+      clearImport: "Wróć do danych testowych",
+      importedFile: "Wczytano {count} ofert z pliku {file}.",
+      importInvalid: "Plik musi zawierać co najmniej 3 poprawne oferty z ceną i linkiem.",
+      importReadError: "Nie udało się odczytać pliku JSON / CSV.",
       chartTitle: "Rozkład cen ofert",
       lowMarket: "Dół rynku",
       middleMarket: "Środek rynku",
@@ -43,6 +52,15 @@
       heading: "Анализ рынка",
       testLabel: "Тестовые данные",
       testDescription: "Проверка работы графика до подключения официального источника данных.",
+      importedLabel: "Импортированные данные",
+      importedDescription: "График построен по загруженным объявлениям и их прямым ссылкам.",
+      importHeading: "Загрузить реальные объявления",
+      importDescription: "JSON или CSV: обязательны поля price и url; title, year и mileage необязательны. Файл остаётся только в этом браузере.",
+      importButton: "Импортировать JSON / CSV",
+      clearImport: "Вернуться к тестовым данным",
+      importedFile: "Загружено объявлений: {count}. Файл: {file}.",
+      importInvalid: "Файл должен содержать минимум 3 корректных объявления с ценой и ссылкой.",
+      importReadError: "Не удалось прочитать файл JSON / CSV.",
       chartTitle: "Распределение цен объявлений",
       lowMarket: "Низ рынка",
       middleMarket: "Середина рынка",
@@ -74,6 +92,7 @@
   ];
 
   let activeAnalysis = null;
+  let importedDataset = null;
 
   function currentLanguage() {
     return document.documentElement.lang === "ru" ? "ru" : "pl";
@@ -81,6 +100,10 @@
 
   function copy() {
     return marketCopy[currentLanguage()];
+  }
+
+  function vehicleFilterKey(filters) {
+    return [filters.brand, filters.model, filters.version].map((value) => String(value || "").trim()).join("|");
   }
 
   function escapeMarketHtml(value) {
@@ -141,9 +164,122 @@
     },
   };
 
+  function parseMarketNumber(value) {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    const compact = String(value ?? "").trim().replace(/\s+/g, "").replace(/[^\d.,-]/g, "");
+    if (!compact) return null;
+    const lastComma = compact.lastIndexOf(",");
+    const lastDot = compact.lastIndexOf(".");
+    const decimalIndex = Math.max(lastComma, lastDot);
+    const decimalDigits = decimalIndex >= 0 ? compact.length - decimalIndex - 1 : 0;
+    let normalized;
+    if (decimalIndex >= 0 && decimalDigits > 0 && decimalDigits <= 2) {
+      normalized = `${compact.slice(0, decimalIndex).replace(/[.,]/g, "")}.${compact.slice(decimalIndex + 1)}`;
+    } else {
+      normalized = compact.replace(/[.,]/g, "");
+    }
+    const number = Number(normalized);
+    return Number.isFinite(number) && number >= 0 ? number : null;
+  }
+
+  function listingValue(row, aliases) {
+    const entries = Object.entries(row || {});
+    for (const alias of aliases) {
+      const match = entries.find(([key]) => String(key).trim().toLowerCase() === alias);
+      if (match && match[1] !== "") return match[1];
+    }
+    return "";
+  }
+
+  function normalizeListing(row, index) {
+    const price = parseMarketNumber(listingValue(row, ["price", "price_eur", "cena", "preis"]));
+    const urlValue = listingValue(row, ["url", "link", "listing_url", "listingurl"]);
+    let url;
+    try {
+      url = new URL(String(urlValue || "").trim());
+      if (!/^https?:$/.test(url.protocol)) return null;
+    } catch {
+      return null;
+    }
+    if (!price || price <= 0) return null;
+    const yearMatch = String(listingValue(row, ["year", "registration_year", "first_registration", "rok"]) || "").match(/(?:19|20)\d{2}/);
+    const mileage = parseMarketNumber(listingValue(row, ["mileage", "mileage_km", "km", "przebieg"]));
+    const title = String(listingValue(row, ["title", "name", "model", "auto"]) || "").trim();
+    const id = String(listingValue(row, ["id", "listing_id", "ad_id"]) || url.searchParams.get("id") || `import-${index + 1}`);
+    return {
+      id,
+      title: title || `mobile.de · ${String(index + 1).padStart(2, "0")}`,
+      price: Math.round(price),
+      currency: "EUR",
+      year: yearMatch ? Number(yearMatch[0]) : null,
+      mileage: mileage === null ? null : Math.round(mileage),
+      url: url.toString(),
+    };
+  }
+
+  function csvDelimiter(text) {
+    const firstLine = String(text).split(/\r?\n/).find((line) => line.trim()) || "";
+    const candidates = [",", ";", "\t"];
+    return candidates.sort((left, right) => firstLine.split(right).length - firstLine.split(left).length)[0];
+  }
+
+  function parseCsv(text) {
+    const delimiter = csvDelimiter(text);
+    const rows = [];
+    let row = [];
+    let field = "";
+    let quoted = false;
+    for (let index = 0; index < text.length; index += 1) {
+      const character = text[index];
+      if (character === '"') {
+        if (quoted && text[index + 1] === '"') {
+          field += '"';
+          index += 1;
+        } else quoted = !quoted;
+      } else if (character === delimiter && !quoted) {
+        row.push(field.trim());
+        field = "";
+      } else if ((character === "\n" || character === "\r") && !quoted) {
+        if (character === "\r" && text[index + 1] === "\n") index += 1;
+        row.push(field.trim());
+        if (row.some(Boolean)) rows.push(row);
+        row = [];
+        field = "";
+      } else field += character;
+    }
+    row.push(field.trim());
+    if (row.some(Boolean)) rows.push(row);
+    if (rows.length < 2) return [];
+    const headers = rows[0].map((header) => header.trim().toLowerCase());
+    return rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] || ""])));
+  }
+
+  async function parseListingFile(file) {
+    if (file.size > 5 * 1024 * 1024) return [];
+    const text = (await file.text()).replace(/^\uFEFF/, "").trim();
+    if (!text) return [];
+    let rows;
+    if (file.name.toLowerCase().endsWith(".json") || /^[\[{]/.test(text)) {
+      const parsed = JSON.parse(text);
+      rows = Array.isArray(parsed) ? parsed : parsed.listings || parsed.results || parsed.items || [];
+    } else rows = parseCsv(text);
+    const seenUrls = new Set();
+    return (Array.isArray(rows) ? rows : [])
+      .map(normalizeListing)
+      .filter((listing) => listing && !seenUrls.has(listing.url) && seenUrls.add(listing.url));
+  }
+
   function selectedOptionText(selector) {
     const option = document.querySelector(`${selector} option:checked`);
-    return option?.value ? option.textContent.trim() : "";
+    if (option?.value) return option.textContent.trim();
+    const displaySelectors = {
+      "[data-mobile-fuel]": "[data-mobile-fuel-label]",
+      "[data-mobile-body]": "[data-mobile-body-label]",
+      "[data-mobile-vat]": "[data-mobile-vat-label]",
+      "[data-mobile-seller]": "[data-mobile-seller-label]",
+    };
+    const value = document.querySelector(selector)?.value;
+    return value ? document.querySelector(displaySelectors[selector])?.value.trim() || "" : "";
   }
 
   function checkedLabel(selector) {
@@ -240,7 +376,8 @@
   function renderAnalysis() {
     if (!activeAnalysis) return;
     const c = copy();
-    const { filters, listings, searchUrl } = activeAnalysis;
+    const { filters, listings, searchUrl, providerId, sourceFileName } = activeAnalysis;
+    const imported = providerId === "import";
     const statistics = marketStatistics(listings);
     const summary = filterSummary(filters);
     const p25Position = marketPosition(statistics.p25, statistics.min, statistics.max);
@@ -252,7 +389,11 @@
         const left = marketPosition(listing.price, statistics.min, statistics.max);
         const top = 34 + ((index % 5) * 29);
         const pointClass = marketClass(listing.price, statistics);
-        const label = `${listing.title}, ${formatMarketPrice(listing.price)}, ${listing.year}, ${listing.mileage} km. ${c.pointHint}`;
+        const details = [
+          listing.year,
+          Number.isFinite(listing.mileage) ? `${listing.mileage.toLocaleString(currentLanguage() === "ru" ? "ru-RU" : "pl-PL")} km` : "",
+        ].filter(Boolean).join(" · ");
+        const label = `${listing.title}, ${formatMarketPrice(listing.price)}${details ? `, ${details}` : ""}. ${c.pointHint}`;
         return `
           <a
             class="mobileMarketPoint ${pointClass}"
@@ -264,7 +405,7 @@
           >
             <span class="mobileMarketPointTooltip" aria-hidden="true">
               <strong>${escapeMarketHtml(formatMarketPrice(listing.price))}</strong>
-              <span>${escapeMarketHtml(`${listing.year} · ${listing.mileage.toLocaleString(currentLanguage() === "ru" ? "ru-RU" : "pl-PL")} km`)}</span>
+              ${details ? `<span>${escapeMarketHtml(details)}</span>` : ""}
             </span>
           </a>`;
       })
@@ -275,13 +416,28 @@
         <header class="mobileMarketAnalysisHead">
           <div>
             <h1>${escapeMarketHtml(c.heading)}</h1>
-            <p>${escapeMarketHtml(c.testDescription)}</p>
+            <p>${escapeMarketHtml(imported ? c.importedDescription : c.testDescription)}</p>
             <div class="mobileMarketFilterSummary">
               ${summary.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}
             </div>
           </div>
-          <span class="mobileMarketTestLabel">${escapeMarketHtml(c.testLabel)}</span>
+          <span class="mobileMarketTestLabel${imported ? " isImported" : ""}">${escapeMarketHtml(imported ? c.importedLabel : c.testLabel)}</span>
         </header>
+
+        <section class="mobileMarketImport" aria-label="${escapeMarketHtml(c.importHeading)}">
+          <div class="mobileMarketImportCopy">
+            <strong>${escapeMarketHtml(c.importHeading)}</strong>
+            <span>${escapeMarketHtml(c.importDescription)}</span>
+            ${imported ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName || "—"))}</small>` : ""}
+          </div>
+          <div class="mobileMarketImportActions">
+            <label class="mobileMarketImportButton">
+              <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
+              <span>${escapeMarketHtml(c.importButton)}</span>
+            </label>
+            ${imported ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
+          </div>
+        </section>
 
         <dl class="mobileMarketStats">
           ${statHtml(c.count, String(statistics.count))}
@@ -316,7 +472,7 @@
         </div>
 
         <footer class="mobileMarketNotice">
-          <p>${escapeMarketHtml(c.mockNotice)}</p>
+          <p>${escapeMarketHtml(imported ? c.importedDescription : c.mockNotice)}</p>
           <a class="mobileMarketSearchLink" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.openSearch)}</a>
         </footer>
       </article>`;
@@ -332,15 +488,22 @@
       const filters = readManualFields();
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
+      if (importedDataset?.filterKey !== vehicleFilterKey(filters)) importedDataset = null;
       setAnalysisStatus(c.preparing);
       analysisOpen.disabled = true;
-      const provider = window.AUTOGOOD_MOBILE_MARKET_PROVIDER || mockMarketProvider;
-      const rawListings = await provider.getListings({ filters, searchUrl });
+      const provider = importedDataset ? null : (window.AUTOGOOD_MOBILE_MARKET_PROVIDER || mockMarketProvider);
+      const rawListings = importedDataset?.listings || await provider.getListings({ filters, searchUrl });
       const listings = (Array.isArray(rawListings) ? rawListings : []).filter((listing) => (
         Number.isFinite(Number(listing?.price)) && Number(listing.price) > 0 && listing?.url
       )).map((listing) => ({ ...listing, price: Number(listing.price) }));
       if (listings.length < 3) throw new Error(c.invalidData);
-      activeAnalysis = { filters, listings, searchUrl, providerId: provider.id || "external" };
+      activeAnalysis = {
+        filters,
+        listings,
+        searchUrl,
+        providerId: importedDataset ? "import" : (provider.id || "external"),
+        sourceFileName: importedDataset?.fileName || "",
+      };
       renderAnalysis();
       manualView.hidden = true;
       analysisView.hidden = false;
@@ -367,6 +530,45 @@
     });
     renderAnalysis();
   }
+
+  analysisContent.addEventListener("change", async (event) => {
+    const input = event.target.closest("[data-mobile-market-file]");
+    if (!input?.files?.[0] || !activeAnalysis) return;
+    const c = copy();
+    try {
+      const listings = await parseListingFile(input.files[0]);
+      if (listings.length < 3) throw new Error(c.importInvalid);
+      importedDataset = {
+        listings,
+        fileName: input.files[0].name,
+        filterKey: vehicleFilterKey(activeAnalysis.filters),
+      };
+      activeAnalysis = {
+        ...activeAnalysis,
+        listings,
+        providerId: "import",
+        sourceFileName: input.files[0].name,
+      };
+      setAnalysisStatus("");
+      renderAnalysis();
+    } catch (error) {
+      setAnalysisStatus(error instanceof SyntaxError ? c.importReadError : (error.message || c.importReadError), true);
+      input.value = "";
+    }
+  });
+
+  analysisContent.addEventListener("click", (event) => {
+    const clearButton = event.target.closest("[data-mobile-market-import-clear]");
+    if (!clearButton || !activeAnalysis) return;
+    importedDataset = null;
+    activeAnalysis = {
+      ...activeAnalysis,
+      listings: createMockListings(activeAnalysis),
+      providerId: "mock",
+      sourceFileName: "",
+    };
+    renderAnalysis();
+  });
 
   analysisOpen.addEventListener("click", openAnalysis);
   analysisBack.addEventListener("click", closeAnalysis);
