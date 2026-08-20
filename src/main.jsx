@@ -1230,13 +1230,31 @@ function MarginAuctionBreakdown({ c, composition }) {
 
   if (total <= 0) return null;
 
+  const vehicleShare = (n(composition?.vehicle) / total) * 100;
+  const primaryShare = ((n(composition?.vehicle) + n(composition?.taxes)) / total) * 100;
+  const remainingShare = Math.max(0, 100 - primaryShare);
+  const remainingMidpoint = primaryShare + remainingShare / 2;
+  const formatShare = (value) => `${value.toFixed(value < 10 ? 1 : 0).replace(".", ",")}%`;
+
   return (
     <section className="marginAuctionBreakdown" aria-label={c.results}>
-      <div className="marginAuctionBreakdownBar" aria-hidden="true">
-        {categories.map((item) => {
-          const percentage = `${(item.value / total) * 100}%`;
-          return <span key={item.key} style={{ width: percentage, flexBasis: percentage, backgroundColor: item.color }} />;
-        })}
+      <div className="marginAuctionBreakdownChart">
+        <div className="marginAuctionBreakdownSummary" aria-hidden="true">
+          <span className="marginAuctionBreakdownSummaryPrimary" style={{ left: `${vehicleShare}%` }}>
+            {formatShare(primaryShare)}
+          </span>
+          {remainingShare > 0 && (
+            <span className="marginAuctionBreakdownSummaryRest" style={{ left: `${remainingMidpoint}%` }}>
+              {formatShare(remainingShare)}
+            </span>
+          )}
+        </div>
+        <div className="marginAuctionBreakdownBar" aria-hidden="true">
+          {categories.map((item) => {
+            const percentage = `${(item.value / total) * 100}%`;
+            return <span key={item.key} style={{ width: percentage, flexBasis: percentage, backgroundColor: item.color }} />;
+          })}
+        </div>
       </div>
       <div className="marginAuctionBreakdownLegend">
         {categories.map((item) => {

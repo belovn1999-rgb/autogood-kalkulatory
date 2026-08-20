@@ -1405,10 +1405,30 @@ function MarginAuctionBreakdown({
   })).filter(item => item.value > 0);
   const total = categories.reduce((sum, item) => sum + item.value, 0);
   if (total <= 0) return null;
+  const vehicleShare = n(composition?.vehicle) / total * 100;
+  const primaryShare = (n(composition?.vehicle) + n(composition?.taxes)) / total * 100;
+  const remainingShare = Math.max(0, 100 - primaryShare);
+  const remainingMidpoint = primaryShare + remainingShare / 2;
+  const formatShare = value => `${value.toFixed(value < 10 ? 1 : 0).replace(".", ",")}%`;
   return /*#__PURE__*/React.createElement("section", {
     className: "marginAuctionBreakdown",
     "aria-label": c.results
   }, /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionBreakdownChart"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "marginAuctionBreakdownSummary",
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "marginAuctionBreakdownSummaryPrimary",
+    style: {
+      left: `${vehicleShare}%`
+    }
+  }, formatShare(primaryShare)), remainingShare > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "marginAuctionBreakdownSummaryRest",
+    style: {
+      left: `${remainingMidpoint}%`
+    }
+  }, formatShare(remainingShare))), /*#__PURE__*/React.createElement("div", {
     className: "marginAuctionBreakdownBar",
     "aria-hidden": "true"
   }, categories.map(item => {
@@ -1421,7 +1441,7 @@ function MarginAuctionBreakdown({
         backgroundColor: item.color
       }
     });
-  })), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "marginAuctionBreakdownLegend"
   }, categories.map(item => {
     const percentage = item.value / total * 100;

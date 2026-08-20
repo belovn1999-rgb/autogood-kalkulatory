@@ -1962,11 +1962,44 @@ select {
   border-top: 1px solid var(--ag-line-150);
 }
 
+.marginAuctionBreakdownChart {
+  position: relative;
+  margin-top: 9px;
+  padding-top: 18px;
+}
+
+.marginAuctionBreakdownSummary {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 14px;
+  pointer-events: none;
+}
+
+.marginAuctionBreakdownSummary span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.marginAuctionBreakdownSummaryPrimary {
+  color: var(--ag-blue-700);
+}
+
+.marginAuctionBreakdownSummaryRest {
+  color: var(--ag-ink-600);
+}
+
 .marginAuctionBreakdownBar {
   display: flex;
   overflow: hidden;
   height: 12px;
-  margin-top: 9px;
   border-radius: 5px;
   background: var(--ag-line-150);
 }
