@@ -41,6 +41,14 @@ kanoniczny adres `fahrzeuge/details.html?id=...` albo lokalizowany adres kończ�
 numerycznym identyfikatorem ogłoszenia i `.html`. Link do ogólnego wyszukiwania nie
 tworzy punktu na wykresie.
 
+## Tryb testowy bez API
+
+Gdy nie ma importu ani podłączonego dostawcy danych, aplikacja pokazuje oznaczony
+„Dane testowe” podgląd wykresu i statystyk dla wybranych filtrów. Punkty w tym trybie
+nie są ofertami mobile.de, nie prowadzą do ogłoszeń i nie są zapisywane jako dane rynku
+w historii. Służą wyłącznie do sprawdzenia działania interfejsu. Import realnych ofert
+albo autoryzowane API zawsze mają pierwszeństwo i przywracają klikalne punkty.
+
 ## Podział rynku
 
 Cena rośnie od dołu do góry wykresu. Zielone tło i punkty oznaczają dół rynku,

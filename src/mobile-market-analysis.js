@@ -29,6 +29,10 @@
       heading: "Analiza rynku",
       waitingLabel: "Brak danych ofert",
       waitingDescription: "Wczytaj oferty z bezpośrednimi linkami mobile.de, aby zbudować analizę.",
+      demoLabel: "Dane testowe",
+      demoDescription: "Podgląd rozkładu cen dla wybranych filtrów. To nie są realne oferty mobile.de.",
+      demoPointHint: "Punkt testowy — nie prowadzi do ogłoszenia",
+      demoNotice: "Dane testowe służą wyłącznie do sprawdzenia wykresu. Przed analizą cen zaimportuj realne oferty lub podłącz API.",
       importedLabel: "Dane importowane",
       importedDescription: "Wykres przygotowany z wczytanych ofert i ich bezpośrednich linków.",
       importHeading: "Wczytaj realne oferty",
@@ -80,6 +84,10 @@
       heading: "Анализ рынка",
       waitingLabel: "Нет данных объявлений",
       waitingDescription: "Загрузите объявления с прямыми ссылками mobile.de, чтобы построить анализ.",
+      demoLabel: "Тестовые данные",
+      demoDescription: "Предварительный просмотр распределения цен для выбранных фильтров. Это не реальные объявления mobile.de.",
+      demoPointHint: "Тестовая точка — не ведёт к объявлению",
+      demoNotice: "Тестовые данные нужны только для проверки графика. Перед анализом цен импортируйте реальные объявления или подключите API.",
       importedLabel: "Импортированные данные",
       importedDescription: "График построен по загруженным объявлениям и их прямым ссылкам.",
       importHeading: "Загрузить реальные объявления",
@@ -219,6 +227,24 @@
     return (Array.isArray(rows) ? rows : [])
       .map(normalizeListing)
       .filter((listing) => listing && !seenUrls.has(listing.url) && seenUrls.add(listing.url));
+  }
+
+  function createDemoListings(filters) {
+    const vehicle = [filters.brand, filters.model, filters.version].filter(Boolean).join(" ");
+    const seed = seededNumber(`${vehicle}|${filters.yearFrom}|${filters.yearTo}|${filters.mileageFrom}|${filters.mileageTo}`);
+    const basePrice = 18000 + (seed % 52000);
+    const yearFrom = Number(filters.yearFrom) || 2019;
+    const yearTo = Number(filters.yearTo) || Math.max(yearFrom, 2024);
+    const priceMultipliers = [0.73, 0.78, 0.82, 0.86, 0.89, 0.92, 0.95, 0.97, 0.99, 1, 1.02, 1.04, 1.06, 1.08, 1.11, 1.14, 1.18, 1.23, 1.29, 1.36, 1.44];
+    return priceMultipliers.map((multiplier, index) => ({
+      id: `demo-${seed}-${index + 1}`,
+      title: `${vehicle} · demo ${String(index + 1).padStart(2, "0")}`,
+      price: Math.round((basePrice * multiplier) / 100) * 100,
+      currency: "EUR",
+      year: yearFrom + (seededNumber(`${seed}|year|${index}`) % (yearTo - yearFrom + 1)),
+      mileage: 20000 + (seededNumber(`${seed}|mileage|${index}`) % 160000),
+      isDemo: true,
+    }));
   }
 
   function loadMarketHistory() {
@@ -429,9 +455,9 @@
     } : null;
     activeAnalysis = {
       filters: entry.filters,
-      listings: entry.listings,
+      listings: entry.listings.length >= 3 ? entry.listings : createDemoListings(entry.filters),
       searchUrl,
-      providerId: entry.listings.length >= 3 ? "history" : "empty",
+      providerId: entry.listings.length >= 3 ? "history" : "demo",
       sourceFileName: entry.sourceFileName,
       historyId: entry.id,
     };
@@ -647,6 +673,7 @@
     const c = copy();
     const { filters, listings, searchUrl, providerId, sourceFileName } = activeAnalysis;
     const stored = providerId === "import" || providerId === "history";
+    const isDemo = providerId === "demo";
     const hasListings = listings.length >= 3;
     const summary = filterSummary(filters);
     let marketContent = `
@@ -674,21 +701,17 @@
             Number.isFinite(listing.mileage) ? `${listing.mileage.toLocaleString(currentLanguage() === "ru" ? "ru-RU" : "pl-PL")} km` : "",
           ].filter(Boolean).join(" · ");
           const tooltipDetails = [listing.title, secondaryDetails].filter(Boolean).join(" · ");
-          const label = `${listing.title}, ${formatMarketPrice(listing.price)}${secondaryDetails ? `, ${secondaryDetails}` : ""}. ${c.pointHint}`;
-          return `
-            <a
-              class="mobileMarketPoint ${pointClass}${tooltipClass}"
-              href="${escapeMarketHtml(listing.url)}"
-              target="_blank"
-              rel="noopener"
-              aria-label="${escapeMarketHtml(label)}"
-              style="left:${left}%;top:${top}%"
-            >
+          const pointHint = listing.isDemo ? c.demoPointHint : c.pointHint;
+          const label = `${listing.title}, ${formatMarketPrice(listing.price)}${secondaryDetails ? `, ${secondaryDetails}` : ""}. ${pointHint}`;
+          const tooltip = `
               <span class="mobileMarketPointTooltip" aria-hidden="true">
                 <strong>${escapeMarketHtml(formatMarketPrice(listing.price))}</strong>
                 ${tooltipDetails ? `<span>${escapeMarketHtml(tooltipDetails)}</span>` : ""}
-              </span>
-            </a>`;
+              </span>`;
+          if (listing.isDemo) {
+            return `<span class="mobileMarketPoint isDemo ${pointClass}${tooltipClass}" role="img" aria-label="${escapeMarketHtml(label)}" style="left:${left}%;top:${top}%">${tooltip}</span>`;
+          }
+          return `<a class="mobileMarketPoint ${pointClass}${tooltipClass}" href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener" aria-label="${escapeMarketHtml(label)}" style="left:${left}%;top:${top}%">${tooltip}</a>`;
         })
         .join("");
 
@@ -729,7 +752,7 @@
         </div>
 
         <footer class="mobileMarketNotice">
-          <p>${escapeMarketHtml(c.directNotice)}</p>
+          <p>${escapeMarketHtml(isDemo ? c.demoNotice : c.directNotice)}</p>
           <a class="mobileMarketSearchLink" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.openSearch)}</a>
         </footer>`;
     }
@@ -739,12 +762,12 @@
         <header class="mobileMarketAnalysisHead">
           <div>
             <h1>${escapeMarketHtml(c.heading)}</h1>
-            <p>${escapeMarketHtml(hasListings ? c.importedDescription : c.waitingDescription)}</p>
+            <p>${escapeMarketHtml(isDemo ? c.demoDescription : (hasListings ? c.importedDescription : c.waitingDescription))}</p>
             <div class="mobileMarketFilterSummary">
               ${summary.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}
             </div>
           </div>
-          <span class="mobileMarketTestLabel${hasListings ? " isImported" : ""}">${escapeMarketHtml(hasListings ? c.importedLabel : c.waitingLabel)}</span>
+          <span class="mobileMarketTestLabel${isDemo ? " isDemo" : (hasListings ? " isImported" : "")}">${escapeMarketHtml(isDemo ? c.demoLabel : (hasListings ? c.importedLabel : c.waitingLabel))}</span>
         </header>
 
         <section class="mobileMarketImport" aria-label="${escapeMarketHtml(c.importHeading)}">
@@ -784,12 +807,14 @@
       analysisOpen.disabled = true;
       const provider = importedDataset || savedListings ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
       const rawListings = importedDataset?.listings || savedListings || (provider ? await provider.getListings({ filters, searchUrl }) : []);
-      const listings = normalizeListings(rawListings);
+      const normalizedListings = normalizeListings(rawListings);
+      const useDemo = !provider && !importedDataset && !savedListings;
+      const listings = useDemo ? createDemoListings(filters) : normalizedListings;
       activeAnalysis = {
         filters,
         listings,
         searchUrl,
-        providerId: importedDataset ? "import" : (savedListings ? "history" : (provider?.id || "empty")),
+        providerId: importedDataset ? "import" : (savedListings ? "history" : (useDemo ? "demo" : (provider?.id || "empty"))),
         sourceFileName: importedDataset?.fileName || savedEntry?.sourceFileName || "",
         historyId: savedEntry?.id || "",
       };
@@ -857,8 +882,8 @@
     importedDataset = null;
     activeAnalysis = {
       ...activeAnalysis,
-      listings: [],
-      providerId: "empty",
+      listings: createDemoListings(activeAnalysis.filters),
+      providerId: "demo",
       sourceFileName: "",
     };
     updateHistoryListings(activeAnalysis.historyId, activeAnalysis.filters, [], "");
