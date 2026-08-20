@@ -35,3 +35,16 @@ Akceptowana jest tablica ofert albo obiekt z tablicą `listings`, `results` lub 
 Wymagane są co najmniej trzy poprawne, unikalne linki. `title`, `year`, `mileage`
 i `id` są opcjonalne. Ceny wykresu są prezentowane w EUR. Maksymalny rozmiar pliku:
 5 MB. Po imporcie każda kropka prowadzi bezpośrednio do adresu `url` danej oferty.
+
+Akceptowane są wyłącznie bezpośrednie linki do konkretnego ogłoszenia mobile.de:
+kanoniczny adres `fahrzeuge/details.html?id=...` albo lokalizowany adres kończący się
+numerycznym identyfikatorem ogłoszenia i `.html`. Link do ogólnego wyszukiwania nie
+tworzy punktu na wykresie.
+
+## Podział rynku
+
+Cena rośnie od dołu do góry wykresu. Zielone tło i punkty oznaczają dół rynku,
+niebieskie środek, a czerwone górę. Środek rynku nie jest stałym kwartylem: aplikacja
+szuka przedziału o największym skupieniu ofert. Szerokość badanego przedziału skaluje
+się z medianą ceny i liczbą ofert, a jego granice są zaokrąglane do czytelnego kroku
+cenowego. Statystyka „Środek rynku” pokazuje obie granice tego przedziału.

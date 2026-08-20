@@ -184,7 +184,7 @@
 
 .mobileMarketStats {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   margin-top: var(--space-xl);
   border-block: var(--rule-thin) solid var(--color-rule);
 }
@@ -216,6 +216,13 @@
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mobileMarketStat.isRange dd {
+  overflow: visible;
+  font-size: var(--text-sm);
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .mobileMarketChartHead {
@@ -252,7 +259,7 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--color-soft);
+  background: var(--color-success);
 }
 
 .mobileMarketLegend .isMiddle i {
@@ -260,21 +267,21 @@
 }
 
 .mobileMarketLegend .isHigh i {
-  background: var(--color-brand-pressed);
+  background: var(--color-error);
 }
 
 .mobileMarketScale {
   position: relative;
-  height: 220px;
+  height: 480px;
   margin-top: var(--space-md);
   border: var(--rule-thin) solid var(--color-rule);
   border-radius: var(--radius-lg);
   overflow: visible;
   background:
-    linear-gradient(90deg,
-      color-mix(in oklch, var(--color-soft) 8%, transparent) 0 var(--market-p25),
-      color-mix(in oklch, var(--color-brand) 7%, transparent) var(--market-p25) var(--market-p75),
-      color-mix(in oklch, var(--color-brand-pressed) 8%, transparent) var(--market-p75) 100%);
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--color-error) 10%, transparent) 0 var(--market-high-end),
+      color-mix(in oklch, var(--color-brand) 10%, transparent) var(--market-high-end) var(--market-middle-end),
+      color-mix(in oklch, var(--color-success) 10%, transparent) var(--market-middle-end) 100%);
 }
 
 .mobileMarketScale::after {
@@ -289,44 +296,44 @@
 
 .mobileMarketAxis {
   position: absolute;
-  right: var(--space-lg);
-  bottom: 42px;
-  left: var(--space-lg);
-  height: var(--rule-thin);
+  top: 18px;
+  bottom: 18px;
+  left: 86px;
+  width: var(--rule-thin);
   background: var(--color-primary-rule);
 }
 
 .mobileMarketBoundary,
 .mobileMarketMedian {
   position: absolute;
-  top: 18px;
-  bottom: 42px;
-  width: var(--rule-thin);
+  right: 18px;
+  left: 86px;
+  height: var(--rule-thin);
   background: var(--color-rule);
   pointer-events: none;
 }
 
 .mobileMarketMedian {
-  width: var(--rule-thick);
-  background: var(--color-brand);
+  height: 0;
+  border-top: var(--rule-thin) dashed color-mix(in oklch, var(--color-brand) 55%, transparent);
+  background: transparent;
 }
 
 .mobileMarketTick {
   position: absolute;
-  bottom: 16px;
+  left: 10px;
+  width: 66px;
   color: var(--color-muted);
   font-size: var(--text-xs);
   font-weight: 700;
-  transform: translateX(-50%);
+  line-height: 1.2;
+  text-align: right;
+  transform: translateY(-50%);
   white-space: nowrap;
 }
 
-.mobileMarketTick.isStart {
-  transform: none;
-}
-
-.mobileMarketTick.isEnd {
-  transform: translateX(-100%);
+.mobileMarketTick.isBoundary {
+  color: var(--color-ink);
 }
 
 .mobileMarketPoint {
@@ -344,8 +351,8 @@
   inset: 9px;
   border: 2px solid var(--color-surface);
   border-radius: 50%;
-  background: var(--color-soft);
-  box-shadow: 0 0 0 1px var(--color-soft);
+  background: var(--color-success);
+  box-shadow: 0 0 0 1px var(--color-success);
   content: "";
   transition: inset var(--dur-micro) var(--ease-out), background-color var(--dur-short) var(--ease-out);
 }
@@ -356,8 +363,8 @@
 }
 
 .mobileMarketPoint.isHigh::before {
-  background: var(--color-brand-pressed);
-  box-shadow: 0 0 0 1px var(--color-brand-pressed);
+  background: var(--color-error);
+  box-shadow: 0 0 0 1px var(--color-error);
 }
 
 .mobileMarketPointTooltip {
@@ -378,6 +385,12 @@
   line-height: 1.4;
   pointer-events: none;
   transform: translateX(-50%);
+}
+
+.mobileMarketPoint.isTooltipLeft .mobileMarketPointTooltip {
+  right: 50%;
+  left: auto;
+  transform: translateX(18px);
 }
 
 .mobileMarketPointTooltip strong,
@@ -402,6 +415,29 @@
 .mobileMarketPoint:hover .mobileMarketPointTooltip,
 .mobileMarketPoint:focus-visible .mobileMarketPointTooltip {
   display: block;
+}
+
+.mobileMarketEmpty {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-xl);
+  border: var(--rule-thin) dashed var(--color-rule);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-tint);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.mobileMarketEmpty strong {
+  color: var(--color-ink);
+  font-size: var(--text-base);
+}
+
+.mobileMarketEmpty p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 .mobileMarketNotice {
@@ -450,14 +486,14 @@
 
 @media (max-width: 60rem) {
   .mobileMarketStats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .mobileMarketStat:nth-child(5) {
+  .mobileMarketStat:nth-child(4) {
     border-left: 0;
   }
 
-  .mobileMarketStat:nth-child(n + 5) {
+  .mobileMarketStat:nth-child(n + 4) {
     border-top: var(--rule-thin) solid var(--color-rule-soft);
   }
 }
@@ -512,27 +548,28 @@
   }
 
   .mobileMarketScale {
-    height: 250px;
+    height: 440px;
+  }
+
+  .mobileMarketAxis {
+    left: 68px;
   }
 
   .mobileMarketBoundary,
   .mobileMarketMedian {
-    bottom: 48px;
+    left: 68px;
   }
 
-  .mobileMarketAxis {
-    right: var(--space-sm);
-    bottom: 48px;
-    left: var(--space-sm);
+  .mobileMarketTick {
+    left: 2px;
+    width: 58px;
+    font-size: 0.6875rem;
   }
 
   .mobileMarketPointTooltip {
     max-width: 180px;
   }
 
-  .mobileMarketTick.isQuartile {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
