@@ -1124,6 +1124,26 @@ function applyRunStyle(run, { size = 18, bold = true, underline = true } = {}) {
   rPr.append(wEl(run.ownerDocument, "sz", { val: String(size) }), wEl(run.ownerDocument, "szCs", { val: String(size) }));
 }
 
+function setRunStrikethrough(run, enabled) {
+  let rPr = directChildren(run, W, "rPr")[0];
+  if (!rPr) {
+    rPr = wEl(run.ownerDocument, "rPr");
+    run.insertBefore(rPr, run.firstChild);
+  }
+  directChildren(rPr, W, "strike").forEach((node) => node.remove());
+  if (enabled) rPr.append(wEl(run.ownerDocument, "strike"));
+}
+
+function setClientIdentifierLabel(rows, clientType) {
+  const label = paragraph(rows[4]?.[0], 1);
+  if (!label) return;
+  const inactiveLabel = clientType === "company" ? "PESEL" : "NIP";
+  directChildren(label, W, "r").forEach((run) => {
+    const text = all(run, W, "t").map((node) => node.textContent || "").join("").trim();
+    if (text === "PESEL" || text === "NIP") setRunStrikethrough(run, text === inactiveLabel);
+  });
+}
+
 function styleParagraphPrefix(p, prefix, options = {}) {
   let remaining = prefix.length;
   for (const run of directChildren(p, W, "r")) {
@@ -1366,6 +1386,7 @@ async function generateDocx() {
   setParagraphText(all(root, W, "p")[1], `UMOWA ZAMÓWIENIA POJAZDU ${contractNumber(data.contract.date, data.contract.sequence)}`, { size: 34, bold: true });
   setParagraphLabelValue(paragraph(rows[2][0], 1), "Imię i Nazwisko/Nazwa:", data.client.name);
   setParagraphText(paragraph(rows[3][0], 2), data.client.address);
+  setClientIdentifierLabel(rows, data.client.type);
   setParagraphText(paragraph(rows[4][0], 2), idValue);
   setParagraphText(paragraph(rows[5][0], 2), docValue);
   setParagraphValueAfterPrefix(paragraph(rows[6][0], 1), "Nr. tel.:", data.client.phone);

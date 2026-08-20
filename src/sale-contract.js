@@ -1305,10 +1305,33 @@ function replaceText(root, search, replacement) {
   });
 }
 
+function setBuyerIdentifierLine(root, data) {
+  const paragraph = all(root, W, "p").find((node) =>
+    all(node, W, "t")
+      .map((text) => text.textContent || "")
+      .join("")
+      .includes("NIP: 7211070432"),
+  );
+  if (!paragraph) return;
+
+  directChildren(paragraph, W, "r").forEach((run) => run.remove());
+  const inactiveLabel = data.buyerIdentifierType === "nip" ? "PESEL" : "NIP";
+  const append = (text, strike = false) => {
+    const run = wEl(paragraph.ownerDocument, "r");
+    setRunText(run, text, { size: "18" });
+    if (strike) directChildren(run, W, "rPr")[0].append(wEl(paragraph.ownerDocument, "strike"));
+    paragraph.append(run);
+  };
+
+  append("PESEL", inactiveLabel === "PESEL");
+  append(" / ");
+  append("NIP", inactiveLabel === "NIP");
+  append(data.buyerIdentifier ? `: ${data.buyerIdentifier}` : ":");
+}
+
 function fillBuyerBlock(root, data) {
   replaceText(root, "P.H.U. Kazimierz Florczyk", data.buyerName);
-  const identifierLabel = data.buyerIdentifierType === "nip" ? "NIP" : "PESEL";
-  replaceText(root, "NIP: 7211070432", data.buyerIdentifier ? `${identifierLabel}: ${data.buyerIdentifier}` : `${identifierLabel}:`);
+  setBuyerIdentifierLine(root, data);
   replaceText(root, "ul. Targowa 2 18-500 Kolno", data.buyerAddress);
   replaceText(root, "+48 692 428\u00a0958", data.buyerPhone);
   replaceText(root, "kazimierz@florczyk.com.pl", data.buyerEmail);
