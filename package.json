@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "audit:mobile-search": "node scripts/audit-mobile-search.mjs",
     "dev": "python3 -m http.server 4173",
     "api": "node server/autogood-api.mjs",
     "partslink24": "node server/partslink24-api.mjs",
