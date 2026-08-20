@@ -86,6 +86,7 @@ const copy = {
     breakdownVehicle: "Pojazd",
     breakdownTransport: "Transport",
     breakdownAuctionFee: "Opłata aukcyjna",
+    breakdownInspection: "Oględziny",
     breakdownTaxes: "Podatki",
     breakdownOther: "Pozostałe opłaty",
     breakdownCommission: "Prowizja AUTOGOOD",
@@ -178,6 +179,7 @@ const copy = {
     breakdownVehicle: "Автомобиль",
     breakdownTransport: "Транспорт",
     breakdownAuctionFee: "Аукционный сбор",
+    breakdownInspection: "Осмотр",
     breakdownTaxes: "Налоги",
     breakdownOther: "Другие обязательные оплаты",
     breakdownCommission: "Комиссия AUTOGOOD",
@@ -270,6 +272,7 @@ const copy = {
     breakdownVehicle: "Vehicle",
     breakdownTransport: "Transport",
     breakdownAuctionFee: "Auction fee",
+    breakdownInspection: "Inspection",
     breakdownTaxes: "Taxes",
     breakdownOther: "Other mandatory costs",
     breakdownCommission: "AUTOGOOD commission",
@@ -820,6 +823,10 @@ function applyFlexiblePresentation(calc, state, rate) {
   return {
     ...calc,
     total: managedByCalculation ? calc.total : calc.total - removedContribution + customContribution,
+    composition: managedByCalculation || !calc.composition ? calc.composition : {
+      ...calc.composition,
+      other: n(calc.composition.other) + customContribution
+    },
     rows
   };
 }
@@ -1390,7 +1397,7 @@ function MarginAuctionBreakdown({
   c,
   composition
 }) {
-  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["auctionFee", c.breakdownAuctionFee, "#14b8a6", n(composition?.auctionFee)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)], ["other", c.breakdownOther, "#64748b", n(composition?.other)]].map(([key, label, color, value]) => ({
+  const categories = [["vehicle", c.breakdownVehicle, "#2f7eea", n(composition?.vehicle)], ["taxes", c.breakdownTaxes, "#ef4444", n(composition?.taxes)], ["auctionFee", c.breakdownAuctionFee, "#14b8a6", n(composition?.auctionFee)], ["inspection", c.breakdownInspection, "#10b981", n(composition?.inspection)], ["transport", c.breakdownTransport, "#8b5cf6", n(composition?.transport)], ["commission", c.breakdownCommission, "#f59e0b", n(composition?.commission)], ["other", c.breakdownOther, "#64748b", n(composition?.other)]].map(([key, label, color, value]) => ({
     key,
     label,
     color,
@@ -2016,6 +2023,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     const total = carPln + inspectionBrutto + transportBrutto + excise + commissionBrutto + TO_FEE + DOC_TRANSLATION + registrationBrutto;
     return {
       total,
+      composition: {
+        vehicle: carPln,
+        taxes: excise + vat,
+        inspection,
+        transport,
+        commission: commissionNetto,
+        other: TO_FEE + DOC_TRANSLATION + registrationNetto
+      },
       rows: [row(t.directCarBrutto, carPln, "", "", false, false, conversionPrefix(car)), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(STD_FIX, 0.01, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true), row(t.doc, DOC_TRANSLATION, "", "", false, true), ...registrationRows(t, values.registrationEnabled, registrationBrutto, 1.23), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0)]
     };
   }
@@ -2032,6 +2047,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     const total = vatBase + vat;
     return {
       total,
+      composition: {
+        vehicle: carPln,
+        taxes: excise + vat,
+        auctionFee: feePln,
+        transport: transPln,
+        commission: commissionNetto,
+        other: TO_FEE + registrationNetto
+      },
       rows: [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), row(t.auctionFee, feePln, "", `${money(feePln * 1.23)} brutto`, false, false, conversionPrefix(fee)), row(t.transport, transPln, "", `${money(transPln * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(base)}`), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, commissionBase)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0)]
     };
   }
@@ -2053,6 +2076,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     const rows = [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`)];
     return {
       total,
+      composition: {
+        vehicle: carPln,
+        taxes: excise + vat,
+        inspection,
+        transport,
+        commission: commissionNetto,
+        other: TO_FEE + registrationNetto + germanCommissionPln
+      },
       rows
     };
   }
@@ -2072,6 +2103,14 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
   const rows = [row(t.car, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`, false, false, "", inspectionBrutto, 1.23), row(t.transport, transport, "", `${money(transportBrutto)} brutto`, false, false, "", transportBrutto, 1.23), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`, false, false, "", exciseBrutto, 1.23), row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, carPln, discountText), false, false, "", commissionBrutto, 1.23), row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23), ...registrationRows(t, values.registrationEnabled, registrationBrutto, 1.23), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0)];
   return {
     total,
+    composition: {
+      vehicle: carPln,
+      taxes: excise + vat,
+      inspection,
+      transport,
+      commission: commissionNetto,
+      other: TO_FEE + registrationNetto + germanCommissionPln
+    },
     rows
   };
 }
@@ -3013,7 +3052,7 @@ function App() {
     className: "totalBarRate"
   }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN"))), /*#__PURE__*/React.createElement(ProcessFlow, {
     steps: processSteps
-  }), activeTab === MARGIN_AUCTION_TAB_ID && /*#__PURE__*/React.createElement(MarginAuctionBreakdown, {
+  }), calc.composition && /*#__PURE__*/React.createElement(MarginAuctionBreakdown, {
     c: c,
     composition: calc.composition
   }))), /*#__PURE__*/React.createElement(HistoryPanel, {
