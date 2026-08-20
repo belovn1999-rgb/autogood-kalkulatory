@@ -162,6 +162,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const stellantisPowertrainRaw = stellantisBrands.has(brand) ? collectStellantisPowertrainEvidence(text) : "";
   const vagPowertrainRaw = vagBrands.has(brand) ? findFirstPdfValue(text, vagPowertrainLabels) : "";
   const engineEvidenceRaw = collectPdfEvidence(text, profile.engineEvidenceLabels);
+  const hyundaiPowertrainRaw = brand === "Hyundai" ? findHyundaiPowertrainEvidence(text) : "";
   const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
   const toyotaFirstPageEngineRaw = toyotaLexusBrands.has(brand) ? findToyotaFirstPageEngineEvidence(text) : "";
   const toyotaPlugInRaw = toyotaLexusBrands.has(brand) ? findToyotaPlugInEvidence(text) : "";
@@ -175,7 +176,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineCodeRaw,
     transmissionRaw,
     vagPowertrainRaw,
-    engineEvidenceRaw: [engineEvidenceRaw, toyotaFirstPageEngineRaw].filter(Boolean).join(" ")
+    engineEvidenceRaw: [engineEvidenceRaw, toyotaFirstPageEngineRaw, hyundaiPowertrainRaw].filter(Boolean).join(" ")
   });
   const engineVolumeRaw = findEngineVolumeRaw(text, brand, profile, {
     engineSpecificationRaw,
@@ -184,7 +185,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineEvidenceRaw: [engineEvidenceRaw, toyotaFirstPageEngineRaw].filter(Boolean).join(" ")
   });
   const primaryEngineInfo = normalizeEngineInfo({
-    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, mercedesPowertrainRaw, toyotaFirstPageEngineRaw, inferredEngineRaw].filter(Boolean).join(" "),
+    engineTypeRaw: [engineTypeRaw, engineSpecificationRaw, transmissionRaw, vagPowertrainRaw, engineEvidenceRaw, hyundaiPowertrainRaw, mercedesPowertrainRaw, toyotaFirstPageEngineRaw, inferredEngineRaw].filter(Boolean).join(" "),
     fuelTypeRaw,
     mildHybridRaw,
     engineVolumeRaw
@@ -486,6 +487,18 @@ function findToyotaFirstPageEngineEvidence(text) {
     if (fuelOrPowertrain.test(normalized) && displacement.test(normalized)) return normalized;
   }
   return "";
+}
+
+function findHyundaiPowertrainEvidence(text) {
+  const powertrainRow = /^(?:\d{1,4}\s+)?(?:двигатель|silnik|engine|motor|топливо|paliwo|fuel)(?=\s|$)/i;
+  const powertrainValue = /battery\s+electric|\bbev\b|electric(?:\s+(?:engine|motor|vehicle))?|silnik\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател|электромобил|\b(?:HEV|PHEV|M[\s-]*HEV)\b/i;
+
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim())
+    .filter((line) => powertrainRow.test(line) && powertrainValue.test(line))
+    .map((line) => /\belectric\b/i.test(line) ? `${line} electric vehicle` : line)
+    .join(" ");
 }
 
 function findFallbackEngineEvidence(text) {

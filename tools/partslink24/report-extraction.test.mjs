@@ -435,6 +435,19 @@ SPECIAL CAR         ELECTRIC VEHICLE - HEV(HYBRID ELECTRIC VEHICLE)
   assert.equal(result.engineVolume, "1600 cm³");
 });
 
+test("Hyundai detects an electric motor from the labeled engine and fuel rows", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                         IONIQ 5 21
+Дата производства              13.04.2022
+Рабочий объем двигателя        MOTOR - 160KW
+Двигатель                      ELECTRIC - ELECTRIC
+Топливо                        ELECTRIC - ELECTRIC
+`, { brand: "Hyundai", language: "RU" });
+
+  assert.equal(result.engineType, "Электрический");
+  assert.equal(result.engineVolume, "");
+});
+
 test("Hyundai ignores hybrid wording in non-powertrain equipment", () => {
   const result = extractVehicleInfoFromText(`
 model               TUCSON 18 HEURPD718 /
