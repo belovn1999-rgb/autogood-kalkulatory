@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=grouped-brand-model-menus-20260814" />
+    <link rel="stylesheet" href="./src/mobile.css?v=field-label-icons-20260820" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-history-delete-20260820" />
   </head>
   <body class="mobileBody">
@@ -103,24 +103,24 @@
             <section class="mobileManualSection">
               <div class="mobileManualGrid">
             <label class="mobileField">
-              <span data-i18n="brandLabel">Marka</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="brandLabel">Marka</span></span>
               <div class="mobileComboControl mobileTextComboControl mobileBrandCombo" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
                 <input data-mobile-brand type="text" autocomplete="off" />
               </div>
             </label>
             <label class="mobileField">
-              <span data-i18n="modelLabel">Model</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="modelLabel">Model</span></span>
               <div class="mobileComboControl mobileTextComboControl mobileModelCombo" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
                 <input data-mobile-model type="text" autocomplete="off" />
               </div>
             </label>
             <div class="mobileVehicleTripleRow mobileWideField">
               <label class="mobileField">
-                <span data-i18n="versionLabel">Wersja</span>
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="versionLabel">Wersja</span></span>
                 <input data-mobile-version type="text" autocomplete="off" />
               </label>
               <label class="mobileField">
-                <span data-i18n="fuelLabel">Paliwo</span>
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#fuel"></use></svg><span data-i18n="fuelLabel">Paliwo</span></span>
                 <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="fuel" data-mobile-options-target="data-mobile-fuel-label" data-mobile-value-target="data-mobile-fuel">
                   <input data-mobile-fuel-label type="text" autocomplete="off" readonly />
                   <input data-mobile-fuel type="hidden" />
@@ -128,7 +128,7 @@
                 <span class="mobileInlineCheck"><input data-mobile-plugin type="checkbox" /> <span data-i18n="pluginLabel">Plug-in</span></span>
               </label>
               <label class="mobileField">
-                <span data-i18n="bodyLabel">Nadwozie</span>
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="bodyLabel">Nadwozie</span></span>
                 <div class="mobileComboControl mobileTextComboControl" data-mobile-options="body" data-mobile-options-target="data-mobile-body-label" data-mobile-value-target="data-mobile-body">
                   <input data-mobile-body-label type="text" autocomplete="off" readonly />
                   <input data-mobile-body type="hidden" />
@@ -136,7 +136,7 @@
               </label>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
-              <span data-i18n="mileageRangeLabel">Przebieg</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="mileageRangeLabel">Przebieg</span></span>
               <div class="mobileRangePair">
                 <div class="mobileComboControl" data-mobile-options="mileage" data-mobile-options-target="data-mobile-mileage-from">
                   <input data-mobile-mileage-from inputmode="numeric" autocomplete="off" />
@@ -149,7 +149,7 @@
               </div>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
-              <span data-i18n="yearRangeLabel">Rok</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#calendar"></use></svg><span data-i18n="yearRangeLabel">Rok</span></span>
               <div class="mobileRangePair">
                 <div class="mobileComboControl" data-mobile-options="year" data-mobile-options-target="data-mobile-year-from">
                   <input data-mobile-year-from inputmode="numeric" autocomplete="off" />
@@ -163,7 +163,7 @@
             </div>
             <div class="mobileRangeDivider" aria-hidden="true"></div>
             <div class="mobileField mobileRangeField mobileWideField">
-              <span data-i18n="displacementRangeLabel">Pojemność silnika</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="displacementRangeLabel">Pojemność silnika</span></span>
               <div class="mobileRangePair">
                 <div class="mobileComboControl" data-mobile-options="displacement" data-mobile-options-target="data-mobile-displacement-from">
                   <input data-mobile-displacement-from inputmode="numeric" autocomplete="off" />
@@ -176,7 +176,7 @@
               </div>
             </div>
             <div class="mobileField mobileRangeField mobileWideField">
-              <span data-i18n="powerRangeLabel">Moc silnika (KM)</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#zap"></use></svg><span data-i18n="powerRangeLabel">Moc silnika (KM)</span></span>
               <div class="mobileRangePair">
                 <div class="mobileComboControl" data-mobile-options="power" data-mobile-options-target="data-mobile-power-from">
                   <input data-mobile-power-from inputmode="numeric" autocomplete="off" />
@@ -190,7 +190,7 @@
             </div>
             <div class="mobileVehicleControls mobileWideField">
             <fieldset class="mobileField mobileChoiceField mobileDrivetrainDrive">
-              <legend data-i18n="driveLabel">Napęd</legend>
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="driveLabel">Napęd</span></legend>
               <div class="mobileChoiceGroup">
                 <label class="mobileChoiceOption">
                   <input data-mobile-drive name="mobile-drive" type="radio" value="any" checked />
@@ -211,7 +211,7 @@
               </div>
             </fieldset>
             <fieldset class="mobileField mobileChoiceField mobileDrivetrainGearbox">
-              <legend data-i18n="gearboxLabel">Skrzynia biegów</legend>
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#git-branch"></use></svg><span data-i18n="gearboxLabel">Skrzynia biegów</span></legend>
               <div class="mobileChoiceGroup mobileChoiceGroupTwo">
                 <label class="mobileChoiceOption">
                   <input data-mobile-gearbox name="mobile-gearbox" type="radio" value="any" checked />
@@ -234,7 +234,7 @@
             <section class="mobileManualSection">
               <div class="mobileManualGrid">
             <fieldset class="mobileField mobileChoiceField mobileWideField">
-              <legend data-i18n="interiorMaterialLabel">Typ salonu</legend>
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#armchair"></use></svg><span data-i18n="interiorMaterialLabel">Typ salonu</span></legend>
               <div class="mobileChoiceGroup mobileInteriorMaterialGroup">
                 <label class="mobileChoiceOption"><input data-mobile-interior-material type="checkbox" value="alcantara" /> <span data-i18n="materialAlcantara">Alcantara</span></label>
                 <label class="mobileChoiceOption"><input data-mobile-interior-material type="checkbox" value="cloth" /> <span data-i18n="materialCloth">Materiał</span></label>
@@ -243,7 +243,7 @@
               </div>
             </fieldset>
             <fieldset class="mobileField mobileChoiceField mobileWideField">
-              <legend data-i18n="exteriorColorLabel">Kolor nadwozia</legend>
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#palette"></use></svg><span data-i18n="exteriorColorLabel">Kolor nadwozia</span></legend>
               <div class="mobileSwatchGroup mobileColorGroup">
                 <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="beige" /><i class="isBeige"></i><span data-i18n="colorBeige">beżowy</span></label>
                 <label class="mobileColorOption"><input data-mobile-exterior-color type="checkbox" value="blue" /><i class="isBlue"></i><span data-i18n="colorBlue">niebieski</span></label>
@@ -263,7 +263,7 @@
               </div>
             </fieldset>
             <fieldset class="mobileField mobileChoiceField mobileWideField">
-              <legend data-i18n="interiorColorLabel">Kolor wnętrza</legend>
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#palette"></use></svg><span data-i18n="interiorColorLabel">Kolor wnętrza</span></legend>
               <div class="mobileSwatchGroup mobileColorGroup">
                 <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="beige" /><i class="isBeige"></i><span data-i18n="colorBeige">beżowy</span></label>
                 <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="black" /><i class="isBlack"></i><span data-i18n="colorBlack">czarny</span></label>
@@ -275,7 +275,7 @@
               </div>
             </fieldset>
             <label class="mobileField mobileDamagedField">
-              <span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span>
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#alert"></use></svg><span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span></span>
               <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="damaged" data-mobile-options-target="data-mobile-damaged-label" data-mobile-value-target="data-mobile-damaged-vehicles">
                 <input data-mobile-damaged-label type="text" autocomplete="off" readonly />
                 <input data-mobile-damaged-vehicles type="hidden" />
@@ -283,23 +283,23 @@
             </label>
             <label class="mobileCheckOption mobileNonSmokingField">
               <input data-mobile-non-smoking type="checkbox" checked />
-              <span data-i18n="nonSmokingLabel">Auto niepalącego</span>
+              <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
             </label>
               </div>
             </section>
 
             <section class="mobileManualSection mobileTradeSection" aria-labelledby="mobile-trade-heading">
-              <h2 id="mobile-trade-heading" class="mobileManualSectionTitle" data-i18n="tradeConditionsLabel">WARUNKI ZAKUPU</h2>
+              <h2 id="mobile-trade-heading" class="mobileManualSectionTitle mobileSectionTitleLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#receipt"></use></svg><span data-i18n="tradeConditionsLabel">WARUNKI ZAKUPU</span></h2>
               <div class="mobileTradeGrid">
                 <label class="mobileField">
-                  <span data-i18n="vatLabel">VAT</span>
+                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#percent"></use></svg><span data-i18n="vatLabel">VAT</span></span>
                   <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="vat" data-mobile-options-target="data-mobile-vat-label" data-mobile-value-target="data-mobile-vat">
                     <input data-mobile-vat-label type="text" autocomplete="off" readonly />
                     <input data-mobile-vat type="hidden" />
                   </div>
                 </label>
                 <fieldset class="mobileField mobileCountryField">
-                  <legend data-i18n="countryLabel">Kraj</legend>
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#map-pin"></use></svg><span data-i18n="countryLabel">Kraj</span></legend>
                   <details class="mobileMultiSelect" data-mobile-country-select>
                     <summary data-mobile-country-summary></summary>
                     <div class="mobileMultiSelectMenu">
@@ -321,7 +321,7 @@
                   </details>
                 </fieldset>
                 <label class="mobileField">
-                  <span data-i18n="sellerTypeLabel">Sprzedawca</span>
+                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#store"></use></svg><span data-i18n="sellerTypeLabel">Sprzedawca</span></span>
                   <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="seller" data-mobile-options-target="data-mobile-seller-label" data-mobile-value-target="data-mobile-seller">
                     <input data-mobile-seller-label type="text" autocomplete="off" readonly />
                     <input data-mobile-seller type="hidden" />
