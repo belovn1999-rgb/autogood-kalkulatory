@@ -19,6 +19,9 @@
       historyDescription: "Maksymalnie 15 zapisanych zestawów danych w tej przeglądarce.",
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
+      historyDelete: "Usuń",
+      historyDeleteConfirm: "Usunąć ten zapis historii?",
+      historyDeleteSuccess: "Wpis został usunięty z historii.",
       historyReady: "{count} ofert · wykres gotowy",
       historyWaiting: "Brak danych rynku",
       historyStorageError: "Nie udało się zapisać historii w tej przeglądarce.",
@@ -67,6 +70,9 @@
       historyDescription: "До 15 сохранённых наборов данных в этом браузере.",
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
+      historyDelete: "Удалить",
+      historyDeleteConfirm: "Удалить эту запись из истории?",
+      historyDeleteSuccess: "Запись удалена из истории.",
       historyReady: "Объявлений: {count} · график готов",
       historyWaiting: "Нет данных рынка",
       historyStorageError: "Не удалось сохранить историю в этом браузере.",
@@ -126,6 +132,12 @@
 
   function filterSignature(filters) {
     return JSON.stringify(filters || {});
+  }
+
+  function vehicleDataKey(filters) {
+    return [filters?.brand, filters?.model, filters?.version]
+      .map((value) => String(value || "").trim())
+      .join("|");
   }
 
   function escapeMarketHtml(value) {
@@ -290,7 +302,10 @@
             ${meta.length ? `<div class="mobileMarketHistoryMeta">${meta.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}</div>` : ""}
             <span class="mobileMarketHistoryStatus">${escapeMarketHtml(status)}</span>
           </div>
-          <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
+          <div class="mobileMarketHistoryActions">
+            <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
+            <button class="isDelete" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyDelete)}</button>
+          </div>
         </article>`;
     }).join("");
   }
@@ -358,7 +373,7 @@
       const searchUrl = buildMobileDeSearchUrl(filters);
       const signature = filterSignature(filters);
       const existing = historyEntryForFilters(filters);
-      const matchingImport = importedDataset?.filterKey === signature ? importedDataset : null;
+      const matchingImport = importedDataset?.filterKey === vehicleDataKey(filters) ? importedDataset : null;
       const now = new Date().toISOString();
       const entry = {
         id: existing?.id || `${Date.now()}-${seededNumber(signature).toString(16)}`,
@@ -392,6 +407,16 @@
     renderHistory();
   }
 
+  function deleteHistoryEntry(historyId) {
+    const c = copy();
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry || !window.confirm(c.historyDeleteConfirm)) return;
+    if (!storeMarketHistory(marketHistory.filter((item) => item.id !== historyId))) return;
+    if (activeAnalysis?.historyId === historyId) activeAnalysis.historyId = "";
+    renderHistory();
+    setAnalysisStatus(c.historyDeleteSuccess);
+  }
+
   function openHistoryAnalysis(historyId) {
     const entry = marketHistory.find((item) => item.id === historyId);
     if (!entry) return;
@@ -400,7 +425,7 @@
     importedDataset = entry.listings.length >= 3 ? {
       listings: entry.listings,
       fileName: entry.sourceFileName,
-      filterKey: entry.signature,
+      filterKey: vehicleDataKey(entry.filters),
     } : null;
     activeAnalysis = {
       filters: entry.filters,
@@ -751,8 +776,8 @@
       const filters = readManualFields();
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
-      const signature = filterSignature(filters);
-      if (importedDataset?.filterKey !== signature) importedDataset = null;
+      const vehicleKey = vehicleDataKey(filters);
+      if (importedDataset?.filterKey !== vehicleKey) importedDataset = null;
       const savedEntry = historyEntryForFilters(filters);
       const savedListings = savedEntry?.listings?.length >= 3 ? savedEntry.listings : null;
       setAnalysisStatus(c.preparing);
@@ -809,7 +834,7 @@
       importedDataset = {
         listings,
         fileName: input.files[0].name,
-        filterKey: filterSignature(activeAnalysis.filters),
+        filterKey: vehicleDataKey(activeAnalysis.filters),
       };
       activeAnalysis = {
         ...activeAnalysis,
@@ -842,6 +867,11 @@
 
   historySave.addEventListener("click", saveCurrentHistory);
   historyList.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest("[data-mobile-market-history-delete]");
+    if (deleteButton) {
+      deleteHistoryEntry(deleteButton.dataset.mobileMarketHistoryDelete);
+      return;
+    }
     const button = event.target.closest("[data-mobile-market-history-analysis]");
     if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
   });

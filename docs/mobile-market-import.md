@@ -56,6 +56,10 @@ Historia przechowuje maksymalnie 15 zestawów, najnowsze na górze. Ponowne zapi
 identycznego zestawu aktualizuje istniejący wpis, a dodanie szesnastego usuwa
 najstarszy.
 
+Każdy wpis ma osobny przycisk „Usuń”. Po potwierdzeniu usuwany jest wyłącznie
+wybrany zestaw wraz z jego zapisanymi ofertami, a licznik historii aktualizuje się
+od razu.
+
 Jeżeli dla zapisanego zestawu zostanie zaimportowany plik ofert, ceny i bezpośrednie
 linki ogłoszeń są dopisywane do tego wpisu. Przycisk „Analiza rynku” w historii
 odtwarza filtry oraz zapisany wykres również po ponownym otwarciu strony. Dane nie są
