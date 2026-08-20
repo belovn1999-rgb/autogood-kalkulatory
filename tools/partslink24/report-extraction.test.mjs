@@ -495,6 +495,16 @@ SPECIAL CAR                ELECTRIC VEHICLE - PHEV(PLUG-IN HYBRID ELECTRIC VEHIC
   assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
 });
 
+test("Kia detects an electric motor from the labeled engine and fuel rows", () => {
+  const result = extractVehicleInfoFromText(`
+Двигатель                    ELECTRIC - ELECTRIC
+Топливо                      ELECTRIC - ELECTRIC
+`, { brand: "Kia", language: "RU" });
+
+  assert.equal(result.engineType, "Электрический");
+  assert.equal(result.engineVolume, "");
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19
