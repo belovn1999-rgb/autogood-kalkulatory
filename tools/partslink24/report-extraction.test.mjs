@@ -180,6 +180,18 @@ CMB             DS       PALIWO = DIESEL
   });
 });
 
+test("Jeep reads cylinder capacity from the dedicated CC row, not horsepower", () => {
+  const result = extractVehicleInfoFromText(`
+Model                           609322101000 (5I)
+Date of production              30/01/2016
+CMB                             BZ  PALIWO = BENZYNA
+CC                              1.4  ŁOŚ ZWYKŁA (KOMERCYJNA) = 135 L.S.
+`, { brand: "Jeep", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "1400 cm³");
+});
+
 test("Peugeot reads engine volume from the translated power row", () => {
   const latinUnitResult = extractVehicleInfoFromText(`
 МОДЕЛЬНЫЙ РЯД                           3008 (P84E)

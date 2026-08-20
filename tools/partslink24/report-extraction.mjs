@@ -678,6 +678,11 @@ function inferBmwEngineVolume(value) {
 }
 
 function findEngineVolumeRaw(text, brand, profile, values) {
+  if (["Abarth", "Alfa Romeo", "Fiat", "Fiat Professional", "Jeep", "Lancia"].includes(brand)) {
+    const fcaCapacity = findFcaCylinderCapacity(text);
+    if (fcaCapacity) return fcaCapacity;
+  }
+
   const labeledValue = findFirstPdfValue(text, profile.engineVolumeLabels);
   if (normalizePdfEngineVolume(labeledValue)) return labeledValue;
   if (["Abarth", "Alfa Romeo", "Fiat", "Fiat Professional", "Jeep", "Lancia"].includes(brand)) {
@@ -713,6 +718,17 @@ function findEngineVolumeRaw(text, brand, profile, values) {
     if (capacity) return `${capacity[1]} L`;
   }
 
+  return "";
+}
+
+function findFcaCylinderCapacity(text) {
+  for (const line of String(text || "").split(/\r?\n/)) {
+    const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    const match = normalized.match(/^CC\s+(\d+(?:[.,]\d+)?)(?=\s|$)/i);
+    if (!match) continue;
+    const liters = Number(match[1].replace(",", "."));
+    if (liters >= 0.5 && liters <= 10) return `${match[1]} L`;
+  }
   return "";
 }
 
