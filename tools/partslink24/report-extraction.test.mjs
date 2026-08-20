@@ -505,6 +505,15 @@ test("Kia detects an electric motor from the labeled engine and fuel rows", () =
   assert.equal(result.engineVolume, "");
 });
 
+test("Land Rover upgrades a gasoline engine to PHEV from the full report", () => {
+  const result = extractVehicleInfoFromText(`
+Тип двигателя                PETROL
+Коды моделей в брошюре       L560 2.0 AJ20 P4H PHEV AWD 5DR SWB
+`, { brand: "Land Rover", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19

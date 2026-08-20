@@ -106,7 +106,13 @@ const brandReportProfiles = {
     fuelTypeLabels: [/^(?:топливо|paliwo|fuel)$/i],
     engineEvidenceLabels: [/(?:SPECIAL\s+CAR|POJAZD\s+SPECJALNY|СПЕЦИАЛЬН\w*\s+(?:АВТОМОБИЛ|ТРАНСПОРТ)|ELECTRIC\s+VEHICLE|\b(?:HEV|PHEV|M[\s-]*HEV)\b)/i]
   },
-  "Land Rover": jaguarLandRoverProfile,
+  "Land Rover": {
+    ...jaguarLandRoverProfile,
+    engineEvidenceLabels: [
+      ...jaguarLandRoverProfile.engineEvidenceLabels,
+      /\bPHEV\b|plug[\s-]*in|подключаем\w*\s+гибрид/i
+    ]
+  },
   Lexus: toyotaLexusProfile,
   "Mercedes-Benz": mercedesProfile,
   "Mercedes Classic": mercedesProfile,
