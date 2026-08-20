@@ -473,6 +473,19 @@ ENGINE CAPACITY     1600 CC - GAMMA
   assert.equal(result.engineVolume, "1600 cm³");
 });
 
+test("Kia reads gasoline from the dedicated fuel row in every report language", () => {
+  const reports = [
+    ["RU", "Топливо                    GASOLINE - UNLEADED"],
+    ["PL", "Paliwo                     GASOLINE - UNLEADED"],
+    ["ENG", "Fuel                       GASOLINE - UNLEADED"]
+  ];
+
+  for (const [language, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "Kia", language });
+    assert.equal(result.engineType, "Бензин", language);
+  }
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19
