@@ -40,6 +40,16 @@ textarea {
 
 button {
   cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgb(16 46 69 / 12%);
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .app-shell {
@@ -203,6 +213,12 @@ body.export-contract .brandTitle::after {
   color: #fff;
 }
 
+.primary-btn:not(:disabled):hover,
+.secondary-btn:not(:disabled):hover {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
 .secondary-top-btn {
   border: 1px solid var(--line-strong);
   background: #fff;
@@ -213,6 +229,12 @@ body.export-contract .brandTitle::after {
   border: 1px solid var(--line-strong);
   background: #fff;
   color: var(--brand-dark);
+}
+
+.secondary-top-btn:not(:disabled):hover,
+.ghost-btn:not(:disabled):hover {
+  border-color: var(--brand);
+  background: var(--brand-tint);
 }
 
 .password-dialog {
