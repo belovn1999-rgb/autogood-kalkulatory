@@ -23,18 +23,18 @@ Tryb bez połączenia z refdata: `npm run audit:mobile-search -- --offline`.
 | Rok pierwszej rejestracji | `fr` | potwierdzone: 2020–2023 |
 | Pojemność | `cc` | potwierdzone: 2 000–3 000 cm³ |
 | Moc | `pw` | potwierdzone przeliczenie KM → kW: 200–303 KM |
-| Paliwo / Plug-in | `ft` | Diesel potwierdzony; pozostałe wartości objęte audytem kontraktu |
-| Napęd | `dt` | AWD potwierdzone; FWD/RWD objęte audytem kontraktu |
-| Skrzynia | `tr` | automat potwierdzony; manualna objęta audytem kontraktu |
-| VAT | `vat` | zwrotny potwierdzony; niezwrotny objęty audytem kontraktu |
-| Sprzedawca | `st` | dealer potwierdzony; prywatny/firma objęte audytem kontraktu |
+| Paliwo / Plug-in | `ft` | Diesel i Plug-in hybrid potwierdzone; pozostałe paliwa objęte audytem kontraktu |
+| Napęd | `dt` | AWD i RWD potwierdzone; FWD objęte audytem kontraktu |
+| Skrzynia | `tr` | automat i manualna potwierdzone |
+| VAT | `vat` | zwrotny i niezwrotny potwierdzone |
+| Sprzedawca | `st` | dealer i firma potwierdzone; prywatny objęty audytem kontraktu |
 | Kraj | `cn` | Niemcy potwierdzone |
-| Materiał wnętrza | `it` | pełna skóra potwierdzona; pozostałe wartości objęte audytem kontraktu |
-| Kolor nadwozia | `ecol` | czarny potwierdzony |
-| Kolor wnętrza | `icol` | objęty audytem kontraktu |
-| Matowy / Metallic | `fe` | Metallic potwierdzony; matowy objęty audytem kontraktu |
+| Materiał wnętrza | `it` | Alcantara, materiał, skóra częściowa i pełna skóra potwierdzone |
+| Kolor nadwozia | `ecol` | czarny, niebieski i biały potwierdzone; pozostałe objęte audytem kontraktu |
+| Kolor wnętrza | `icol` | beżowy i inny potwierdzone; pozostałe objęte audytem kontraktu |
+| Matowy / Metallic | `fe` | oba warianty potwierdzone |
 | Auto niepalącego | `fe=NONSMOKER_VEHICLE` | potwierdzone |
-| Uszkodzone pojazdy | `dam` | „nie pokazuj” potwierdzone |
+| Uszkodzone pojazdy | `dam` | „nie pokazuj” oraz zakres bez ograniczenia potwierdzone |
 | Sortowanie | `sb=p&od=up` | potwierdzone: Price (lowest first) |
 
 Kontrolna publiczna wyszukiwarka zwróciła 72 oferty i zachowała wszystkie wybrane
