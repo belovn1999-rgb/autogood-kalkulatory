@@ -714,15 +714,41 @@ function splitHighlightedText(text) {
 function isHighlightedText(part) {
   return processHighlights.some(phrase => phrase.toLowerCase() === String(part).toLowerCase());
 }
-function renderHighlightedText(text) {
-  return splitHighlightedText(text).map((part, index) => isHighlightedText(part) ? /*#__PURE__*/React.createElement("strong", {
-    key: `${part}-${index}`
-  }, part) : /*#__PURE__*/React.createElement(React.Fragment, {
-    key: `${part}-${index}`
-  }, part));
+function escapeHtml(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 function highlightedHtml(text) {
-  return splitHighlightedText(text).map(part => isHighlightedText(part) ? `<strong>${part}</strong>` : part).join("");
+  return splitHighlightedText(text).map(part => isHighlightedText(part) ? `<strong>${escapeHtml(part)}</strong>` : escapeHtml(part)).join("");
+}
+function sanitizeProcessStepHtml(value) {
+  if (typeof document === "undefined") return "";
+  const template = document.createElement("template");
+  const allowedTags = new Set(["B", "BR", "EM", "I", "STRONG"]);
+  template.innerHTML = String(value || "");
+  const cleanNode = node => {
+    Array.from(node.childNodes).forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) return;
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        child.remove();
+        return;
+      }
+      if (child.tagName === "SCRIPT" || child.tagName === "STYLE") {
+        child.remove();
+        return;
+      }
+      cleanNode(child);
+      if (allowedTags.has(child.tagName)) {
+        Array.from(child.attributes).forEach(attribute => child.removeAttribute(attribute.name));
+      } else {
+        child.replaceWith(...Array.from(child.childNodes));
+      }
+    });
+  };
+  cleanNode(template.content);
+  return template.innerHTML.trim();
+}
+function processStepOverrideKey(tabId, lang, financed, hasGermanCommission, dealerDirect, index) {
+  return [tabId, lang, financed ? 1 : 0, hasGermanCommission ? 1 : 0, dealerDirect ? 1 : 0, index].join(":");
 }
 function n(value) {
   const parsed = Number(String(value).replace(/\s/g, "").replace(",", "."));
@@ -917,7 +943,8 @@ function historySignature(item) {
     dealerDirect: item.dealerDirect,
     values: item.values || {},
     manualOverrides: item.manualOverrides || {},
-    marginAuctionState: item.marginAuctionState || {}
+    marginAuctionState: item.marginAuctionState || {},
+    processStepOverrides: item.processStepOverrides || {}
   });
 }
 function percentLabel(value) {
@@ -1383,15 +1410,38 @@ function MobileDeImport({
   }, summary));
 }
 function ProcessFlow({
-  steps
+  steps,
+  onChange
 }) {
   return /*#__PURE__*/React.createElement("ol", {
     className: "processFlow",
     "aria-label": "Informacje"
-  }, steps.map((step, index) => /*#__PURE__*/React.createElement("li", {
-    key: `${step}-${index}`,
+  }, steps.map(step => /*#__PURE__*/React.createElement("li", {
+    key: step.key,
     className: "processStep"
-  }, renderHighlightedText(step))));
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "processStepEditor",
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    role: "textbox",
+    "aria-multiline": "false",
+    dangerouslySetInnerHTML: {
+      __html: step.html
+    },
+    onBlur: event => onChange(step.key, sanitizeProcessStepHtml(event.currentTarget.innerHTML)),
+    onKeyDown: event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        event.currentTarget.blur();
+      }
+    },
+    onPaste: event => {
+      event.preventDefault();
+      const html = event.clipboardData.getData("text/html");
+      const text = event.clipboardData.getData("text/plain");
+      document.execCommand("insertHTML", false, html ? sanitizeProcessStepHtml(html) : escapeHtml(text));
+    }
+  }))));
 }
 function MarginAuctionBreakdown({
   c,
@@ -2143,7 +2193,8 @@ function printCalculation({
   rate,
   financed,
   hasGermanCommission,
-  dealerDirect = false
+  dealerDirect = false,
+  processStepHtml
 }) {
   const c = copy[lang];
   const calculationTitle = title || calculatorName(tab, lang, financed);
@@ -2167,8 +2218,9 @@ function printCalculation({
           </td>
         </tr>`;
   }).join("");
-  const processSteps = getProcessSteps(tab, lang, financed, hasGermanCommission, dealerDirect);
-  const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow"> → </span>' : ""}<span class="processStep">${highlightedHtml(step)}</span>`).join("");
+  const defaultProcessSteps = getProcessSteps(tab, lang, financed, hasGermanCommission, dealerDirect);
+  const processSteps = Array.isArray(processStepHtml) && processStepHtml.length === defaultProcessSteps.length ? processStepHtml : defaultProcessSteps.map(highlightedHtml);
+  const processHtml = processSteps.map((step, index) => `${index > 0 ? '<span class="processArrow"> → </span>' : ""}<span class="processStep">${step}</span>`).join("");
   const html = `
 <!doctype html>
 <html>
@@ -2387,6 +2439,7 @@ function App() {
   });
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
+  const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
   const safeLang = lang || "pl";
@@ -2401,7 +2454,14 @@ function App() {
   const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
-  const processSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect);
+  const defaultProcessSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect);
+  const processSteps = defaultProcessSteps.map((step, index) => {
+    const key = processStepOverrideKey(activeTab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect, index);
+    return {
+      key,
+      html: Object.prototype.hasOwnProperty.call(processStepOverrides, key) ? processStepOverrides[key] : highlightedHtml(step)
+    };
+  });
   const visibleHistory = isFinalBalance ? finalHistory : history;
   const avgRateLabel = formatAvgRate(Number(marketRates?.rates?.EUR_PLN?.value));
   const rateDate = new Intl.DateTimeFormat(safeLang === "ru" ? "ru-RU" : safeLang === "en" ? "en-GB" : "pl-PL", {
@@ -2667,6 +2727,7 @@ function App() {
       values: normalizeHistoryValues(values),
       manualOverrides,
       marginAuctionState,
+      processStepOverrides,
       total: calc.total,
       title: activeTabName
     };
@@ -2709,6 +2770,7 @@ function App() {
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
     setMarginAuctionState(normalizeMarginAuctionState(item.marginAuctionState));
+    setProcessStepOverrides(item.processStepOverrides && typeof item.processStepOverrides === "object" ? item.processStepOverrides : {});
     setMarginAuctionDraft({
       label: "",
       amount: "",
@@ -2891,7 +2953,8 @@ function App() {
       rate: n(rate) || DEFAULT_RATE,
       financed,
       hasGermanCommission,
-      dealerDirect: activeTab === 3 && dealerDirect
+      dealerDirect: activeTab === 3 && dealerDirect,
+      processStepHtml: processSteps.map(step => step.html)
     })
   }, c.print), /*#__PURE__*/React.createElement("button", {
     className: "printBtn screenshotBtn",
@@ -3071,7 +3134,11 @@ function App() {
   }, "= ", money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR"))), /*#__PURE__*/React.createElement("div", {
     className: "totalBarRate"
   }, c.rateLine, ": ", calculationRateLabel(n(rate) || DEFAULT_RATE), " PLN"))), /*#__PURE__*/React.createElement(ProcessFlow, {
-    steps: processSteps
+    steps: processSteps,
+    onChange: (key, html) => setProcessStepOverrides(current => ({
+      ...current,
+      [key]: html
+    }))
   }), calc.composition && /*#__PURE__*/React.createElement(MarginAuctionBreakdown, {
     c: c,
     composition: calc.composition
