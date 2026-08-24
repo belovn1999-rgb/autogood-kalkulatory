@@ -24,4 +24,12 @@ No P0, P1, or P2 visual issues were found. The component has no image assets. Ty
 3. Added a custom position with amount, EUR currency, and VAT; confirmed the row appeared and inputs reset.
 4. Checked the browser console; no errors were reported.
 
+## Final VAT Drag And Drop
+
+- Added the calculated `VAT 23%` row to the same reorder surface as the active settlement rows.
+- Added a blue insertion line, endpoint dot, and subtle target-row tint for before/after placement.
+- Verified that seven visible rows expose the same localized drag handle: six active cost rows plus VAT.
+- Enabled VAT on the `250 PLN` translation row and confirmed VAT `58 PLN` and total `458 PLN`; calculation behavior is unchanged.
+- The VAT position is retained in saved final settlements and used in the print layout.
+
 final result: passed

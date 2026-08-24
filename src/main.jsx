@@ -100,6 +100,7 @@ const copy = {
     finalCustomAdd: "Dodaj koszt",
     finalCustomDelete: "Usuń pozycję",
     finalVatToggle: "Dodaj VAT 23%",
+    finalDragTitle: "Przeciągnij, aby zmienić kolejność",
     mobileImportTitle: "Link Mobile.de",
     mobileImportPlaceholder: "Wklej link ogłoszenia",
     mobileImportButton: "Załaduj dane",
@@ -193,6 +194,7 @@ const copy = {
     finalCustomAdd: "Добавить расход",
     finalCustomDelete: "Удалить позицию",
     finalVatToggle: "Добавить НДС 23%",
+    finalDragTitle: "Перетащите, чтобы изменить порядок",
     mobileImportTitle: "Ссылка Mobile.de",
     mobileImportPlaceholder: "Вставь ссылку объявления",
     mobileImportButton: "Загрузить данные",
@@ -286,6 +288,7 @@ const copy = {
     finalCustomAdd: "Add cost",
     finalCustomDelete: "Remove item",
     finalVatToggle: "Add VAT 23%",
+    finalDragTitle: "Drag to change the order",
     mobileImportTitle: "Mobile.de link",
     mobileImportPlaceholder: "Paste the listing link",
     mobileImportButton: "Load data",
@@ -934,6 +937,7 @@ const finalExtraTemplates = [
   { key: "deposit2", label: { pl: "Zaliczka 2", ru: "Аванс 2", en: "Deposit 2" }, group: "extra", mode: "off", activeMode: "minus" },
 ];
 const finalTemplates = [...finalFixedTemplates, ...finalExtraTemplates];
+const FINAL_VAT_ROW_KEY = "final-vat-total";
 
 function convertFinalAmount(value, fromCurrency, toCurrency, rate) {
   const amount = n(value);
@@ -1008,6 +1012,7 @@ function finalHistorySignature(item) {
     finalCurrency: item.finalCurrency,
     rate: item.rate,
     items: item.items || [],
+    finalVatRowIndex: item.finalVatRowIndex,
   });
 }
 
@@ -1701,9 +1706,11 @@ function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
   );
 }
 
-function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, draggedRowKey, onDragStart, onDragEnd, onDrop, editingField, onStartEdit, onFinishEdit, onLabelChange, onAmountChange }) {
+function FinalBalanceResults({ c, lang, currency, rate, calc, vatRowIndex, dropHint, onToggleVat, draggedRowKey, onDragStart, onDragOver, onDragEnd, onDrop, editingField, onStartEdit, onFinishEdit, onLabelChange, onAmountChange }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
+  const displayedRows = [...calc.rows];
+  displayedRows.splice(Math.min(Math.max(vatRowIndex, 0), displayedRows.length), 0, { key: FINAL_VAT_ROW_KEY, isVatTotal: true });
 
   return (
     <>
@@ -1712,21 +1719,24 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, dragg
       <h2 className="calcEyebrow">{c.finalBalance}</h2>
 
       <div className="rows finalRows">
-        {calc.rows.map((item) => (
+        {displayedRows.map((item) => (
           <div
             key={item.key}
-            className={`finalResultLine finalReorderLine ${draggedRowKey === item.key ? "isDragging" : ""}`}
+            className={`finalResultLine finalReorderLine ${item.isVatTotal ? "finalVatRow" : ""} ${draggedRowKey === item.key ? "isDragging" : ""} ${dropHint?.key === item.key ? `isDropTarget drop-${dropHint.position}` : ""}`}
             data-final-row-key={item.key}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={() => onDrop(item.key)}
+            onDragOver={(event) => onDragOver(event, item.key)}
+            onDrop={(event) => {
+              event.preventDefault();
+              onDrop(item.key, dropHint?.key === item.key ? dropHint.position : "before");
+            }}
           >
             <button
               type="button"
               className="marginAuctionDragHandle finalDragHandle"
               data-html2canvas-ignore
               draggable
-              title={c.flexibleEditTitle}
-              aria-label={c.flexibleEditTitle}
+              title={c.finalDragTitle}
+              aria-label={c.finalDragTitle}
               onDragStart={() => onDragStart(item.key)}
               onDragEnd={onDragEnd}
               onPointerDown={(event) => {
@@ -1735,12 +1745,22 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, dragg
               onPointerUp={(event) => {
                 if (event.pointerType === "mouse") return;
                 const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-final-row-key]");
-                if (target?.dataset.finalRowKey) onDrop(target.dataset.finalRowKey);
+                if (target?.dataset.finalRowKey) onDrop(target.dataset.finalRowKey, "before");
                 else onDragEnd();
               }}
             >
               ::
             </button>
+            {item.isVatTotal ? (
+              <div className="resultRow finalResultRow mode-plus">
+                <div className="rowText">
+                  <span className="rowLabel">VAT 23%</span>
+                </div>
+                <div className="rowValue finalRowValue">
+                  <strong>+ {moneyExact(calc.vatTotal || 0, currency)}</strong>
+                </div>
+              </div>
+            ) : (
             <div className={`resultRow finalResultRow mode-${item.mode}`}>
               <div className="rowText">
                 {editingField?.key === item.key && editingField.field === "label" ? (
@@ -1796,7 +1816,8 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, dragg
                 )}
               </div>
             </div>
-            {item.mode === "plus" && (
+            )}
+            {!item.isVatTotal && item.mode === "plus" && (
               <button
                 type="button"
                 className={`finalVatToggle ${item.vatAdded ? "active" : ""}`}
@@ -1810,17 +1831,6 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, dragg
             )}
           </div>
         ))}
-
-        <div className="finalResultLine finalVatRow">
-          <div className="resultRow finalResultRow mode-plus">
-            <div className="rowText">
-              <span className="rowLabel">VAT 23%</span>
-            </div>
-            <div className="rowValue finalRowValue">
-              <strong>+ {moneyExact(calc.vatTotal || 0, currency)}</strong>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className={`totalBox finalTotalBox ${totalIsNegative ? "isOverpaid" : ""}`}>
@@ -2273,16 +2283,18 @@ function printCalculation({ lang, tab, title, rows, total, rate, financed, hasGe
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function printFinalBalance({ lang, rows, total, currency, rate }) {
+function printFinalBalance({ lang, rows, vatTotal, vatRowIndex, total, currency, rate }) {
   const c = copy[lang];
   const logoUrl = new URL("./assets/autogood-logo.png", window.location.href).href;
   const homeUrl = new URL("./", window.location.href).href;
   const totalIsNegative = total < 0;
-  const rowsHtml = rows
+  const displayedRows = [...rows];
+  displayedRows.splice(Math.min(Math.max(vatRowIndex, 0), displayedRows.length), 0, { key: FINAL_VAT_ROW_KEY, isVatTotal: true });
+  const rowsHtml = displayedRows
     .map((item) => `
-      <tr class="${item.mode === "minus" ? "minusRow" : ""}">
-        <td><strong>${item.label[lang]}</strong></td>
-        <td><b>${finalSignedAmountLabel(item, currency)}</b></td>
+      <tr class="${item.mode === "minus" ? "minusRow" : ""} ${item.isVatTotal ? "vatRow" : ""}">
+        <td><strong>${item.isVatTotal ? "VAT 23%" : item.label[lang]}</strong></td>
+        <td><b>${item.isVatTotal ? `+ ${moneyExact(vatTotal || 0, currency)}` : finalSignedAmountLabel(item, currency)}</b></td>
       </tr>`
     )
     .join("");
@@ -2307,6 +2319,7 @@ function printFinalBalance({ lang, rows, total, currency, rate }) {
     td:last-child{width:260px;border-right:1px solid #dbe4ee;border-radius:0 8px 8px 0;text-align:right;white-space:nowrap}
     .minusRow td{background:#f8fbfd}
     .minusRow b{color:#0f766e}
+    .vatRow td{background:#f3f7fa}
     .softVatTag{display:inline-flex;margin-left:8px;border-radius:999px;padding:3px 7px;color:#64748b;background:#f1f5f9;font-size:8.5px;font-weight:900;letter-spacing:.03em;vertical-align:middle}
     .total{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 22px;margin-top:18px;padding:22px 24px 18px;border-radius:14px;background:#005B82;color:#fff}
     .total.overpaid{background:#0f766e}
@@ -2404,6 +2417,8 @@ function App() {
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
   const [draggedFinalRow, setDraggedFinalRow] = useState("");
+  const [finalVatRowIndex, setFinalVatRowIndex] = useState(Number.MAX_SAFE_INTEGER);
+  const [finalDropHint, setFinalDropHint] = useState(null);
   const [editingFinalResult, setEditingFinalResult] = useState(null);
   const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
@@ -2568,16 +2583,26 @@ function App() {
     setFinalItems((current) => current.filter((item) => item.key !== key || !item.isCustom));
   };
 
-  const moveFinalItem = (sourceKey, targetKey) => {
+  const moveFinalDisplayRow = (sourceKey, targetKey, position = "before") => {
     if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+    const activeKeys = finalCalc.rows.map((item) => item.key);
+    const displayKeys = [...activeKeys];
+    displayKeys.splice(Math.min(finalVatRowIndex, displayKeys.length), 0, FINAL_VAT_ROW_KEY);
+    const sourceIndex = displayKeys.indexOf(sourceKey);
+    if (sourceIndex < 0 || !displayKeys.includes(targetKey)) return;
+    displayKeys.splice(sourceIndex, 1);
+    const targetIndex = displayKeys.indexOf(targetKey);
+    displayKeys.splice(targetIndex + (position === "after" ? 1 : 0), 0, sourceKey);
+
+    setFinalVatRowIndex(displayKeys.indexOf(FINAL_VAT_ROW_KEY));
+    const orderedActiveKeys = displayKeys.filter((key) => key !== FINAL_VAT_ROW_KEY);
+    const activeSet = new Set(orderedActiveKeys);
     setFinalItems((current) => {
-      const sourceIndex = current.findIndex((item) => item.key === sourceKey);
-      if (sourceIndex < 0 || !current.some((item) => item.key === targetKey)) return current;
-      const sourceItem = current[sourceIndex];
-      const next = current.filter((item) => item.key !== sourceKey);
-      const targetIndex = next.findIndex((item) => item.key === targetKey);
-      next.splice(targetIndex, 0, sourceItem);
-      return next;
+      const byKey = new Map(current.map((item) => [item.key, item]));
+      let activeIndex = 0;
+      return current.map((item) => (
+        activeSet.has(item.key) ? byKey.get(orderedActiveKeys[activeIndex++]) : item
+      ));
     });
   };
 
@@ -2695,6 +2720,7 @@ function App() {
         finalCurrency,
         rate: calculationRateLabel(n(rate) || DEFAULT_RATE),
         items: finalItems,
+        finalVatRowIndex: Math.min(finalVatRowIndex, finalCalc.rows.length),
         total: finalCalc.total,
         title: c.finalBalance,
       };
@@ -2751,6 +2777,8 @@ function App() {
       setEditingMarginAuctionText(null);
       setDraggedMarginAuctionRow("");
       setDraggedFinalRow("");
+      setFinalDropHint(null);
+      setFinalVatRowIndex(Number.isInteger(item.finalVatRowIndex) ? item.finalVatRowIndex : Number.MAX_SAFE_INTEGER);
       setEditingFinalResult(null);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length
@@ -2943,6 +2971,8 @@ function App() {
                 ? printFinalBalance({
                   lang: safeLang,
                   rows: finalCalc.rows,
+                  vatTotal: finalCalc.vatTotal,
+                  vatRowIndex: finalVatRowIndex,
                   total: finalCalc.total,
                   currency: finalCurrency,
                   rate: n(rate) || DEFAULT_RATE,
@@ -3101,13 +3131,29 @@ function App() {
               currency={finalCurrency}
               rate={n(rate) || DEFAULT_RATE}
               calc={finalCalc}
+              vatRowIndex={finalVatRowIndex}
+              dropHint={finalDropHint}
               onToggleVat={toggleFinalVat}
               draggedRowKey={draggedFinalRow}
-              onDragStart={setDraggedFinalRow}
-              onDragEnd={() => setDraggedFinalRow("")}
-              onDrop={(targetKey) => {
-                moveFinalItem(draggedFinalRow, targetKey);
+              onDragStart={(key) => {
+                setDraggedFinalRow(key);
+                setFinalDropHint(null);
+              }}
+              onDragOver={(event, key) => {
+                event.preventDefault();
+                if (!draggedFinalRow || draggedFinalRow === key) return;
+                const rect = event.currentTarget.getBoundingClientRect();
+                const position = event.clientY >= rect.top + rect.height / 2 ? "after" : "before";
+                setFinalDropHint({ key, position });
+              }}
+              onDragEnd={() => {
                 setDraggedFinalRow("");
+                setFinalDropHint(null);
+              }}
+              onDrop={(targetKey, position) => {
+                moveFinalDisplayRow(draggedFinalRow, targetKey, position);
+                setDraggedFinalRow("");
+                setFinalDropHint(null);
               }}
               editingField={editingFinalResult}
               onStartEdit={(key, field) => setEditingFinalResult({ key, field })}

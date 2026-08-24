@@ -2793,10 +2793,56 @@ body {
 
 .finalResults .finalReorderLine {
   position: relative;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .finalResults .finalReorderLine.isDragging {
   opacity: .45;
+}
+
+.finalResults .finalReorderLine.isDropTarget {
+  background: rgba(15, 81, 118, 0.06);
+}
+
+.finalResults .finalReorderLine.isDropTarget::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--ag-blue-700);
+  box-shadow: 0 0 0 3px rgba(15, 81, 118, 0.13);
+  pointer-events: none;
+}
+
+.finalResults .finalReorderLine.isDropTarget::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ag-blue-700);
+  pointer-events: none;
+}
+
+.finalResults .finalReorderLine.drop-before::before {
+  top: -2px;
+}
+
+.finalResults .finalReorderLine.drop-before::after {
+  top: -5px;
+}
+
+.finalResults .finalReorderLine.drop-after::before {
+  bottom: -2px;
+}
+
+.finalResults .finalReorderLine.drop-after::after {
+  bottom: -5px;
 }
 
 .finalResults .finalDragHandle {
