@@ -2818,6 +2818,39 @@ body {
   outline: 0;
 }
 
+.finalResults .finalResultLabelEdit {
+  width: 100%;
+  text-align: left;
+}
+
+.finalResults .finalResultLabelInput {
+  width: 100%;
+}
+
+.finalResults .finalResultAmountEdit {
+  cursor: text;
+}
+
+.finalResults .finalResultAmountInput {
+  width: 126px;
+  min-width: 0;
+  border: 1px solid var(--ag-field-border);
+  border-radius: var(--radius-md);
+  background: var(--ag-surface);
+  color: var(--ag-ink-900);
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+  outline: 0;
+}
+
+.finalResults .finalResultAmountInput:focus {
+  border-color: var(--ag-blue-700);
+  box-shadow: 0 0 0 3px rgba(15, 81, 118, 0.14);
+}
+
 .finalResults .resultRow.finalResultRow {
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;

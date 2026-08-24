@@ -1029,9 +1029,10 @@ function finalTemplateForKey(key) {
 
 function normalizeFinalItem(item) {
   const template = finalTemplateForKey(item.key);
+  const savedLabel = item.label && typeof item.label === "object" ? item.label : {};
   return {
     ...item,
-    label: template?.label || item.label,
+    label: { ...(template?.label || {}), ...savedLabel },
     group: template?.group || item.group || "fixed",
     mode: item.mode || template?.mode || "plus",
     activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
@@ -1695,7 +1696,7 @@ function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
   );
 }
 
-function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, draggedRowKey, onDragStart, onDragEnd, onDrop }) {
+function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, draggedRowKey, onDragStart, onDragEnd, onDrop, editingField, onStartEdit, onFinishEdit, onLabelChange, onAmountChange }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
 
@@ -1737,10 +1738,57 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, dragg
             </button>
             <div className={`resultRow finalResultRow mode-${item.mode}`}>
               <div className="rowText">
-                <span className="rowLabel">{item.label[lang]}</span>
+                {editingField?.key === item.key && editingField.field === "label" ? (
+                  <input
+                    className="marginAuctionTextInput finalResultLabelInput"
+                    autoFocus
+                    value={item.label[lang] || ""}
+                    onChange={(event) => onLabelChange(item.key, event.target.value)}
+                    onBlur={onFinishEdit}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="marginAuctionTextEdit rowLabel finalResultLabelEdit"
+                    onClick={() => onStartEdit(item.key, "label")}
+                  >
+                    {item.label[lang]}
+                  </button>
+                )}
               </div>
               <div className="rowValue finalRowValue">
-                <strong>{finalSignedAmountLabel(item, currency)}</strong>
+                {editingField?.key === item.key && editingField.field === "amount" ? (
+                  <input
+                    className="finalResultAmountInput"
+                    autoFocus
+                    inputMode="decimal"
+                    type="text"
+                    value={item.amount}
+                    onChange={(event) => onAmountChange(item.key, event.target.value)}
+                    onBlur={onFinishEdit}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+                    }}
+                  />
+                ) : (
+                  <strong
+                    className="finalResultAmountEdit"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onStartEdit(item.key, "amount")}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onStartEdit(item.key, "amount");
+                      }
+                    }}
+                  >
+                    {finalSignedAmountLabel(item, currency)}
+                  </strong>
+                )}
               </div>
             </div>
             {item.mode === "plus" && (
@@ -2351,6 +2399,7 @@ function App() {
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
   const [draggedFinalRow, setDraggedFinalRow] = useState("");
+  const [editingFinalResult, setEditingFinalResult] = useState(null);
   const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
@@ -2427,6 +2476,7 @@ function App() {
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
     setDraggedFinalRow("");
+    setEditingFinalResult(null);
     // Switching tabs wipes the imported values, so the import result no longer
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
@@ -2473,6 +2523,12 @@ function App() {
   const setFinalAmount = (key, amount) => {
     setFinalItems((current) => current.map((item) => (
       item.key === key ? { ...item, amount } : item
+    )));
+  };
+
+  const setFinalLabel = (key, value) => {
+    setFinalItems((current) => current.map((item) => (
+      item.key === key ? { ...item, label: { ...item.label, [safeLang]: value } } : item
     )));
   };
 
@@ -2690,6 +2746,7 @@ function App() {
       setEditingMarginAuctionText(null);
       setDraggedMarginAuctionRow("");
       setDraggedFinalRow("");
+      setEditingFinalResult(null);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length
         ? item.items.map(normalizeFinalItem)
@@ -2714,6 +2771,7 @@ function App() {
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
     setDraggedFinalRow("");
+    setEditingFinalResult(null);
     setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
@@ -3046,6 +3104,11 @@ function App() {
                 moveFinalItem(draggedFinalRow, targetKey);
                 setDraggedFinalRow("");
               }}
+              editingField={editingFinalResult}
+              onStartEdit={(key, field) => setEditingFinalResult({ key, field })}
+              onFinishEdit={() => setEditingFinalResult(null)}
+              onLabelChange={setFinalLabel}
+              onAmountChange={setFinalAmount}
             />
           ) : (
             <>

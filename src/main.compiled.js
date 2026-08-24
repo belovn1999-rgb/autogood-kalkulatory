@@ -1192,9 +1192,13 @@ function finalTemplateForKey(key) {
 }
 function normalizeFinalItem(item) {
   const template = finalTemplateForKey(item.key);
+  const savedLabel = item.label && typeof item.label === "object" ? item.label : {};
   return {
     ...item,
-    label: template?.label || item.label,
+    label: {
+      ...(template?.label || {}),
+      ...savedLabel
+    },
     group: template?.group || item.group || "fixed",
     mode: item.mode || template?.mode || "plus",
     activeMode: template?.activeMode || item.activeMode || template?.mode || "plus",
@@ -1892,7 +1896,12 @@ function FinalBalanceResults({
   draggedRowKey,
   onDragStart,
   onDragEnd,
-  onDrop
+  onDrop,
+  editingField,
+  onStartEdit,
+  onFinishEdit,
+  onLabelChange,
+  onAmountChange
 }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
@@ -1931,11 +1940,44 @@ function FinalBalanceResults({
     className: `resultRow finalResultRow mode-${item.mode}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "rowText"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "rowLabel"
+  }, editingField?.key === item.key && editingField.field === "label" ? /*#__PURE__*/React.createElement("input", {
+    className: "marginAuctionTextInput finalResultLabelInput",
+    autoFocus: true,
+    value: item.label[lang] || "",
+    onChange: event => onLabelChange(item.key, event.target.value),
+    onBlur: onFinishEdit,
+    onKeyDown: event => {
+      if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+    }
+  }) : /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "marginAuctionTextEdit rowLabel finalResultLabelEdit",
+    onClick: () => onStartEdit(item.key, "label")
   }, item.label[lang])), /*#__PURE__*/React.createElement("div", {
     className: "rowValue finalRowValue"
-  }, /*#__PURE__*/React.createElement("strong", null, finalSignedAmountLabel(item, currency)))), item.mode === "plus" && /*#__PURE__*/React.createElement("button", {
+  }, editingField?.key === item.key && editingField.field === "amount" ? /*#__PURE__*/React.createElement("input", {
+    className: "finalResultAmountInput",
+    autoFocus: true,
+    inputMode: "decimal",
+    type: "text",
+    value: item.amount,
+    onChange: event => onAmountChange(item.key, event.target.value),
+    onBlur: onFinishEdit,
+    onKeyDown: event => {
+      if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+    }
+  }) : /*#__PURE__*/React.createElement("strong", {
+    className: "finalResultAmountEdit",
+    role: "button",
+    tabIndex: 0,
+    onClick: () => onStartEdit(item.key, "amount"),
+    onKeyDown: event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onStartEdit(item.key, "amount");
+      }
+    }
+  }, finalSignedAmountLabel(item, currency)))), item.mode === "plus" && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `finalVatToggle ${item.vatAdded ? "active" : ""}`,
     onClick: () => onToggleVat(item.key),
@@ -2464,6 +2506,7 @@ function App() {
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
   const [draggedFinalRow, setDraggedFinalRow] = useState("");
+  const [editingFinalResult, setEditingFinalResult] = useState(null);
   const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
@@ -2530,6 +2573,7 @@ function App() {
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
     setDraggedFinalRow("");
+    setEditingFinalResult(null);
     // Switching tabs wipes the imported values, so the import result no longer
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
@@ -2578,6 +2622,15 @@ function App() {
     setFinalItems(current => current.map(item => item.key === key ? {
       ...item,
       amount
+    } : item));
+  };
+  const setFinalLabel = (key, value) => {
+    setFinalItems(current => current.map(item => item.key === key ? {
+      ...item,
+      label: {
+        ...item.label,
+        [safeLang]: value
+      }
     } : item));
   };
   const setFinalMode = (key, mode) => {
@@ -2793,6 +2846,7 @@ function App() {
       setEditingMarginAuctionText(null);
       setDraggedMarginAuctionRow("");
       setDraggedFinalRow("");
+      setEditingFinalResult(null);
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length ? item.items.map(normalizeFinalItem) : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
       setRate(item.rate || DEFAULT_RATE);
@@ -2819,6 +2873,7 @@ function App() {
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
     setDraggedFinalRow("");
+    setEditingFinalResult(null);
     setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
@@ -3130,7 +3185,15 @@ function App() {
     onDrop: targetKey => {
       moveFinalItem(draggedFinalRow, targetKey);
       setDraggedFinalRow("");
-    }
+    },
+    editingField: editingFinalResult,
+    onStartEdit: (key, field) => setEditingFinalResult({
+      key,
+      field
+    }),
+    onFinishEdit: () => setEditingFinalResult(null),
+    onLabelChange: setFinalLabel,
+    onAmountChange: setFinalAmount
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
