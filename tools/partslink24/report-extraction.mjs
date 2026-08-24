@@ -608,7 +608,7 @@ function inferEngineEvidence(brand, values) {
     if (/\b(?:I3|I4|I5|I7|IX\d*|COOPER\s+SE|ELECTRIC)\b/i.test(source)) return " electric vehicle";
     if (/\bI8\b|\b\d{2}E\b/i.test(source)) return " gasoline PHEV";
     if (/\b(?:B37|B47|B57|N47|N57|M47|M57|\d{2}D)\w*/i.test(source)) return " diesel";
-    if (/\b(?:B38|B48|B58|N1[236]|N2[046]|N5[245]|N6[234]|N74|\d{2}I)\w*/i.test(source)) return " gasoline";
+    if (/\b(?:B38|B48|B58|N1[23468]|N2[046]|N5[245]|N6[234]|N74|\d{2}I)\w*/i.test(source)) return " gasoline";
   }
 
   if (["Ford", "Ford Pro"].includes(brand)) {

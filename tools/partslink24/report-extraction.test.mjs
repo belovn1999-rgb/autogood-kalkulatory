@@ -61,6 +61,17 @@ ${extraEvidence}
   }
 });
 
+test("Mini decodes N1 gasoline engine codes", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                         John Cooper Works Cabrio R57 LCI
+Код двигателя                  N18B16T0
+Pojemność silnika              1,60 l
+`, { brand: "Mini", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "1600 cm³");
+});
+
 test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
   const reports = [
     ["RU", `Торговое наименование              C 300 e универсал\nДата поставки                      16.10.2023\nM20         РАБОЧИЙ ОБЪЁМ 2,0 ЛИТРА\nM254        ДВИГАТЕЛЬ С ИСКРОВЫМ ЗАЖИГАНИЕМ\nME10        ГИБРИДНЫЙ АВТОМОБИЛЬ (ПОДКЛЮЧАЕМЫЙ, PHEV)`],
