@@ -483,8 +483,18 @@ select:focus-visible,
   min-width: 0;
   width: 100%;
   height: 42px;
+  border: 1px solid var(--ag-field-border);
   border-radius: var(--radius-lg);
   background: var(--ag-surface);
+  color: var(--ag-ink-900);
+  font-family: var(--ag-font-body);
+  outline: 0;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.marginAuctionWorkbench .field input:focus,
+.marginAuctionWorkbench .field select:focus {
+  border-color: var(--ag-blue-700);
 }
 
 .marginAuctionVatToggle {
@@ -1838,10 +1848,56 @@ select {
 
 .marginAuctionResultLine {
   position: relative;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .marginAuctionResultLine.isDragging {
   opacity: .45;
+}
+
+.marginAuctionResultLine.isDropTarget {
+  background: rgba(15, 81, 118, 0.06);
+}
+
+.marginAuctionResultLine.isDropTarget::before {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--ag-blue-700);
+  box-shadow: 0 0 0 3px rgba(15, 81, 118, 0.13);
+  pointer-events: none;
+}
+
+.marginAuctionResultLine.isDropTarget::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ag-blue-700);
+  pointer-events: none;
+}
+
+.marginAuctionResultLine.drop-before::before {
+  top: -2px;
+}
+
+.marginAuctionResultLine.drop-before::after {
+  top: -5px;
+}
+
+.marginAuctionResultLine.drop-after::before {
+  bottom: -2px;
+}
+
+.marginAuctionResultLine.drop-after::after {
+  bottom: -5px;
 }
 
 .marginAuctionDragHandle,

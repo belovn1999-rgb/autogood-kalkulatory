@@ -1338,7 +1338,7 @@ function MarginAuctionBreakdown({ c, composition }) {
   );
 }
 
-function MarginAuctionResultLines({ c, tabId, rows, manualOverrides, editingOverride, onStartAmountEdit, onAmountChange, onFinishAmountEdit, editingText, onStartTextEdit, onTextChange, onFinishTextEdit, onRemove, draggedRowId, onDragStart, onDragEnd, onDrop }) {
+function MarginAuctionResultLines({ c, tabId, rows, manualOverrides, editingOverride, onStartAmountEdit, onAmountChange, onFinishAmountEdit, editingText, onStartTextEdit, onTextChange, onFinishTextEdit, onRemove, draggedRowId, dropHint, onDragStart, onDragOver, onDragEnd, onDrop }) {
   return (
     <div className="resultsList marginAuctionResultsList">
       {rows.map((item) => {
@@ -1350,10 +1350,13 @@ function MarginAuctionResultLines({ c, tabId, rows, manualOverrides, editingOver
         return (
           <div
             key={item.id}
-            className={`resultLine marginAuctionResultLine ${isPrimary ? "isPrimaryLine" : ""} ${draggedRowId === item.id ? "isDragging" : ""}`}
+            className={`resultLine marginAuctionResultLine ${isPrimary ? "isPrimaryLine" : ""} ${draggedRowId === item.id ? "isDragging" : ""} ${dropHint?.id === item.id ? `isDropTarget drop-${dropHint.position}` : ""}`}
             data-margin-auction-row-id={item.id}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={() => onDrop(item.id)}
+            onDragOver={(event) => onDragOver(event, item.id)}
+            onDrop={(event) => {
+              event.preventDefault();
+              onDrop(item.id, dropHint?.id === item.id ? dropHint.position : "before");
+            }}
           >
             <button
               type="button"
@@ -2416,6 +2419,7 @@ function App() {
   const [marginAuctionDraft, setMarginAuctionDraft] = useState({ label: "", amount: "", currency: "PLN", vat: false });
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
+  const [marginAuctionDropHint, setMarginAuctionDropHint] = useState(null);
   const [draggedFinalRow, setDraggedFinalRow] = useState("");
   const [finalVatRowIndex, setFinalVatRowIndex] = useState(Number.MAX_SAFE_INTEGER);
   const [finalDropHint, setFinalDropHint] = useState(null);
@@ -2495,6 +2499,7 @@ function App() {
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
+    setMarginAuctionDropHint(null);
     setDraggedFinalRow("");
     setEditingFinalResult(null);
     // Switching tabs wipes the imported values, so the import result no longer
@@ -2694,14 +2699,14 @@ function App() {
     }));
   };
 
-  const moveMarginAuctionRow = (sourceId, targetId) => {
+  const moveMarginAuctionRow = (sourceId, targetId, position = "before") => {
     if (!sourceId || !targetId || sourceId === targetId) return;
     const ids = calc.rows.map((item) => item.id);
     const sourceIndex = ids.indexOf(sourceId);
     if (sourceIndex < 0 || !ids.includes(targetId)) return;
     const nextOrder = ids.filter((id) => id !== sourceId);
     const targetIndex = nextOrder.indexOf(targetId);
-    nextOrder.splice(targetIndex, 0, sourceId);
+    nextOrder.splice(targetIndex + (position === "after" ? 1 : 0), 0, sourceId);
     updateMarginAuctionState((current) => ({ ...current, rowOrder: nextOrder }));
   };
 
@@ -3181,11 +3186,26 @@ function App() {
             onFinishTextEdit={() => setEditingMarginAuctionText(null)}
             onRemove={removeMarginAuctionRow}
             draggedRowId={draggedMarginAuctionRow}
-            onDragStart={setDraggedMarginAuctionRow}
-            onDragEnd={() => setDraggedMarginAuctionRow("")}
-            onDrop={(targetId) => {
-              moveMarginAuctionRow(draggedMarginAuctionRow, targetId);
+            dropHint={marginAuctionDropHint}
+            onDragStart={(id) => {
+              setDraggedMarginAuctionRow(id);
+              setMarginAuctionDropHint(null);
+            }}
+            onDragOver={(event, id) => {
+              event.preventDefault();
+              if (!draggedMarginAuctionRow || draggedMarginAuctionRow === id) return;
+              const rect = event.currentTarget.getBoundingClientRect();
+              const position = event.clientY >= rect.top + rect.height / 2 ? "after" : "before";
+              setMarginAuctionDropHint({ id, position });
+            }}
+            onDragEnd={() => {
               setDraggedMarginAuctionRow("");
+              setMarginAuctionDropHint(null);
+            }}
+            onDrop={(targetId, position) => {
+              moveMarginAuctionRow(draggedMarginAuctionRow, targetId, position);
+              setDraggedMarginAuctionRow("");
+              setMarginAuctionDropHint(null);
             }}
           />
 
