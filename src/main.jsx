@@ -1482,18 +1482,24 @@ function MarginAuctionResultLines({ c, tabId, rows, manualOverrides, editingOver
 function MarginAuctionWorkbench({ c, draft, onDraftChange, onAdd, removedRows, onRestore }) {
   return (
     <section className="marginAuctionWorkbench" aria-label={c.flexibleTitle}>
-      <h2>{c.flexibleTitle}</h2>
+      <h2>{c.finalCustomTitle}</h2>
       <div className="marginAuctionWorkbenchFields">
         <label className="field marginAuctionNameField">
-          <span>{c.flexibleName}</span>
-          <input type="text" value={draft.label} onChange={(event) => onDraftChange({ ...draft, label: event.target.value })} />
+          <input
+            type="text"
+            value={draft.label}
+            aria-label={c.flexibleName}
+            placeholder={c.flexibleName}
+            onChange={(event) => onDraftChange({ ...draft, label: event.target.value })}
+          />
         </label>
         <label className="field marginAuctionAmountField">
-          <span>{c.flexibleAmount}</span>
           <input
             type="text"
             inputMode="decimal"
             value={draft.amount}
+            aria-label={c.flexibleAmount}
+            placeholder={c.flexibleAmount}
             onChange={(event) => onDraftChange({ ...draft, amount: event.target.value })}
             onKeyDown={(event) => {
               if (event.key === "Enter") onAdd();
@@ -1501,8 +1507,7 @@ function MarginAuctionWorkbench({ c, draft, onDraftChange, onAdd, removedRows, o
           />
         </label>
         <label className="field marginAuctionCurrencyField">
-          <span>{c.flexibleCurrency}</span>
-          <select value={draft.currency} onChange={(event) => onDraftChange({ ...draft, currency: event.target.value })}>
+          <select aria-label={c.flexibleCurrency} value={draft.currency} onChange={(event) => onDraftChange({ ...draft, currency: event.target.value })}>
             <option value="PLN">PLN</option>
             <option value="EUR">EUR</option>
           </select>

@@ -1657,23 +1657,27 @@ function MarginAuctionWorkbench({
   return /*#__PURE__*/React.createElement("section", {
     className: "marginAuctionWorkbench",
     "aria-label": c.flexibleTitle
-  }, /*#__PURE__*/React.createElement("h2", null, c.flexibleTitle), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", null, c.finalCustomTitle), /*#__PURE__*/React.createElement("div", {
     className: "marginAuctionWorkbenchFields"
   }, /*#__PURE__*/React.createElement("label", {
     className: "field marginAuctionNameField"
-  }, /*#__PURE__*/React.createElement("span", null, c.flexibleName), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("input", {
     type: "text",
     value: draft.label,
+    "aria-label": c.flexibleName,
+    placeholder: c.flexibleName,
     onChange: event => onDraftChange({
       ...draft,
       label: event.target.value
     })
   })), /*#__PURE__*/React.createElement("label", {
     className: "field marginAuctionAmountField"
-  }, /*#__PURE__*/React.createElement("span", null, c.flexibleAmount), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("input", {
     type: "text",
     inputMode: "decimal",
     value: draft.amount,
+    "aria-label": c.flexibleAmount,
+    placeholder: c.flexibleAmount,
     onChange: event => onDraftChange({
       ...draft,
       amount: event.target.value
@@ -1683,7 +1687,8 @@ function MarginAuctionWorkbench({
     }
   })), /*#__PURE__*/React.createElement("label", {
     className: "field marginAuctionCurrencyField"
-  }, /*#__PURE__*/React.createElement("span", null, c.flexibleCurrency), /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("select", {
+    "aria-label": c.flexibleCurrency,
     value: draft.currency,
     onChange: event => onDraftChange({
       ...draft,

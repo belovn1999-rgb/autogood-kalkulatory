@@ -430,31 +430,28 @@ select:focus-visible,
 }
 
 .marginAuctionWorkbench {
-  margin-top: 18px;
-  padding: 14px;
-  border: 1px solid var(--ag-line-150);
-  border-radius: 8px;
-  background: var(--ag-fill-tint);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ag-line-100);
 }
 
 .marginAuctionWorkbench h2 {
   margin: 0;
-  color: var(--ag-ink-600);
-  font-size: 12px;
+  color: var(--ag-blue-700);
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
 }
 
 .marginAuctionWorkbenchFields {
   display: grid;
   grid-template-areas:
-    "name amount currency"
-    "vat add add";
-  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.64fr) 76px;
-  align-items: end;
-  column-gap: 10px;
-  row-gap: 12px;
-  margin-top: 10px;
+    "name name add"
+    "amount currency vat";
+  grid-template-columns: minmax(0, 1fr) 74px auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .marginAuctionNameField {
@@ -471,13 +468,13 @@ select:focus-visible,
 }
 
 .marginAuctionWorkbench .marginAuctionCurrencyField select {
-  padding: 10px 18px 10px 8px;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 10px 22px 10px 9px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .marginAuctionWorkbench .field {
-  gap: 6px;
+  gap: 0;
 }
 
 .marginAuctionWorkbench .field input,
@@ -485,20 +482,16 @@ select:focus-visible,
   box-sizing: border-box;
   min-width: 0;
   width: 100%;
-}
-
-.marginAuctionWorkbench .field > span {
-  color: var(--ag-ink-600);
-  font-family: var(--ag-font-body);
-  font-size: 10px;
-  font-weight: 700;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  background: var(--ag-surface);
 }
 
 .marginAuctionVatToggle {
   grid-area: vat;
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
+  min-height: 42px;
   gap: 7px;
   color: var(--ag-ink-600);
   font-size: 12px;
@@ -514,12 +507,12 @@ select:focus-visible,
 
 .marginAuctionAddButton {
   grid-area: add;
-  justify-self: end;
-  min-width: 130px;
-  min-height: 38px;
+  align-self: stretch;
+  min-width: 118px;
+  min-height: 42px;
   border: 0;
-  border-radius: 6px;
-  padding: 0 15px;
+  border-radius: var(--radius-lg);
+  padding: 0 12px;
   background: var(--ag-blue-700);
   color: var(--ag-color-accent-ink);
   font-family: var(--ag-font-body);
@@ -2671,13 +2664,15 @@ body {
 
   .marginAuctionWorkbenchFields {
     grid-template-areas:
-      "name amount currency"
-      "vat add add";
-    grid-template-columns: minmax(0, 1fr) minmax(72px, 0.58fr) 64px;
-    column-gap: 8px;
+      "name name name"
+      "amount currency vat"
+      "add add add";
+    grid-template-columns: minmax(0, 1fr) 72px auto;
+    gap: 8px;
   }
 
   .marginAuctionAddButton {
+    width: 100%;
     min-width: 0;
   }
 
