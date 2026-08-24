@@ -217,7 +217,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     : "";
   const fallbackEngineInfo = normalizeEngineInfo({ engineTypeRaw: fallbackEngineRaw, engineVolumeRaw: fallbackEngineRaw });
   let resolvedEngineVolumeRaw = normalizePdfEngineVolume(engineVolumeRaw) ? engineVolumeRaw : fallbackEngineRaw;
-  if (!normalizePdfEngineVolume(resolvedEngineVolumeRaw) && brand === "BMW") {
+  if (!normalizePdfEngineVolume(resolvedEngineVolumeRaw) && ["BMW", "Mini"].includes(brand)) {
     resolvedEngineVolumeRaw = inferBmwEngineVolume(modelRaw);
   }
 
@@ -645,6 +645,7 @@ function inferEngineEvidence(brand, values) {
 function inferBmwMarketNamePowertrain(value) {
   const marketName = String(value || "").replace(/\s+/g, " ").trim();
   if (!marketName) return "";
+  if (/\bcooper\s+s\s+e\s+all4\b/i.test(marketName)) return " gasoline PHEV";
   if (/^(?:i3|i4|i5|i7|iX\d*)\b|\b(?:eDrive\d+|BMW\s+Electric)\b/i.test(marketName)) return " electric vehicle";
   if (/\bi8\b|\bM?\d{3}(?:L|x)?eA?\b|\b[XS]Drive\d{2}e\b/i.test(marketName)) return " gasoline PHEV";
   if (/\bM?\d{3}dA?\b|\b[XS]Drive\d{2}d\b/i.test(marketName)) return " diesel";
@@ -655,6 +656,7 @@ function inferBmwMarketNamePowertrain(value) {
 function inferBmwEngineVolume(value) {
   const marketName = String(value || "").replace(/\s+/g, " ").trim();
   if (!marketName || /^(?:i3|i4|i5|i7|iX\d*)\b/i.test(marketName)) return "";
+  if (/\bcooper\s+s\s+e\s+all4\b/i.test(marketName)) return "1.5 L";
 
   const standardMatch = marketName.match(/\b(M?\d{3})(?:L|x|t)?([die])A?\b/i);
   const driveMatch = marketName.match(/\b[XS]Drive(\d{2})([die])\b/i);

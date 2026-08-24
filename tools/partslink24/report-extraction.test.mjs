@@ -72,6 +72,17 @@ Pojemność silnika              1,60 l
   assert.equal(result.engineVolume, "1600 cm³");
 });
 
+test("Mini Cooper S E ALL4 is a gasoline PHEV despite a zero catalog displacement", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                         Cooper S E ALL4 Countryman F60
+Код двигателя                  XB2131M0
+Рабочий объем                  0,00
+`, { brand: "Mini", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
+  assert.equal(result.engineVolume, "1500 cm³");
+});
+
 test("Mercedes fields are equivalent in RU, PL and ENG reports", () => {
   const reports = [
     ["RU", `Торговое наименование              C 300 e универсал\nДата поставки                      16.10.2023\nM20         РАБОЧИЙ ОБЪЁМ 2,0 ЛИТРА\nM254        ДВИГАТЕЛЬ С ИСКРОВЫМ ЗАЖИГАНИЕМ\nME10        ГИБРИДНЫЙ АВТОМОБИЛЬ (ПОДКЛЮЧАЕМЫЙ, PHEV)`],
