@@ -1695,7 +1695,7 @@ function FinalCurrencyControl({ c, currency, onCurrencyChange }) {
   );
 }
 
-function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat }) {
+function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat, draggedRowKey, onDragStart, onDragEnd, onDrop }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
 
@@ -1707,7 +1707,34 @@ function FinalBalanceResults({ c, lang, currency, rate, calc, onToggleVat }) {
 
       <div className="rows finalRows">
         {calc.rows.map((item) => (
-          <div key={item.key} className="finalResultLine">
+          <div
+            key={item.key}
+            className={`finalResultLine finalReorderLine ${draggedRowKey === item.key ? "isDragging" : ""}`}
+            data-final-row-key={item.key}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => onDrop(item.key)}
+          >
+            <button
+              type="button"
+              className="marginAuctionDragHandle finalDragHandle"
+              data-html2canvas-ignore
+              draggable
+              title={c.flexibleEditTitle}
+              aria-label={c.flexibleEditTitle}
+              onDragStart={() => onDragStart(item.key)}
+              onDragEnd={onDragEnd}
+              onPointerDown={(event) => {
+                if (event.pointerType !== "mouse") onDragStart(item.key);
+              }}
+              onPointerUp={(event) => {
+                if (event.pointerType === "mouse") return;
+                const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-final-row-key]");
+                if (target?.dataset.finalRowKey) onDrop(target.dataset.finalRowKey);
+                else onDragEnd();
+              }}
+            >
+              ::
+            </button>
             <div className={`resultRow finalResultRow mode-${item.mode}`}>
               <div className="rowText">
                 <span className="rowLabel">{item.label[lang]}</span>
@@ -2323,6 +2350,7 @@ function App() {
   const [marginAuctionDraft, setMarginAuctionDraft] = useState({ label: "", amount: "", currency: "PLN", vat: false });
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
+  const [draggedFinalRow, setDraggedFinalRow] = useState("");
   const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
@@ -2398,6 +2426,7 @@ function App() {
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
+    setDraggedFinalRow("");
     // Switching tabs wipes the imported values, so the import result no longer
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
@@ -2476,6 +2505,19 @@ function App() {
 
   const deleteCustomFinalItem = (key) => {
     setFinalItems((current) => current.filter((item) => item.key !== key || !item.isCustom));
+  };
+
+  const moveFinalItem = (sourceKey, targetKey) => {
+    if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+    setFinalItems((current) => {
+      const sourceIndex = current.findIndex((item) => item.key === sourceKey);
+      if (sourceIndex < 0 || !current.some((item) => item.key === targetKey)) return current;
+      const sourceItem = current[sourceIndex];
+      const next = current.filter((item) => item.key !== sourceKey);
+      const targetIndex = next.findIndex((item) => item.key === targetKey);
+      next.splice(targetIndex, 0, sourceItem);
+      return next;
+    });
   };
 
   const setManualOverride = (key, value) => {
@@ -2647,6 +2689,7 @@ function App() {
       setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
       setEditingMarginAuctionText(null);
       setDraggedMarginAuctionRow("");
+      setDraggedFinalRow("");
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length
         ? item.items.map(normalizeFinalItem)
@@ -2670,6 +2713,7 @@ function App() {
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
+    setDraggedFinalRow("");
     setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
@@ -2995,6 +3039,13 @@ function App() {
               rate={n(rate) || DEFAULT_RATE}
               calc={finalCalc}
               onToggleVat={toggleFinalVat}
+              draggedRowKey={draggedFinalRow}
+              onDragStart={setDraggedFinalRow}
+              onDragEnd={() => setDraggedFinalRow("")}
+              onDrop={(targetKey) => {
+                moveFinalItem(draggedFinalRow, targetKey);
+                setDraggedFinalRow("");
+              }}
             />
           ) : (
             <>

@@ -2796,6 +2796,28 @@ body {
   width: 100%;
 }
 
+.finalResults .finalReorderLine {
+  position: relative;
+}
+
+.finalResults .finalReorderLine.isDragging {
+  opacity: .45;
+}
+
+.finalResults .finalDragHandle {
+  left: -34px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.finalResults .finalReorderLine:hover .finalDragHandle,
+.finalResults .finalDragHandle:hover,
+.finalResults .finalDragHandle:focus-visible {
+  color: var(--ag-blue-700);
+  opacity: .8;
+  outline: 0;
+}
+
 .finalResults .resultRow.finalResultRow {
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2967,6 +2989,12 @@ body {
 @media (max-width: 780px) {
   .grid.finalGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .finalResults .finalDragHandle {
+    left: -25px;
   }
 }
 

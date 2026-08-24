@@ -1888,7 +1888,11 @@ function FinalBalanceResults({
   currency,
   rate,
   calc,
-  onToggleVat
+  onToggleVat,
+  draggedRowKey,
+  onDragStart,
+  onDragEnd,
+  onDrop
 }) {
   const totalIsNegative = calc.total < 0;
   const totalLabel = totalIsNegative ? c.finalOverpaid : c.total;
@@ -1902,8 +1906,28 @@ function FinalBalanceResults({
     className: "rows finalRows"
   }, calc.rows.map(item => /*#__PURE__*/React.createElement("div", {
     key: item.key,
-    className: "finalResultLine"
-  }, /*#__PURE__*/React.createElement("div", {
+    className: `finalResultLine finalReorderLine ${draggedRowKey === item.key ? "isDragging" : ""}`,
+    "data-final-row-key": item.key,
+    onDragOver: event => event.preventDefault(),
+    onDrop: () => onDrop(item.key)
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "marginAuctionDragHandle finalDragHandle",
+    "data-html2canvas-ignore": true,
+    draggable: true,
+    title: c.flexibleEditTitle,
+    "aria-label": c.flexibleEditTitle,
+    onDragStart: () => onDragStart(item.key),
+    onDragEnd: onDragEnd,
+    onPointerDown: event => {
+      if (event.pointerType !== "mouse") onDragStart(item.key);
+    },
+    onPointerUp: event => {
+      if (event.pointerType === "mouse") return;
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-final-row-key]");
+      if (target?.dataset.finalRowKey) onDrop(target.dataset.finalRowKey);else onDragEnd();
+    }
+  }, "::"), /*#__PURE__*/React.createElement("div", {
     className: `resultRow finalResultRow mode-${item.mode}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "rowText"
@@ -2439,6 +2463,7 @@ function App() {
   });
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
   const [draggedMarginAuctionRow, setDraggedMarginAuctionRow] = useState("");
+  const [draggedFinalRow, setDraggedFinalRow] = useState("");
   const [processStepOverrides, setProcessStepOverrides] = useState({});
   const resultsRef = useRef(null);
   const rateTouchedRef = useRef(initialPrefill.rateTouched);
@@ -2504,6 +2529,7 @@ function App() {
     });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
+    setDraggedFinalRow("");
     // Switching tabs wipes the imported values, so the import result no longer
     // describes what is on screen. Keep the link so it can be re-imported.
     setMobileDeStatus("");
@@ -2582,6 +2608,18 @@ function App() {
   };
   const deleteCustomFinalItem = key => {
     setFinalItems(current => current.filter(item => item.key !== key || !item.isCustom));
+  };
+  const moveFinalItem = (sourceKey, targetKey) => {
+    if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+    setFinalItems(current => {
+      const sourceIndex = current.findIndex(item => item.key === sourceKey);
+      if (sourceIndex < 0 || !current.some(item => item.key === targetKey)) return current;
+      const sourceItem = current[sourceIndex];
+      const next = current.filter(item => item.key !== sourceKey);
+      const targetIndex = next.findIndex(item => item.key === targetKey);
+      next.splice(targetIndex, 0, sourceItem);
+      return next;
+    });
   };
   const setManualOverride = (key, value) => {
     setManualOverrides(current => {
@@ -2754,6 +2792,7 @@ function App() {
       });
       setEditingMarginAuctionText(null);
       setDraggedMarginAuctionRow("");
+      setDraggedFinalRow("");
       setFinalCurrency(item.finalCurrency === "EUR" ? "EUR" : "PLN");
       setFinalItems(Array.isArray(item.items) && item.items.length ? item.items.map(normalizeFinalItem) : initialFinalItems(item.finalCurrency || "PLN", n(rate) || DEFAULT_RATE));
       setRate(item.rate || DEFAULT_RATE);
@@ -2779,6 +2818,7 @@ function App() {
     });
     setEditingMarginAuctionText(null);
     setDraggedMarginAuctionRow("");
+    setDraggedFinalRow("");
     setEditingOverride("");
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
@@ -3083,7 +3123,14 @@ function App() {
     currency: finalCurrency,
     rate: n(rate) || DEFAULT_RATE,
     calc: finalCalc,
-    onToggleVat: toggleFinalVat
+    onToggleVat: toggleFinalVat,
+    draggedRowKey: draggedFinalRow,
+    onDragStart: setDraggedFinalRow,
+    onDragEnd: () => setDraggedFinalRow(""),
+    onDrop: targetKey => {
+      moveFinalItem(draggedFinalRow, targetKey);
+      setDraggedFinalRow("");
+    }
   }) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("img", {
     className: "resultCornerLogo",
     src: "./assets/ag-opt.svg",
