@@ -124,7 +124,8 @@ const brandReportProfiles = {
     engineTypeLabels: [/(?:kod\s+silnika|код\s+двигателя|engine\s+code)/i]
   },
   Mitsubishi: {
-    modelLabels: [/(?:средство\s+передвижения|pojazd|vehicle)/i]
+    modelLabels: [/(?:средство\s+передвижения|pojazd|vehicle)/i],
+    engineEvidenceLabels: [/\bGA1W\s*1600\b/i]
   },
   Nissan: {
     productionDateLabels: [/(?:от|od|from)/i],
@@ -629,6 +630,10 @@ function inferEngineEvidence(brand, values) {
     if (/\b(?:HR|MR|H5F|HRA|KR15)\w*/i.test(upper)) return " gasoline";
   }
 
+  if (brand === "Mitsubishi") {
+    if (/\bGA1W\s*1600\b/i.test(source)) return " gasoline";
+  }
+
   if (brand === "Suzuki") {
     if (/\b(?:D13A|D16A|Z13DT)\b/i.test(upper)) return " diesel";
     if (/\b(?:K\d{2}[A-Z]|M\d{2}[A-Z]|J\d{2}[A-Z])\b/i.test(upper)) return " gasoline";
@@ -690,6 +695,8 @@ function inferBmwEngineVolume(value) {
 }
 
 function findEngineVolumeRaw(text, brand, profile, values) {
+  if (brand === "Mitsubishi" && /\bGA1W\s*1600\b/i.test(values.engineEvidenceRaw || "")) return "1600 cm3";
+
   if (["Abarth", "Alfa Romeo", "Fiat", "Fiat Professional", "Jeep", "Lancia"].includes(brand)) {
     const fcaCapacity = findFcaCylinderCapacity(text);
     if (fcaCapacity) return fcaCapacity;

@@ -536,6 +536,17 @@ test("Land Rover upgrades a gasoline engine to PHEV from the full report", () =>
   assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
 });
 
+test("Mitsubishi GA1W 1600 is a gasoline 1.6 without hybrid evidence", () => {
+  const result = extractVehicleInfoFromText(`
+Pojazd                         Mitsubishi ASX (EUR)
+Oznaczenie                     GA1W 1600
+Klasyfikacja                   2WD, 5-biegowa skrzynia manualna
+`, { brand: "Mitsubishi", language: "PL" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "1600 cm³");
+});
+
 test("Ford Pro reuses Ford fields in a translated report", () => {
   const result = extractVehicleInfoFromText(`
 Дата производства         21.01.19
