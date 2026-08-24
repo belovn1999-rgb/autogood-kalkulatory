@@ -601,6 +601,9 @@ const mobileDeBmwModelIds = {
 
 const generatedMobileModelCatalog = globalThis.AUTOGOOD_MOBILE_MODEL_CATALOG || {};
 Object.assign(modelGroupsByBrand, generatedMobileModelCatalog.groups || {});
+const mobileModelCatalogAliases = {
+  "Vw Nutzfahrzeuge": "Volkswagen",
+};
 const mobileDeModelIdsByBrand = {
   BMW: mobileDeBmwModelIds,
   ...(generatedMobileModelCatalog.modelIds || {}),
@@ -831,7 +834,8 @@ function modelMenuGroupLabel(group, brand) {
 }
 
 function modelGroupsForBrand(brand) {
-  return modelGroupsByBrand[canonicalBrand(brand) || brand] || [];
+  const catalogBrand = canonicalBrand(brand) || brand;
+  return modelGroupsByBrand[mobileModelCatalogAliases[catalogBrand] || catalogBrand] || [];
 }
 
 function renderModelOptions(extraModel = "") {

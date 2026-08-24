@@ -1,4 +1,4 @@
-/* Generated from official Mobile.de refdata and public search options on 2026-08-13. Do not hand-edit. */
+/* Generated from official Mobile.de refdata on 2026-08-24. Do not hand-edit. */
 window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
   "groups": {
     "Mercedes-Benz": [
@@ -1170,6 +1170,916 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
           "Vel Satis",
           "Wind",
           "ZOE",
+          "Other"
+        ]
+      }
+    ],
+    "Abarth": [
+      {
+        "group": "Pozostałe Abarth",
+        "models": [
+          "124 Spider",
+          "500",
+          "500C",
+          "500e",
+          "595",
+          "595 Competizione",
+          "595 Turismo",
+          "595C",
+          "600e",
+          "695",
+          "695C",
+          "Grande Punto",
+          "Punto Evo",
+          "Other"
+        ]
+      }
+    ],
+    "Alfa Romeo": [
+      {
+        "group": "Pozostałe Alfa Romeo",
+        "models": [
+          "4C",
+          "8C",
+          "145",
+          "146",
+          "147",
+          "155",
+          "156",
+          "159",
+          "164",
+          "166",
+          "33",
+          "75",
+          "90",
+          "Alfasud",
+          "Alfetta",
+          "Brera",
+          "Crosswagon",
+          "GT",
+          "GTV",
+          "Giulia",
+          "Giulietta",
+          "Junior",
+          "MiTo",
+          "Spider",
+          "Sprint",
+          "Stelvio",
+          "Tonale",
+          "Other"
+        ]
+      }
+    ],
+    "Alpine": [
+      {
+        "group": "Pozostałe Alpine",
+        "models": [
+          "A110",
+          "A290",
+          "A390",
+          "Other"
+        ]
+      }
+    ],
+    "Bentley": [
+      {
+        "group": "Continental",
+        "models": [
+          "Continental",
+          "Continental Flying Spur",
+          "Continental GT",
+          "Continental GTC",
+          "Continental Supersports"
+        ]
+      },
+      {
+        "group": "Pozostałe Bentley",
+        "models": [
+          "Arnage",
+          "Azure",
+          "Bentayga",
+          "Brooklands",
+          "Eight",
+          "Flying Spur",
+          "Mulsanne",
+          "S2",
+          "Turbo R",
+          "Turbo RT",
+          "Turbo S",
+          "Other"
+        ]
+      }
+    ],
+    "Citroen": [
+      {
+        "group": "Pozostałe Citroen",
+        "models": [
+          "2 CV",
+          "AMI",
+          "AX",
+          "BX",
+          "Berlingo",
+          "C-Crosser",
+          "C-Elysée",
+          "C-Zero",
+          "C1",
+          "C2",
+          "C3",
+          "C3 Aircross",
+          "C3 Picasso",
+          "C4",
+          "C4 Aircross",
+          "C4 Cactus",
+          "C4 Picasso",
+          "C4 SpaceTourer",
+          "C4 X",
+          "C5",
+          "C5 Aircross",
+          "C5 X",
+          "C6",
+          "C8",
+          "CX",
+          "DS",
+          "DS3",
+          "DS4",
+          "DS4 Crossback",
+          "DS5",
+          "E-MEHARI",
+          "Evasion",
+          "GSA",
+          "Grand C4 Picasso / SpaceTourer",
+          "Jumper",
+          "Jumpy",
+          "Nemo",
+          "SAXO",
+          "SM",
+          "SpaceTourer",
+          "Visa",
+          "XM",
+          "Xantia",
+          "Xsara",
+          "Xsara Picasso",
+          "ZX",
+          "ë-Berlingo",
+          "ë-C3",
+          "ë-C3 Aircross",
+          "ë-C4",
+          "ë-C4 X",
+          "ë-Spacetourer",
+          "Other"
+        ]
+      }
+    ],
+    "Cupra": [
+      {
+        "group": "Pozostałe Cupra",
+        "models": [
+          "Arona",
+          "Ateca",
+          "Born",
+          "Formentor",
+          "Ibiza",
+          "Leon",
+          "Raval",
+          "Tavascan",
+          "Terramar",
+          "Other"
+        ]
+      }
+    ],
+    "Dacia": [
+      {
+        "group": "Pozostałe Dacia",
+        "models": [
+          "Bigster",
+          "Dokker",
+          "Duster",
+          "Jogger",
+          "Lodgy",
+          "Logan",
+          "Logan Pick-Up",
+          "Pick Up",
+          "Sandero",
+          "Spring",
+          "Other"
+        ]
+      }
+    ],
+    "DS": [
+      {
+        "group": "Pozostałe DS",
+        "models": [
+          "DS3",
+          "DS3 Crossback",
+          "DS4",
+          "DS4 Crossback",
+          "DS5",
+          "DS7 (Crossback)",
+          "DS9",
+          "Nº8",
+          "Nº4",
+          "Other"
+        ]
+      }
+    ],
+    "Fiat": [
+      {
+        "group": "Pozostałe Fiat",
+        "models": [
+          "124",
+          "124 Spider",
+          "126",
+          "127",
+          "130",
+          "131",
+          "500",
+          "500C",
+          "500L",
+          "500L Cross",
+          "500L Living",
+          "500L Trekking",
+          "500L Urban",
+          "500L Wagon",
+          "500S",
+          "500X",
+          "500e",
+          "600",
+          "600e",
+          "Albea",
+          "Barchetta",
+          "Brava",
+          "Bravo",
+          "Cinquecento",
+          "Coupe",
+          "Croma",
+          "Dino",
+          "Doblo",
+          "Ducato",
+          "Fiorino",
+          "Freemont",
+          "Fullback",
+          "Grande Panda",
+          "Grande Punto",
+          "Idea",
+          "Linea",
+          "Marea",
+          "Marengo",
+          "Multipla",
+          "New Panda",
+          "Palio",
+          "Panda",
+          "Punto",
+          "Punto Evo",
+          "Qubo",
+          "Regata",
+          "Ritmo",
+          "Scudo",
+          "Sedici",
+          "Seicento",
+          "Siena",
+          "Spider Europa",
+          "Stilo",
+          "Strada",
+          "Talento",
+          "Tempra",
+          "Tipo",
+          "Topolino",
+          "Ulysse",
+          "Uno",
+          "X 1/9",
+          "Other"
+        ]
+      }
+    ],
+    "Hyundai": [
+      {
+        "group": "Pozostałe Hyundai",
+        "models": [
+          "Accent",
+          "Atos",
+          "Azera",
+          "BAYON",
+          "Coupe",
+          "Elantra",
+          "Excel",
+          "Galloper",
+          "Genesis",
+          "Getz",
+          "Grand Santa Fe",
+          "Grandeur",
+          "H 100",
+          "H 200",
+          "H-1",
+          "H-1 Starex",
+          "H350",
+          "INSTER",
+          "IONIQ",
+          "IONIQ 3",
+          "IONIQ 5",
+          "IONIQ 6",
+          "IONIQ 9",
+          "KONA Elektro",
+          "KONA",
+          "Lantra",
+          "Matrix",
+          "NEXO",
+          "Pony",
+          "S-Coupe",
+          "SANTA FE",
+          "Santamo",
+          "SONATA",
+          "STARIA",
+          "Terracan",
+          "Trajet",
+          "TUCSON",
+          "Veloster",
+          "Veracruz",
+          "XG 30",
+          "XG 350",
+          "i10",
+          "i20",
+          "i30",
+          "i40",
+          "ix20",
+          "ix35",
+          "ix55",
+          "Other"
+        ]
+      }
+    ],
+    "Infiniti": [
+      {
+        "group": "Pozostałe Infiniti",
+        "models": [
+          "EX30",
+          "EX35",
+          "EX37",
+          "FX",
+          "G35",
+          "G37",
+          "M30",
+          "M35",
+          "M37",
+          "Q30",
+          "Q45",
+          "Q50",
+          "Q60",
+          "Q70",
+          "QX30",
+          "QX50",
+          "QX56",
+          "QX60",
+          "QX70",
+          "QX80",
+          "Other"
+        ]
+      }
+    ],
+    "Iveco": [
+      {
+        "group": "Pozostałe Iveco",
+        "models": [
+          "Massif",
+          "Other"
+        ]
+      }
+    ],
+    "Jaguar": [
+      {
+        "group": "Pozostałe Jaguar",
+        "models": [
+          "Daimler",
+          "E-Pace",
+          "E-Type",
+          "F-Pace",
+          "F-Type",
+          "I-Pace",
+          "MK II",
+          "S-Type",
+          "X-Type",
+          "XE",
+          "XF",
+          "XJ",
+          "XJ12",
+          "XJ40",
+          "XJ6",
+          "XJ8",
+          "XJR",
+          "XJS",
+          "XJSC",
+          "XK",
+          "XK8",
+          "XKR",
+          "Other"
+        ]
+      }
+    ],
+    "Jeep": [
+      {
+        "group": "Pozostałe Jeep",
+        "models": [
+          "Avenger",
+          "CJ",
+          "Cherokee",
+          "Comanche",
+          "Commander",
+          "Compass",
+          "Gladiator",
+          "Grand Cherokee",
+          "Patriot",
+          "Renegade",
+          "Wagoneer",
+          "Willys",
+          "Wrangler",
+          "Other"
+        ]
+      }
+    ],
+    "Kia": [
+      {
+        "group": "Pozostałe Kia",
+        "models": [
+          "Besta",
+          "Borrego",
+          "Carens",
+          "Carnival",
+          "Cerato",
+          "Clarus",
+          "EV2",
+          "EV3",
+          "EV4",
+          "EV5",
+          "EV6",
+          "EV9",
+          "Elan",
+          "Joice",
+          "K2500",
+          "K2700",
+          "K4",
+          "Leo",
+          "Magentis",
+          "Mentor",
+          "Mini",
+          "Niro",
+          "Niro EV",
+          "Opirus",
+          "Optima",
+          "PV5",
+          "Picanto",
+          "Pregio",
+          "Pride",
+          "Retona",
+          "Rio",
+          "Roadster",
+          "Rocsta",
+          "Seltos",
+          "Sephia",
+          "Shuma",
+          "Sorento",
+          "Soul",
+          "Sportage",
+          "Stinger",
+          "Stonic",
+          "Venga",
+          "XCeed",
+          "cee'd / Ceed",
+          "cee'd Sportswagon",
+          "pro cee'd / ProCeed",
+          "Other"
+        ]
+      }
+    ],
+    "Land Rover": [
+      {
+        "group": "Pozostałe Land Rover",
+        "models": [
+          "Defender",
+          "Discovery",
+          "Discovery Sport",
+          "Freelander",
+          "Range Rover",
+          "Range Rover Evoque",
+          "Range Rover Sport",
+          "Range Rover Velar",
+          "Serie I",
+          "Serie II",
+          "Serie III",
+          "Other"
+        ]
+      }
+    ],
+    "Lancia": [
+      {
+        "group": "Pozostałe Lancia",
+        "models": [
+          "Beta",
+          "Dedra",
+          "Delta",
+          "Flaminia",
+          "Flavia",
+          "Fulvia",
+          "Gamma",
+          "Kappa",
+          "Lybra",
+          "MUSA",
+          "Phedra",
+          "Prisma",
+          "Stratos",
+          "Thema",
+          "Thesis",
+          "Voyager",
+          "Ypsilon",
+          "Zeta",
+          "Other"
+        ]
+      }
+    ],
+    "Lexus": [
+      {
+        "group": "ES Series",
+        "models": [
+          "ES 300",
+          "ES 330",
+          "ES 350"
+        ]
+      },
+      {
+        "group": "GS Series",
+        "models": [
+          "GS 250",
+          "GS 300",
+          "GS 350",
+          "GS 430",
+          "GS 450",
+          "GS 460",
+          "GS F"
+        ]
+      },
+      {
+        "group": "GX Series",
+        "models": [
+          "GX 460",
+          "GX 470",
+          "GX 550"
+        ]
+      },
+      {
+        "group": "IS Series",
+        "models": [
+          "IS 200",
+          "IS 220",
+          "IS 250",
+          "IS 300",
+          "IS 350",
+          "IS-F"
+        ]
+      },
+      {
+        "group": "LS Series",
+        "models": [
+          "LS 400",
+          "LS 430",
+          "LS 460",
+          "LS 500",
+          "LS 600"
+        ]
+      },
+      {
+        "group": "LX Series",
+        "models": [
+          "LX 450",
+          "LX 470",
+          "LX 500",
+          "LX 570",
+          "LX 600",
+          "LX 700"
+        ]
+      },
+      {
+        "group": "NX Series",
+        "models": [
+          "NX 200",
+          "NX 300",
+          "NX 350h",
+          "NX 450h"
+        ]
+      },
+      {
+        "group": "RC Series",
+        "models": [
+          "RC 200",
+          "RC 300",
+          "RC 350",
+          "RC F"
+        ]
+      },
+      {
+        "group": "RX Series",
+        "models": [
+          "RX 200",
+          "RX 300",
+          "RX 330",
+          "RX 350",
+          "RX 400",
+          "RX 450",
+          "RX 500"
+        ]
+      },
+      {
+        "group": "Pozostałe Lexus",
+        "models": [
+          "CT 200h",
+          "LBX",
+          "LC 500",
+          "LC 500h",
+          "LFA",
+          "LM",
+          "RZ",
+          "SC 400",
+          "SC 430",
+          "UX",
+          "Other"
+        ]
+      }
+    ],
+    "MAN": [
+      {
+        "group": "Pozostałe MAN",
+        "models": [
+          "TGE",
+          "Other"
+        ]
+      }
+    ],
+    "Mini": [
+      {
+        "group": "Aceman",
+        "models": [
+          "Aceman E",
+          "Aceman SE",
+          "John Cooper Works Aceman"
+        ]
+      },
+      {
+        "group": "Cabrio Series",
+        "models": [
+          "Cooper Cabrio",
+          "Cooper D Cabrio",
+          "Cooper SD Cabrio",
+          "Cooper S Cabrio",
+          "John Cooper Works Cabrio",
+          "One Cabrio"
+        ]
+      },
+      {
+        "group": "Clubman Series",
+        "models": [
+          "Cooper Clubman",
+          "Cooper D Clubman",
+          "Cooper SD Clubman",
+          "Cooper S Clubman",
+          "John Cooper Works Clubman",
+          "One Clubman",
+          "One D Clubman"
+        ]
+      },
+      {
+        "group": "Countryman Series",
+        "models": [
+          "Cooper Countryman",
+          "Countryman D (Cooper)",
+          "Cooper SD Countryman",
+          "Countryman S (Cooper)",
+          "Countryman C (Cooper)",
+          "Countryman E (Cooper)",
+          "Countryman SE (Cooper)",
+          "John Cooper Works Countryman",
+          "One Countryman",
+          "One D Countryman"
+        ]
+      },
+      {
+        "group": "Coupe Series",
+        "models": [
+          "Cooper Coupé",
+          "Cooper SD Coupé",
+          "Cooper S Coupé",
+          "John Cooper Works Coupé"
+        ]
+      },
+      {
+        "group": "MINI",
+        "models": [
+          "1000",
+          "1300",
+          "Cooper",
+          "Cooper SE",
+          "Cooper D",
+          "Cooper S",
+          "Cooper SD",
+          "Cooper C",
+          "Cooper E",
+          "John Cooper Works",
+          "ONE",
+          "One D",
+          "One First"
+        ]
+      },
+      {
+        "group": "Paceman Series",
+        "models": [
+          "Cooper D Paceman",
+          "Cooper Paceman",
+          "Cooper SD Paceman",
+          "Cooper S Paceman",
+          "John Cooper Works Paceman"
+        ]
+      },
+      {
+        "group": "Roadster Series",
+        "models": [
+          "Cooper Roadster",
+          "Cooper SD Roadster",
+          "Cooper S Roadster",
+          "John Cooper Works Roadster"
+        ]
+      },
+      {
+        "group": "Pozostałe Mini",
+        "models": [
+          "Aceman",
+          "Clubvan",
+          "Other"
+        ]
+      }
+    ],
+    "Mitsubishi": [
+      {
+        "group": "Pozostałe Mitsubishi",
+        "models": [
+          "3000 GT",
+          "ASX",
+          "Canter",
+          "Carisma",
+          "Colt",
+          "Cordia",
+          "Cosmos",
+          "Diamante",
+          "Eclipse",
+          "Eclipse Cross",
+          "Galant",
+          "Galloper",
+          "Grandis",
+          "L200",
+          "L300",
+          "L400",
+          "Lancer",
+          "Mirage",
+          "Montero",
+          "Outlander",
+          "Pajero",
+          "Pajero Pinin",
+          "Pick-up",
+          "Plug-in Hybrid Outlander",
+          "Santamo",
+          "Sapporo",
+          "Sigma",
+          "Space Gear",
+          "Space Runner",
+          "Space Star",
+          "Space Wagon",
+          "Starion",
+          "Tredia",
+          "i-MiEV",
+          "Other"
+        ]
+      }
+    ],
+    "Nissan": [
+      {
+        "group": "Pozostałe Nissan",
+        "models": [
+          "100 NX",
+          "200 SX",
+          "240 SX",
+          "280 ZX",
+          "300 ZX",
+          "350Z",
+          "370Z",
+          "Almera",
+          "Almera Tino",
+          "Altima",
+          "Ariya",
+          "Armada",
+          "Bluebird",
+          "Cabstar",
+          "Cargo",
+          "Cherry",
+          "Cube",
+          "Evalia",
+          "Frontier",
+          "GT-R",
+          "Interstar",
+          "Juke",
+          "King Cab",
+          "Kubistar",
+          "Laurel",
+          "Leaf",
+          "Maxima",
+          "Micra",
+          "Murano",
+          "NP 300",
+          "NV200",
+          "NV250",
+          "NV300",
+          "NV400",
+          "Navara",
+          "Note",
+          "Pathfinder",
+          "Patrol",
+          "PickUp",
+          "Pixo",
+          "Prairie",
+          "Primastar",
+          "Primera",
+          "Pulsar",
+          "Qashqai",
+          "Qashqai+2",
+          "Quest",
+          "Sentra",
+          "Serena",
+          "Silvia",
+          "Skyline",
+          "Sunny",
+          "Terrano",
+          "Tiida",
+          "Titan",
+          "Townstar",
+          "Trade",
+          "Urvan",
+          "Vanette",
+          "X-Trail",
+          "e-NV200",
+          "Other"
+        ]
+      }
+    ],
+    "Polestar": [
+      {
+        "group": "Pozostałe Polestar",
+        "models": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "Other"
+        ]
+      }
+    ],
+    "Smart": [
+      {
+        "group": "Pozostałe Smart",
+        "models": [
+          "Crossblade",
+          "#5",
+          "ForFour",
+          "ForTwo",
+          "#1",
+          "Roadster",
+          "#3",
+          "Other"
+        ]
+      }
+    ],
+    "Suzuki": [
+      {
+        "group": "Pozostałe Suzuki",
+        "models": [
+          "Across",
+          "Alto",
+          "Baleno",
+          "Cappuccino",
+          "Carry",
+          "Celerio",
+          "Grand Vitara",
+          "Ignis",
+          "Jimny",
+          "Kizashi",
+          "LJ",
+          "Liana",
+          "SJ Samurai",
+          "SX4",
+          "(SX4) S-Cross",
+          "Splash",
+          "Super-Carry",
+          "Swace",
+          "Swift",
+          "Vitara",
+          "Wagon R+",
+          "X-90",
+          "e Vitara",
+          "iK-2",
           "Other"
         ]
       }
