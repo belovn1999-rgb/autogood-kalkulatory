@@ -162,12 +162,6 @@ function bodyTypes(body) {
   return uniqueValues(body?.types || body?.type);
 }
 
-function bodyLabel(body) {
-  const types = bodyTypes(body);
-  const labels = types.map((type) => (type === "inne" && body?.other ? body.other : type)).filter(Boolean);
-  return labels.join(", ");
-}
-
 function normalizeSpace(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }

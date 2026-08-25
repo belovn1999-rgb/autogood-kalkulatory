@@ -175,15 +175,6 @@
   background: #fff;
 }
 
-.declaration-template-title {
-  margin: 16px 16px 6px;
-  color: var(--brand-dark);
-  font-size: 21px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.declaration-template-description,
 .declaration-privacy-note {
   margin: 0 16px;
   color: var(--muted);

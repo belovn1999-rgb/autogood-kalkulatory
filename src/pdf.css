@@ -366,7 +366,6 @@ body.export-contract .brandTitle::after {
 }
 
 .section-title,
-.panel-title,
 .history-title {
   color: var(--brand-dark);
   font-size: 13px;
