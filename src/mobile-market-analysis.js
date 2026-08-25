@@ -366,6 +366,8 @@
       vat: "[data-mobile-vat]",
       seller: "[data-mobile-seller]",
       damagedVehicles: "[data-mobile-damaged-vehicles]",
+      airConditioning: "[data-mobile-air-conditioning]",
+      trailerCoupling: "[data-mobile-trailer-coupling]",
     };
     Object.entries(valueSelectors).forEach(([key, selector]) => setElementValue(selector, filters[key]));
     document.querySelectorAll("[data-mobile-drive]").forEach((input) => {
@@ -376,6 +378,7 @@
     });
     setHistoryCheckboxes("[data-mobile-country]", filters.countries?.length ? filters.countries : ["DE"]);
     setHistoryCheckboxes("[data-mobile-interior-material]", filters.interiorMaterials);
+    setHistoryCheckboxes("[data-mobile-feature]", filters.features);
     setHistoryCheckboxes("[data-mobile-exterior-color]", filters.exteriorColors);
     setHistoryCheckboxes("[data-mobile-interior-color]", filters.interiorColors);
     const booleanSelectors = {
@@ -568,6 +571,11 @@
     const countries = checkedLabels("[data-mobile-country]");
     if (countries.length) summary.push(`${c.countries}: ${countries.join(", ")}`);
     summary.push(...checkedLabels("[data-mobile-interior-material]"));
+    const airConditioning = selectedOptionText("[data-mobile-air-conditioning]");
+    if (airConditioning) summary.push(airConditioning);
+    const trailerCoupling = selectedOptionText("[data-mobile-trailer-coupling]");
+    if (trailerCoupling && filters.trailerCoupling !== "any") summary.push(trailerCoupling);
+    summary.push(...checkedLabels("[data-mobile-feature]"));
     summary.push(...checkedLabels("[data-mobile-exterior-color]"));
     summary.push(...checkedLabels("[data-mobile-interior-color]"));
     if (filters.matte) summary.push(document.querySelector("[data-mobile-matte]")?.closest("label")?.textContent.trim());

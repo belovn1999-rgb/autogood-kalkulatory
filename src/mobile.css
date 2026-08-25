@@ -671,6 +671,34 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.mobileFeatureBlock,
+.mobileFeatureBlock + .mobileColorField {
+  margin-top: var(--space-sm);
+}
+
+.mobileFeatureSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.mobileFeatureChoiceGroup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.mobileFeatureOption {
+  min-height: 44px;
+}
+
+.mobileFeatureOption span {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
 .mobileVehicleControls {
   display: grid;
   gap: var(--space-md);
@@ -1219,6 +1247,11 @@ button {
   }
 
   .mobileManualGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileFeatureSelectGrid,
+  .mobileFeatureChoiceGroup {
     grid-template-columns: minmax(0, 1fr);
   }
 
