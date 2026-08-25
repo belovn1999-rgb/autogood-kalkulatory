@@ -112,6 +112,17 @@ const copy = {
     featureWirelessCharging: "Ładowanie indukcyjne smartfona",
     featureWinterTyres: "Opony zimowe",
     featureSummerTyres: "Opony letnie",
+    parkingSensorsLabel: "Asystenci parkowania",
+    parkingCamera360: "Kamera 360°",
+    parkingCamera: "Kamera",
+    parkingFront: "Przód",
+    parkingRear: "Tył",
+    parkingRearTrafficAlert: "Asystent ruchu poprzecznego z tyłu",
+    parkingSelfSteering: "Systemy samoparkowania",
+    cruiseControlLabel: "Tempomat",
+    cruiseControlAny: "Dowolny",
+    cruiseControlStandard: "Tempomat",
+    cruiseControlAdaptive: "Adaptacyjny tempomat",
     exteriorColorLabel: "Kolor nadwozia",
     interiorColorLabel: "Kolor wnętrza",
     colorBeige: "beżowy",
@@ -279,6 +290,17 @@ const copy = {
     featureWirelessCharging: "Беспроводная зарядка смартфона",
     featureWinterTyres: "Зимние шины",
     featureSummerTyres: "Летние шины",
+    parkingSensorsLabel: "Парковочные ассистенты",
+    parkingCamera360: "Камера 360°",
+    parkingCamera: "Камера",
+    parkingFront: "Передние",
+    parkingRear: "Задние",
+    parkingRearTrafficAlert: "Контроль поперечного движения сзади",
+    parkingSelfSteering: "Система автоматической парковки",
+    cruiseControlLabel: "Круиз-контроль",
+    cruiseControlAny: "Любой",
+    cruiseControlStandard: "Круиз-контроль",
+    cruiseControlAdaptive: "Адаптивный круиз-контроль",
     exteriorColorLabel: "Цвет кузова",
     interiorColorLabel: "Цвет салона",
     colorBeige: "бежевый",
@@ -498,22 +520,6 @@ const mobileDeInteriorMaterialValues = {
   part_leather: "PARTIAL_LEATHER",
   full_leather: "LEATHER",
 };
-
-const airConditioningOptions = [
-  { value: "automatic", labelKey: "airConditioningAutomatic" },
-  { value: "automatic_2_zones", labelKey: "airConditioningAutomatic2Zones" },
-  { value: "automatic_3_zones", labelKey: "airConditioningAutomatic3Zones" },
-  { value: "automatic_4_zones", labelKey: "airConditioningAutomatic4Zones" },
-  { value: "manual", labelKey: "airConditioningManual" },
-];
-
-const trailerCouplingOptions = [
-  { value: "any", labelKey: "trailerCouplingAny" },
-  { value: "all", labelKey: "trailerCouplingAll" },
-  { value: "detachable_or_swiveling", labelKey: "trailerCouplingDetachableOrSwiveling" },
-  { value: "swiveling", labelKey: "trailerCouplingSwiveling", feature: "TRAILER_COUPLING_SWIVELING" },
-  { value: "electric_tailgate", labelKey: "electricTailgate", feature: "ELECTRIC_TAILGATE" },
-];
 
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
 const powerOptions = ["75", "90", "101", "118", "131", "150", "200", "252", "303", "358", "402", "452"];
@@ -757,11 +763,11 @@ const els = {
   countries: Array.from(document.querySelectorAll("[data-mobile-country]")),
   countrySummary: document.querySelector("[data-mobile-country-summary]"),
   interiorMaterials: Array.from(document.querySelectorAll("[data-mobile-interior-material]")),
-  airConditioning: document.querySelector("[data-mobile-air-conditioning]"),
-  airConditioningLabel: document.querySelector("[data-mobile-air-conditioning-label]"),
-  trailerCoupling: document.querySelector("[data-mobile-trailer-coupling]"),
-  trailerCouplingLabel: document.querySelector("[data-mobile-trailer-coupling-label]"),
+  airConditioning: Array.from(document.querySelectorAll("[data-mobile-air-conditioning]")),
+  trailerCoupling: Array.from(document.querySelectorAll("[data-mobile-trailer-coupling]")),
   features: Array.from(document.querySelectorAll("[data-mobile-feature]")),
+  parkingSensors: Array.from(document.querySelectorAll("[data-mobile-parking-sensor]")),
+  cruiseControl: Array.from(document.querySelectorAll("[data-mobile-cruise-control]")),
   exteriorColors: Array.from(document.querySelectorAll("[data-mobile-exterior-color]")),
   interiorColors: Array.from(document.querySelectorAll("[data-mobile-interior-color]")),
   matte: document.querySelector("[data-mobile-matte]"),
@@ -1033,11 +1039,6 @@ function comboOptionSets() {
       { value: "hide", label: c.damagedVehiclesHide },
       { value: "show", label: c.damagedVehiclesShow },
     ],
-    airConditioning: [
-      { value: "", label: c.selectEmpty },
-      ...airConditioningOptions.map((option) => ({ value: option.value, label: c[option.labelKey] })),
-    ],
-    trailerCoupling: trailerCouplingOptions.map((option) => ({ value: option.value, label: c[option.labelKey] })),
   };
 }
 
@@ -1195,14 +1196,6 @@ function setSimpleSelectDisplays(values) {
     { value: "hide", [state.lang]: c.damagedVehiclesHide },
     { value: "show", [state.lang]: c.damagedVehiclesShow },
   ], c.damagedVehiclesHide);
-  setComboDisplay(els.airConditioningLabel, values.airConditioning, airConditioningOptions.map((option) => ({
-    value: option.value,
-    [state.lang]: c[option.labelKey],
-  })));
-  setComboDisplay(els.trailerCouplingLabel, values.trailerCoupling, trailerCouplingOptions.map((option) => ({
-    value: option.value,
-    [state.lang]: c[option.labelKey],
-  })), c.trailerCouplingAny);
 }
 
 function listingBodyLabel(value) {
@@ -1253,9 +1246,11 @@ function renderManualOptions(keepValues = true) {
     seller: els.seller.value,
     countries: checkedValues(els.countries),
     interiorMaterials: checkedValues(els.interiorMaterials),
-    airConditioning: els.airConditioning.value,
-    trailerCoupling: els.trailerCoupling.value,
+    airConditioning: checkedValue(els.airConditioning),
+    trailerCoupling: checkedValue(els.trailerCoupling) || "any",
     features: checkedValues(els.features),
+    parkingSensors: checkedValues(els.parkingSensors),
+    cruiseControl: checkedValue(els.cruiseControl) || "any",
     exteriorColors: checkedValues(els.exteriorColors),
     interiorColors: checkedValues(els.interiorColors),
     matte: els.matte.checked,
@@ -1279,15 +1274,11 @@ function renderManualOptions(keepValues = true) {
   els.vat.value = current.vat || "";
   els.seller.value = current.seller || "";
   els.damagedVehicles.value = current.damagedVehicles || "hide";
-  els.airConditioning.value = current.airConditioning || "";
-  els.trailerCoupling.value = current.trailerCoupling || "any";
   setSimpleSelectDisplays({
     fuel: current.fuel,
     vat: current.vat,
     seller: current.seller,
     damagedVehicles: current.damagedVehicles || "hide",
-    airConditioning: current.airConditioning || "",
-    trailerCoupling: current.trailerCoupling || "any",
   });
 
   els.model.value = current.model || "";
@@ -1310,7 +1301,11 @@ function renderManualOptions(keepValues = true) {
   setCheckedValue(els.gearbox, current.gearbox || "any");
   setCheckedValues(els.countries, current.countries?.length ? current.countries : ["DE"]);
   setCheckedValues(els.interiorMaterials, current.interiorMaterials);
+  setCheckedValue(els.airConditioning, current.airConditioning || "");
+  setCheckedValue(els.trailerCoupling, current.trailerCoupling || "any");
   setCheckedValues(els.features, current.features);
+  setCheckedValues(els.parkingSensors, current.parkingSensors);
+  setCheckedValue(els.cruiseControl, current.cruiseControl || "any");
   setCheckedValues(els.exteriorColors, current.exteriorColors);
   setCheckedValues(els.interiorColors, current.interiorColors);
   els.matte.checked = Boolean(current.matte);
@@ -1341,9 +1336,11 @@ function readManualFields() {
     seller: els.seller?.value || "",
     countries: checkedValues(els.countries),
     interiorMaterials: checkedValues(els.interiorMaterials),
-    airConditioning: els.airConditioning?.value || "",
-    trailerCoupling: els.trailerCoupling?.value || "any",
+    airConditioning: checkedValue(els.airConditioning),
+    trailerCoupling: checkedValue(els.trailerCoupling) || "any",
     features: checkedValues(els.features),
+    parkingSensors: checkedValues(els.parkingSensors),
+    cruiseControl: checkedValue(els.cruiseControl) || "any",
     exteriorColors: checkedValues(els.exteriorColors),
     interiorColors: checkedValues(els.interiorColors),
     matte: els.matte?.checked || false,
@@ -1448,8 +1445,8 @@ function buildMobileDeSearchUrl(filters) {
     if (value) params.append("it", value);
   });
   (filters.features || []).forEach((feature) => params.append("fe", feature));
-  const trailerCoupling = trailerCouplingOptions.find((option) => option.value === filters.trailerCoupling);
-  if (trailerCoupling?.feature) params.append("fe", trailerCoupling.feature);
+  (filters.parkingSensors || []).forEach((sensor) => params.append("fe", sensor));
+  if (filters.cruiseControl && filters.cruiseControl !== "any") params.append("fe", filters.cruiseControl);
   filters.exteriorColors.forEach((color) => params.append("ecol", color.toUpperCase()));
   filters.interiorColors.forEach((color) => {
     params.append("icol", color === "other" ? "OTHER_INTERIOR_COLOR" : color.toUpperCase());

@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/mobile.css?v=feature-options-20260825" />
+  <link rel="stylesheet" href="./src/mobile.css?v=feature-open-filter-rows-20260825" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-demo-20260820" />
   </head>
   <body class="mobileBody">
@@ -244,21 +244,27 @@
             </fieldset>
             <fieldset class="mobileField mobileChoiceField mobileWideField mobileFeatureBlock">
               <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></legend>
-              <div class="mobileFeatureSelectGrid">
-                <label class="mobileField">
-                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="airConditioningLabel">Klimatyzacja</span></span>
-                  <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="airConditioning" data-mobile-options-target="data-mobile-air-conditioning-label" data-mobile-value-target="data-mobile-air-conditioning">
-                    <input data-mobile-air-conditioning-label type="text" autocomplete="off" readonly />
-                    <input data-mobile-air-conditioning type="hidden" />
+              <div class="mobileOpenFilterRows">
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="airConditioningLabel">Klimatyzacja</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="automatic" /> <span data-i18n="airConditioningAutomatic">Automatyczna</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="automatic_2_zones" /> <span data-i18n="airConditioningAutomatic2Zones">Automatyczna, 2 strefy</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="automatic_3_zones" /> <span data-i18n="airConditioningAutomatic3Zones">Automatyczna, 3 strefy</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="automatic_4_zones" /> <span data-i18n="airConditioningAutomatic4Zones">Automatyczna, 4 strefy</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="manual" /> <span data-i18n="airConditioningManual">Manualna</span></label>
                   </div>
-                </label>
-                <label class="mobileField">
-                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="trailerCouplingLabel">Hak holowniczy</span></span>
-                  <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="trailerCoupling" data-mobile-options-target="data-mobile-trailer-coupling-label" data-mobile-value-target="data-mobile-trailer-coupling">
-                    <input data-mobile-trailer-coupling-label type="text" autocomplete="off" readonly />
-                    <input data-mobile-trailer-coupling type="hidden" />
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="trailerCouplingLabel">Hak holowniczy</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="any" checked /> <span data-i18n="trailerCouplingAny">Dowolny</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="all" /> <span data-i18n="trailerCouplingAll">Stały, odpinany lub odchylany</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="detachable_or_swiveling" /> <span data-i18n="trailerCouplingDetachableOrSwiveling">Odpinany lub odchylany</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="swiveling" /> <span data-i18n="trailerCouplingSwiveling">Hak holowniczy odchylany</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="electric_tailgate" /> <span data-i18n="electricTailgate">Elektryczna klapa bagażnika</span></label>
                   </div>
-                </label>
+                </fieldset>
               </div>
               <div class="mobileFeatureChoiceGroup">
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="PANORAMIC_GLASS_ROOF" /> <span data-i18n="featurePanoramicRoof">Dach panoramiczny</span></label>
@@ -290,6 +296,27 @@
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WIRELESS_CHARGING" /> <span data-i18n="featureWirelessCharging">Ładowanie indukcyjne smartfona</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WINTER_TIRES" /> <span data-i18n="featureWinterTyres">Opony zimowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SUMMER_TIRES" /> <span data-i18n="featureSummerTyres">Opony letnie</span></label>
+              </div>
+              <div class="mobileOpenFilterRows mobileFeatureSubfilters">
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="parkingSensorsLabel">Asystenci parkowania</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="CAM_360_DEGREES" /> <span data-i18n="parkingCamera360">Kamera 360°</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_VIEW_CAM" /> <span data-i18n="parkingCamera">Kamera</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="FRONT_SENSORS" /> <span data-i18n="parkingFront">Przód</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_SENSORS" /> <span data-i18n="parkingRear">Tył</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_TRAFFIC_ALERT" /> <span data-i18n="parkingRearTrafficAlert">Asystent ruchu poprzecznego z tyłu</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="AUTOMATIC_PARKING" /> <span data-i18n="parkingSelfSteering">Systemy samoparkowania</span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="cruiseControlLabel">Tempomat</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="any" checked /> <span data-i18n="cruiseControlAny">Dowolny</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="CRUISE_CONTROL" /> <span data-i18n="cruiseControlStandard">Tempomat</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="ADAPTIVE_CRUISE_CONTROL" /> <span data-i18n="cruiseControlAdaptive">Adaptacyjny tempomat</span></label>
+                  </div>
+                </fieldset>
               </div>
             </fieldset>
             <fieldset class="mobileField mobileChoiceField mobileWideField mobileColorField">
@@ -429,7 +456,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-catalog-all-car-makes-20260824"></script>
-    <script src="./src/mobile.js?v=feature-options-20260825"></script>
-    <script src="./src/mobile-market-analysis.js?v=feature-options-20260825"></script>
+  <script src="./src/mobile.js?v=feature-open-filter-rows-20260825"></script>
+  <script src="./src/mobile-market-analysis.js?v=feature-open-filter-rows-20260825"></script>
   </body>
 </html>

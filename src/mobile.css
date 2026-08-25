@@ -676,11 +676,16 @@ button {
   margin-top: var(--space-sm);
 }
 
-.mobileFeatureSelectGrid {
+.mobileOpenFilterRows {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
   margin-bottom: var(--space-md);
+}
+
+.mobileOpenChoiceRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
 }
 
 .mobileFeatureChoiceGroup {
@@ -697,6 +702,11 @@ button {
   overflow: visible;
   text-overflow: clip;
   white-space: normal;
+}
+
+.mobileFeatureSubfilters {
+  margin-top: var(--space-md);
+  margin-bottom: 0;
 }
 
 .mobileVehicleControls {
@@ -1250,7 +1260,7 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .mobileFeatureSelectGrid,
+  .mobileOpenChoiceRow,
   .mobileFeatureChoiceGroup {
     grid-template-columns: minmax(0, 1fr);
   }
