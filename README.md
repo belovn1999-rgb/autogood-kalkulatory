@@ -147,8 +147,14 @@ Zmiany opublikowane w galezi `main` sa automatycznie widoczne pod publicznym lin
 Po zmianach uruchom:
 
 ```bash
-./scripts/publish.sh "Opis zmiany"
+pnpm install --frozen-lockfile
+pnpm run verify
+git add <tylko-sprawdzone-pliki>
+git commit -m "Opis zmiany"
+./scripts/publish.sh
 ```
+
+Pełna procedura publikacji i rollbacku: [`docs/RELEASE_RUNBOOK.md`](docs/RELEASE_RUNBOOK.md).
 
 ## Zawartosc
 

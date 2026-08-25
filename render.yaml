@@ -7,6 +7,7 @@ services:
     dockerContext: .
     dockerfilePath: ./converter/Dockerfile
     healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
     envVars:
       - key: HOST
         value: 0.0.0.0

@@ -2,11 +2,17 @@
   "private": true,
   "scripts": {
     "audit:mobile-search": "node scripts/audit-mobile-search.mjs",
+    "audit:dependencies": "pnpm audit --prod --audit-level=high",
+    "check:js": "node scripts/check-js.mjs",
+    "check:python": "python3 -B scripts/check-python.py",
     "dev": "python3 -m http.server 4173",
     "api": "node server/autogood-api.mjs",
     "partslink24": "node server/partslink24-api.mjs",
     "mobilede": "node server/mobilede-import.mjs",
-    "converter": "python3 converter/server.py"
+    "converter": "python3 converter/server.py",
+    "smoke:release": "node scripts/release-smoke.mjs",
+    "test": "node --test server/partslink24-api.test.mjs tools/partslink24/report-extraction.test.mjs",
+    "verify": "pnpm run check:js && pnpm run check:python && pnpm test"
   },
   "dependencies": {
     "playwright": "^1.60.0"

@@ -23,6 +23,7 @@ from pypdf import PdfReader, PdfWriter
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER_VERSION = "AUTOGOODConverter/1.3"
+BUILD_REVISION = os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_SHA") or "local"
 DEFAULT_MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 DEFAULT_CONVERSION_TIMEOUT_SECONDS = 120
 DEFAULT_LIBREOFFICE_STARTUP_TIMEOUT_SECONDS = 30
@@ -285,6 +286,7 @@ class Handler(SimpleHTTPRequestHandler):
             "conversion_queue": "serial",
             "pdf_encryption": "AES-256",
             "version": SERVER_VERSION,
+            "revision": BUILD_REVISION,
             "max_upload_bytes": max_upload_bytes(),
             "conversion_timeout_seconds": conversion_timeout_seconds(),
         }
