@@ -62,6 +62,7 @@ const bmwModelIds = extractLiteral(mobileSource, "mobileDeBmwModelIds");
 const groupsByBrand = { BMW: bmwGroups, ...generatedCatalog.groups };
 const modelIdsByBrand = { BMW: bmwModelIds, ...generatedCatalog.modelIds };
 const makeIds = extractLiteral(mobileSource, "mobileDeMakeIds");
+const makeKeys = generatedCatalog.makeKeys || {};
 
 equalObject(extractLiteral(mobileSource, "mobileDeFuelValues"), {
   petrol: "PETROL",
@@ -109,6 +110,7 @@ const contractFragments = [
   ['params.set("vc", "Car")', "typ Car"],
   ['params.set("dam", "false")', "pojazdy uszkodzone"],
   ['params.set("ms", `${makeId};${exactModelId};;${version}`)', "marka/model/wersja"],
+  ['searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`', "SEO fallback marki/modelu"],
   ['appendMobileDeRange(params, "ml"', "przebieg"],
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
@@ -130,21 +132,22 @@ contractFragments.forEach(([fragment, label]) => requireSource(fragment, label))
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {
-  if (!makeIds[brand]) throw new Error(`${brand}: brak ID marki.`);
+  if (!makeIds[brand] && !makeKeys[brand]) throw new Error(`${brand}: brak identyfikatora marki.`);
   const models = groups.flatMap((group) => group.models);
   const uniqueModels = new Set(models);
   if (uniqueModels.size !== models.length) throw new Error(`${brand}: duplikaty modeli.`);
   const modelIds = modelIdsByBrand[brand] || {};
-  const missingIds = models.filter((model) => !modelIds[model]);
   const extraIds = Object.keys(modelIds).filter((model) => !uniqueModels.has(model));
-  if (missingIds.length || extraIds.length) {
-    throw new Error(
-      `${brand}: brak ID [${missingIds.join(", ")}], nadmiar ID [${extraIds.join(", ")}].`,
-    );
-  }
+  if (extraIds.length) throw new Error(`${brand}: nadmiar ID [${extraIds.join(", ")}].`);
   modelCount += models.length;
 }
-if (modelCount !== 1056) throw new Error(`Oczekiwano 1056 modeli, znaleziono ${modelCount}.`);
+const catalogBrandCount = Object.keys(makeKeys).length;
+if (Object.keys(groupsByBrand).length !== catalogBrandCount) {
+  throw new Error(`Katalog obejmuje ${Object.keys(groupsByBrand).length}/${catalogBrandCount} marek.`);
+}
+if (!groupsByBrand.Mazda?.flatMap((group) => group.models).length) {
+  throw new Error("Mazda: brak modeli.");
+}
 
 async function getJson(url) {
   const response = await fetch(url, {
@@ -157,27 +160,29 @@ async function getJson(url) {
 const brandResults = [];
 if (!process.argv.includes("--offline")) {
   const makes = (await getJson("https://services.mobile.de/refdata/classes/Car/makes")).values;
-  for (const [brand, groups] of Object.entries(groupsByBrand)) {
-    const make = makes.find((entry) => entry.description.toLowerCase() === brand.toLowerCase());
-    if (!make) throw new Error(`${brand}: brak marki w oficjalnym refdata.`);
-    const modelGroups = (await getJson(`${make.url}/modelgroups`)).values;
-    const directModels = (await getJson(`${make.url}/models`)).values;
-    const groupedModels = (
-      await Promise.all(modelGroups.map(async (group) => (await getJson(`${group.url}/models`)).values))
-    ).flat();
-    const officialModels = new Set(
-      [...directModels, ...groupedModels].map((entry) => entry.description),
-    );
-    const localModels = groups.flatMap((group) => group.models);
-    const missing = localModels.filter(
-      (model) => model !== "Other" && !officialModels.has(model),
-    );
-    if (missing.length) throw new Error(`${brand}: brak w refdata: ${missing.join(", ")}.`);
-    brandResults.push(`${brand} ${localModels.length}/${officialModels.size}`);
+  const officialKeys = new Set(makes.map((make) => make.name));
+  const missingMakes = Object.entries(makeKeys)
+    .filter(([, key]) => !officialKeys.has(key))
+    .map(([brand]) => brand);
+  const extraMakes = makes
+    .filter((make) => !Object.values(makeKeys).includes(make.name))
+    .map((make) => make.description);
+  if (missingMakes.length || extraMakes.length) {
+    throw new Error(`Niezgodne marki. Brak: [${missingMakes.join(", ")}], nadmiar: [${extraMakes.join(", ")}].`);
   }
+
+  const mazda = makes.find((make) => make.name === "MAZDA");
+  const officialMazdaModels = new Set((await getJson(`${mazda.url}/models`)).values.map((model) => model.description));
+  const localMazdaModels = groupsByBrand.Mazda.flatMap((group) => group.models);
+  const missingMazdaModels = [...officialMazdaModels].filter((model) => !localMazdaModels.includes(model));
+  const extraMazdaModels = localMazdaModels.filter((model) => !officialMazdaModels.has(model));
+  if (missingMazdaModels.length || extraMazdaModels.length) {
+    throw new Error(`Mazda niezgodna. Brak: [${missingMazdaModels.join(", ")}], nadmiar: [${extraMazdaModels.join(", ")}].`);
+  }
+  brandResults.push(`marki ${catalogBrandCount}/${makes.length}`, `Mazda ${localMazdaModels.length}/${officialMazdaModels.size}`);
 }
 
 console.log(`OK: ${modelCount} modeli, ${Object.keys(groupsByBrand).length} marek z katalogiem.`);
-console.log("OK: wszystkie modele mają lokalny web-ID mobile.de.");
+console.log("OK: zapisane web-ID są zgodne; pozostałe modele używają fallbacku tekstowego.");
 console.log(`OK: ${contractFragments.length} kontrakty pól i parametrów wyszukiwania.`);
 if (brandResults.length) console.log(`OK refdata: ${brandResults.join("; ")}.`);

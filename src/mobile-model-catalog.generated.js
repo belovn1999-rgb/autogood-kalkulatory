@@ -1,6 +1,2124 @@
-/* Generated from official Mobile.de refdata on 2026-08-24. Do not hand-edit. */
+/* Generated from official Mobile.de refdata on 2026-08-26. Do not hand-edit. */
 window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
   "groups": {
+    "Abarth": [
+      {
+        "group": "Pozostałe Abarth",
+        "models": [
+          "124 Spider",
+          "500",
+          "500C",
+          "500e",
+          "595",
+          "595 Competizione",
+          "595 Turismo",
+          "595C",
+          "600e",
+          "695",
+          "695C",
+          "Grande Punto",
+          "Punto Evo",
+          "Other"
+        ]
+      }
+    ],
+    "AC": [
+      {
+        "group": "Pozostałe AC",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Acura": [
+      {
+        "group": "Pozostałe Acura",
+        "models": [
+          "MDX",
+          "NSX",
+          "RL",
+          "RSX",
+          "TL",
+          "TSX",
+          "Other"
+        ]
+      }
+    ],
+    "Aiways": [
+      {
+        "group": "Pozostałe Aiways",
+        "models": [
+          "U5",
+          "Other"
+        ]
+      }
+    ],
+    "Aixam": [
+      {
+        "group": "Pozostałe Aixam",
+        "models": [
+          "City",
+          "Coupé",
+          "Cross",
+          "MinAuto",
+          "Roadline",
+          "Scouty R",
+          "Other"
+        ]
+      }
+    ],
+    "Alfa Romeo": [
+      {
+        "group": "Pozostałe Alfa Romeo",
+        "models": [
+          "4C",
+          "8C",
+          "145",
+          "146",
+          "147",
+          "155",
+          "156",
+          "159",
+          "164",
+          "166",
+          "33",
+          "75",
+          "90",
+          "Alfasud",
+          "Alfetta",
+          "Brera",
+          "Crosswagon",
+          "GT",
+          "GTV",
+          "Giulia",
+          "Giulietta",
+          "Junior",
+          "MiTo",
+          "Spider",
+          "Sprint",
+          "Stelvio",
+          "Tonale",
+          "Other"
+        ]
+      }
+    ],
+    "ALPINA": [
+      {
+        "group": "Pozostałe ALPINA",
+        "models": [
+          "B10",
+          "B12",
+          "B3",
+          "B4",
+          "B5",
+          "B6",
+          "B7",
+          "B8",
+          "D10",
+          "D3",
+          "D4",
+          "D5",
+          "Roadster S",
+          "XB7",
+          "XD3",
+          "XD4",
+          "Other"
+        ]
+      }
+    ],
+    "Alpine": [
+      {
+        "group": "Pozostałe Alpine",
+        "models": [
+          "A110",
+          "A290",
+          "A390",
+          "Other"
+        ]
+      }
+    ],
+    "Alvis": [
+      {
+        "group": "Pozostałe Alvis",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Ariel": [
+      {
+        "group": "Pozostałe Ariel",
+        "models": [
+          "Atom",
+          "Other"
+        ]
+      }
+    ],
+    "Artega": [
+      {
+        "group": "Pozostałe Artega",
+        "models": [
+          "GT",
+          "Other"
+        ]
+      }
+    ],
+    "Asia Motors": [
+      {
+        "group": "Pozostałe Asia Motors",
+        "models": [
+          "Rocsta",
+          "Other"
+        ]
+      }
+    ],
+    "Aston Martin": [
+      {
+        "group": "Pozostałe Aston Martin",
+        "models": [
+          "AR1",
+          "Cygnet",
+          "DB",
+          "DB11",
+          "DB12",
+          "DB7",
+          "DB9",
+          "DBS",
+          "DBX",
+          "Lagonda",
+          "Rapide",
+          "V12 Speedster",
+          "V12 Vantage",
+          "V8 Vantage",
+          "Valhalla",
+          "Vanquish",
+          "Virage",
+          "Other"
+        ]
+      }
+    ],
+    "Audi": [
+      {
+        "group": "TT (alle)",
+        "models": [
+          "TT",
+          "TT RS",
+          "TTS"
+        ]
+      },
+      {
+        "group": "Pozostałe Audi",
+        "models": [
+          "100",
+          "200",
+          "80",
+          "90",
+          "A1",
+          "A2",
+          "A3",
+          "A4",
+          "A4 Allroad",
+          "A5",
+          "A6",
+          "A6 Allroad",
+          "A6 e-tron",
+          "A7",
+          "A8",
+          "Cabriolet",
+          "Coupé",
+          "Q2",
+          "Q3",
+          "Q4",
+          "Q4 e-tron",
+          "Q5",
+          "Q6 e-tron",
+          "Q7",
+          "Q8",
+          "Q8 e-tron",
+          "quattro",
+          "R8",
+          "RS e-tron GT",
+          "RS2",
+          "RS3",
+          "RS4",
+          "RS5",
+          "RS6",
+          "RS7",
+          "RSQ3",
+          "RSQ8",
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S6 e-tron",
+          "S7",
+          "S8",
+          "SQ2",
+          "SQ5",
+          "SQ6 e-tron",
+          "SQ7",
+          "SQ8",
+          "SQ8 e-tron",
+          "V8",
+          "e-tron",
+          "e-tron GT",
+          "Other"
+        ]
+      }
+    ],
+    "Austin": [
+      {
+        "group": "Pozostałe Austin",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Austin Healey": [
+      {
+        "group": "Pozostałe Austin Healey",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Auto Union": [
+      {
+        "group": "Pozostałe Auto Union",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "BAIC": [
+      {
+        "group": "Pozostałe BAIC",
+        "models": [
+          "BJ20",
+          "BJ30",
+          "BJ40",
+          "BJ60",
+          "Beijing X35",
+          "Beijing X55",
+          "Senova D20",
+          "Senova X25",
+          "Senova X35",
+          "Senova X55",
+          "Senova X65",
+          "X55",
+          "Beijing X75",
+          "Other"
+        ]
+      }
+    ],
+    "Barkas": [
+      {
+        "group": "Pozostałe Barkas",
+        "models": [
+          "B1000",
+          "Other"
+        ]
+      }
+    ],
+    "BAW": [
+      {
+        "group": "Pozostałe BAW",
+        "models": [
+          "212",
+          "Other"
+        ]
+      }
+    ],
+    "Bentley": [
+      {
+        "group": "Continental",
+        "models": [
+          "Continental",
+          "Continental Flying Spur",
+          "Continental GT",
+          "Continental GTC",
+          "Continental Supersports"
+        ]
+      },
+      {
+        "group": "Pozostałe Bentley",
+        "models": [
+          "Arnage",
+          "Azure",
+          "Bentayga",
+          "Brooklands",
+          "Eight",
+          "Flying Spur",
+          "Mulsanne",
+          "S2",
+          "Turbo R",
+          "Turbo RT",
+          "Turbo S",
+          "Other"
+        ]
+      }
+    ],
+    "Bizzarrini": [
+      {
+        "group": "Pozostałe Bizzarrini",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Borgward": [
+      {
+        "group": "Pozostałe Borgward",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Bovensiepen": [
+      {
+        "group": "Pozostałe Bovensiepen",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Brilliance": [
+      {
+        "group": "Pozostałe Brilliance",
+        "models": [
+          "BC3",
+          "BS2",
+          "BS4",
+          "BS6",
+          "Other"
+        ]
+      }
+    ],
+    "Bugatti": [
+      {
+        "group": "Pozostałe Bugatti",
+        "models": [
+          "Chiron",
+          "EB 110",
+          "Veyron",
+          "Other"
+        ]
+      }
+    ],
+    "Buick": [
+      {
+        "group": "Pozostałe Buick",
+        "models": [
+          "Century",
+          "Electra",
+          "Enclave",
+          "La Crosse",
+          "Le Sabre",
+          "Park Avenue",
+          "Regal",
+          "Riviera",
+          "Roadmaster",
+          "Skylark",
+          "Other"
+        ]
+      }
+    ],
+    "BYD": [
+      {
+        "group": "Pozostałe BYD",
+        "models": [
+          "ATTO 2",
+          "ATTO 3",
+          "DOLPHIN",
+          "DOLPHIN SURF",
+          "ETP 3",
+          "HAN",
+          "SEAL",
+          "SEAL 5",
+          "SEAL 6",
+          "SEALION 7",
+          "SEAL U",
+          "TANG",
+          "Other"
+        ]
+      }
+    ],
+    "Cadillac": [
+      {
+        "group": "Pozostałe Cadillac",
+        "models": [
+          "ATS",
+          "Allante",
+          "BLS",
+          "CT5",
+          "CT6",
+          "CTS",
+          "Deville",
+          "Eldorado",
+          "Escalade",
+          "Fleetwood",
+          "LYRIQ",
+          "OPTIQ",
+          "SRX",
+          "STS",
+          "Seville",
+          "VISTIQ",
+          "XLR",
+          "XT4",
+          "XT5",
+          "XT6",
+          "Other"
+        ]
+      }
+    ],
+    "Casalini": [
+      {
+        "group": "Pozostałe Casalini",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Caterham": [
+      {
+        "group": "Pozostałe Caterham",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Cenntro": [
+      {
+        "group": "Pozostałe Cenntro",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Changan": [
+      {
+        "group": "Pozostałe Changan",
+        "models": [
+          "Deepal S05",
+          "Deepal S07",
+          "Other"
+        ]
+      }
+    ],
+    "Chatenet": [
+      {
+        "group": "Pozostałe Chatenet",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Chevrolet": [
+      {
+        "group": "Pozostałe Chevrolet",
+        "models": [
+          "2500",
+          "Alero",
+          "Astro",
+          "Avalanche",
+          "Aveo",
+          "Beretta",
+          "Blazer",
+          "C1500",
+          "Camaro",
+          "Caprice",
+          "Captiva",
+          "Cavalier",
+          "Chevelle",
+          "Chevy Van",
+          "Citation",
+          "Colorado",
+          "Corsica",
+          "Cruze",
+          "El Camino",
+          "Epica",
+          "Evanda",
+          "Express",
+          "G",
+          "HHR",
+          "Impala",
+          "K1500",
+          "K30",
+          "Kalos",
+          "Lacetti",
+          "Lumina",
+          "Malibu",
+          "Matiz",
+          "Niva",
+          "Nubira",
+          "Orlando",
+          "Rezzo",
+          "S-10",
+          "SSR",
+          "Silverado",
+          "Spark",
+          "Suburban",
+          "Tahoe",
+          "Trailblazer",
+          "Trans Sport",
+          "Traverse",
+          "Trax",
+          "Venture",
+          "Volt",
+          "Other"
+        ]
+      }
+    ],
+    "Chrysler": [
+      {
+        "group": "Pozostałe Chrysler",
+        "models": [
+          "200",
+          "300 M",
+          "300C",
+          "Aspen",
+          "Crossfire",
+          "Daytona",
+          "ES",
+          "GS",
+          "GTS",
+          "Grand Voyager",
+          "Imperial",
+          "Le Baron",
+          "Neon",
+          "New Yorker",
+          "PT Cruiser",
+          "Pacifica",
+          "Saratoga",
+          "Sebring",
+          "Stratus",
+          "Valiant",
+          "Viper",
+          "Vision",
+          "Voyager",
+          "Other"
+        ]
+      }
+    ],
+    "Citroen": [
+      {
+        "group": "Pozostałe Citroen",
+        "models": [
+          "2 CV",
+          "AMI",
+          "AX",
+          "BX",
+          "Berlingo",
+          "C-Crosser",
+          "C-Elysée",
+          "C-Zero",
+          "C1",
+          "C2",
+          "C3",
+          "C3 Aircross",
+          "C3 Picasso",
+          "C4",
+          "C4 Aircross",
+          "C4 Cactus",
+          "C4 Picasso",
+          "C4 SpaceTourer",
+          "C4 X",
+          "C5",
+          "C5 Aircross",
+          "C5 X",
+          "C6",
+          "C8",
+          "CX",
+          "DS",
+          "DS3",
+          "DS4",
+          "DS4 Crossback",
+          "DS5",
+          "E-MEHARI",
+          "Evasion",
+          "GSA",
+          "Grand C4 Picasso / SpaceTourer",
+          "Jumper",
+          "Jumpy",
+          "Nemo",
+          "SAXO",
+          "SM",
+          "SpaceTourer",
+          "Visa",
+          "XM",
+          "Xantia",
+          "Xsara",
+          "Xsara Picasso",
+          "ZX",
+          "ë-Berlingo",
+          "ë-C3",
+          "ë-C3 Aircross",
+          "ë-C4",
+          "ë-C4 X",
+          "ë-Spacetourer",
+          "Other"
+        ]
+      }
+    ],
+    "Cobra": [
+      {
+        "group": "Pozostałe Cobra",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Corvette": [
+      {
+        "group": "Pozostałe Corvette",
+        "models": [
+          "C1",
+          "C2",
+          "C3",
+          "C4",
+          "C5",
+          "C6",
+          "C7",
+          "C8",
+          "Z06",
+          "ZR 1",
+          "Other"
+        ]
+      }
+    ],
+    "Cupra": [
+      {
+        "group": "Pozostałe Cupra",
+        "models": [
+          "Arona",
+          "Ateca",
+          "Born",
+          "Formentor",
+          "Ibiza",
+          "Leon",
+          "Raval",
+          "Tavascan",
+          "Terramar",
+          "Other"
+        ]
+      }
+    ],
+    "Dacia": [
+      {
+        "group": "Pozostałe Dacia",
+        "models": [
+          "Bigster",
+          "Dokker",
+          "Duster",
+          "Jogger",
+          "Lodgy",
+          "Logan",
+          "Logan Pick-Up",
+          "Pick Up",
+          "Sandero",
+          "Spring",
+          "Other"
+        ]
+      }
+    ],
+    "Daewoo": [
+      {
+        "group": "Pozostałe Daewoo",
+        "models": [
+          "Espero",
+          "Evanda",
+          "Kalos",
+          "Korando",
+          "Lacetti",
+          "Lanos",
+          "Leganza",
+          "Matiz",
+          "Musso",
+          "Nexia",
+          "Nubira",
+          "Rezzo",
+          "Tacuma",
+          "Other"
+        ]
+      }
+    ],
+    "Daihatsu": [
+      {
+        "group": "Pozostałe Daihatsu",
+        "models": [
+          "Applause",
+          "Charade",
+          "Charmant",
+          "Copen",
+          "Cuore",
+          "Feroza/Sportrak",
+          "Freeclimber",
+          "Gran Move",
+          "Hijet",
+          "MATERIA",
+          "Move",
+          "Rocky/Fourtrak",
+          "Sirion",
+          "TREVIS",
+          "Terios",
+          "YRV",
+          "Other"
+        ]
+      }
+    ],
+    "Dallara": [
+      {
+        "group": "Pozostałe Dallara",
+        "models": [
+          "Stradale",
+          "Other"
+        ]
+      }
+    ],
+    "Datsun": [
+      {
+        "group": "Pozostałe Datsun",
+        "models": [
+          "240Z",
+          "Other"
+        ]
+      }
+    ],
+    "Delahaye": [
+      {
+        "group": "Pozostałe Delahaye",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "DeLorean": [
+      {
+        "group": "Pozostałe DeLorean",
+        "models": [
+          "DMC-12",
+          "Other"
+        ]
+      }
+    ],
+    "DeTomaso": [
+      {
+        "group": "Pozostałe DeTomaso",
+        "models": [
+          "Guarà",
+          "Pantera",
+          "Other"
+        ]
+      }
+    ],
+    "DFM": [
+      {
+        "group": "Forthing",
+        "models": [
+          "Forthing 3",
+          "Forthing 4",
+          "Forthing 5",
+          "Forthing 7",
+          "Forthing 9"
+        ]
+      },
+      {
+        "group": "Pozostałe DFM",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "DFSK": [
+      {
+        "group": "Fengon",
+        "models": [
+          "Fengon",
+          "Fengon 5",
+          "Fengon 500",
+          "Fengon 580",
+          "Fengon 600",
+          "Fengon 7"
+        ]
+      },
+      {
+        "group": "Pozostałe DFSK",
+        "models": [
+          "EC31",
+          "EC35",
+          "Fengon E5",
+          "Forthing 4",
+          "Forthing 5",
+          "Forthing 9",
+          "Glory",
+          "K01",
+          "Rich 6",
+          "Seres 3",
+          "Seres 5",
+          "Other"
+        ]
+      }
+    ],
+    "Dodge": [
+      {
+        "group": "Pozostałe Dodge",
+        "models": [
+          "Avenger",
+          "Caliber",
+          "Challenger",
+          "Charger",
+          "Coronet",
+          "Dakota",
+          "Dart",
+          "Demon",
+          "Durango",
+          "Grand Caravan",
+          "Hornet",
+          "Journey",
+          "Magnum",
+          "Neon",
+          "Nitro",
+          "RAM",
+          "Stealth",
+          "Viper",
+          "Other"
+        ]
+      }
+    ],
+    "Donkervoort": [
+      {
+        "group": "Pozostałe Donkervoort",
+        "models": [
+          "D8",
+          "F22",
+          "P24",
+          "S7",
+          "S8",
+          "Other"
+        ]
+      }
+    ],
+    "DS": [
+      {
+        "group": "Pozostałe DS",
+        "models": [
+          "DS3",
+          "DS3 Crossback",
+          "DS4",
+          "DS4 Crossback",
+          "DS5",
+          "DS7 (Crossback)",
+          "DS9",
+          "Nº8",
+          "Nº4",
+          "Other"
+        ]
+      }
+    ],
+    "e.GO": [
+      {
+        "group": "Pozostałe e.GO",
+        "models": [
+          "Life",
+          "e.wave X",
+          "Other"
+        ]
+      }
+    ],
+    "Elaris": [
+      {
+        "group": "Pozostałe Elaris",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Estrima": [
+      {
+        "group": "Pozostałe Estrima",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Facel Vega": [
+      {
+        "group": "Pozostałe Facel Vega",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Ferrari": [
+      {
+        "group": "Pozostałe Ferrari",
+        "models": [
+          "12Cilindri",
+          "208",
+          "246",
+          "250",
+          "275",
+          "288",
+          "296 GTB",
+          "296 GTS",
+          "308",
+          "328",
+          "330",
+          "348",
+          "360",
+          "365",
+          "400",
+          "412",
+          "456",
+          "458",
+          "488 GTB",
+          "488 Pista",
+          "488 Spider",
+          "512",
+          "550",
+          "575",
+          "599 GTB",
+          "599 GTO",
+          "599 SA Aperta",
+          "612",
+          "750",
+          "812",
+          "Amalfi",
+          "California",
+          "Daytona",
+          "Dino GT4",
+          "Enzo Ferrari",
+          "F12",
+          "F355",
+          "F40",
+          "F430",
+          "F50",
+          "F8",
+          "FF",
+          "GTC4Lusso",
+          "LaFerrari",
+          "Mondial",
+          "Monza",
+          "Portofino",
+          "Purosangue",
+          "Roma",
+          "SF90",
+          "Superamerica",
+          "Testarossa",
+          "Other"
+        ]
+      }
+    ],
+    "Fiat": [
+      {
+        "group": "Pozostałe Fiat",
+        "models": [
+          "124",
+          "124 Spider",
+          "126",
+          "127",
+          "130",
+          "131",
+          "500",
+          "500C",
+          "500L",
+          "500L Cross",
+          "500L Living",
+          "500L Trekking",
+          "500L Urban",
+          "500L Wagon",
+          "500S",
+          "500X",
+          "500e",
+          "600",
+          "600e",
+          "Albea",
+          "Barchetta",
+          "Brava",
+          "Bravo",
+          "Cinquecento",
+          "Coupe",
+          "Croma",
+          "Dino",
+          "Doblo",
+          "Ducato",
+          "Fiorino",
+          "Freemont",
+          "Fullback",
+          "Grande Panda",
+          "Grande Punto",
+          "Idea",
+          "Linea",
+          "Marea",
+          "Marengo",
+          "Multipla",
+          "New Panda",
+          "Palio",
+          "Panda",
+          "Punto",
+          "Punto Evo",
+          "Qubo",
+          "Regata",
+          "Ritmo",
+          "Scudo",
+          "Sedici",
+          "Seicento",
+          "Siena",
+          "Spider Europa",
+          "Stilo",
+          "Strada",
+          "Talento",
+          "Tempra",
+          "Tipo",
+          "Topolino",
+          "Ulysse",
+          "Uno",
+          "X 1/9",
+          "Other"
+        ]
+      }
+    ],
+    "Fisker": [
+      {
+        "group": "Pozostałe Fisker",
+        "models": [
+          "Karma",
+          "Ocean",
+          "Other"
+        ]
+      }
+    ],
+    "Ford": [
+      {
+        "group": "Tourneo (alle)",
+        "models": [
+          "Tourneo",
+          "Tourneo Connect",
+          "Tourneo Courier",
+          "Tourneo Custom"
+        ]
+      },
+      {
+        "group": "Transit",
+        "models": [
+          "Transit",
+          "Transit Connect",
+          "Transit Courier",
+          "Transit Custom"
+        ]
+      },
+      {
+        "group": "Pozostałe Ford",
+        "models": [
+          "Aerostar",
+          "B-Max",
+          "Bronco",
+          "Bronco Sport",
+          "C-Max",
+          "Capri",
+          "Cougar",
+          "Courier",
+          "Crown",
+          "EcoSport",
+          "Econoline",
+          "Econovan",
+          "Edge",
+          "Escape",
+          "Escort",
+          "Excursion",
+          "Expedition",
+          "Explorer",
+          "Express",
+          "F 100",
+          "F 150",
+          "F 250",
+          "F 350",
+          "Fairlane",
+          "Falcon",
+          "Fiesta",
+          "Flex",
+          "Focus",
+          "Fusion",
+          "GT",
+          "Galaxy",
+          "Granada",
+          "Grand C-Max",
+          "Grand Tourneo",
+          "Ka/Ka+",
+          "Kuga",
+          "Maverick",
+          "Mercury",
+          "Mondeo",
+          "Mustang",
+          "Mustang Mach-E",
+          "Orion",
+          "Probe",
+          "Puma",
+          "Puma Gen-E",
+          "Ranger",
+          "Raptor",
+          "S-Max",
+          "Scorpio",
+          "Sierra",
+          "Sportka",
+          "Streetka",
+          "Taunus",
+          "Taurus",
+          "Thunderbird",
+          "Windstar",
+          "Other"
+        ]
+      }
+    ],
+    "Foton": [
+      {
+        "group": "Pozostałe Foton",
+        "models": [
+          "3",
+          "4",
+          "Other"
+        ]
+      }
+    ],
+    "GAC Gonow": [
+      {
+        "group": "Pozostałe GAC Gonow",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Geely": [
+      {
+        "group": "Pozostałe Geely",
+        "models": [
+          "E5",
+          "Starray EM-i",
+          "Other"
+        ]
+      }
+    ],
+    "Gemballa": [
+      {
+        "group": "Pozostałe Gemballa",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Genesis": [
+      {
+        "group": "Pozostałe Genesis",
+        "models": [
+          "G70",
+          "G80",
+          "G90",
+          "GV60",
+          "GV70",
+          "GV80",
+          "Other"
+        ]
+      }
+    ],
+    "GMC": [
+      {
+        "group": "Pozostałe GMC",
+        "models": [
+          "Acadia",
+          "Envoy",
+          "Safari",
+          "Savana",
+          "Sierra",
+          "Sonoma",
+          "Syclone",
+          "Terrain",
+          "Typhoon",
+          "Vandura",
+          "Yukon",
+          "Other"
+        ]
+      }
+    ],
+    "Grecav": [
+      {
+        "group": "Pozostałe Grecav",
+        "models": [
+          "Sonique",
+          "Other"
+        ]
+      }
+    ],
+    "GWM": [
+      {
+        "group": "Pozostałe GWM",
+        "models": [
+          "HAVAL H6",
+          "HAVAL Jolion Pro",
+          "Ora 03",
+          "Ora 07",
+          "Wey 03",
+          "Wey 05",
+          "Other"
+        ]
+      }
+    ],
+    "Hamann": [
+      {
+        "group": "Pozostałe Hamann",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Heinkel": [
+      {
+        "group": "Pozostałe Heinkel",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Holden": [
+      {
+        "group": "Pozostałe Holden",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Honda": [
+      {
+        "group": "Pozostałe Honda",
+        "models": [
+          "Accord",
+          "Aerodeck",
+          "CR-V",
+          "CR-Z",
+          "CRX",
+          "City",
+          "Civic",
+          "Clarity",
+          "Concerto",
+          "Element",
+          "FR-V",
+          "HR-V",
+          "Insight",
+          "Integra",
+          "Jazz",
+          "Legend",
+          "Logo",
+          "NSX",
+          "Odyssey",
+          "Pilot",
+          "Prelude",
+          "Ridgeline",
+          "S2000",
+          "Shuttle",
+          "Stream",
+          "ZR-V",
+          "e",
+          "e:Ny1",
+          "Other"
+        ]
+      }
+    ],
+    "Hongqi": [
+      {
+        "group": "Pozostałe Hongqi",
+        "models": [
+          "E-HS9",
+          "H9",
+          "HS5",
+          "Other"
+        ]
+      }
+    ],
+    "Horch": [
+      {
+        "group": "Pozostałe Horch",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Hummer": [
+      {
+        "group": "Pozostałe Hummer",
+        "models": [
+          "H1",
+          "H2",
+          "H3",
+          "Other"
+        ]
+      }
+    ],
+    "Hyundai": [
+      {
+        "group": "Pozostałe Hyundai",
+        "models": [
+          "Accent",
+          "Atos",
+          "Azera",
+          "BAYON",
+          "Coupe",
+          "Elantra",
+          "Excel",
+          "Galloper",
+          "Genesis",
+          "Getz",
+          "Grand Santa Fe",
+          "Grandeur",
+          "H 100",
+          "H 200",
+          "H-1",
+          "H-1 Starex",
+          "H350",
+          "INSTER",
+          "IONIQ",
+          "IONIQ 3",
+          "IONIQ 5",
+          "IONIQ 6",
+          "IONIQ 9",
+          "KONA Elektro",
+          "KONA",
+          "Lantra",
+          "Matrix",
+          "NEXO",
+          "Pony",
+          "S-Coupe",
+          "SANTA FE",
+          "Santamo",
+          "SONATA",
+          "STARIA",
+          "Terracan",
+          "Trajet",
+          "TUCSON",
+          "Veloster",
+          "Veracruz",
+          "XG 30",
+          "XG 350",
+          "i10",
+          "i20",
+          "i30",
+          "i40",
+          "ix20",
+          "ix35",
+          "ix55",
+          "Other"
+        ]
+      }
+    ],
+    "INEOS": [
+      {
+        "group": "Pozostałe INEOS",
+        "models": [
+          "Grenadier",
+          "Other"
+        ]
+      }
+    ],
+    "Infiniti": [
+      {
+        "group": "Pozostałe Infiniti",
+        "models": [
+          "EX30",
+          "EX35",
+          "EX37",
+          "FX",
+          "G35",
+          "G37",
+          "M30",
+          "M35",
+          "M37",
+          "Q30",
+          "Q45",
+          "Q50",
+          "Q60",
+          "Q70",
+          "QX30",
+          "QX50",
+          "QX56",
+          "QX60",
+          "QX70",
+          "QX80",
+          "Other"
+        ]
+      }
+    ],
+    "Invicta": [
+      {
+        "group": "Pozostałe Invicta",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Isuzu": [
+      {
+        "group": "Pozostałe Isuzu",
+        "models": [
+          "Campo",
+          "D-Max",
+          "Gemini",
+          "Midi",
+          "PICK UP",
+          "Trooper",
+          "Other"
+        ]
+      }
+    ],
+    "Iveco": [
+      {
+        "group": "Pozostałe Iveco",
+        "models": [
+          "Massif",
+          "Other"
+        ]
+      }
+    ],
+    "JAC": [
+      {
+        "group": "Pozostałe JAC",
+        "models": [
+          "8 Pro",
+          "Other"
+        ]
+      }
+    ],
+    "JAECOO": [
+      {
+        "group": "Pozostałe JAECOO",
+        "models": [
+          "5",
+          "7",
+          "Other"
+        ]
+      }
+    ],
+    "Jaguar": [
+      {
+        "group": "Pozostałe Jaguar",
+        "models": [
+          "Daimler",
+          "E-Pace",
+          "E-Type",
+          "F-Pace",
+          "F-Type",
+          "I-Pace",
+          "MK II",
+          "S-Type",
+          "X-Type",
+          "XE",
+          "XF",
+          "XJ",
+          "XJ12",
+          "XJ40",
+          "XJ6",
+          "XJ8",
+          "XJR",
+          "XJS",
+          "XJSC",
+          "XK",
+          "XK8",
+          "XKR",
+          "Other"
+        ]
+      }
+    ],
+    "Jeep": [
+      {
+        "group": "Pozostałe Jeep",
+        "models": [
+          "Avenger",
+          "CJ",
+          "Cherokee",
+          "Comanche",
+          "Commander",
+          "Compass",
+          "Gladiator",
+          "Grand Cherokee",
+          "Patriot",
+          "Renegade",
+          "Wagoneer",
+          "Willys",
+          "Wrangler",
+          "Other"
+        ]
+      }
+    ],
+    "Jetour": [
+      {
+        "group": "Pozostałe Jetour",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Jiayuan": [
+      {
+        "group": "Pozostałe Jiayuan",
+        "models": [
+          "City Spirit",
+          "Other"
+        ]
+      }
+    ],
+    "KGM": [
+      {
+        "group": "Pozostałe KGM",
+        "models": [
+          "Actyon",
+          "Korando",
+          "Musso",
+          "Musso Grand",
+          "Rexton",
+          "Tivoli",
+          "Torres",
+          "Torres EVX",
+          "Other"
+        ]
+      }
+    ],
+    "Kia": [
+      {
+        "group": "Pozostałe Kia",
+        "models": [
+          "Besta",
+          "Borrego",
+          "Carens",
+          "Carnival",
+          "Cerato",
+          "Clarus",
+          "EV2",
+          "EV3",
+          "EV4",
+          "EV5",
+          "EV6",
+          "EV9",
+          "Elan",
+          "Joice",
+          "K2500",
+          "K2700",
+          "K4",
+          "Leo",
+          "Magentis",
+          "Mentor",
+          "Mini",
+          "Niro",
+          "Niro EV",
+          "Opirus",
+          "Optima",
+          "PV5",
+          "Picanto",
+          "Pregio",
+          "Pride",
+          "Retona",
+          "Rio",
+          "Roadster",
+          "Rocsta",
+          "Seltos",
+          "Sephia",
+          "Shuma",
+          "Sorento",
+          "Soul",
+          "Sportage",
+          "Stinger",
+          "Stonic",
+          "Venga",
+          "XCeed",
+          "cee'd / Ceed",
+          "cee'd Sportswagon",
+          "pro cee'd / ProCeed",
+          "Other"
+        ]
+      }
+    ],
+    "Koenigsegg": [
+      {
+        "group": "Pozostałe Koenigsegg",
+        "models": [
+          "Agera",
+          "CCR",
+          "CCXR",
+          "Other"
+        ]
+      }
+    ],
+    "KTM": [
+      {
+        "group": "Pozostałe KTM",
+        "models": [
+          "X-BOW",
+          "Other"
+        ]
+      }
+    ],
+    "Lada": [
+      {
+        "group": "Pozostałe Lada",
+        "models": [
+          "110",
+          "111",
+          "112",
+          "1200",
+          "2107",
+          "2110",
+          "2111",
+          "2112",
+          "Aleko",
+          "Forma",
+          "Granta",
+          "Kalina",
+          "Niva",
+          "Nova",
+          "Priora",
+          "Samara",
+          "Taiga",
+          "Urban",
+          "Vesta",
+          "X-Ray",
+          "Other"
+        ]
+      }
+    ],
+    "Lamborghini": [
+      {
+        "group": "Pozostałe Lamborghini",
+        "models": [
+          "Aventador",
+          "Countach",
+          "Diablo",
+          "Espada",
+          "Gallardo",
+          "Huracán",
+          "Jalpa",
+          "LM",
+          "Miura",
+          "Murciélago",
+          "Revuelto",
+          "Temerario",
+          "Urraco",
+          "Urus",
+          "Other"
+        ]
+      }
+    ],
+    "Lancia": [
+      {
+        "group": "Pozostałe Lancia",
+        "models": [
+          "Beta",
+          "Dedra",
+          "Delta",
+          "Flaminia",
+          "Flavia",
+          "Fulvia",
+          "Gamma",
+          "Kappa",
+          "Lybra",
+          "MUSA",
+          "Phedra",
+          "Prisma",
+          "Stratos",
+          "Thema",
+          "Thesis",
+          "Voyager",
+          "Ypsilon",
+          "Zeta",
+          "Other"
+        ]
+      }
+    ],
+    "Land Rover": [
+      {
+        "group": "Pozostałe Land Rover",
+        "models": [
+          "Defender",
+          "Discovery",
+          "Discovery Sport",
+          "Freelander",
+          "Range Rover",
+          "Range Rover Evoque",
+          "Range Rover Sport",
+          "Range Rover Velar",
+          "Serie I",
+          "Serie II",
+          "Serie III",
+          "Other"
+        ]
+      }
+    ],
+    "Landwind": [
+      {
+        "group": "Pozostałe Landwind",
+        "models": [
+          "CV-9",
+          "S",
+          "SC2",
+          "SC4",
+          "Other"
+        ]
+      }
+    ],
+    "Leapmotor": [
+      {
+        "group": "Pozostałe Leapmotor",
+        "models": [
+          "B05",
+          "B10",
+          "C10",
+          "T03",
+          "Other"
+        ]
+      }
+    ],
+    "LEVC": [
+      {
+        "group": "Pozostałe LEVC",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Lexus": [
+      {
+        "group": "ES Series",
+        "models": [
+          "ES 300",
+          "ES 330",
+          "ES 350"
+        ]
+      },
+      {
+        "group": "GS Series",
+        "models": [
+          "GS 250",
+          "GS 300",
+          "GS 350",
+          "GS 430",
+          "GS 450",
+          "GS 460",
+          "GS F"
+        ]
+      },
+      {
+        "group": "GX Series",
+        "models": [
+          "GX 460",
+          "GX 470",
+          "GX 550"
+        ]
+      },
+      {
+        "group": "IS Series",
+        "models": [
+          "IS 200",
+          "IS 220",
+          "IS 250",
+          "IS 300",
+          "IS 350",
+          "IS-F"
+        ]
+      },
+      {
+        "group": "LS Series",
+        "models": [
+          "LS 400",
+          "LS 430",
+          "LS 460",
+          "LS 500",
+          "LS 600"
+        ]
+      },
+      {
+        "group": "LX Series",
+        "models": [
+          "LX 450",
+          "LX 470",
+          "LX 500",
+          "LX 570",
+          "LX 600",
+          "LX 700"
+        ]
+      },
+      {
+        "group": "NX Series",
+        "models": [
+          "NX 200",
+          "NX 300",
+          "NX 350h",
+          "NX 450h"
+        ]
+      },
+      {
+        "group": "RC Series",
+        "models": [
+          "RC 200",
+          "RC 300",
+          "RC 350",
+          "RC F"
+        ]
+      },
+      {
+        "group": "RX Series",
+        "models": [
+          "RX 200",
+          "RX 300",
+          "RX 330",
+          "RX 350",
+          "RX 400",
+          "RX 450",
+          "RX 500"
+        ]
+      },
+      {
+        "group": "Pozostałe Lexus",
+        "models": [
+          "CT 200h",
+          "LBX",
+          "LC 500",
+          "LC 500h",
+          "LFA",
+          "LM",
+          "RZ",
+          "SC 400",
+          "SC 430",
+          "UX",
+          "Other"
+        ]
+      }
+    ],
+    "Ligier": [
+      {
+        "group": "Pozostałe Ligier",
+        "models": [
+          "Ambra",
+          "Be Sun",
+          "JS 50",
+          "JS 50 L",
+          "JS 60",
+          "JS RC",
+          "Myli",
+          "Nova",
+          "Optima",
+          "X - Too",
+          "Other"
+        ]
+      }
+    ],
+    "Lincoln": [
+      {
+        "group": "Pozostałe Lincoln",
+        "models": [
+          "Aviator",
+          "Continental",
+          "LS",
+          "Mark",
+          "Navigator",
+          "Town Car",
+          "Other"
+        ]
+      }
+    ],
+    "Lotus": [
+      {
+        "group": "Pozostałe Lotus",
+        "models": [
+          "340 R",
+          "Cortina",
+          "Elan",
+          "Eletre",
+          "Elise",
+          "Elite",
+          "Emeya",
+          "Emira",
+          "Esprit",
+          "Europa",
+          "Evora",
+          "Excel",
+          "Exige",
+          "Super Seven",
+          "Other"
+        ]
+      }
+    ],
+    "Lucid": [
+      {
+        "group": "Pozostałe Lucid",
+        "models": [
+          "Air",
+          "Other"
+        ]
+      }
+    ],
+    "Lynk&Co": [
+      {
+        "group": "Pozostałe Lynk&Co",
+        "models": [
+          "01",
+          "02",
+          "08",
+          "Other"
+        ]
+      }
+    ],
+    "Mahindra": [
+      {
+        "group": "Pozostałe Mahindra",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "MAN": [
+      {
+        "group": "Pozostałe MAN",
+        "models": [
+          "TGE",
+          "Other"
+        ]
+      }
+    ],
+    "Maserati": [
+      {
+        "group": "Pozostałe Maserati",
+        "models": [
+          "222",
+          "224",
+          "228",
+          "3200",
+          "418",
+          "420",
+          "4200",
+          "422",
+          "424",
+          "430",
+          "Biturbo",
+          "Ghibli",
+          "GranCabrio",
+          "Gransport",
+          "Granturismo",
+          "Grecale",
+          "Indy",
+          "Karif",
+          "Levante",
+          "MC12",
+          "MC20",
+          "Merak",
+          "Quattroporte",
+          "Shamal",
+          "Spyder",
+          "Other"
+        ]
+      }
+    ],
+    "Maxus": [
+      {
+        "group": "Pozostałe Maxus",
+        "models": [
+          "Deliver 7",
+          "Deliver 9",
+          "Euniq 5",
+          "Euniq 6",
+          "Mifa 9",
+          "T60 MAX",
+          "T90",
+          "eDeliver 3",
+          "eDeliver 5",
+          "eDeliver 9",
+          "eTerron 9",
+          "Other"
+        ]
+      }
+    ],
+    "Maybach": [
+      {
+        "group": "Pozostałe Maybach",
+        "models": [
+          "57",
+          "62",
+          "Pullman",
+          "S650",
+          "Other"
+        ]
+      }
+    ],
+    "Mazda": [
+      {
+        "group": "Pozostałe Mazda",
+        "models": [
+          "121",
+          "2",
+          "2 Hybrid",
+          "3",
+          "323",
+          "5",
+          "6",
+          "626",
+          "6e",
+          "929",
+          "B series",
+          "BT-50",
+          "Bongo",
+          "CX-3",
+          "CX-30",
+          "CX-5",
+          "CX-60",
+          "CX-7",
+          "CX-80",
+          "CX-9",
+          "CX-6e",
+          "Demio",
+          "E series",
+          "MPV",
+          "MX-3",
+          "MX-30",
+          "MX-5",
+          "MX-6",
+          "Millenia",
+          "Premacy",
+          "Protege",
+          "RX-6",
+          "RX-7",
+          "RX-8",
+          "Tribute",
+          "Xedos",
+          "Other"
+        ]
+      }
+    ],
+    "McLaren": [
+      {
+        "group": "Pozostałe McLaren",
+        "models": [
+          "540C",
+          "570GT",
+          "570S",
+          "600LT",
+          "620R",
+          "650S",
+          "650S Coupé",
+          "650S Spider",
+          "675LT",
+          "675LT Spider",
+          "720S",
+          "750S",
+          "765",
+          "765LT",
+          "Artura",
+          "Elva",
+          "GT",
+          "GTS",
+          "MP4-12C",
+          "P1",
+          "Senna GTR",
+          "Speedtail",
+          "Other"
+        ]
+      }
+    ],
     "Mercedes-Benz": [
       {
         "group": "A-Class",
@@ -490,1323 +2608,65 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
         ]
       }
     ],
-    "Audi": [
+    "Messerschmitt": [
       {
-        "group": "TT (alle)",
+        "group": "Pozostałe Messerschmitt",
         "models": [
-          "TT",
-          "TT RS",
-          "TTS"
+          "Other"
         ]
-      },
+      }
+    ],
+    "MG": [
       {
-        "group": "Pozostałe Audi",
+        "group": "Pozostałe MG",
         "models": [
-          "100",
-          "200",
-          "80",
-          "90",
-          "A1",
-          "A2",
-          "A3",
-          "A4",
-          "A4 Allroad",
-          "A5",
-          "A6",
-          "A6 Allroad",
-          "A6 e-tron",
-          "A7",
-          "A8",
-          "Cabriolet",
-          "Coupé",
-          "Q2",
-          "Q3",
-          "Q4",
-          "Q4 e-tron",
-          "Q5",
-          "Q6 e-tron",
-          "Q7",
-          "Q8",
-          "Q8 e-tron",
-          "quattro",
-          "R8",
-          "RS e-tron GT",
-          "RS2",
-          "RS3",
-          "RS4",
-          "RS5",
-          "RS6",
-          "RS7",
-          "RSQ3",
-          "RSQ8",
-          "S1",
-          "S2",
-          "S3",
-          "S4",
+          "Cyberster",
+          "EHS",
+          "HS",
+          "MG3",
+          "MG4",
+          "MG4 EV Urban",
+          "MG5",
+          "MGA",
+          "MGB",
+          "MGF",
+          "Marvel R",
+          "Midget",
+          "Montego",
           "S5",
-          "S6",
-          "S6 e-tron",
-          "S7",
-          "S8",
-          "SQ2",
-          "SQ5",
-          "SQ6 e-tron",
-          "SQ7",
-          "SQ8",
-          "SQ8 e-tron",
-          "V8",
-          "e-tron",
-          "e-tron GT",
+          "S6 EV",
+          "S9",
+          "TD",
+          "TF",
+          "ZR",
+          "ZS",
+          "ZT",
           "Other"
         ]
       }
     ],
-    "Volkswagen": [
+    "Microcar": [
       {
-        "group": "Golf",
+        "group": "Pozostałe Microcar",
         "models": [
-          "Golf",
-          "Golf Plus",
-          "Golf Sportsvan"
-        ]
-      },
-      {
-        "group": "Passat (alle)",
-        "models": [
-          "Passat",
-          "Passat Alltrack",
-          "Passat CC",
-          "Passat Variant"
-        ]
-      },
-      {
-        "group": "T3",
-        "models": [
-          "T3 Caravelle",
-          "T3 Multivan",
-          "T3 Kombi",
-          "T3 other"
-        ]
-      },
-      {
-        "group": "T4",
-        "models": [
-          "T4 California",
-          "T4 Caravelle",
-          "T4 Multivan",
-          "T4 Kombi",
-          "T4 other"
-        ]
-      },
-      {
-        "group": "T5",
-        "models": [
-          "T5 California",
-          "T5 Caravelle",
-          "T5 Multivan",
-          "T5 Shuttle",
-          "T5 Transporter",
-          "T5 Kombi",
-          "T5 other"
-        ]
-      },
-      {
-        "group": "T6",
-        "models": [
-          "T6 California",
-          "T6 Caravelle",
-          "T6 Kombi",
-          "T6 Multivan",
-          "T6 Transporter",
-          "T6 other"
-        ]
-      },
-      {
-        "group": "T7",
-        "models": [
-          "T7 California",
-          "T7 Caravelle",
-          "T7 Kombi",
-          "T7 Multivan",
-          "T7 Transporter",
-          "T7 other"
-        ]
-      },
-      {
-        "group": "Pozostałe Volkswagen",
-        "models": [
-          "181",
-          "Amarok",
-          "Arteon",
-          "Beetle",
-          "Bora",
-          "Buggy",
-          "CC",
-          "Caddy",
-          "Caddy Maxi",
-          "Corrado",
-          "Crafter",
-          "Eos",
-          "Fox",
-          "ID. Polo",
-          "ID.3",
-          "ID.4",
-          "ID.5",
-          "ID.6",
-          "ID.7",
-          "ID. Buzz",
-          "Iltis",
-          "Jetta",
-          "Karmann Ghia",
-          "Käfer",
-          "LT",
-          "Lupo",
-          "New Beetle",
-          "Phaeton",
-          "Polo",
-          "Routan",
-          "Santana",
-          "Scirocco",
-          "Sharan",
-          "T-Cross",
-          "T-Roc",
-          "T1",
-          "T2",
-          "Taigo",
-          "Taro",
-          "Tayron",
-          "Tiguan",
-          "Tiguan Allspace",
-          "Touareg",
-          "Touran",
-          "Vento",
-          "XL1",
-          "e-up!",
-          "up!",
-          "Other"
-        ]
-      }
-    ],
-    "Porsche": [
-      {
-        "group": "Series 911",
-        "models": [
-          "911",
-          "930",
-          "964",
-          "991",
-          "992",
-          "993",
-          "996",
-          "997"
-        ]
-      },
-      {
-        "group": "Pozostałe Porsche",
-        "models": [
-          "356",
-          "912",
-          "914",
-          "918",
-          "924",
-          "928",
-          "944",
-          "959",
-          "962",
-          "968",
-          "Boxster",
-          "Carrera GT",
-          "Cayenne",
-          "Cayman",
-          "Macan",
-          "Panamera",
-          "Taycan",
-          "Other"
-        ]
-      }
-    ],
-    "Ford": [
-      {
-        "group": "Tourneo (alle)",
-        "models": [
-          "Tourneo",
-          "Tourneo Connect",
-          "Tourneo Courier",
-          "Tourneo Custom"
-        ]
-      },
-      {
-        "group": "Transit",
-        "models": [
-          "Transit",
-          "Transit Connect",
-          "Transit Courier",
-          "Transit Custom"
-        ]
-      },
-      {
-        "group": "Pozostałe Ford",
-        "models": [
-          "Aerostar",
-          "B-Max",
-          "Bronco",
-          "Bronco Sport",
-          "C-Max",
-          "Capri",
-          "Cougar",
-          "Courier",
-          "Crown",
-          "EcoSport",
-          "Econoline",
-          "Econovan",
-          "Edge",
-          "Escape",
-          "Escort",
-          "Excursion",
-          "Expedition",
-          "Explorer",
-          "Express",
-          "F 100",
-          "F 150",
-          "F 250",
-          "F 350",
-          "Fairlane",
-          "Falcon",
-          "Fiesta",
+          "DUÈ",
           "Flex",
-          "Focus",
-          "Fusion",
-          "GT",
-          "Galaxy",
-          "Granada",
-          "Grand C-Max",
-          "Grand Tourneo",
-          "Ka/Ka+",
-          "Kuga",
-          "Maverick",
-          "Mercury",
-          "Mondeo",
-          "Mustang",
-          "Mustang Mach-E",
-          "Orion",
-          "Probe",
-          "Puma",
-          "Puma Gen-E",
-          "Ranger",
-          "Raptor",
-          "S-Max",
-          "Scorpio",
-          "Sierra",
-          "Sportka",
-          "Streetka",
-          "Taunus",
-          "Taurus",
-          "Thunderbird",
-          "Windstar",
+          "M.Go",
+          "M-8",
+          "MC1",
+          "MC2",
+          "Virgo",
           "Other"
         ]
       }
     ],
-    "Skoda": [
+    "Microlino": [
       {
-        "group": "Pozostałe Skoda",
+        "group": "Pozostałe Microlino",
         "models": [
-          "105",
-          "120",
-          "130",
-          "135",
-          "Citigo",
-          "Elroq",
-          "Enyaq",
-          "Epiq",
-          "Fabia",
-          "Favorit",
-          "Felicia",
-          "Forman",
-          "Kamiq",
-          "Karoq",
-          "Kodiaq",
-          "Octavia",
-          "Peaq",
-          "Pick-up",
-          "Praktik",
-          "Rapid",
-          "Roomster",
-          "Scala",
-          "Superb",
-          "Yeti",
-          "Other"
-        ]
-      }
-    ],
-    "Seat": [
-      {
-        "group": "Pozostałe Seat",
-        "models": [
-          "Alhambra",
-          "Altea",
-          "Arona",
-          "Arosa",
-          "Ateca",
-          "Cordoba",
-          "Exeo",
-          "Ibiza",
-          "Inca",
-          "Leon",
-          "Malaga",
-          "Marbella",
-          "Mii",
-          "Tarraco",
-          "Terra",
-          "Toledo",
-          "Other"
-        ]
-      }
-    ],
-    "Peugeot": [
-      {
-        "group": "Pozostałe Peugeot",
-        "models": [
-          "1007",
-          "104",
-          "106",
-          "107",
-          "108",
-          "2008",
-          "204",
-          "205",
-          "206",
-          "207",
-          "208",
-          "3008",
-          "301",
-          "304",
-          "305",
-          "306",
-          "307",
-          "308",
-          "309",
-          "4007",
-          "4008",
-          "404",
-          "405",
-          "406",
-          "407",
-          "408",
-          "5008",
-          "504",
-          "505",
-          "508",
-          "604",
-          "605",
-          "607",
-          "806",
-          "807",
-          "Bipper",
-          "Bipper Tepee",
-          "Boxer",
-          "Expert",
-          "Expert Tepee",
-          "J5",
-          "Partner",
-          "Partner Tepee",
-          "RCZ",
-          "Rifter",
-          "TePee",
-          "Traveller",
-          "e-2008",
-          "e-208",
-          "e-3008",
-          "e-308",
-          "e-408",
-          "e-5008",
-          "e-Rifter",
-          "e-Traveller",
-          "iOn",
-          "Other"
-        ]
-      }
-    ],
-    "Opel": [
-      {
-        "group": "Pozostałe Opel",
-        "models": [
-          "Adam",
-          "Agila",
-          "Ampera",
-          "Ampera-e",
-          "Antara",
-          "Arena",
-          "Ascona",
-          "Astra",
-          "Astra Electric",
-          "Calibra",
-          "Campo",
-          "Cascada",
-          "Cavalier",
-          "Combo",
-          "Combo Electric",
-          "Combo Life",
-          "Commodore",
-          "Corsa",
-          "Crossland (X)",
-          "Diplomat",
-          "Frontera",
-          "GT",
-          "Grandland (X)",
-          "Insignia",
-          "Insignia CT",
-          "Kadett",
-          "Karl",
-          "Manta",
-          "Meriva",
-          "Mokka",
-          "Mokka X",
-          "Mokka-e",
-          "Monterey",
-          "Monza",
-          "Movano",
-          "Nova",
-          "Omega",
-          "Pick Up Sportscap",
-          "Rekord",
-          "Rocks-e",
-          "Senator",
-          "Signum",
-          "Sintra",
-          "Speedster",
-          "Tigra",
-          "Vectra",
-          "Vivaro",
-          "Zafira",
-          "Zafira Electric",
-          "Zafira Life",
-          "Zafira Tourer",
-          "Other"
-        ]
-      }
-    ],
-    "Toyota": [
-      {
-        "group": "Pozostałe Toyota",
-        "models": [
-          "4-Runner",
-          "Alphard",
-          "Auris",
-          "Auris Touring Sports",
-          "Avalon",
-          "Avensis",
-          "Avensis Verso",
-          "Aygo (X)",
-          "C-HR",
-          "Camry",
-          "Carina",
-          "Celica",
-          "Corolla",
-          "Corolla Cross",
-          "Corolla Verso",
-          "Cressida",
-          "Crown",
-          "Dyna",
-          "FCV",
-          "FJ",
-          "Fortuner",
-          "GR86",
-          "GT86",
-          "Hiace",
-          "Highlander",
-          "Hilux",
-          "IQ",
-          "Land Cruiser",
-          "Lite-Ace",
-          "MR 2",
-          "Matrix",
-          "Mirai",
-          "Proace City",
-          "Paseo",
-          "Picnic",
-          "Previa",
-          "Prius",
-          "Prius+",
-          "Proace (Verso)",
-          "Proace Max",
-          "Proace Verso Electric",
-          "RAV 4",
-          "Sequoia",
-          "Sienna",
-          "Starlet",
-          "Supra",
-          "Tacoma",
-          "Tercel",
-          "Tundra",
-          "Urban Cruiser",
-          "Verso",
-          "Verso-S",
-          "Yaris",
-          "Yaris Cross",
-          "bZ4X",
-          "Other"
-        ]
-      }
-    ],
-    "Volvo": [
-      {
-        "group": "Pozostałe Volvo",
-        "models": [
-          "240",
-          "244",
-          "245",
-          "262",
-          "264",
-          "340",
-          "360",
-          "440",
-          "460",
-          "480",
-          "740",
-          "744",
-          "745",
-          "760",
-          "780",
-          "850",
-          "855",
-          "940",
-          "944",
-          "945",
-          "960",
-          "965",
-          "Amazon",
-          "C30",
-          "C40",
-          "C70",
-          "EC40",
-          "ES90",
-          "EX30",
-          "EX40",
-          "EX60",
-          "EX90",
-          "Polar",
-          "S40",
-          "S60",
-          "S60 Cross Country",
-          "S70",
-          "S80",
-          "S90",
-          "V40",
-          "V40 Cross Country",
-          "V50",
-          "V60",
-          "V60 Cross Country",
-          "V70",
-          "V90",
-          "V90 Cross Country",
-          "XC40",
-          "XC60",
-          "XC70",
-          "XC90",
-          "Other"
-        ]
-      }
-    ],
-    "Renault": [
-      {
-        "group": "Pozostałe Renault",
-        "models": [
-          "Alaskan",
-          "Alpine A110",
-          "Alpine A310",
-          "Alpine V6",
-          "Arkana",
-          "Austral",
-          "Avantime",
-          "Captur",
-          "Clio",
-          "Coupe",
-          "Espace",
-          "Express",
-          "Fluence",
-          "Fuego",
-          "Grand Espace",
-          "Grand Kangoo",
-          "Grand Kangoo E-TECH",
-          "Grand Modus",
-          "Grand Scenic",
-          "Grand Scenic E-Tech",
-          "Kadjar",
-          "Kangoo",
-          "Kangoo E-TECH",
-          "Koleos",
-          "Laguna",
-          "Latitude",
-          "Mascott",
-          "Master",
-          "Megane",
-          "Megane E-TECH",
-          "Modus",
-          "P 1400",
-          "R 11",
-          "R 14",
-          "R 18",
-          "R 19",
-          "R 20",
-          "R 21",
-          "R 25",
-          "R 30",
-          "R 4",
-          "R 5",
-          "R 6",
-          "R 9",
-          "Rafale",
-          "Rapid",
-          "Safrane",
-          "Scenic",
-          "Scenic E-TECH",
-          "Spider",
-          "Symbioz",
-          "Talisman",
-          "Trafic",
-          "Twingo",
-          "Twizy",
-          "Vel Satis",
-          "Wind",
-          "ZOE",
-          "Other"
-        ]
-      }
-    ],
-    "Abarth": [
-      {
-        "group": "Pozostałe Abarth",
-        "models": [
-          "124 Spider",
-          "500",
-          "500C",
-          "500e",
-          "595",
-          "595 Competizione",
-          "595 Turismo",
-          "595C",
-          "600e",
-          "695",
-          "695C",
-          "Grande Punto",
-          "Punto Evo",
-          "Other"
-        ]
-      }
-    ],
-    "Alfa Romeo": [
-      {
-        "group": "Pozostałe Alfa Romeo",
-        "models": [
-          "4C",
-          "8C",
-          "145",
-          "146",
-          "147",
-          "155",
-          "156",
-          "159",
-          "164",
-          "166",
-          "33",
-          "75",
-          "90",
-          "Alfasud",
-          "Alfetta",
-          "Brera",
-          "Crosswagon",
-          "GT",
-          "GTV",
-          "Giulia",
-          "Giulietta",
-          "Junior",
-          "MiTo",
-          "Spider",
-          "Sprint",
-          "Stelvio",
-          "Tonale",
-          "Other"
-        ]
-      }
-    ],
-    "Alpine": [
-      {
-        "group": "Pozostałe Alpine",
-        "models": [
-          "A110",
-          "A290",
-          "A390",
-          "Other"
-        ]
-      }
-    ],
-    "Bentley": [
-      {
-        "group": "Continental",
-        "models": [
-          "Continental",
-          "Continental Flying Spur",
-          "Continental GT",
-          "Continental GTC",
-          "Continental Supersports"
-        ]
-      },
-      {
-        "group": "Pozostałe Bentley",
-        "models": [
-          "Arnage",
-          "Azure",
-          "Bentayga",
-          "Brooklands",
-          "Eight",
-          "Flying Spur",
-          "Mulsanne",
-          "S2",
-          "Turbo R",
-          "Turbo RT",
-          "Turbo S",
-          "Other"
-        ]
-      }
-    ],
-    "Citroen": [
-      {
-        "group": "Pozostałe Citroen",
-        "models": [
-          "2 CV",
-          "AMI",
-          "AX",
-          "BX",
-          "Berlingo",
-          "C-Crosser",
-          "C-Elysée",
-          "C-Zero",
-          "C1",
-          "C2",
-          "C3",
-          "C3 Aircross",
-          "C3 Picasso",
-          "C4",
-          "C4 Aircross",
-          "C4 Cactus",
-          "C4 Picasso",
-          "C4 SpaceTourer",
-          "C4 X",
-          "C5",
-          "C5 Aircross",
-          "C5 X",
-          "C6",
-          "C8",
-          "CX",
-          "DS",
-          "DS3",
-          "DS4",
-          "DS4 Crossback",
-          "DS5",
-          "E-MEHARI",
-          "Evasion",
-          "GSA",
-          "Grand C4 Picasso / SpaceTourer",
-          "Jumper",
-          "Jumpy",
-          "Nemo",
-          "SAXO",
-          "SM",
-          "SpaceTourer",
-          "Visa",
-          "XM",
-          "Xantia",
-          "Xsara",
-          "Xsara Picasso",
-          "ZX",
-          "ë-Berlingo",
-          "ë-C3",
-          "ë-C3 Aircross",
-          "ë-C4",
-          "ë-C4 X",
-          "ë-Spacetourer",
-          "Other"
-        ]
-      }
-    ],
-    "Cupra": [
-      {
-        "group": "Pozostałe Cupra",
-        "models": [
-          "Arona",
-          "Ateca",
-          "Born",
-          "Formentor",
-          "Ibiza",
-          "Leon",
-          "Raval",
-          "Tavascan",
-          "Terramar",
-          "Other"
-        ]
-      }
-    ],
-    "Dacia": [
-      {
-        "group": "Pozostałe Dacia",
-        "models": [
-          "Bigster",
-          "Dokker",
-          "Duster",
-          "Jogger",
-          "Lodgy",
-          "Logan",
-          "Logan Pick-Up",
-          "Pick Up",
-          "Sandero",
-          "Spring",
-          "Other"
-        ]
-      }
-    ],
-    "DS": [
-      {
-        "group": "Pozostałe DS",
-        "models": [
-          "DS3",
-          "DS3 Crossback",
-          "DS4",
-          "DS4 Crossback",
-          "DS5",
-          "DS7 (Crossback)",
-          "DS9",
-          "Nº8",
-          "Nº4",
-          "Other"
-        ]
-      }
-    ],
-    "Fiat": [
-      {
-        "group": "Pozostałe Fiat",
-        "models": [
-          "124",
-          "124 Spider",
-          "126",
-          "127",
-          "130",
-          "131",
-          "500",
-          "500C",
-          "500L",
-          "500L Cross",
-          "500L Living",
-          "500L Trekking",
-          "500L Urban",
-          "500L Wagon",
-          "500S",
-          "500X",
-          "500e",
-          "600",
-          "600e",
-          "Albea",
-          "Barchetta",
-          "Brava",
-          "Bravo",
-          "Cinquecento",
-          "Coupe",
-          "Croma",
-          "Dino",
-          "Doblo",
-          "Ducato",
-          "Fiorino",
-          "Freemont",
-          "Fullback",
-          "Grande Panda",
-          "Grande Punto",
-          "Idea",
-          "Linea",
-          "Marea",
-          "Marengo",
-          "Multipla",
-          "New Panda",
-          "Palio",
-          "Panda",
-          "Punto",
-          "Punto Evo",
-          "Qubo",
-          "Regata",
-          "Ritmo",
-          "Scudo",
-          "Sedici",
-          "Seicento",
-          "Siena",
-          "Spider Europa",
-          "Stilo",
-          "Strada",
-          "Talento",
-          "Tempra",
-          "Tipo",
-          "Topolino",
-          "Ulysse",
-          "Uno",
-          "X 1/9",
-          "Other"
-        ]
-      }
-    ],
-    "Hyundai": [
-      {
-        "group": "Pozostałe Hyundai",
-        "models": [
-          "Accent",
-          "Atos",
-          "Azera",
-          "BAYON",
-          "Coupe",
-          "Elantra",
-          "Excel",
-          "Galloper",
-          "Genesis",
-          "Getz",
-          "Grand Santa Fe",
-          "Grandeur",
-          "H 100",
-          "H 200",
-          "H-1",
-          "H-1 Starex",
-          "H350",
-          "INSTER",
-          "IONIQ",
-          "IONIQ 3",
-          "IONIQ 5",
-          "IONIQ 6",
-          "IONIQ 9",
-          "KONA Elektro",
-          "KONA",
-          "Lantra",
-          "Matrix",
-          "NEXO",
-          "Pony",
-          "S-Coupe",
-          "SANTA FE",
-          "Santamo",
-          "SONATA",
-          "STARIA",
-          "Terracan",
-          "Trajet",
-          "TUCSON",
-          "Veloster",
-          "Veracruz",
-          "XG 30",
-          "XG 350",
-          "i10",
-          "i20",
-          "i30",
-          "i40",
-          "ix20",
-          "ix35",
-          "ix55",
-          "Other"
-        ]
-      }
-    ],
-    "Infiniti": [
-      {
-        "group": "Pozostałe Infiniti",
-        "models": [
-          "EX30",
-          "EX35",
-          "EX37",
-          "FX",
-          "G35",
-          "G37",
-          "M30",
-          "M35",
-          "M37",
-          "Q30",
-          "Q45",
-          "Q50",
-          "Q60",
-          "Q70",
-          "QX30",
-          "QX50",
-          "QX56",
-          "QX60",
-          "QX70",
-          "QX80",
-          "Other"
-        ]
-      }
-    ],
-    "Iveco": [
-      {
-        "group": "Pozostałe Iveco",
-        "models": [
-          "Massif",
-          "Other"
-        ]
-      }
-    ],
-    "Jaguar": [
-      {
-        "group": "Pozostałe Jaguar",
-        "models": [
-          "Daimler",
-          "E-Pace",
-          "E-Type",
-          "F-Pace",
-          "F-Type",
-          "I-Pace",
-          "MK II",
-          "S-Type",
-          "X-Type",
-          "XE",
-          "XF",
-          "XJ",
-          "XJ12",
-          "XJ40",
-          "XJ6",
-          "XJ8",
-          "XJR",
-          "XJS",
-          "XJSC",
-          "XK",
-          "XK8",
-          "XKR",
-          "Other"
-        ]
-      }
-    ],
-    "Jeep": [
-      {
-        "group": "Pozostałe Jeep",
-        "models": [
-          "Avenger",
-          "CJ",
-          "Cherokee",
-          "Comanche",
-          "Commander",
-          "Compass",
-          "Gladiator",
-          "Grand Cherokee",
-          "Patriot",
-          "Renegade",
-          "Wagoneer",
-          "Willys",
-          "Wrangler",
-          "Other"
-        ]
-      }
-    ],
-    "Kia": [
-      {
-        "group": "Pozostałe Kia",
-        "models": [
-          "Besta",
-          "Borrego",
-          "Carens",
-          "Carnival",
-          "Cerato",
-          "Clarus",
-          "EV2",
-          "EV3",
-          "EV4",
-          "EV5",
-          "EV6",
-          "EV9",
-          "Elan",
-          "Joice",
-          "K2500",
-          "K2700",
-          "K4",
-          "Leo",
-          "Magentis",
-          "Mentor",
-          "Mini",
-          "Niro",
-          "Niro EV",
-          "Opirus",
-          "Optima",
-          "PV5",
-          "Picanto",
-          "Pregio",
-          "Pride",
-          "Retona",
-          "Rio",
-          "Roadster",
-          "Rocsta",
-          "Seltos",
-          "Sephia",
-          "Shuma",
-          "Sorento",
-          "Soul",
-          "Sportage",
-          "Stinger",
-          "Stonic",
-          "Venga",
-          "XCeed",
-          "cee'd / Ceed",
-          "cee'd Sportswagon",
-          "pro cee'd / ProCeed",
-          "Other"
-        ]
-      }
-    ],
-    "Land Rover": [
-      {
-        "group": "Pozostałe Land Rover",
-        "models": [
-          "Defender",
-          "Discovery",
-          "Discovery Sport",
-          "Freelander",
-          "Range Rover",
-          "Range Rover Evoque",
-          "Range Rover Sport",
-          "Range Rover Velar",
-          "Serie I",
-          "Serie II",
-          "Serie III",
-          "Other"
-        ]
-      }
-    ],
-    "Lancia": [
-      {
-        "group": "Pozostałe Lancia",
-        "models": [
-          "Beta",
-          "Dedra",
-          "Delta",
-          "Flaminia",
-          "Flavia",
-          "Fulvia",
-          "Gamma",
-          "Kappa",
-          "Lybra",
-          "MUSA",
-          "Phedra",
-          "Prisma",
-          "Stratos",
-          "Thema",
-          "Thesis",
-          "Voyager",
-          "Ypsilon",
-          "Zeta",
-          "Other"
-        ]
-      }
-    ],
-    "Lexus": [
-      {
-        "group": "ES Series",
-        "models": [
-          "ES 300",
-          "ES 330",
-          "ES 350"
-        ]
-      },
-      {
-        "group": "GS Series",
-        "models": [
-          "GS 250",
-          "GS 300",
-          "GS 350",
-          "GS 430",
-          "GS 450",
-          "GS 460",
-          "GS F"
-        ]
-      },
-      {
-        "group": "GX Series",
-        "models": [
-          "GX 460",
-          "GX 470",
-          "GX 550"
-        ]
-      },
-      {
-        "group": "IS Series",
-        "models": [
-          "IS 200",
-          "IS 220",
-          "IS 250",
-          "IS 300",
-          "IS 350",
-          "IS-F"
-        ]
-      },
-      {
-        "group": "LS Series",
-        "models": [
-          "LS 400",
-          "LS 430",
-          "LS 460",
-          "LS 500",
-          "LS 600"
-        ]
-      },
-      {
-        "group": "LX Series",
-        "models": [
-          "LX 450",
-          "LX 470",
-          "LX 500",
-          "LX 570",
-          "LX 600",
-          "LX 700"
-        ]
-      },
-      {
-        "group": "NX Series",
-        "models": [
-          "NX 200",
-          "NX 300",
-          "NX 350h",
-          "NX 450h"
-        ]
-      },
-      {
-        "group": "RC Series",
-        "models": [
-          "RC 200",
-          "RC 300",
-          "RC 350",
-          "RC F"
-        ]
-      },
-      {
-        "group": "RX Series",
-        "models": [
-          "RX 200",
-          "RX 300",
-          "RX 330",
-          "RX 350",
-          "RX 400",
-          "RX 450",
-          "RX 500"
-        ]
-      },
-      {
-        "group": "Pozostałe Lexus",
-        "models": [
-          "CT 200h",
-          "LBX",
-          "LC 500",
-          "LC 500h",
-          "LFA",
-          "LM",
-          "RZ",
-          "SC 400",
-          "SC 430",
-          "UX",
-          "Other"
-        ]
-      }
-    ],
-    "MAN": [
-      {
-        "group": "Pozostałe MAN",
-        "models": [
-          "TGE",
+          "Competizione",
+          "Dolce",
+          "Pioneer",
           "Other"
         ]
       }
@@ -1955,6 +2815,35 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
         ]
       }
     ],
+    "Morgan": [
+      {
+        "group": "Pozostałe Morgan",
+        "models": [
+          "3 Wheeler",
+          "4/4",
+          "Aero 8",
+          "Plus 4",
+          "Plus 6",
+          "Plus 8",
+          "Roadster",
+          "Supersport",
+          "Other"
+        ]
+      }
+    ],
+    "NIO": [
+      {
+        "group": "Pozostałe NIO",
+        "models": [
+          "EL6",
+          "EL8",
+          "EL7",
+          "ET5",
+          "ET7",
+          "Other"
+        ]
+      }
+    ],
     "Nissan": [
       {
         "group": "Pozostałe Nissan",
@@ -2024,6 +2913,210 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
         ]
       }
     ],
+    "NSU": [
+      {
+        "group": "Pozostałe NSU",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Oldsmobile": [
+      {
+        "group": "Pozostałe Oldsmobile",
+        "models": [
+          "Bravada",
+          "Custom Cruiser",
+          "Cutlass",
+          "Delta 88",
+          "Silhouette",
+          "Supreme",
+          "Toronado",
+          "Other"
+        ]
+      }
+    ],
+    "OMODA": [
+      {
+        "group": "Pozostałe OMODA",
+        "models": [
+          "5",
+          "5 EV",
+          "9",
+          "Other"
+        ]
+      }
+    ],
+    "Opel": [
+      {
+        "group": "Pozostałe Opel",
+        "models": [
+          "Adam",
+          "Agila",
+          "Ampera",
+          "Ampera-e",
+          "Antara",
+          "Arena",
+          "Ascona",
+          "Astra",
+          "Astra Electric",
+          "Calibra",
+          "Campo",
+          "Cascada",
+          "Cavalier",
+          "Combo",
+          "Combo Electric",
+          "Combo Life",
+          "Commodore",
+          "Corsa",
+          "Crossland (X)",
+          "Diplomat",
+          "Frontera",
+          "GT",
+          "Grandland (X)",
+          "Insignia",
+          "Insignia CT",
+          "Kadett",
+          "Karl",
+          "Manta",
+          "Meriva",
+          "Mokka",
+          "Mokka X",
+          "Mokka-e",
+          "Monterey",
+          "Monza",
+          "Movano",
+          "Nova",
+          "Omega",
+          "Pick Up Sportscap",
+          "Rekord",
+          "Rocks-e",
+          "Senator",
+          "Signum",
+          "Sintra",
+          "Speedster",
+          "Tigra",
+          "Vectra",
+          "Vivaro",
+          "Zafira",
+          "Zafira Electric",
+          "Zafira Life",
+          "Zafira Tourer",
+          "Other"
+        ]
+      }
+    ],
+    "ORA": [
+      {
+        "group": "Pozostałe ORA",
+        "models": [
+          "Funky Cat",
+          "Other"
+        ]
+      }
+    ],
+    "Packard": [
+      {
+        "group": "Pozostałe Packard",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Pagani": [
+      {
+        "group": "Pozostałe Pagani",
+        "models": [
+          "Huayra",
+          "Zonda",
+          "Other"
+        ]
+      }
+    ],
+    "Peugeot": [
+      {
+        "group": "Pozostałe Peugeot",
+        "models": [
+          "1007",
+          "104",
+          "106",
+          "107",
+          "108",
+          "2008",
+          "204",
+          "205",
+          "206",
+          "207",
+          "208",
+          "3008",
+          "301",
+          "304",
+          "305",
+          "306",
+          "307",
+          "308",
+          "309",
+          "4007",
+          "4008",
+          "404",
+          "405",
+          "406",
+          "407",
+          "408",
+          "5008",
+          "504",
+          "505",
+          "508",
+          "604",
+          "605",
+          "607",
+          "806",
+          "807",
+          "Bipper",
+          "Bipper Tepee",
+          "Boxer",
+          "Expert",
+          "Expert Tepee",
+          "J5",
+          "Partner",
+          "Partner Tepee",
+          "RCZ",
+          "Rifter",
+          "TePee",
+          "Traveller",
+          "e-2008",
+          "e-208",
+          "e-3008",
+          "e-308",
+          "e-408",
+          "e-5008",
+          "e-Rifter",
+          "e-Traveller",
+          "iOn",
+          "Other"
+        ]
+      }
+    ],
+    "Piaggio": [
+      {
+        "group": "Pozostałe Piaggio",
+        "models": [
+          "APE",
+          "APE TM",
+          "Porter",
+          "Other"
+        ]
+      }
+    ],
+    "Plymouth": [
+      {
+        "group": "Pozostałe Plymouth",
+        "models": [
+          "Prowler",
+          "Other"
+        ]
+      }
+    ],
     "Polestar": [
       {
         "group": "Pozostałe Polestar",
@@ -2033,6 +3126,339 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
           "3",
           "4",
           "5",
+          "Other"
+        ]
+      }
+    ],
+    "Pontiac": [
+      {
+        "group": "Pozostałe Pontiac",
+        "models": [
+          "6000",
+          "Bonneville",
+          "Fiero",
+          "Firebird",
+          "G6",
+          "GTO",
+          "Grand-Am",
+          "Grand-Prix",
+          "Montana",
+          "Solstice",
+          "Sunbird",
+          "Sunfire",
+          "Targa",
+          "Trans Am",
+          "Trans Sport",
+          "Vibe",
+          "Other"
+        ]
+      }
+    ],
+    "Porsche": [
+      {
+        "group": "Series 911",
+        "models": [
+          "911",
+          "930",
+          "964",
+          "991",
+          "992",
+          "993",
+          "996",
+          "997"
+        ]
+      },
+      {
+        "group": "Pozostałe Porsche",
+        "models": [
+          "356",
+          "912",
+          "914",
+          "918",
+          "924",
+          "928",
+          "944",
+          "959",
+          "962",
+          "968",
+          "Boxster",
+          "Carrera GT",
+          "Cayenne",
+          "Cayman",
+          "Macan",
+          "Panamera",
+          "Taycan",
+          "Other"
+        ]
+      }
+    ],
+    "Proton": [
+      {
+        "group": "Pozostałe Proton",
+        "models": [
+          "300 Serie",
+          "400 Serie",
+          "Other"
+        ]
+      }
+    ],
+    "Renault": [
+      {
+        "group": "Pozostałe Renault",
+        "models": [
+          "Alaskan",
+          "Alpine A110",
+          "Alpine A310",
+          "Alpine V6",
+          "Arkana",
+          "Austral",
+          "Avantime",
+          "Captur",
+          "Clio",
+          "Coupe",
+          "Espace",
+          "Express",
+          "Fluence",
+          "Fuego",
+          "Grand Espace",
+          "Grand Kangoo",
+          "Grand Kangoo E-TECH",
+          "Grand Modus",
+          "Grand Scenic",
+          "Grand Scenic E-Tech",
+          "Kadjar",
+          "Kangoo",
+          "Kangoo E-TECH",
+          "Koleos",
+          "Laguna",
+          "Latitude",
+          "Mascott",
+          "Master",
+          "Megane",
+          "Megane E-TECH",
+          "Modus",
+          "P 1400",
+          "R 11",
+          "R 14",
+          "R 18",
+          "R 19",
+          "R 20",
+          "R 21",
+          "R 25",
+          "R 30",
+          "R 4",
+          "R 5",
+          "R 6",
+          "R 9",
+          "Rafale",
+          "Rapid",
+          "Safrane",
+          "Scenic",
+          "Scenic E-TECH",
+          "Spider",
+          "Symbioz",
+          "Talisman",
+          "Trafic",
+          "Twingo",
+          "Twizy",
+          "Vel Satis",
+          "Wind",
+          "ZOE",
+          "Other"
+        ]
+      }
+    ],
+    "Riley": [
+      {
+        "group": "Pozostałe Riley",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Rimac": [
+      {
+        "group": "Pozostałe Rimac",
+        "models": [
+          "Nevera",
+          "Other"
+        ]
+      }
+    ],
+    "Rolls-Royce": [
+      {
+        "group": "Pozostałe Rolls-Royce",
+        "models": [
+          "Corniche",
+          "Cullinan",
+          "Dawn",
+          "Flying Spur",
+          "Ghost",
+          "Park Ward",
+          "Phantom",
+          "Silver Cloud",
+          "Silver Dawn",
+          "Silver Seraph",
+          "Silver Shadow",
+          "Silver Spirit",
+          "Silver Spur",
+          "Spectre",
+          "Wraith",
+          "Other"
+        ]
+      }
+    ],
+    "Rover": [
+      {
+        "group": "Pozostałe Rover",
+        "models": [
+          "100",
+          "111",
+          "114",
+          "115",
+          "200",
+          "213",
+          "214",
+          "216",
+          "218",
+          "220",
+          "25",
+          "400",
+          "414",
+          "416",
+          "418",
+          "420",
+          "45",
+          "600",
+          "618",
+          "620",
+          "623",
+          "75",
+          "800",
+          "820",
+          "825",
+          "827",
+          "City Rover",
+          "Metro",
+          "Montego",
+          "SD",
+          "Streetwise",
+          "Other"
+        ]
+      }
+    ],
+    "Ruf": [
+      {
+        "group": "Pozostałe Ruf",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Saab": [
+      {
+        "group": "Pozostałe Saab",
+        "models": [
+          "9-3",
+          "9-4X",
+          "9-5",
+          "9-7X",
+          "90",
+          "900",
+          "9000",
+          "96",
+          "99",
+          "Other"
+        ]
+      }
+    ],
+    "Santana": [
+      {
+        "group": "Pozostałe Santana",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Seat": [
+      {
+        "group": "Pozostałe Seat",
+        "models": [
+          "Alhambra",
+          "Altea",
+          "Arona",
+          "Arosa",
+          "Ateca",
+          "Cordoba",
+          "Exeo",
+          "Ibiza",
+          "Inca",
+          "Leon",
+          "Malaga",
+          "Marbella",
+          "Mii",
+          "Tarraco",
+          "Terra",
+          "Toledo",
+          "Other"
+        ]
+      }
+    ],
+    "Seres": [
+      {
+        "group": "Pozostałe Seres",
+        "models": [
+          "3",
+          "5",
+          "Other"
+        ]
+      }
+    ],
+    "Silence": [
+      {
+        "group": "Pozostałe Silence",
+        "models": [
+          "S04",
+          "Other"
+        ]
+      }
+    ],
+    "Simca": [
+      {
+        "group": "Pozostałe Simca",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Skoda": [
+      {
+        "group": "Pozostałe Skoda",
+        "models": [
+          "105",
+          "120",
+          "130",
+          "135",
+          "Citigo",
+          "Elroq",
+          "Enyaq",
+          "Epiq",
+          "Fabia",
+          "Favorit",
+          "Felicia",
+          "Forman",
+          "Kamiq",
+          "Karoq",
+          "Kodiaq",
+          "Octavia",
+          "Peaq",
+          "Pick-up",
+          "Praktik",
+          "Rapid",
+          "Roomster",
+          "Scala",
+          "Superb",
+          "Yeti",
           "Other"
         ]
       }
@@ -2048,6 +3474,81 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
           "#1",
           "Roadster",
           "#3",
+          "Other"
+        ]
+      }
+    ],
+    "speedART": [
+      {
+        "group": "Pozostałe speedART",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Spyker": [
+      {
+        "group": "Pozostałe Spyker",
+        "models": [
+          "C8",
+          "C8 AILERON",
+          "C8 DOUBLE 12 S",
+          "C8 LAVIOLETTE SWB",
+          "C8 SPYDER SWB",
+          "Other"
+        ]
+      }
+    ],
+    "Ssangyong": [
+      {
+        "group": "Pozostałe Ssangyong",
+        "models": [
+          "Actyon",
+          "Family",
+          "Korando",
+          "Kyron",
+          "MUSSO",
+          "REXTON",
+          "Rodius",
+          "Tivoli",
+          "Torres",
+          "XLV",
+          "Other"
+        ]
+      }
+    ],
+    "Studebaker": [
+      {
+        "group": "Pozostałe Studebaker",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Subaru": [
+      {
+        "group": "Pozostałe Subaru",
+        "models": [
+          "B9 Tribeca",
+          "BRZ",
+          "Baja",
+          "Forester",
+          "Impreza",
+          "Justy",
+          "Legacy",
+          "Levorg",
+          "Libero",
+          "Crosstrek",
+          "Outback",
+          "SVX",
+          "Solterra",
+          "Trezia",
+          "Tribeca",
+          "UNCHARTED",
+          "Vivio",
+          "WRX STI",
+          "XT",
+          "XV",
           "Other"
         ]
       }
@@ -2080,6 +3581,486 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
           "X-90",
           "e Vitara",
           "iK-2",
+          "Other"
+        ]
+      }
+    ],
+    "SWM": [
+      {
+        "group": "Pozostałe SWM",
+        "models": [
+          "G01",
+          "G03",
+          "G05",
+          "Other"
+        ]
+      }
+    ],
+    "Talbot": [
+      {
+        "group": "Pozostałe Talbot",
+        "models": [
+          "Horizon",
+          "Samba",
+          "Other"
+        ]
+      }
+    ],
+    "Tata": [
+      {
+        "group": "Pozostałe Tata",
+        "models": [
+          "Indica",
+          "Indigo",
+          "Nano",
+          "Safari",
+          "Sumo",
+          "Telcoline",
+          "Telcosport",
+          "Xenon",
+          "Other"
+        ]
+      }
+    ],
+    "TECHART": [
+      {
+        "group": "Pozostałe TECHART",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Tesla": [
+      {
+        "group": "Pozostałe Tesla",
+        "models": [
+          "Model 3",
+          "Model S",
+          "Model X",
+          "Model Y",
+          "Roadster",
+          "Other"
+        ]
+      }
+    ],
+    "Togg": [
+      {
+        "group": "Pozostałe Togg",
+        "models": [
+          "T10F",
+          "T10X",
+          "Other"
+        ]
+      }
+    ],
+    "Toyota": [
+      {
+        "group": "Pozostałe Toyota",
+        "models": [
+          "4-Runner",
+          "Alphard",
+          "Auris",
+          "Auris Touring Sports",
+          "Avalon",
+          "Avensis",
+          "Avensis Verso",
+          "Aygo (X)",
+          "C-HR",
+          "Camry",
+          "Carina",
+          "Celica",
+          "Corolla",
+          "Corolla Cross",
+          "Corolla Verso",
+          "Cressida",
+          "Crown",
+          "Dyna",
+          "FCV",
+          "FJ",
+          "Fortuner",
+          "GR86",
+          "GT86",
+          "Hiace",
+          "Highlander",
+          "Hilux",
+          "IQ",
+          "Land Cruiser",
+          "Lite-Ace",
+          "MR 2",
+          "Matrix",
+          "Mirai",
+          "Proace City",
+          "Paseo",
+          "Picnic",
+          "Previa",
+          "Prius",
+          "Prius+",
+          "Proace (Verso)",
+          "Proace Max",
+          "Proace Verso Electric",
+          "RAV 4",
+          "Sequoia",
+          "Sienna",
+          "Starlet",
+          "Supra",
+          "Tacoma",
+          "Tercel",
+          "Tundra",
+          "Urban Cruiser",
+          "Verso",
+          "Verso-S",
+          "Yaris",
+          "Yaris Cross",
+          "bZ4X",
+          "Other"
+        ]
+      }
+    ],
+    "Trabant": [
+      {
+        "group": "Pozostałe Trabant",
+        "models": [
+          "601",
+          "Other"
+        ]
+      }
+    ],
+    "Triumph": [
+      {
+        "group": "Pozostałe Triumph",
+        "models": [
+          "Dolomite",
+          "Moss",
+          "Spitfire",
+          "TR3",
+          "TR4",
+          "TR5",
+          "TR6",
+          "TR7",
+          "TR8",
+          "Other"
+        ]
+      }
+    ],
+    "TVR": [
+      {
+        "group": "Pozostałe TVR",
+        "models": [
+          "Chimaera",
+          "Griffith",
+          "Tuscan",
+          "Other"
+        ]
+      }
+    ],
+    "TYN-e": [
+      {
+        "group": "Pozostałe TYN-e",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Vincent": [
+      {
+        "group": "Pozostałe Vincent",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "VinFast": [
+      {
+        "group": "Pozostałe VinFast",
+        "models": [
+          "VF8",
+          "VF9",
+          "VF6",
+          "VF7",
+          "Other"
+        ]
+      }
+    ],
+    "Volvo": [
+      {
+        "group": "Pozostałe Volvo",
+        "models": [
+          "240",
+          "244",
+          "245",
+          "262",
+          "264",
+          "340",
+          "360",
+          "440",
+          "460",
+          "480",
+          "740",
+          "744",
+          "745",
+          "760",
+          "780",
+          "850",
+          "855",
+          "940",
+          "944",
+          "945",
+          "960",
+          "965",
+          "Amazon",
+          "C30",
+          "C40",
+          "C70",
+          "EC40",
+          "ES90",
+          "EX30",
+          "EX40",
+          "EX60",
+          "EX90",
+          "Polar",
+          "S40",
+          "S60",
+          "S60 Cross Country",
+          "S70",
+          "S80",
+          "S90",
+          "V40",
+          "V40 Cross Country",
+          "V50",
+          "V60",
+          "V60 Cross Country",
+          "V70",
+          "V90",
+          "V90 Cross Country",
+          "XC40",
+          "XC60",
+          "XC70",
+          "XC90",
+          "Other"
+        ]
+      }
+    ],
+    "Voyah": [
+      {
+        "group": "Pozostałe Voyah",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Volkswagen": [
+      {
+        "group": "Golf",
+        "models": [
+          "Golf",
+          "Golf Plus",
+          "Golf Sportsvan"
+        ]
+      },
+      {
+        "group": "Passat (alle)",
+        "models": [
+          "Passat",
+          "Passat Alltrack",
+          "Passat CC",
+          "Passat Variant"
+        ]
+      },
+      {
+        "group": "T3",
+        "models": [
+          "T3 Caravelle",
+          "T3 Multivan",
+          "T3 Kombi",
+          "T3 other"
+        ]
+      },
+      {
+        "group": "T4",
+        "models": [
+          "T4 California",
+          "T4 Caravelle",
+          "T4 Multivan",
+          "T4 Kombi",
+          "T4 other"
+        ]
+      },
+      {
+        "group": "T5",
+        "models": [
+          "T5 California",
+          "T5 Caravelle",
+          "T5 Multivan",
+          "T5 Shuttle",
+          "T5 Transporter",
+          "T5 Kombi",
+          "T5 other"
+        ]
+      },
+      {
+        "group": "T6",
+        "models": [
+          "T6 California",
+          "T6 Caravelle",
+          "T6 Kombi",
+          "T6 Multivan",
+          "T6 Transporter",
+          "T6 other"
+        ]
+      },
+      {
+        "group": "T7",
+        "models": [
+          "T7 California",
+          "T7 Caravelle",
+          "T7 Kombi",
+          "T7 Multivan",
+          "T7 Transporter",
+          "T7 other"
+        ]
+      },
+      {
+        "group": "Pozostałe Volkswagen",
+        "models": [
+          "181",
+          "Amarok",
+          "Arteon",
+          "Beetle",
+          "Bora",
+          "Buggy",
+          "CC",
+          "Caddy",
+          "Caddy Maxi",
+          "Corrado",
+          "Crafter",
+          "Eos",
+          "Fox",
+          "ID. Polo",
+          "ID.3",
+          "ID.4",
+          "ID.5",
+          "ID.6",
+          "ID.7",
+          "ID. Buzz",
+          "Iltis",
+          "Jetta",
+          "Karmann Ghia",
+          "Käfer",
+          "LT",
+          "Lupo",
+          "New Beetle",
+          "Phaeton",
+          "Polo",
+          "Routan",
+          "Santana",
+          "Scirocco",
+          "Sharan",
+          "T-Cross",
+          "T-Roc",
+          "T1",
+          "T2",
+          "Taigo",
+          "Taro",
+          "Tayron",
+          "Tiguan",
+          "Tiguan Allspace",
+          "Touareg",
+          "Touran",
+          "Vento",
+          "XL1",
+          "e-up!",
+          "up!",
+          "Other"
+        ]
+      }
+    ],
+    "Wartburg": [
+      {
+        "group": "Pozostałe Wartburg",
+        "models": [
+          "311",
+          "353",
+          "Other"
+        ]
+      }
+    ],
+    "Westfield": [
+      {
+        "group": "Pozostałe Westfield",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "WEY": [
+      {
+        "group": "Pozostałe WEY",
+        "models": [
+          "Coffee 01",
+          "Coffee 02",
+          "Other"
+        ]
+      }
+    ],
+    "Wiesmann": [
+      {
+        "group": "Pozostałe Wiesmann",
+        "models": [
+          "MF 25",
+          "MF 28",
+          "MF 3",
+          "MF 30",
+          "MF 35",
+          "MF 4",
+          "MF 5",
+          "Other"
+        ]
+      }
+    ],
+    "XEV": [
+      {
+        "group": "Pozostałe XEV",
+        "models": [
+          "YOYO",
+          "Other"
+        ]
+      }
+    ],
+    "XPENG": [
+      {
+        "group": "Pozostałe XPENG",
+        "models": [
+          "G6",
+          "G9",
+          "P7",
+          "X9",
+          "Other"
+        ]
+      }
+    ],
+    "Zeekr": [
+      {
+        "group": "Pozostałe Zeekr",
+        "models": [
+          "7X",
+          "9X",
+          "X",
+          "Other"
+        ]
+      }
+    ],
+    "Zhidou": [
+      {
+        "group": "Pozostałe Zhidou",
+        "models": [
+          "Other"
+        ]
+      }
+    ],
+    "Other": [
+      {
+        "group": "Pozostałe Other",
+        "models": [
           "Other"
         ]
       }
@@ -3004,5 +4985,373 @@ window.AUTOGOOD_MOBILE_MODEL_CATALOG = {
       "ZOE": "46",
       "Other": "1"
     }
+  },
+  "makeKeys": {
+    "Abarth": "ABARTH",
+    "AC": "AC",
+    "Acura": "ACURA",
+    "Aiways": "AIWAYS",
+    "Aixam": "AIXAM",
+    "Alfa Romeo": "ALFA ROMEO",
+    "ALPINA": "ALPINA",
+    "Alpine": "ALPINE",
+    "Alvis": "ALVIS",
+    "Ariel": "ARIEL",
+    "Artega": "ARTEGA",
+    "Asia Motors": "ASIA MOTORS",
+    "Aston Martin": "ASTON MARTIN",
+    "Audi": "AUDI",
+    "Austin": "AUSTIN",
+    "Austin Healey": "AUSTIN HEALEY",
+    "Auto Union": "AUTO UNION",
+    "BAIC": "BAIC",
+    "Barkas": "BARKAS",
+    "BAW": "BAW",
+    "Bentley": "BENTLEY",
+    "Bizzarrini": "BIZZARRINI",
+    "BMW": "BMW",
+    "Borgward": "BORGWARD",
+    "Bovensiepen": "BOVENSIEPEN",
+    "Brilliance": "BRILLIANCE",
+    "Bugatti": "BUGATTI",
+    "Buick": "BUICK",
+    "BYD": "BYD",
+    "Cadillac": "CADILLAC",
+    "Casalini": "CASALINI",
+    "Caterham": "CATERHAM",
+    "Cenntro": "CENNTRO",
+    "Changan": "CHANGAN",
+    "Chatenet": "CHATENET",
+    "Chevrolet": "CHEVROLET",
+    "Chrysler": "CHRYSLER",
+    "Citroen": "CITROEN",
+    "Cobra": "COBRA",
+    "Corvette": "CORVETTE",
+    "Cupra": "CUPRA",
+    "Dacia": "DACIA",
+    "Daewoo": "DAEWOO",
+    "Daihatsu": "DAIHATSU",
+    "Dallara": "DALLARA",
+    "Datsun": "DATSUN",
+    "Delahaye": "DELAHAYE",
+    "DeLorean": "DELOREAN",
+    "DeTomaso": "DETOMASO",
+    "DFM": "DFM",
+    "DFSK": "DFSK",
+    "Dodge": "DODGE",
+    "Donkervoort": "DONKERVOORT",
+    "DS": "DS",
+    "e.GO": "E.GO",
+    "Elaris": "ELARIS",
+    "Estrima": "ESTRIMA",
+    "Facel Vega": "FACEL VEGA",
+    "Ferrari": "FERRARI",
+    "Fiat": "FIAT",
+    "Fisker": "FISKER",
+    "Ford": "FORD",
+    "Foton": "FOTON",
+    "GAC Gonow": "GAC GONOW",
+    "Geely": "GEELY",
+    "Gemballa": "GEMBALLA",
+    "Genesis": "GENESIS",
+    "GMC": "GMC",
+    "Grecav": "GRECAV",
+    "GWM": "GWM",
+    "Hamann": "HAMANN",
+    "Heinkel": "HEINKEL",
+    "Holden": "HOLDEN",
+    "Honda": "HONDA",
+    "Hongqi": "HONGQI",
+    "Horch": "HORCH",
+    "Hummer": "HUMMER",
+    "Hyundai": "HYUNDAI",
+    "INEOS": "INEOS",
+    "Infiniti": "INFINITI",
+    "Invicta": "INVICTA",
+    "Isuzu": "ISUZU",
+    "Iveco": "IVECO",
+    "JAC": "JAC",
+    "JAECOO": "JAECOO",
+    "Jaguar": "JAGUAR",
+    "Jeep": "JEEP",
+    "Jetour": "JETOUR",
+    "Jiayuan": "JIAYUAN",
+    "KGM": "KGM",
+    "Kia": "KIA",
+    "Koenigsegg": "KOENIGSEGG",
+    "KTM": "KTM",
+    "Lada": "LADA",
+    "Lamborghini": "LAMBORGHINI",
+    "Lancia": "LANCIA",
+    "Land Rover": "LAND ROVER",
+    "Landwind": "LANDWIND",
+    "Leapmotor": "LEAPMOTOR",
+    "LEVC": "LEVC",
+    "Lexus": "LEXUS",
+    "Ligier": "LIGIER",
+    "Lincoln": "LINCOLN",
+    "Lotus": "LOTUS",
+    "Lucid": "LUCID",
+    "Lynk&Co": "LYNC AND CO",
+    "Mahindra": "MAHINDRA",
+    "MAN": "MAN",
+    "Maserati": "MASERATI",
+    "Maxus": "MAXUS",
+    "Maybach": "MAYBACH",
+    "Mazda": "MAZDA",
+    "McLaren": "MCLAREN",
+    "Mercedes-Benz": "MERCEDES-BENZ",
+    "Messerschmitt": "MESSERSCHMITT",
+    "MG": "MG",
+    "Microcar": "MICROCAR",
+    "Microlino": "MICROLINO",
+    "Mini": "MINI",
+    "Mitsubishi": "MITSUBISHI",
+    "Morgan": "MORGAN",
+    "NIO": "NIO",
+    "Nissan": "NISSAN",
+    "NSU": "NSU",
+    "Oldsmobile": "OLDSMOBILE",
+    "OMODA": "OMODA",
+    "Opel": "OPEL",
+    "ORA": "ORA",
+    "Packard": "PACKARD",
+    "Pagani": "PAGANI",
+    "Peugeot": "PEUGEOT",
+    "Piaggio": "PIAGGIO",
+    "Plymouth": "PLYMOUTH",
+    "Polestar": "POLESTAR",
+    "Pontiac": "PONTIAC",
+    "Porsche": "PORSCHE",
+    "Proton": "PROTON",
+    "Renault": "RENAULT",
+    "Riley": "RILEY",
+    "Rimac": "RIMAC",
+    "Rolls-Royce": "ROLLS ROYCE",
+    "Rover": "ROVER",
+    "Ruf": "RUF",
+    "Saab": "SAAB",
+    "Santana": "SANTANA",
+    "Seat": "SEAT",
+    "Seres": "SERES",
+    "Silence": "SILENCE",
+    "Simca": "SIMCA",
+    "Skoda": "SKODA",
+    "Smart": "SMART",
+    "speedART": "SPEEDART",
+    "Spyker": "SPYKER",
+    "Ssangyong": "SSANGYONG",
+    "Studebaker": "STUDEBAKER",
+    "Subaru": "SUBARU",
+    "Suzuki": "SUZUKI",
+    "SWM": "SWM",
+    "Talbot": "TALBOT",
+    "Tata": "TATA",
+    "TECHART": "TECHART",
+    "Tesla": "TESLA",
+    "Togg": "TOGG",
+    "Toyota": "TOYOTA",
+    "Trabant": "TRABANT",
+    "Triumph": "TRIUMPH",
+    "TVR": "TVR",
+    "TYN-e": "TYN-E",
+    "Vincent": "VINCENT",
+    "VinFast": "VINFAST",
+    "Volvo": "VOLVO",
+    "Voyah": "VOYAH",
+    "Volkswagen": "VW",
+    "Wartburg": "WARTBURG",
+    "Westfield": "WESTFIELD",
+    "WEY": "WEY",
+    "Wiesmann": "WIESMANN",
+    "XEV": "XEV",
+    "XPENG": "XPENG",
+    "Zeekr": "ZEEKR",
+    "Zhidou": "ZHIDOU",
+    "Other": "ANDERE"
+  },
+  "makeLabels": {
+    "Abarth": "Abarth",
+    "AC": "AC",
+    "Acura": "Acura",
+    "Aiways": "Aiways",
+    "Aixam": "Aixam",
+    "Alfa Romeo": "Alfa Romeo",
+    "ALPINA": "ALPINA",
+    "Alpine": "Alpine",
+    "Alvis": "Alvis",
+    "Ariel": "Ariel",
+    "Artega": "Artega",
+    "Asia Motors": "Asia Motors",
+    "Aston Martin": "Aston Martin",
+    "Audi": "Audi",
+    "Austin": "Austin",
+    "Austin Healey": "Austin Healey",
+    "Auto Union": "Auto Union",
+    "BAIC": "BAIC",
+    "Barkas": "Barkas",
+    "BAW": "BAW",
+    "Bentley": "Bentley",
+    "Bizzarrini": "Bizzarrini",
+    "BMW": "BMW",
+    "Borgward": "Borgward",
+    "Bovensiepen": "Bovensiepen",
+    "Brilliance": "Brilliance",
+    "Bugatti": "Bugatti",
+    "Buick": "Buick",
+    "BYD": "BYD",
+    "Cadillac": "Cadillac",
+    "Casalini": "Casalini",
+    "Caterham": "Caterham",
+    "Cenntro": "Cenntro",
+    "Changan": "Changan",
+    "Chatenet": "Chatenet",
+    "Chevrolet": "Chevrolet",
+    "Chrysler": "Chrysler",
+    "Citroen": "Citroën",
+    "Cobra": "Cobra",
+    "Corvette": "Corvette",
+    "Cupra": "Cupra",
+    "Dacia": "Dacia",
+    "Daewoo": "Daewoo",
+    "Daihatsu": "Daihatsu",
+    "Dallara": "Dallara",
+    "Datsun": "Datsun",
+    "Delahaye": "Delahaye",
+    "DeLorean": "DeLorean",
+    "DeTomaso": "DeTomaso",
+    "DFM": "DFM",
+    "DFSK": "DFSK",
+    "Dodge": "Dodge",
+    "Donkervoort": "Donkervoort",
+    "DS": "DS Automobiles",
+    "e.GO": "e.GO",
+    "Elaris": "Elaris",
+    "Estrima": "Estrima",
+    "Facel Vega": "Facel Vega",
+    "Ferrari": "Ferrari",
+    "Fiat": "Fiat",
+    "Fisker": "Fisker",
+    "Ford": "Ford",
+    "Foton": "Foton",
+    "GAC Gonow": "GAC Gonow",
+    "Geely": "Geely",
+    "Gemballa": "Gemballa",
+    "Genesis": "Genesis",
+    "GMC": "GMC",
+    "Grecav": "Grecav",
+    "GWM": "GWM",
+    "Hamann": "Hamann",
+    "Heinkel": "Heinkel",
+    "Holden": "Holden",
+    "Honda": "Honda",
+    "Hongqi": "Hongqi",
+    "Horch": "Horch",
+    "Hummer": "Hummer",
+    "Hyundai": "Hyundai",
+    "INEOS": "INEOS",
+    "Infiniti": "Infiniti",
+    "Invicta": "Invicta",
+    "Isuzu": "Isuzu",
+    "Iveco": "Iveco",
+    "JAC": "JAC",
+    "JAECOO": "JAECOO",
+    "Jaguar": "Jaguar",
+    "Jeep": "Jeep",
+    "Jetour": "Jetour",
+    "Jiayuan": "Jiayuan",
+    "KGM": "KGM",
+    "Kia": "Kia",
+    "Koenigsegg": "Koenigsegg",
+    "KTM": "KTM",
+    "Lada": "Lada",
+    "Lamborghini": "Lamborghini",
+    "Lancia": "Lancia",
+    "Land Rover": "Land Rover",
+    "Landwind": "Landwind",
+    "Leapmotor": "Leapmotor",
+    "LEVC": "LEVC",
+    "Lexus": "Lexus",
+    "Ligier": "Ligier",
+    "Lincoln": "Lincoln",
+    "Lotus": "Lotus",
+    "Lucid": "Lucid",
+    "Lynk&Co": "Lynk&Co",
+    "Mahindra": "Mahindra",
+    "MAN": "MAN",
+    "Maserati": "Maserati",
+    "Maxus": "Maxus",
+    "Maybach": "Maybach",
+    "Mazda": "Mazda",
+    "McLaren": "McLaren",
+    "Mercedes-Benz": "Mercedes-Benz",
+    "Messerschmitt": "Messerschmitt",
+    "MG": "MG",
+    "Microcar": "Microcar",
+    "Microlino": "Microlino",
+    "Mini": "MINI",
+    "Mitsubishi": "Mitsubishi",
+    "Morgan": "Morgan",
+    "NIO": "NIO",
+    "Nissan": "Nissan",
+    "NSU": "NSU",
+    "Oldsmobile": "Oldsmobile",
+    "OMODA": "OMODA",
+    "Opel": "Opel",
+    "ORA": "ORA",
+    "Packard": "Packard",
+    "Pagani": "Pagani",
+    "Peugeot": "Peugeot",
+    "Piaggio": "Piaggio",
+    "Plymouth": "Plymouth",
+    "Polestar": "Polestar",
+    "Pontiac": "Pontiac",
+    "Porsche": "Porsche",
+    "Proton": "Proton",
+    "Renault": "Renault",
+    "Riley": "Riley",
+    "Rimac": "Rimac",
+    "Rolls-Royce": "Rolls-Royce",
+    "Rover": "Rover",
+    "Ruf": "Ruf",
+    "Saab": "Saab",
+    "Santana": "Santana",
+    "Seat": "Seat",
+    "Seres": "Seres",
+    "Silence": "Silence",
+    "Simca": "Simca",
+    "Skoda": "Skoda",
+    "Smart": "Smart",
+    "speedART": "speedART",
+    "Spyker": "Spyker",
+    "Ssangyong": "Ssangyong",
+    "Studebaker": "Studebaker",
+    "Subaru": "Subaru",
+    "Suzuki": "Suzuki",
+    "SWM": "SWM",
+    "Talbot": "Talbot",
+    "Tata": "Tata",
+    "TECHART": "TECHART",
+    "Tesla": "Tesla",
+    "Togg": "Togg",
+    "Toyota": "Toyota",
+    "Trabant": "Trabant",
+    "Triumph": "Triumph",
+    "TVR": "TVR",
+    "TYN-e": "TYN-e",
+    "Vincent": "Vincent",
+    "VinFast": "VinFast",
+    "Volvo": "Volvo",
+    "Voyah": "Voyah",
+    "Volkswagen": "Volkswagen",
+    "Wartburg": "Wartburg",
+    "Westfield": "Westfield",
+    "WEY": "WEY",
+    "Wiesmann": "Wiesmann",
+    "XEV": "XEV",
+    "XPENG": "XPENG",
+    "Zeekr": "Zeekr",
+    "Zhidou": "Zhidou",
+    "Other": "Other"
   }
 };

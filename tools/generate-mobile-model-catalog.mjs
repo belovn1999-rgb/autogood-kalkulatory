@@ -5,34 +5,11 @@ import { readFile, writeFile } from "node:fs/promises";
 const outputPath = new URL("../src/mobile-model-catalog.generated.js", import.meta.url);
 const makeUrl = "https://services.mobile.de/refdata/classes/Car/makes";
 
-// These are the car makes already supported by buildMobileDeSearchUrl().
-// BMW remains in src/mobile.js because its verified model IDs are maintained there.
-const targetMakeKeys = {
-  Abarth: "ABARTH",
-  "Alfa Romeo": "ALFA ROMEO",
-  Alpine: "ALPINE",
-  Bentley: "BENTLEY",
-  Citroen: "CITROEN",
-  Cupra: "CUPRA",
-  Dacia: "DACIA",
+// Keep internal names compatible with the existing parser and calculator data.
+const canonicalMakeNames = {
+  CITROEN: "Citroen",
   DS: "DS",
-  Fiat: "FIAT",
-  Hyundai: "HYUNDAI",
-  Infiniti: "INFINITI",
-  Iveco: "IVECO",
-  Jaguar: "JAGUAR",
-  Jeep: "JEEP",
-  Kia: "KIA",
-  "Land Rover": "LAND ROVER",
-  Lancia: "LANCIA",
-  Lexus: "LEXUS",
-  MAN: "MAN",
-  Mini: "MINI",
-  Mitsubishi: "MITSUBISHI",
-  Nissan: "NISSAN",
-  Polestar: "POLESTAR",
-  Smart: "SMART",
-  Suzuki: "SUZUKI",
+  MINI: "Mini",
 };
 
 const decodeXml = (value = "") => value
@@ -54,10 +31,13 @@ function xmlItems(xml) {
   }).filter((item) => item.key && item.label);
 }
 
-async function fetchItems(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`${response.status} ${url}`);
-  return xmlItems(await response.text());
+async function fetchItems(url, attempts = 3) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const response = await fetch(url);
+    if (response.ok) return xmlItems(await response.text());
+    if (attempt === attempts) throw new Error(`${response.status} ${url}`);
+  }
+  return [];
 }
 
 async function mapConcurrent(values, limit, work) {
@@ -75,14 +55,12 @@ async function mapConcurrent(values, limit, work) {
 function existingCatalog(source) {
   const context = { window: {} };
   Function("window", source)(context.window);
-  return context.window.AUTOGOOD_MOBILE_MODEL_CATALOG || { groups: {}, modelIds: {} };
+  return context.window.AUTOGOOD_MOBILE_MODEL_CATALOG || { groups: {}, modelIds: {}, makeKeys: {} };
 }
 
 async function catalogForMake(make) {
-  const [models, groupItems] = await Promise.all([
-    fetchItems(`${make.url}/models`),
-    fetchItems(`${make.url}/modelgroups`),
-  ]);
+  const models = await fetchItems(`${make.url}/models`);
+  const groupItems = await fetchItems(`${make.url}/modelgroups`).catch(() => []);
   const modelByKey = new Map(models.map((model) => [model.key, model]));
   const groupedKeys = new Set();
   const groups = [];
@@ -111,19 +89,23 @@ async function catalogForMake(make) {
 const source = await readFile(outputPath, "utf8");
 const catalog = existingCatalog(source);
 const makes = await fetchItems(makeUrl);
-const makeByKey = new Map(makes.map((make) => [make.key, make]));
-const missing = Object.entries(targetMakeKeys).filter(([brand]) => !catalog.groups[brand]);
+const officialMakes = makes.map((make) => ({
+  ...make,
+  displayName: canonicalMakeNames[make.key] || make.label,
+}));
 
-const additions = await mapConcurrent(missing, 4, async ([brand, key]) => {
-  const make = makeByKey.get(key);
-  if (!make) throw new Error(`Mobile.de make not found: ${brand} (${key})`);
+catalog.makeKeys = Object.fromEntries(officialMakes.map((make) => [make.displayName, make.key]));
+catalog.makeLabels = Object.fromEntries(officialMakes.map((make) => [make.displayName, make.label]));
+
+// BMW remains in src/mobile.js because its verified groups and legacy model IDs
+// are maintained there. Every other Car make is refreshed from Mobile.de.
+const refreshed = await mapConcurrent(officialMakes.filter((make) => make.key !== "BMW"), 6, async (make) => {
+  const brand = make.displayName;
   process.stdout.write(`Loading ${brand}\n`);
-  return [brand, await catalogForMake({ ...make, displayName: brand })];
+  return [brand, await catalogForMake(make)];
 });
 
-additions.forEach(([brand, groups]) => {
-  catalog.groups[brand] = groups;
-});
+catalog.groups = Object.fromEntries(refreshed);
 
 const generatedAt = new Date().toISOString().slice(0, 10);
 const content = [

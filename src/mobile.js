@@ -76,7 +76,7 @@ const copy = {
     airConditioningAutomatic2Zones: "Automatyczna, 2 strefy",
     airConditioningAutomatic3Zones: "Automatyczna, 3 strefy",
     airConditioningAutomatic4Zones: "Automatyczna, 4 strefy",
-    airConditioningManual: "Manualna",
+    airConditioningManual: "Manualna lub automatyczna",
     trailerCouplingLabel: "Hak holowniczy",
     trailerCouplingAny: "Dowolny",
     trailerCouplingAll: "Stały, odpinany lub odchylany",
@@ -254,7 +254,7 @@ const copy = {
     airConditioningAutomatic2Zones: "Автоматический, 2 зоны",
     airConditioningAutomatic3Zones: "Автоматический, 3 зоны",
     airConditioningAutomatic4Zones: "Автоматический, 4 зоны",
-    airConditioningManual: "Ручной",
+    airConditioningManual: "Ручной или автоматический",
     trailerCouplingLabel: "Фаркоп",
     trailerCouplingAny: "Любой",
     trailerCouplingAll: "Фиксированный, съёмный или поворотный",
@@ -458,6 +458,7 @@ const mobileDeMakeIds = {
   Lancia: "14700",
   Lexus: "15200",
   MAN: "186",
+  Mazda: "16800",
   "Mercedes-Benz": "17200",
   Mini: "17500",
   Mitsubishi: "17700",
@@ -519,6 +520,20 @@ const mobileDeInteriorMaterialValues = {
   cloth: "FABRIC",
   part_leather: "PARTIAL_LEATHER",
   full_leather: "LEATHER",
+};
+
+const mobileDeAirConditioningValues = {
+  automatic: "AUTOMATIC_CLIMATISATION",
+  manual: "MANUAL_CLIMATISATION",
+  automatic_2_zones: "AUTOMATIC_CLIMATISATION_2_ZONES",
+  automatic_3_zones: "AUTOMATIC_CLIMATISATION_3_ZONES",
+  automatic_4_zones: "AUTOMATIC_CLIMATISATION_4_ZONES",
+};
+
+const mobileDeTrailerCouplingValues = {
+  all: "TRAILER_COUPLING_FIX",
+  detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
+  swiveling: "TRAILER_COUPLING_SWIVELING",
 };
 
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
@@ -707,6 +722,14 @@ const mobileDeBmwModelIds = {
 
 const generatedMobileModelCatalog = globalThis.AUTOGOOD_MOBILE_MODEL_CATALOG || {};
 Object.assign(modelGroupsByBrand, generatedMobileModelCatalog.groups || {});
+const generatedMobileBrandRoutes = Object.fromEntries(
+  Object.keys(generatedMobileModelCatalog.makeKeys || {}).map((brand) => [brand, {}]),
+);
+function mobileBrandRoutes(routeData = {}) {
+  const catalogBrands = Object.keys(generatedMobileBrandRoutes);
+  if (!catalogBrands.length) return routeData && Object.keys(routeData).length ? routeData : fallbackBrands;
+  return Object.fromEntries(catalogBrands.map((brand) => [brand, routeData[brand] || {}]));
+}
 const mobileModelCatalogAliases = {
   "Vw Nutzfahrzeuge": "Volkswagen",
 };
@@ -721,7 +744,7 @@ const state = {
   data: null,
   status: "idle",
   error: "",
-  brandRoutes: fallbackBrands,
+  brandRoutes: mobileBrandRoutes(fallbackBrands),
 };
 
 const els = {
@@ -886,7 +909,10 @@ function brandDisplayOptions() {
     .sort((left, right) => left.localeCompare(right, "pl"));
   return [
     ...favorites.map((brand) => ({ value: brand.value, label: `★ ${brand.label}` })),
-    ...regularBrands.map((brand) => ({ value: brand, label: brand })),
+    ...regularBrands.map((brand) => ({
+      value: brand,
+      label: generatedMobileModelCatalog.makeLabels?.[brand] || brand,
+    })),
   ];
 }
 
@@ -894,7 +920,11 @@ function canonicalBrand(value) {
   const normalized = normalizeToken(value);
   if (!normalized) return "";
   return Object.keys(state.brandRoutes).find((brand) => {
-    const aliases = [brand, ...(brandAliases[brand] || [])];
+    const aliases = [
+      brand,
+      generatedMobileModelCatalog.makeLabels?.[brand],
+      ...(brandAliases[brand] || []),
+    ];
     return aliases.some((alias) => normalizeToken(alias) === normalized);
   }) || "";
 }
@@ -907,7 +937,11 @@ function brandCatalogOptions() {
     .sort((left, right) => left.localeCompare(right, "pl"));
   return [
     ...favorites.map((brand) => ({ value: brand.value, label: brand.label, isPopular: true })),
-    ...regularBrands.map((brand) => ({ value: brand, label: brand, isPopular: false })),
+    ...regularBrands.map((brand) => ({
+      value: brand,
+      label: generatedMobileModelCatalog.makeLabels?.[brand] || brand,
+      isPopular: false,
+    })),
   ];
 }
 
@@ -1401,8 +1435,10 @@ function buildMobileDeSearchUrl(filters) {
   if (filters.damagedVehicles !== "show") params.set("dam", "false");
 
   const makeId = filters.brand ? mobileDeMakeIds[filters.brand] : "";
-  if (filters.brand && !makeId) throw new Error(c.marketSearchUnsupportedBrand);
-  if (filters.model && !makeId) throw new Error(c.marketSearchChooseBrand);
+  const makeKey = filters.brand ? generatedMobileModelCatalog.makeKeys?.[filters.brand] : "";
+  let searchBaseUrl = "https://suchen.mobile.de/fahrzeuge/search.html";
+  if (filters.brand && !makeId && !makeKey) throw new Error(c.marketSearchUnsupportedBrand);
+  if (filters.model && !makeId && !makeKey) throw new Error(c.marketSearchChooseBrand);
   if (makeId) {
     const exactModelId = mobileDeModelId(filters.brand, filters.model);
     const version = String(filters.version || "").trim();
@@ -1410,6 +1446,19 @@ function buildMobileDeSearchUrl(filters) {
     else if (filters.model || version) {
       params.set("ms", `${makeId};;;${[filters.model, version].filter(Boolean).join(" ").trim()}`);
     } else params.set("ms", makeId);
+  } else if (makeKey) {
+    const slug = [filters.brand, filters.model]
+      .filter(Boolean)
+      .join(" ")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/&/g, " and ")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`;
+    const version = String(filters.version || "").trim();
+    if (version) params.set("ms", `;;;${version}`);
   }
 
   const body = mobileDeBodyValues[filters.body];
@@ -1444,6 +1493,11 @@ function buildMobileDeSearchUrl(filters) {
     const value = mobileDeInteriorMaterialValues[material];
     if (value) params.append("it", value);
   });
+  const airConditioning = mobileDeAirConditioningValues[filters.airConditioning];
+  if (airConditioning) params.set("clim", airConditioning);
+  const trailerCoupling = mobileDeTrailerCouplingValues[filters.trailerCoupling];
+  if (trailerCoupling) params.set("tct", trailerCoupling);
+  if (filters.trailerCoupling === "electric_tailgate") params.append("fe", "ELECTRIC_TAILGATE");
   (filters.features || []).forEach((feature) => params.append("fe", feature));
   (filters.parkingSensors || []).forEach((sensor) => params.append("fe", sensor));
   if (filters.cruiseControl && filters.cruiseControl !== "any") params.append("fe", filters.cruiseControl);
@@ -1457,7 +1511,7 @@ function buildMobileDeSearchUrl(filters) {
 
   params.set("sb", "p");
   params.set("od", "up");
-  return `https://suchen.mobile.de/fahrzeuge/search.html?${params.toString()}`;
+  return `${searchBaseUrl}?${params.toString()}`;
 }
 
 function setMarketSearchStatus(message, isError = false) {
@@ -1797,7 +1851,7 @@ setMode(state.mode);
 fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
   .then((response) => response.ok ? response.json() : Promise.reject())
   .then((data) => {
-    state.brandRoutes = data.brands || fallbackBrands;
+    state.brandRoutes = mobileBrandRoutes(data.brands || fallbackBrands);
     renderManualOptions(true);
   })
   .catch(() => renderManualOptions(true));
