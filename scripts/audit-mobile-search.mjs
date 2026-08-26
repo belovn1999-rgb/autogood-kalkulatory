@@ -102,6 +102,18 @@ equalObject(extractLiteral(mobileSource, "mobileDeInteriorMaterialValues"), {
   part_leather: "PARTIAL_LEATHER",
   full_leather: "LEATHER",
 }, "Materiał wnętrza");
+equalObject(extractLiteral(mobileSource, "mobileDeAirConditioningValues"), {
+  automatic: "AUTOMATIC_CLIMATISATION",
+  manual: "MANUAL_CLIMATISATION",
+  automatic_2_zones: "AUTOMATIC_CLIMATISATION_2_ZONES",
+  automatic_3_zones: "AUTOMATIC_CLIMATISATION_3_ZONES",
+  automatic_4_zones: "AUTOMATIC_CLIMATISATION_4_ZONES",
+}, "Klimatyzacja");
+equalObject(extractLiteral(mobileSource, "mobileDeTrailerCouplingValues"), {
+  all: "TRAILER_COUPLING_FIX",
+  detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
+  swiveling: "TRAILER_COUPLING_SWIVELING",
+}, "Hak holowniczy");
 
 const contractFragments = [
   ['params.set("lang", "en")', "język angielski"],
@@ -111,15 +123,26 @@ const contractFragments = [
   ['params.set("dam", "false")', "pojazdy uszkodzone"],
   ['params.set("ms", `${makeId};${exactModelId};;${version}`)', "marka/model/wersja"],
   ['searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`', "SEO fallback marki/modelu"],
+  ['params.set("c", body)', "nadwozie"],
   ['appendMobileDeRange(params, "ml"', "przebieg"],
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
   ['appendMobileDeRange(\n    params,\n    "pw"', "moc"],
   ['filters.plugin === "yes" ? "HYBRID_PLUGIN"', "Plug-in"],
+  ['params.append("ft", fuel)', "paliwo"],
+  ['params.set("dt", drive)', "napęd"],
+  ['params.set("tr", gearbox)', "skrzynia biegów"],
   ['params.set("vat", "1")', "VAT zwrotny"],
   ['params.set("vat", "0")', "VAT niezwrotny"],
+  ['params.set("st", seller)', "sprzedawca"],
   ['params.append("cn", country)', "kraj"],
   ['params.append("it", value)', "materiał wnętrza"],
+  ['params.set("clim", airConditioning)', "klimatyzacja"],
+  ['params.set("tct", trailerCoupling)', "hak holowniczy"],
+  ['params.append("fe", "ELECTRIC_TAILGATE")', "elektryczna klapa bagażnika"],
+  ['params.append("fe", feature)', "wyposażenie"],
+  ['params.append("fe", sensor)', "asystenci parkowania"],
+  ['params.append("fe", filters.cruiseControl)', "tempomat"],
   ['params.append("ecol", color.toUpperCase())', "kolor nadwozia"],
   ['params.append("icol"', "kolor wnętrza"],
   ['params.append("fe", "MATTE_COLOR")', "matowy"],
