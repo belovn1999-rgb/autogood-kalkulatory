@@ -48,10 +48,22 @@ ${extraEvidence}
 `, { brand: "BMW", language: "RU" });
   assert.equal(invalidVolume.engineVolume, "2000 cm³");
 
+  const phev520e = extractVehicleInfoFromText(`
+Обозначение модели                         5' G31 Туринг LCI
+Дата производства                          02.05.2022
+Специфическое для рынка торговое наименование  520e Touring
+Модель                                     520e
+Код двигателя                              XB1141M1
+Рабочий объем                              0,00
+`, { brand: "BMW", language: "RU" });
+  assert.equal(phev520e.engineType, "Бензин + PHEV (подключаемый гибрид)");
+  assert.equal(phev520e.engineVolume, "2000 cm³");
+
   const inferredVolumes = [
     ["X1 sDrive18i", "1500 cm³"],
     ["330d xDrive Touring", "3000 cm³"],
     ["330e Touring", "2000 cm³"],
+    ["520e Touring", "2000 cm³"],
     ["X5 xDrive45e", "3000 cm³"],
     ["i4 eDrive40", ""]
   ];
