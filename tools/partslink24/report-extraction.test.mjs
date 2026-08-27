@@ -688,6 +688,7 @@ test("Ford prefers the applicable Fox engine over an unrelated liter value", () 
 Engine Type               Alfa Romeo BLT 4.6L Cast Iron
                           1.0L Fox E
 Требования к токсичности выхлопа   Стандарт выбросов Евро-6.2 MHEV
+Fuel Capability Type      Газо-электрич. гибридн. двигатель
 `, { brand: "Ford", language: "RU" });
 
   assert.deepEqual(result, {
@@ -712,6 +713,36 @@ Engine Type              1.5 EcoBlue D
   assert.equal(gasoline.engineVolume, "1000 cm³");
   assert.equal(diesel.engineType, "Дизель");
   assert.equal(diesel.engineVolume, "1500 cm³");
+});
+
+test("Ford uses the specific HEV badge instead of shared HEV/PHEV components", () => {
+  const result = extractVehicleInfoFromText(`
+Дата производства         19.01.21
+Модельный ряд             Kuga 2020-
+Engine Type               2.5L DURA D4 IVCT ATK HEV/PHEV
+Коробка передач           Auto -H4F45 W/O ODC FHEV/PHEV
+Fuel Capability Type      Газо-электрич. гибридн. двигатель
+Tailgate Badges           Эмблема HEV на задней двери
+`, { brand: "Ford", language: "RU" });
+
+  assert.deepEqual(result, {
+    model: "Kuga 2020-",
+    productionDate: "19.01.2021",
+    engineType: "Бензин + HEV (обычный гибрид)",
+    engineVolume: "2500 cm³"
+  });
+});
+
+test("Ford keeps PHEV when the specific vehicle evidence says PHEV", () => {
+  const result = extractVehicleInfoFromText(`
+Vehicle Line              Kuga 2020-
+Engine Type               2.5L DURA D4 IVCT ATK HEV/PHEV
+Transmission              Auto -H4F45 W/O ODC FHEV/PHEV
+Tailgate Badges           PHEV badge on tailgate
+`, { brand: "Ford", language: "ENG" });
+
+  assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
+  assert.equal(result.engineVolume, "2500 cm³");
 });
 
 test("Volvo returns model, production week, fuel and volume", () => {

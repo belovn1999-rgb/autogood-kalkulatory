@@ -261,7 +261,14 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     : (vagBrands.has(brand) && hasExplicitPhev) || (brand === "BMW" && /\bPHEV\b/i.test(inferredEngineRaw))
     ? resolveVagPhevEngineType(vagPowertrainEvidence)
     : stellantisEngineType || primaryEngineInfo.engineType || fallbackEngineInfo.engineType;
-  const engineType = toyotaPlugInRaw && baseEngineType === hevEngineType ? formatPhevEngineType() : baseEngineType;
+  const fordEngineType = ["Ford", "Ford Pro"].includes(brand)
+    ? resolveFordHybridEngineType(text, {
+      engineTypeRaw,
+      inferredEngineRaw,
+      fallbackEngineType: baseEngineType
+    })
+    : "";
+  const engineType = fordEngineType || (toyotaPlugInRaw && baseEngineType === hevEngineType ? formatPhevEngineType() : baseEngineType);
 
   return {
     model,
@@ -331,7 +338,33 @@ function formatMhevEngineType(baseFuel = "") {
   return baseFuel ? `${baseFuel} + MHEV (мягкий гибрид)` : "MHEV (мягкий гибрид)";
 }
 
+function formatHevEngineType(baseFuel = "") {
+  return baseFuel ? `${baseFuel} + HEV (обычный гибрид)` : hevEngineType;
+}
+
 const hevEngineType = "HEV (обычный гибрид)";
+
+function resolveFordHybridEngineType(text, { engineTypeRaw, inferredEngineRaw, fallbackEngineType }) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim());
+  const badgeLines = lines.filter((line) => /tailgate\s+badges|эмблем\w*.*задн|emblemat\w*.*tyln/i.test(line));
+  const chargingLines = lines.filter((line) => /(?:charge|charging|заряд|ładow)[^\r\n]*(?:port|socket|connector|разъ[её]м|порт|gniazd)|onboard\s+charger|pokładow\w*\s+ładowark|бортов\w*\s+заряд/i.test(line));
+  const fuelCapabilityLines = lines.filter((line) => /fuel\s+capability\s+type|тип\s+топливн\w*\s+систем|rodzaj\s+układu\s+paliw/i.test(line));
+  const specificEvidence = [...badgeLines, ...chargingLines].join(" ");
+  const baseFuelSource = [engineTypeRaw, inferredEngineRaw, fuelCapabilityLines.join(" ")].filter(Boolean).join(" ");
+  const normalizedFuel = normalizeEngineInfo({ engineTypeRaw: baseFuelSource }).engineType;
+  const baseFuel = normalizedFuel.includes("Дизель") ? "Дизель" : normalizedFuel.includes("Бензин") ? "Бензин" : /\bDURA(?:TEC)?\b|\bFox\b|\bDragon\b|\bEcoBoost\b/i.test(baseFuelSource) ? "Бензин" : "";
+
+  if (/\bPHEV\b|plug[\s-]*in/i.test(specificEvidence)) return formatPhevEngineType(baseFuel);
+  if (/MHEV/i.test(fallbackEngineType)) return fallbackEngineType;
+  if (/\b(?:F?HEV)\b/i.test(specificEvidence)) return formatHevEngineType(baseFuel);
+  if (/газо[\s-]*электрич|gas(?:oline)?[\s-]*electric|benzynow[oa][\s-]*elektrycz/i.test(fuelCapabilityLines.join(" "))) {
+    return formatHevEngineType(baseFuel || "Бензин");
+  }
+
+  return fallbackEngineType;
+}
 
 export function normalizeEngineInfo(info) {
   const source = [info.fuelTypeRaw, info.engineTypeRaw, info.mildHybridRaw]
