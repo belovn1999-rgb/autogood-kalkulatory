@@ -414,6 +414,14 @@ Engine specification               4-cylinder diesel engine 2.0 L TDI
   assert.equal(electric.engineType, "Электрический");
   assert.equal(electric.engineVolume, "");
 
+  const enyaq = extractVehicleInfoFromText(`
+Модель                             Skoda Enyaq
+Дата производства                  09.04.2021
+Спецификации двигателей            Электродвигатель 1000 cm3
+`, { brand: "Skoda", language: "RU" });
+  assert.equal(enyaq.engineType, "Электрический");
+  assert.equal(enyaq.engineVolume, "");
+
   const mildHybridDiesel = extractVehicleInfoFromText(`
 model                                Audi A6 Av. 2.0 TDI A6
 Układy paliwowe                      0F3  Układ paliwowy - olej napędowy
@@ -454,6 +462,23 @@ Base engine       TQ6 4-cylinder gasoline engine 1.8 l
 `, { brand: "Audi", language: "ENG" });
   assert.equal(negativeHybrid.engineType, "Бензин");
   assert.equal(negativeHybrid.engineVolume, "1800 cm³");
+
+  const nonHybridVagReports = [
+    ["RU", `Гибридный привод  2A0 Без электрического двигателя (не гибрид)
+Базовый двигатель T6F 4-цилиндровый дизель 2 л агрегат 05L.B`],
+    ["PL", `Napęd hybrydowy  2A0 Bez silnika elektrycznego (nie hybryda)
+Silnik podstawowy T6F 4-cylindrowy silnik wysokoprężny 2,0 l agregat 05L.B`],
+    ["ENG", `Hybrid drive  2A0 Without electric motor (not hybrid)
+Base engine T6F 4-cylinder diesel engine 2.0 l unit 05L.B`]
+  ];
+  const vagBrands = ["Audi", "Cupra", "Seat", "Skoda", "Volkswagen", "Vw Nutzfahrzeuge"];
+  for (const brand of vagBrands) {
+    for (const [language, text] of nonHybridVagReports) {
+      const result = extractVehicleInfoFromText(text, { brand, language });
+      assert.equal(result.engineType, "Дизель", `${brand} ${language}`);
+      assert.equal(result.engineVolume, "2000 cm³", `${brand} ${language}`);
+    }
+  }
 });
 
 test("Hyundai HEV is not reduced to gasoline", () => {
@@ -536,6 +561,66 @@ test("Land Rover upgrades a gasoline engine to PHEV from the full report", () =>
   assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)");
 });
 
+test("Porsche Boxster GTS 981 resolves the verified gasoline engine from model and code", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                           Boxster GTS 981
+Модельный год                    2015
+Код двигателя                    A123
+009                              "s" 981/991
+011                              Специальная модель GTS (981/991)
+`, { brand: "Porsche", language: "RU" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "3436 cm³");
+});
+
+test("Porsche Cayenne PHEV reads the full powertrain row in every report language", () => {
+  const reports = [
+    ["RU", `Модель                           Cayenne Coupe гибр. 9YA
+Дата производства                14.02.2022
+Код двигателя                    DCBE
+Альтернативная система привода   0K3 Гибридная система привода PHEV
+Объем двигателя                  3000 cm3`],
+    ["PL", `Model                            Cayenne Coupe hyb. 9YA
+Data produkcji                   14.02.2022
+Kod silnika                      DCBE
+Alternatywny układ napędowy      0K3 Hybrydowy układ napędowy PHEV
+Pojemność silnika                3000 cm3`],
+    ["ENG", `Model                            Cayenne Coupe hybrid 9YA
+Production date                  14.02.2022
+Engine code                      DCBE
+Alternative drive system         0K3 Hybrid drive system PHEV
+Engine capacity                  3000 cm3`]
+  ];
+
+  for (const [language, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "Porsche", language });
+    assert.equal(result.productionDate, "14.02.2022", language);
+    assert.equal(result.engineType, "Бензин + PHEV (подключаемый гибрид)", language);
+    assert.equal(result.engineVolume, "3000 cm³", language);
+  }
+});
+
+test("Porsche recognizes Taycan as an electric vehicle", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                           Taycan 9J1-2
+Код двигателя                    ECXE, ECX
+Зарядный разъем                  Разъем тип 2
+`, { brand: "Porsche", language: "RU" });
+
+  assert.equal(result.engineType, "Электрический");
+  assert.equal(result.engineVolume, "");
+});
+
+test("Porsche preserves an explicit diesel designation", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                           Macan S Diesel
+Код двигателя                    MCT.DA
+`, { brand: "Porsche", language: "RU" });
+
+  assert.equal(result.engineType, "Дизель");
+});
+
 test("Mitsubishi GA1W 1600 is a gasoline 1.6 without hybrid evidence", () => {
   const result = extractVehicleInfoFromText(`
 Pojazd                         Mitsubishi ASX (EUR)
@@ -545,6 +630,28 @@ Klasyfikacja                   2WD, 5-biegowa skrzynia manualna
 
   assert.equal(result.engineType, "Бензин");
   assert.equal(result.engineVolume, "1600 cm³");
+});
+
+test("Mitsubishi recognizes another gasoline model designation", () => {
+  const result = extractVehicleInfoFromText(`
+Vehicle                        MIRAGE (EUR)
+Model                          A03A 1200
+Classification                 2WD, CVT
+`, { brand: "Mitsubishi", language: "ENG" });
+
+  assert.equal(result.engineType, "Бензин");
+  assert.equal(result.engineVolume, "1200 cm³");
+});
+
+test("Mitsubishi keeps a D-TURBO model diesel", () => {
+  const result = extractVehicleInfoFromText(`
+Средство передвижения          PAJERO/MONTERO(EUR)
+Модель                         V98W 3200D-TURBO/LONG WAGON<07M->
+Классификация                  LYHJL6 GLX
+`, { brand: "Mitsubishi", language: "RU" });
+
+  assert.equal(result.engineType, "Дизель");
+  assert.equal(result.engineVolume, "3200 cm³");
 });
 
 test("Ford Pro reuses Ford fields in a translated report", () => {
@@ -629,11 +736,50 @@ test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
   assert.equal(toyota.engineVolume, "1800 cm³");
   assert.equal(toyotaGasoline.engineType, "Бензин");
   assert.equal(toyotaGasoline.engineVolume, "1500 cm³");
-  assert.equal(nissan.productionDate, "09.2019");
+  assert.equal(nissan.productionDate, "od 09.2019");
   assert.equal(nissan.engineType, "Дизель");
   assert.equal(nissan.engineVolume, "1461 cm³");
   assert.equal(suzuki.productionDate, "10.2016");
   assert.equal(suzuki.engineType, "Бензин");
+  assert.equal(suzuki.engineVolume, "1242 cm³");
+});
+
+test("Suzuki reads ENGINE from page one and does not infer hybridization without explicit evidence", () => {
+  const gasoline = extractVehicleInfoFromText(`
+Модель               SWIFT (A2L412-5)
+Дата производства    2022-12
+Номер                K12D-1218835
+Код модели           A2L412-5_E22
+ENGINE                K12D
+DRIVE                 2WD
+TRANSMISSION          CVT
+\f
+HYBRID EMBLEM         WITHOUT
+`, { brand: "Suzuki", language: "RU" });
+  const mildHybrid = extractVehicleInfoFromText(`
+Model                 SWIFT (A2L412-5)
+Production date       2022-12
+ENGINE                K12D
+POWERTRAIN            SHVS
+`, { brand: "Suzuki", language: "ENG" });
+  const vitara = extractVehicleInfoFromText(`
+Модель                 VITARA (APK414-B)
+Дата производства      2023-10
+Номер                  K14D-1340940
+Код модели             APK414-B_P22
+ENGINE                  K14D
+DRIVING                 2WD
+TRANSMISSION            6MT
+`, { brand: "Suzuki", language: "RU" });
+
+  assert.equal(gasoline.model, "SWIFT (A2L412-5)");
+  assert.equal(gasoline.productionDate, "12.2022");
+  assert.equal(gasoline.engineType, "Бензин");
+  assert.equal(gasoline.engineVolume, "1197 cm³");
+  assert.equal(mildHybrid.engineType, "Бензин + MHEV (мягкий гибрид)");
+  assert.equal(mildHybrid.engineVolume, "1197 cm³");
+  assert.equal(vitara.engineType, "Бензин");
+  assert.equal(vitara.engineVolume, "1373 cm³");
 });
 
 test("Toyota and Lexus distinguish plug-in hybrids by the fitted AC Type 2 charger", () => {

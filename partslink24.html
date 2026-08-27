@@ -292,7 +292,7 @@
       }
 
       .partslinkBrandOption--group-end {
-        border-bottom: 2px solid var(--ag-color-ink);
+        border-bottom: 1px solid var(--ag-color-rule-2);
       }
 
       .partslinkBrandOption[data-favorite="true"] {
@@ -386,6 +386,83 @@
         gap: 10px;
       }
 
+      .partslinkFileActions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .partslinkSaveButton,
+      .partslinkHistoryDelete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: var(--ag-size-download-action);
+        border: 1px solid var(--ag-color-accent);
+        border-radius: var(--ag-radius-control);
+        background: var(--ag-color-accent);
+        color: var(--ag-color-accent-ink);
+        padding: var(--ag-space-control-y) var(--ag-space-button-x);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .partslinkSaveButton:disabled {
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-rule);
+        color: var(--ag-color-muted);
+        cursor: not-allowed;
+      }
+
+      .partslinkHistory {
+        display: grid;
+        gap: var(--ag-space-md);
+        margin-top: var(--ag-space-lg);
+        border: var(--ag-rule-card);
+        border-radius: var(--ag-radius-card);
+        background: var(--ag-color-surface);
+        padding: var(--ag-space-xl);
+      }
+
+      .partslinkHistoryList {
+        display: grid;
+        gap: var(--ag-space-sm);
+        overflow-x: auto;
+      }
+
+      .partslinkHistoryRow {
+        display: grid;
+        grid-template-columns: minmax(210px, 1.4fr) minmax(180px, 1fr) minmax(130px, 0.75fr) minmax(190px, 1fr) minmax(130px, 0.75fr) auto;
+        gap: var(--ag-space-sm);
+        align-items: center;
+        min-width: 980px;
+        border: var(--ag-rule-field);
+        border-radius: var(--ag-radius-input);
+        background: var(--ag-color-surface-tint);
+        padding: var(--ag-space-sm);
+      }
+
+      .partslinkHistoryValue {
+        color: var(--ag-color-ink);
+        font-size: var(--ag-text-sm);
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+
+      .partslinkHistoryDelete {
+        min-width: 42px;
+        padding-inline: 12px;
+        background: transparent;
+        color: var(--ag-color-error);
+        border-color: var(--ag-color-rule-2);
+        font-size: 18px;
+      }
+
       .partslinkResultCard {
         display: grid;
         align-content: start;
@@ -443,7 +520,7 @@
 
       .partslinkSpecRow {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(var(--ag-result-min-width), 0.72fr);
+        grid-template-columns: minmax(0, 0.68fr) minmax(var(--ag-result-min-width), 1fr);
         gap: var(--ag-space-md);
         align-items: center;
         min-height: calc(var(--ag-size-action) + var(--ag-space-sm));
@@ -555,6 +632,23 @@
         background: var(--ag-color-surface);
       }
 
+      .partslinkFileText {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        height: min(78vh, 900px);
+        min-height: 520px;
+        border: 0;
+        background: var(--ag-color-surface);
+        color: var(--ag-color-ink);
+        padding: var(--ag-space-field-x);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.45;
+        resize: vertical;
+        white-space: pre;
+      }
+
       .partslinkStatus {
         min-height: 20px;
         margin: 0;
@@ -606,6 +700,11 @@
         }
 
         .partslinkFileFrame {
+          height: min(70vh, 720px);
+          min-height: 420px;
+        }
+
+        .partslinkFileText {
           height: min(70vh, 720px);
           min-height: 420px;
         }
@@ -744,9 +843,17 @@
       <section class="partslinkFileBlock" aria-label="Файл VIN">
         <div class="partslinkFileHead">
           <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
-          <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
+          <div class="partslinkFileActions">
+            <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
+            <button id="partslinkSaveButton" class="partslinkSaveButton" type="button" data-ui-key="save" disabled>Сохранить VIN</button>
+          </div>
         </div>
         <div id="partslinkFileViewer" class="partslinkFileViewer" data-empty="true"></div>
+      </section>
+
+      <section class="partslinkHistory" aria-label="История VIN">
+        <p class="partslinkPanelTitle" data-ui-key="history">История VIN</p>
+        <div id="partslinkHistoryList" class="partslinkHistoryList"></div>
       </section>
 
     </main>
@@ -766,8 +873,10 @@
       const engineTypeInput = document.getElementById("partslinkEngineType");
       const engineVolumeInput = document.getElementById("partslinkEngineVolume");
       const copyResultButton = document.getElementById("partslinkCopyResult");
+      const saveButton = document.getElementById("partslinkSaveButton");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const fileViewer = document.getElementById("partslinkFileViewer");
+      const historyList = document.getElementById("partslinkHistoryList");
       const statusLine = document.getElementById("partslinkStatus");
       const uiLanguageSwitch = document.getElementById("partslinkUiLanguageSwitch");
       const uiLanguageButtons = [...uiLanguageSwitch.querySelectorAll("[data-ui-language]")];
@@ -786,6 +895,11 @@
           engineType: "Тип двигателя",
           engineVolume: "Объем двигателя",
           vinFile: "Файл VIN",
+          save: "Сохранить VIN",
+          saved: "Сохранено",
+          history: "История VIN",
+          emptyHistory: "Сохранённых VIN пока нет.",
+          deleteHistory: "Удалить запись",
           uiLanguageAria: "Язык интерфейса",
           resultAria: "Результат проверки VIN",
           fileAria: "Файл VIN",
@@ -798,6 +912,7 @@
           downloadFile: "Выгрузить файл",
           downloadFileNumber: (number) => `Выгрузить файл ${number}`,
           previewUnavailable: (fileName) => `Предпросмотр недоступен. Скачайте файл ${fileName} кнопкой выше.`,
+          copyableText: "Текст отчёта — можно выделять и копировать",
           invalidVin: "VIN должен содержать 17 символов: проверьте ввод и повторите.",
           checking: "Проверяем данные и готовим файл VIN...",
           backendUnavailable: "Сервер проверки VIN недоступен.",
@@ -830,6 +945,11 @@
           engineType: "Typ silnika",
           engineVolume: "Pojemność silnika",
           vinFile: "Plik VIN",
+          save: "Zapisz VIN",
+          saved: "Zapisano",
+          history: "Historia VIN",
+          emptyHistory: "Brak zapisanych numerów VIN.",
+          deleteHistory: "Usuń wpis",
           uiLanguageAria: "Język interfejsu",
           resultAria: "Wynik weryfikacji VIN",
           fileAria: "Plik VIN",
@@ -842,6 +962,7 @@
           downloadFile: "Pobierz plik",
           downloadFileNumber: (number) => `Pobierz plik ${number}`,
           previewUnavailable: (fileName) => `Podgląd jest niedostępny. Pobierz plik ${fileName} przyciskiem powyżej.`,
+          copyableText: "Tekst raportu — można zaznaczać i kopiować",
           invalidVin: "VIN musi zawierać 17 znaków. Sprawdź wpisane dane i spróbuj ponownie.",
           checking: "Sprawdzamy dane i przygotowujemy plik VIN...",
           backendUnavailable: "Serwer weryfikacji VIN jest niedostępny.",
@@ -863,6 +984,8 @@
       };
       let uiLanguage = "ru";
       let previewObjectUrls = [];
+      const vinHistoryStorageKey = "autogood-partslink24-vin-history:v1";
+      let vinHistory = readVinHistory();
       const fallbackBrands = {
         Abarth: { route: "pending_demo" },
         "Alfa Romeo": { route: "general_vin_search" },
@@ -1004,6 +1127,76 @@
         }
       }
 
+      function readVinHistory() {
+        try {
+          const value = JSON.parse(localStorage.getItem(vinHistoryStorageKey) || "[]");
+          return Array.isArray(value) ? value.filter((item) => item && item.vin) : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function writeVinHistory() {
+        try {
+          localStorage.setItem(vinHistoryStorageKey, JSON.stringify(vinHistory));
+        } catch {}
+      }
+
+      function renderVinHistory() {
+        historyList.replaceChildren();
+        if (!vinHistory.length) {
+          historyList.append(makeFileMessage(uiText("emptyHistory")));
+          return;
+        }
+
+        vinHistory.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "partslinkHistoryRow";
+          [item.vehicleDescription, item.vin, item.productionDate, localizeEngineType(item.engineType), item.engineVolume].forEach((value) => {
+            const field = document.createElement("span");
+            field.className = "partslinkHistoryValue";
+            field.textContent = value || "—";
+            row.append(field);
+          });
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "partslinkHistoryDelete";
+          removeButton.textContent = "×";
+          removeButton.title = uiText("deleteHistory");
+          removeButton.setAttribute("aria-label", `${uiText("deleteHistory")}: ${item.vin}`);
+          removeButton.addEventListener("click", () => {
+            vinHistory = vinHistory.filter((entry) => entry.id !== item.id);
+            writeVinHistory();
+            renderVinHistory();
+          });
+          row.append(removeButton);
+          historyList.append(row);
+        });
+      }
+
+      function saveCurrentVin() {
+        const vin = vinInput.value.trim().toUpperCase();
+        const vehicleDescription = vehicleDescriptionInput.value.trim();
+        if (!vin || !vehicleDescription) return;
+
+        const item = {
+          id: `${vin}-${Date.now()}`,
+          vehicleDescription,
+          vin,
+          productionDate: productionDateInput.dataset.rawValue || "",
+          engineType: engineTypeInput.dataset.rawValue || "",
+          engineVolume: engineVolumeInput.dataset.rawValue || ""
+        };
+        vinHistory = [item, ...vinHistory.filter((entry) => entry.vin !== vin)].slice(0, 100);
+        writeVinHistory();
+        renderVinHistory();
+        saveButton.textContent = uiText("saved");
+        window.setTimeout(() => {
+          saveButton.textContent = uiText("save");
+        }, 1400);
+      }
+
       function localizeEngineType(value) {
         if (uiLanguage !== "pl") return value;
         return value
@@ -1047,6 +1240,7 @@
         document.querySelector(".partslinkFileBlock")?.setAttribute("aria-label", uiText("fileAria"));
         updateCopyButtonLabel();
         renderLocalizedResultValues();
+        renderVinHistory();
         if (fileViewer.dataset.empty === "true") {
           fileViewer.replaceChildren(makeFileMessage(uiText("emptyFile")));
         }
@@ -1097,6 +1291,7 @@
         resetProductionDate();
         setVehicleDescription("");
         copyResultButton.disabled = true;
+        saveButton.disabled = true;
         copyResultButton.dataset.copied = "false";
         copyResultButton.querySelector("span").innerHTML = "&#10697;";
         updateCopyButtonLabel();
@@ -1145,6 +1340,8 @@
         }
       });
 
+      saveButton.addEventListener("click", saveCurrentVin);
+
       function setStatus(message, tone = "", messageKey = "") {
         statusLine.textContent = message;
         if (messageKey) statusLine.dataset.messageKey = messageKey;
@@ -1183,17 +1380,14 @@
           const fileName = makePdfFileName(brand, vin);
           const separator = file.downloadUrl.includes("?") ? "&" : "?";
           const directUrl = `${apiBase}${file.downloadUrl}${separator}downloadName=${encodeURIComponent(fileName)}`;
-          // The PDF route sends content-disposition: attachment, so an iframe
-          // pointed at it downloads instead of previewing. Fetch it as a blob
-          // and preview the object URL; fall back to the direct link if that fails.
-          let previewUrl = "";
+          const textUrl = directUrl.replace("/api/partslink24/pdf/", "/api/partslink24/pdf-text/");
+          let reportText = "";
           try {
-            const response = await fetch(directUrl);
-            if (!response.ok) throw new Error("preview unavailable");
-            previewUrl = URL.createObjectURL(await response.blob());
-            previewObjectUrls.push(previewUrl);
+            const response = await fetch(textUrl);
+            if (!response.ok) throw new Error("text preview unavailable");
+            reportText = await response.text();
           } catch {
-            previewUrl = "";
+            reportText = "";
           }
 
           const link = document.createElement("a");
@@ -1213,14 +1407,41 @@
             caption.textContent = fileName;
             pane.append(caption);
           }
-          if (previewUrl) {
+          if (reportText) {
+            const textCaption = document.createElement("p");
+            textCaption.className = "partslinkFileCaption";
+            textCaption.textContent = uiText("copyableText");
+            pane.append(textCaption);
+
+            const text = document.createElement("textarea");
+            text.className = "partslinkFileText";
+            text.value = reportText;
+            text.readOnly = true;
+            text.spellcheck = false;
+            text.setAttribute("aria-label", uiText("copyableText"));
+            pane.append(text);
+          } else {
+            // The PDF route sends content-disposition: attachment, so an iframe
+            // pointed at it downloads instead of previewing. Keep the old preview
+            // as a fallback when the text layer cannot be extracted.
+            let previewUrl = "";
+            try {
+              const response = await fetch(directUrl);
+              if (!response.ok) throw new Error("preview unavailable");
+              previewUrl = URL.createObjectURL(await response.blob());
+              previewObjectUrls.push(previewUrl);
+            } catch {
+              previewUrl = "";
+            }
+            if (previewUrl) {
             const frame = document.createElement("iframe");
             frame.className = "partslinkFileFrame";
             frame.src = previewUrl;
             frame.title = fileName;
             pane.append(frame);
-          } else {
-            pane.append(makeFileMessage(uiText("previewUnavailable", fileName)));
+            } else {
+              pane.append(makeFileMessage(uiText("previewUnavailable", fileName)));
+            }
           }
           fileViewer.append(pane);
         }
@@ -1476,6 +1697,7 @@
           engineVolumeInput.dataset.rawValue = result.engineVolume || "";
           renderLocalizedResultValues();
           copyResultButton.disabled = !payload.vin || !productionDateInput.value;
+          saveButton.disabled = !payload.vin || !vehicleDescriptionInput.value;
           await renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
           setStatusFromKey(files.length > 1 ? "readyMany" : "readyOne", "success");
         } catch (error) {
