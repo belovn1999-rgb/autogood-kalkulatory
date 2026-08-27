@@ -657,7 +657,7 @@ function inferEngineEvidence(brand, values) {
 
   if (["Ford", "Ford Pro"].includes(brand)) {
     if (/\bEcoBlue\b|\bTDCi\b/i.test(source)) return " diesel";
-    if (/\bEcoBoost\b/i.test(source)) return " gasoline";
+    if (/\bEcoBoost\b|\bFox\b|\bDragon\b|\bDuratec\b/i.test(source)) return " gasoline";
   }
 
   if (["Toyota", "Lexus"].includes(brand)) {
@@ -761,6 +761,14 @@ function findEngineVolumeRaw(text, brand, profile, values) {
     if (match) return `${capacities[match]} cm3`;
   }
 
+  if (["Ford", "Ford Pro"].includes(brand)) {
+    const engineDescription = String(values.engineTypeRaw || values.engineSpecificationRaw);
+    const fordEngine = engineDescription.match(/(\d+(?:[.,]\d+)?)\s*L?\s+(?:EcoBoost|EcoBlue|Fox|Dragon|Duratec)\b/i);
+    if (fordEngine) return `${fordEngine[1]} L`;
+    const capacity = engineDescription.match(/^(\d+(?:[.,]\d+)?)/);
+    if (capacity) return `${capacity[1]} L`;
+  }
+
   if (["Abarth", "Alfa Romeo", "Fiat", "Fiat Professional", "Jeep", "Lancia"].includes(brand)) {
     const fcaCapacity = findFcaCylinderCapacity(text);
     if (fcaCapacity) return fcaCapacity;
@@ -794,11 +802,6 @@ function findEngineVolumeRaw(text, brand, profile, values) {
     const capacities = { K9K: 1461, R9M: 1598, M9R: 1995, YD25: 2488, YD22: 2184 };
     const match = Object.keys(capacities).find((engineCode) => code.includes(engineCode));
     if (match) return `${capacities[match]} cm3`;
-  }
-
-  if (["Ford", "Ford Pro"].includes(brand)) {
-    const capacity = String(values.engineTypeRaw || values.engineSpecificationRaw).match(/^(\d+(?:[.,]\d+)?)/);
-    if (capacity) return `${capacity[1]} L`;
   }
 
   return "";

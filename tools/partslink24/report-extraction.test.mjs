@@ -681,6 +681,39 @@ Engine Type               2.0 EcoBlue B
   });
 });
 
+test("Ford prefers the applicable Fox engine over an unrelated liter value", () => {
+  const result = extractVehicleInfoFromText(`
+Дата производства         08.04.24
+Модельный ряд             Focus 2018-
+Engine Type               Alfa Romeo BLT 4.6L Cast Iron
+                          1.0L Fox E
+Требования к токсичности выхлопа   Стандарт выбросов Евро-6.2 MHEV
+`, { brand: "Ford", language: "RU" });
+
+  assert.deepEqual(result, {
+    model: "Focus 2018-",
+    productionDate: "08.04.2024",
+    engineType: "Бензин + MHEV (мягкий гибрид)",
+    engineVolume: "1000 cm³"
+  });
+});
+
+test("Ford engine-family priority keeps EcoBoost gasoline and EcoBlue diesel", () => {
+  const gasoline = extractVehicleInfoFromText(`
+Vehicle Line             Puma 2019-
+Engine Type              1.0L EcoBoost E
+`, { brand: "Ford", language: "ENG" });
+  const diesel = extractVehicleInfoFromText(`
+Model Range              Focus 2018-
+Engine Type              1.5 EcoBlue D
+`, { brand: "Ford", language: "ENG" });
+
+  assert.equal(gasoline.engineType, "Бензин");
+  assert.equal(gasoline.engineVolume, "1000 cm³");
+  assert.equal(diesel.engineType, "Дизель");
+  assert.equal(diesel.engineVolume, "1500 cm³");
+});
+
 test("Volvo returns model, production week, fuel and volume", () => {
   const result = extractVehicleInfoFromText(`
 Модельный год                          2023
