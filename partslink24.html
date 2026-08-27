@@ -419,6 +419,21 @@
         cursor: not-allowed;
       }
 
+      .partslinkSaveButton:not(:disabled) {
+        background: transparent;
+        color: var(--ag-color-accent);
+        transition: background-color var(--ag-dur-short) var(--ag-ease-out), color var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
+      }
+
+      .partslinkSaveButton:not(:disabled):hover {
+        background: var(--ag-color-surface-tint);
+        transform: translateY(-1px);
+      }
+
+      .partslinkSaveButton:not(:disabled):active {
+        transform: translateY(1px);
+      }
+
       .partslinkHistory {
         display: grid;
         gap: var(--ag-space-md);
@@ -844,8 +859,8 @@
         <div class="partslinkFileHead">
           <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
           <div class="partslinkFileActions">
-            <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
             <button id="partslinkSaveButton" class="partslinkSaveButton" type="button" data-ui-key="save" disabled>Сохранить VIN</button>
+            <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
           </div>
         </div>
         <div id="partslinkFileViewer" class="partslinkFileViewer" data-empty="true"></div>
@@ -1380,15 +1395,6 @@
           const fileName = makePdfFileName(brand, vin);
           const separator = file.downloadUrl.includes("?") ? "&" : "?";
           const directUrl = `${apiBase}${file.downloadUrl}${separator}downloadName=${encodeURIComponent(fileName)}`;
-          const textUrl = directUrl.replace("/api/partslink24/pdf/", "/api/partslink24/pdf-text/");
-          let reportText = "";
-          try {
-            const response = await fetch(textUrl);
-            if (!response.ok) throw new Error("text preview unavailable");
-            reportText = await response.text();
-          } catch {
-            reportText = "";
-          }
 
           const link = document.createElement("a");
           link.className = "partslinkDownloadLink";
@@ -1407,41 +1413,14 @@
             caption.textContent = fileName;
             pane.append(caption);
           }
-          if (reportText) {
-            const textCaption = document.createElement("p");
-            textCaption.className = "partslinkFileCaption";
-            textCaption.textContent = uiText("copyableText");
-            pane.append(textCaption);
-
-            const text = document.createElement("textarea");
-            text.className = "partslinkFileText";
-            text.value = reportText;
-            text.readOnly = true;
-            text.spellcheck = false;
-            text.setAttribute("aria-label", uiText("copyableText"));
-            pane.append(text);
-          } else {
-            // The PDF route sends content-disposition: attachment, so an iframe
-            // pointed at it downloads instead of previewing. Keep the old preview
-            // as a fallback when the text layer cannot be extracted.
-            let previewUrl = "";
-            try {
-              const response = await fetch(directUrl);
-              if (!response.ok) throw new Error("preview unavailable");
-              previewUrl = URL.createObjectURL(await response.blob());
-              previewObjectUrls.push(previewUrl);
-            } catch {
-              previewUrl = "";
-            }
-            if (previewUrl) {
+          const previewSeparator = directUrl.includes("?") ? "&" : "?";
+          const previewUrl = `${directUrl}${previewSeparator}preview=1`;
+          if (previewUrl) {
             const frame = document.createElement("iframe");
             frame.className = "partslinkFileFrame";
             frame.src = previewUrl;
             frame.title = fileName;
             pane.append(frame);
-            } else {
-              pane.append(makeFileMessage(uiText("previewUnavailable", fileName)));
-            }
           }
           fileViewer.append(pane);
         }

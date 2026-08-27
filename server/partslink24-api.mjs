@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
+import { readPdfText } from "../tools/partslink24/report-extraction.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -38,6 +39,9 @@ export async function handlePartslink24Request(request, response) {
     }
     if (request.method === "POST" && request.url === "/api/partslink24/production-date") {
       return handleProductionDateCheck(request, response);
+    }
+    if (request.method === "GET" && request.url?.startsWith("/api/partslink24/pdf-text/")) {
+      return sendPdfText(request, response);
     }
     if (request.method === "GET" && request.url?.startsWith("/api/partslink24/pdf/")) {
       return sendPdf(request, response);
@@ -278,6 +282,7 @@ function sendPdf(request, response) {
   const filePath = resolve(outputDir, fileName);
   const requestedDownloadName = normalizeDownloadFileName(requestUrl.searchParams.get("downloadName"));
   const downloadName = requestedDownloadName || normalizeDownloadFileName(fileName) || fileName;
+  const disposition = requestUrl.searchParams.get("preview") === "1" ? "inline" : "attachment";
 
   if (!filePath.startsWith(`${outputDir}/`) || extname(filePath).toLowerCase() !== ".pdf" || !existsSync(filePath)) {
     return sendJson(response, 404, { ok: false, error: "PDF не найден." });
@@ -285,11 +290,33 @@ function sendPdf(request, response) {
 
   response.writeHead(200, {
     "content-type": "application/pdf",
-    "content-disposition": `attachment; filename="${downloadName}"`,
+    "content-disposition": `${disposition}; filename="${downloadName}"`,
     "content-length": statSync(filePath).size,
     ...corsHeaders()
   });
   return createReadStream(filePath).pipe(response);
+}
+
+function sendPdfText(request, response) {
+  const requestUrl = new URL(request.url || "/", "http://127.0.0.1");
+  const encodedName = requestUrl.pathname.replace("/api/partslink24/pdf-text/", "");
+  const fileName = basename(decodeURIComponent(encodedName));
+  const filePath = resolve(outputDir, fileName);
+
+  if (!filePath.startsWith(`${outputDir}/`) || extname(filePath).toLowerCase() !== ".pdf" || !existsSync(filePath)) {
+    return sendJson(response, 404, { ok: false, error: "PDF не найден." });
+  }
+
+  const text = readPdfText(filePath);
+  if (!text) return sendJson(response, 500, { ok: false, error: "Не удалось извлечь текст из PDF." });
+
+  response.writeHead(200, {
+    "content-type": "text/plain; charset=utf-8",
+    "content-length": Buffer.byteLength(text),
+    "cache-control": "no-store",
+    ...corsHeaders()
+  });
+  return response.end(text);
 }
 
 export function normalizeDownloadFileName(value) {
