@@ -531,6 +531,8 @@ function collectStellantisPowertrainEvidence(text) {
 }
 
 function findToyotaPlugInEvidence(text) {
+  let chargingCableRaw = "";
+  let acChargerRaw = "";
   for (const line of String(text || "").split(/\r?\n/)) {
     const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
     const negative = /\b(?:without|w\/?o|none|not\s+fitted)\b|без|отсутств/i.test(normalized);
@@ -540,8 +542,10 @@ function findToyotaPlugInEvidence(text) {
     if (!negative && /\bcharger\b.*\bac[\s-]*(?:charge\s*)?\(?\s*type\s*2\s*\)?/i.test(normalized)) {
       return normalized;
     }
+    if (!negative && /\b(?:battery\s+)?charging\s+cable\b/i.test(normalized)) chargingCableRaw = normalized;
+    if (!negative && /(?:^|\s)charger\s+ac(?:[\s-]*charge)?\s*\(/i.test(normalized)) acChargerRaw = normalized;
   }
-  return "";
+  return chargingCableRaw && acChargerRaw ? `${chargingCableRaw} ${acChargerRaw}` : "";
 }
 
 function findToyotaFirstPageEngineEvidence(text) {

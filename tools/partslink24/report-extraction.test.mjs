@@ -914,6 +914,31 @@ ENGINE 1                       1800CC 16-VALVE DOHC EFI (2ZRFXE)
   });
 });
 
+test("Toyota RAV4 requires a fitted charging cable and AC onboard charger for PHEV", () => {
+  const plugIn = extractVehicleInfoFromText(`
+Модель                         RAV4
+Дата производства              25.08.2023
+ENGINE 1                       2500CC 16-VALVE DOHC (A25AFXS)
+007R battery charging cable    eu sel (8a) 5m
+075B wireless charger          with
+077D charger                   ac (6.6kw)
+`, { brand: "Toyota", language: "RU" });
+  const noCable = extractVehicleInfoFromText(`
+Модель                         RAV4
+ENGINE 1                       2500CC 16-VALVE DOHC (A25AFXS)
+007R battery charging cable    without
+077D charger                   ac (6.6kw)
+`, { brand: "Toyota", language: "ENG" });
+
+  assert.deepEqual(plugIn, {
+    model: "RAV4",
+    productionDate: "25.08.2023",
+    engineType: "Бензин + PHEV (подключаемый гибрид)",
+    engineVolume: "2500 cm³"
+  });
+  assert.equal(noCable.engineType, "HEV (обычный гибрид)");
+});
+
 test("Toyota reads fuel and displacement from a first-page powertrain row", () => {
   const result = extractVehicleInfoFromText(`
 Номер шасси                    YARVAYHVMGZ008825
