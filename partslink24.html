@@ -453,10 +453,11 @@
       .partslinkHistoryHeader,
       .partslinkHistoryRow {
         display: grid;
-        grid-template-columns: repeat(5, minmax(150px, 1fr)) 42px;
-        gap: 28px;
+        grid-template-columns: repeat(6, minmax(140px, 1fr)) 42px;
+        gap: 18px;
         align-items: center;
-        min-width: 1050px;
+        min-width: 1120px;
+        text-align: center;
       }
 
       .partslinkHistoryHeader {
@@ -475,21 +476,23 @@
       }
 
       .partslinkHistoryValue {
-        position: relative;
         color: var(--ag-color-ink);
         font-size: var(--ag-text-sm);
         font-weight: 600;
         overflow-wrap: anywhere;
       }
 
-      .partslinkHistoryValue:not(:nth-of-type(5))::after {
-        position: absolute;
-        top: 50%;
-        right: -19px;
-        color: var(--ag-color-rule-2);
-        content: "—";
-        font-weight: 400;
-        transform: translate(50%, -50%);
+      .partslinkHistorySavedAt {
+        display: grid;
+        gap: 2px;
+        color: var(--ag-color-muted);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      .partslinkHistorySavedTime {
+        font-size: var(--ag-text-xs);
+        font-weight: 500;
       }
 
       .partslinkHistoryDelete {
@@ -941,6 +944,7 @@
           historyProductionDate: "Дата производства",
           historyEngineType: "Тип двигателя",
           historyEngineVolume: "Объём двигателя",
+          historySavedAt: "Дата и время сохранения",
           emptyHistory: "Сохранённых VIN пока нет.",
           deleteHistory: "Удалить запись",
           uiLanguageAria: "Язык интерфейса",
@@ -997,6 +1001,7 @@
           historyProductionDate: "Data produkcji",
           historyEngineType: "Typ silnika",
           historyEngineVolume: "Pojemność silnika",
+          historySavedAt: "Data i czas zapisania",
           emptyHistory: "Brak zapisanych numerów VIN.",
           deleteHistory: "Usuń wpis",
           uiLanguageAria: "Język interfejsu",
@@ -1196,7 +1201,7 @@
         historyList.replaceChildren();
         const header = document.createElement("div");
         header.className = "partslinkHistoryHeader";
-        ["historyBrandModel", "historyVin", "historyProductionDate", "historyEngineType", "historyEngineVolume"].forEach((key) => {
+        ["historyBrandModel", "historyVin", "historyProductionDate", "historyEngineType", "historyEngineVolume", "historySavedAt"].forEach((key) => {
           const label = document.createElement("span");
           label.textContent = uiText(key);
           header.append(label);
@@ -1217,6 +1222,7 @@
             field.textContent = value || "—";
             row.append(field);
           });
+          row.append(makeSavedAtCell(item.savedAt));
 
           const removeButton = document.createElement("button");
           removeButton.type = "button";
@@ -1245,7 +1251,8 @@
           vin,
           productionDate: productionDateInput.dataset.rawValue || "",
           engineType: engineTypeInput.dataset.rawValue || "",
-          engineVolume: engineVolumeInput.dataset.rawValue || ""
+          engineVolume: engineVolumeInput.dataset.rawValue || "",
+          savedAt: new Date().toISOString()
         };
         vinHistory = [item, ...vinHistory.filter((entry) => entry.vin !== vin)].slice(0, 100);
         writeVinHistory();
@@ -1254,6 +1261,33 @@
         window.setTimeout(() => {
           saveButton.textContent = uiText("save");
         }, 1400);
+      }
+
+      function makeSavedAtCell(value) {
+        const field = document.createElement("span");
+        field.className = "partslinkHistoryValue partslinkHistorySavedAt";
+        const date = new Date(value || "");
+        if (Number.isNaN(date.getTime())) {
+          field.textContent = "—";
+          return field;
+        }
+
+        const locale = uiLanguage === "pl" ? "pl-PL" : "ru-RU";
+        const dateLine = document.createElement("span");
+        dateLine.textContent = new Intl.DateTimeFormat(locale, {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        }).format(date);
+        const timeLine = document.createElement("span");
+        timeLine.className = "partslinkHistorySavedTime";
+        timeLine.textContent = new Intl.DateTimeFormat(locale, {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        }).format(date);
+        field.append(dateLine, timeLine);
+        return field;
       }
 
       function localizeEngineType(value) {
