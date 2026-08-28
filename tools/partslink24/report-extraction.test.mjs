@@ -132,6 +132,28 @@ ME05         HYBRID DRIVE (85 KW - 94 KW VARIANT),
   }
 });
 
+test("Mercedes B01 48 V technology identifies a mild hybrid in every report language", () => {
+  const reports = [
+    ["RU", `M20         РАБОЧИЙ ОБЪЁМ 2,0 ЛИТРА\nM264        БЕНЗИНОВЫЙ ДВИГАТЕЛЬ РЯДНЫЙ 4-ЦИЛИНДРОВЫЙ M264\nB01         ТЕХНОЛОГИЯ 48 В`],
+    ["PL", `M20         POJEMNOŚĆ SKOKOWA 2,0 L\nM264        4-CYLINDROWY RZĘDOWY SILNIK BENZYNOWY M264\nB01         TECHNOLOGIA 48 V`],
+    ["ENG", `M20         ENGINE DISPLACEMENT 2.0 L\nM264        INLINE 4-CYLINDER GASOLINE ENGINE M264\nB01         48-VOLT TECHNOLOGY`]
+  ];
+
+  for (const [language, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand: "Mercedes-Benz", language });
+    assert.equal(result.engineType, "Бензин + MHEV (мягкий гибрид)", language);
+    assert.equal(result.engineVolume, "2000 cm³", language);
+  }
+
+  const plugIn = extractVehicleInfoFromText(`
+M20         ENGINE DISPLACEMENT 2.0 L
+M254        GASOLINE ENGINE
+B01         48-VOLT TECHNOLOGY
+ME10        PLUG-IN HYBRID VEHICLE PHEV
+`, { brand: "Mercedes-Benz", language: "ENG" });
+  assert.equal(plugIn.engineType, "Бензин + PHEV (подключаемый гибрид)");
+});
+
 test("all Mercedes catalogs use delivery date as the displayed date", () => {
   const brands = ["Mercedes-Benz", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans"];
   const reports = [
