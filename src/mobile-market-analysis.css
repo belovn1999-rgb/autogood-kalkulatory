@@ -38,6 +38,7 @@
 .mobileMarketAnalysisButton:focus-visible,
 .mobileMarketSaveButton:focus-visible,
 .mobileMarketHistoryItem button:focus-visible,
+.mobileMarketHistoryItem a:focus-visible,
 .mobileMarketPoint:focus-visible,
 .mobileMarketSearchLink:focus-visible {
   outline: 1px solid var(--color-focus);
@@ -160,7 +161,8 @@
   gap: var(--space-xs);
 }
 
-.mobileMarketHistoryItem button {
+.mobileMarketHistoryItem button,
+.mobileMarketHistoryItem a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -174,6 +176,7 @@
   font: inherit;
   font-size: var(--text-sm);
   font-weight: 800;
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -181,6 +184,13 @@
 .mobileMarketHistoryItem button.isDelete {
   border-color: color-mix(in oklch, var(--color-error) 45%, var(--color-rule));
   color: var(--color-error);
+}
+
+.mobileMarketHistoryItem button.mobileMarketHistoryIconButton {
+  width: 40px;
+  padding: 0;
+  font-size: var(--text-xl);
+  line-height: 1;
 }
 
 .mobileMarketHistoryItem button i {
@@ -640,6 +650,7 @@
   .mobileMarketAnalysisButton:hover,
   .mobileMarketSaveButton:hover,
   .mobileMarketHistoryItem button:hover,
+  .mobileMarketHistoryItem a:hover,
   .mobileMarketSearchLink:hover {
     background: var(--color-surface-tint);
     transform: translateY(-1px);
@@ -649,6 +660,7 @@
 .mobileMarketAnalysisButton:active,
 .mobileMarketSaveButton:active,
 .mobileMarketHistoryItem button:active,
+.mobileMarketHistoryItem a:active,
 .mobileMarketSearchLink:active {
   transform: translateY(1px);
 }
@@ -702,7 +714,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .mobileMarketHistoryItem button {
+  .mobileMarketHistoryItem button,
+  .mobileMarketHistoryItem a {
     width: 100%;
   }
 

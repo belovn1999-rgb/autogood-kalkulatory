@@ -16,9 +16,9 @@
       saveButton: "Zapisz dane",
       saveSuccess: "Dane zapisane w historii.",
       historyHeading: "Historia wyszukiwania",
-      historyDescription: "Maksymalnie 15 zapisanych zestawów danych w tej przeglądarce.",
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
+      historyOpenList: "Otwórz listę",
       historyDelete: "Usuń",
       historyDeleteConfirm: "Usunąć ten zapis historii?",
       historyDeleteSuccess: "Wpis został usunięty z historii.",
@@ -64,16 +64,26 @@
       year: "Rok",
       displacement: "Pojemność",
       power: "Moc",
-      countries: "Kraje",
+      engine: "Silnik",
+      gearbox: "Skrzynia",
+      fuelPetrol: "Benzyna",
+      fuelDiesel: "Diesel",
+      fuelHybridDiesel: "Hybryda diesel",
+      fuelHybridPetrol: "Hybryda benzyna",
+      fuelElectric: "Elektryk",
+      fuelPlugin: "Hybryda plug-in",
+      gearboxAny: "Dowolna",
+      gearboxAutomatic: "Automatyczna",
+      gearboxManual: "Manualna",
     },
     ru: {
       analysisButton: "Анализ рынка",
       saveButton: "Сохрани данные",
       saveSuccess: "Данные сохранены в истории.",
       historyHeading: "История поиска",
-      historyDescription: "До 15 сохранённых наборов данных в этом браузере.",
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
+      historyOpenList: "Открыть список",
       historyDelete: "Удалить",
       historyDeleteConfirm: "Удалить эту запись из истории?",
       historyDeleteSuccess: "Запись удалена из истории.",
@@ -119,7 +129,17 @@
       year: "Год",
       displacement: "Объём",
       power: "Мощность",
-      countries: "Страны",
+      engine: "Двигатель",
+      gearbox: "Коробка передач",
+      fuelPetrol: "Бензин",
+      fuelDiesel: "Дизель",
+      fuelHybridDiesel: "Гибрид дизель",
+      fuelHybridPetrol: "Гибрид бензин",
+      fuelElectric: "Электрик",
+      fuelPlugin: "Гибрид plug-in",
+      gearboxAny: "Любая",
+      gearboxAutomatic: "Автоматическая",
+      gearboxManual: "Механическая",
     },
   };
 
@@ -296,11 +316,34 @@
 
   function historyMeta(filters) {
     const c = copy();
+    const engine = filters.plugin === "yes"
+      ? c.fuelPlugin
+      : {
+          petrol: c.fuelPetrol,
+          diesel: c.fuelDiesel,
+          hybrid_diesel: c.fuelHybridDiesel,
+          hybrid_petrol: c.fuelHybridPetrol,
+          electric: c.fuelElectric,
+        }[filters.fuel];
+    const gearbox = {
+      automatic: c.gearboxAutomatic,
+      manual: c.gearboxManual,
+      any: c.gearboxAny,
+    }[filters.gearbox || "any"] || c.gearboxAny;
     return [
       rangeSummary(c.year, filters.yearFrom, filters.yearTo),
       rangeSummary(c.mileage, filters.mileageFrom, filters.mileageTo, "km"),
-      filters.countries?.length ? `${c.countries}: ${filters.countries.join(", ")}` : "",
+      engine ? `${c.engine}: ${engine}` : "",
+      `${c.gearbox}: ${gearbox}`,
     ].filter(Boolean);
+  }
+
+  function historySearchUrl(entry) {
+    try {
+      return buildMobileDeSearchUrl(entry.filters);
+    } catch {
+      return entry.searchUrl;
+    }
   }
 
   function renderHistory() {
@@ -315,6 +358,7 @@
       const title = [entry.filters.brand, entry.filters.model, entry.filters.version].filter(Boolean).join(" ");
       const meta = historyMeta(entry.filters);
       const ready = entry.listings.length >= 3;
+      const searchUrl = historySearchUrl(entry);
       const status = ready
         ? c.historyReady.replace("{count}", String(entry.listings.length))
         : c.historyWaiting;
@@ -330,7 +374,8 @@
           </div>
           <div class="mobileMarketHistoryActions">
             <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
-            <button class="isDelete" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyDelete)}</button>
+            ${searchUrl ? `<a href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.historyOpenList)} <i aria-hidden="true">↗</i></a>` : ""}
+            <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
         </article>`;
     }).join("");
