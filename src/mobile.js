@@ -17,6 +17,8 @@ const copy = {
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     manualEyebrow: "WPISZ DANE RĘCZNIE",
+    clearManualFilters: "Wyczyść filtry",
+    selectedFiltersEmpty: "Brak wybranych parametrów",
     vehicleDataLabel: "DANE PODSTAWOWE POJAZDU",
     drivetrainLabel: "NAPĘD I SKRZYNIA",
     conditionLabel: "WNĘTRZE I STAN",
@@ -195,6 +197,8 @@ const copy = {
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
+    clearManualFilters: "Очистить фильтры",
+    selectedFiltersEmpty: "Нет выбранных параметров",
     vehicleDataLabel: "ОСНОВНЫЕ ДАННЫЕ АВТОМОБИЛЯ",
     drivetrainLabel: "ПРИВОД И КОРОБКА ПЕРЕДАЧ",
     conditionLabel: "САЛОН И СОСТОЯНИЕ",
@@ -801,6 +805,8 @@ const els = {
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
   marketSearch: document.querySelector("[data-mobile-market-search]"),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
+  manualReset: document.querySelector("[data-mobile-manual-reset]"),
+  selectedFilters: document.querySelector("[data-mobile-selected-filters]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
   methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
 };
@@ -865,8 +871,12 @@ function renderI18n() {
   });
   const label = els.submit?.querySelector("span");
   if (label) label.textContent = state.status === "loading" ? c.loadingButton : c.loadButton;
+  if (els.manualReset) {
+    els.manualReset.setAttribute("aria-label", c.clearManualFilters);
+    els.manualReset.title = c.clearManualFilters;
+  }
   setRangePlaceholders();
-  renderManualOptions(false);
+  renderManualOptions(true);
 }
 
 function setMode(mode) {
@@ -1299,41 +1309,45 @@ function listingRegistration(value) {
   return text(value || year);
 }
 
+function defaultManualFields() {
+  return {
+    brand: "",
+    model: "",
+    version: "",
+    fuel: "",
+    plugin: "",
+    body: "",
+    mileageFrom: "",
+    mileageTo: "",
+    yearFrom: "",
+    yearTo: "",
+    displacementFrom: "",
+    displacementTo: "",
+    powerFrom: "",
+    powerTo: "",
+    drive: "any",
+    gearbox: "any",
+    vat: "",
+    seller: "",
+    countries: ["DE"],
+    interiorMaterials: [],
+    airConditioning: "",
+    trailerCoupling: "any",
+    features: [],
+    parkingSensors: [],
+    cruiseControl: "any",
+    exteriorColors: [],
+    interiorColors: [],
+    matte: false,
+    metallic: false,
+    nonSmoking: false,
+    damagedVehicles: "hide",
+  };
+}
+
 function renderManualOptions(keepValues = true) {
   const c = copy[state.lang];
-  const current = keepValues ? readManualFields() : {
-    brand: els.brand.value,
-    model: els.model.value,
-    version: els.version.value,
-    fuel: els.fuel.value,
-    plugin: els.plugin.checked ? "yes" : "",
-    body: els.body.value,
-    mileageFrom: els.mileageFrom.value,
-    mileageTo: els.mileageTo.value,
-    yearFrom: els.yearFrom.value,
-    yearTo: els.yearTo.value,
-    displacementFrom: els.displacementFrom.value,
-    displacementTo: els.displacementTo.value,
-    powerFrom: els.powerFrom.value,
-    powerTo: els.powerTo.value,
-    drive: checkedValue(els.drive) || "any",
-    gearbox: checkedValue(els.gearbox) || "any",
-    vat: els.vat.value,
-    seller: els.seller.value,
-    countries: checkedValues(els.countries),
-    interiorMaterials: checkedValues(els.interiorMaterials),
-    airConditioning: checkedValue(els.airConditioning),
-    trailerCoupling: checkedValue(els.trailerCoupling) || "any",
-    features: checkedValues(els.features),
-    parkingSensors: checkedValues(els.parkingSensors),
-    cruiseControl: checkedValue(els.cruiseControl) || "any",
-    exteriorColors: checkedValues(els.exteriorColors),
-    interiorColors: checkedValues(els.interiorColors),
-    matte: els.matte.checked,
-    metallic: els.metallic.checked,
-    nonSmoking: els.nonSmoking.checked,
-    damagedVehicles: els.damagedVehicles.value || "hide",
-  };
+  const current = keepValues ? readManualFields() : defaultManualFields();
 
   const currentBrand = canonicalBrand(current.brand) || current.brand || "";
   els.brand.value = currentBrand;
@@ -1388,6 +1402,7 @@ function renderManualOptions(keepValues = true) {
   els.metallic.checked = Boolean(current.metallic);
   els.nonSmoking.checked = Boolean(current.nonSmoking);
   updateCountrySummary();
+  updateSelectedFiltersSummary();
 }
 
 function readManualFields() {
@@ -1424,6 +1439,61 @@ function readManualFields() {
     nonSmoking: els.nonSmoking?.checked || false,
     damagedVehicles: els.damagedVehicles?.value || "hide",
   };
+}
+
+function selectedInputLabels(inputs) {
+  return inputs
+    .filter((input) => input.checked)
+    .map((input) => input.closest("label")?.innerText.replace(/\s+/g, " ").trim() || "")
+    .filter(Boolean);
+}
+
+function selectedRadioLabel(inputs, value) {
+  if (!value || value === "any") return "";
+  const input = inputs.find((candidate) => candidate.value === value);
+  return input?.closest("label")?.innerText.replace(/\s+/g, " ").trim() || "";
+}
+
+function rangeFilterSummary(label, from, to, unit = "") {
+  if (!from && !to) return "";
+  const range = [from || copy[state.lang].fromPlaceholder, to || copy[state.lang].toPlaceholder].join(" - ");
+  return `${label}: ${range}${unit ? ` ${unit}` : ""}`;
+}
+
+function updateSelectedFiltersSummary() {
+  if (!els.selectedFilters) return;
+  const c = copy[state.lang];
+  const filters = readManualFields();
+  const parts = [
+    filters.brand,
+    filters.model,
+    filters.version,
+    els.fuelLabel?.value,
+    filters.plugin === "yes" ? c.pluginLabel : "",
+    els.bodyLabel?.value,
+    rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"),
+    rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo),
+    rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"),
+    rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"),
+    selectedRadioLabel(els.drive, filters.drive),
+    selectedRadioLabel(els.gearbox, filters.gearbox),
+    ...selectedInputLabels(els.interiorMaterials),
+    selectedRadioLabel(els.airConditioning, filters.airConditioning),
+    selectedRadioLabel(els.trailerCoupling, filters.trailerCoupling),
+    ...selectedInputLabels(els.features),
+    ...selectedInputLabels(els.parkingSensors),
+    selectedRadioLabel(els.cruiseControl, filters.cruiseControl),
+    ...selectedInputLabels(els.exteriorColors),
+    ...selectedInputLabels(els.interiorColors),
+    filters.matte ? c.matteLabel : "",
+    filters.metallic ? c.metallicLabel : "",
+    filters.nonSmoking ? c.nonSmokingLabel : "",
+    els.vatLabel?.value,
+    ...selectedInputLabels(els.countries),
+    els.sellerLabel?.value,
+    filters.damagedVehicles === "show" ? els.damagedVehiclesLabel?.value : "",
+  ].filter(Boolean);
+  els.selectedFilters.textContent = parts.join(" - ") || c.selectedFiltersEmpty;
 }
 
 function mobileDeNumber(value) {
@@ -1811,6 +1881,7 @@ document.addEventListener("click", (event) => {
       }
       input.focus();
     }
+    updateSelectedFiltersSummary();
     closeComboMenus();
     return;
   }
@@ -1848,6 +1919,16 @@ document.querySelectorAll(".mobileComboControl input").forEach((input) => {
 });
 
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
+
+document.querySelector(".mobileManualForm")?.addEventListener("input", updateSelectedFiltersSummary);
+document.querySelector(".mobileManualForm")?.addEventListener("change", updateSelectedFiltersSummary);
+
+els.manualReset?.addEventListener("click", () => {
+  closeComboMenus();
+  document.querySelector("[data-mobile-country-select]")?.removeAttribute("open");
+  renderManualOptions(false);
+  setMarketSearchStatus("");
+});
 
 els.marketSearch?.addEventListener("click", (event) => {
   try {

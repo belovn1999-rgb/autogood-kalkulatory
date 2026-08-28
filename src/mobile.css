@@ -332,6 +332,66 @@ button {
 
 .mobileManualPanel .mobilePanelHead {
   min-height: 0;
+  position: sticky;
+  top: var(--space-sm);
+  z-index: 3;
+  background: var(--color-surface);
+}
+
+.mobileManualPanelHeadRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.mobileManualPanelHeadRow p {
+  margin: 0;
+}
+
+.mobileManualResetButton {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+
+.mobileManualResetButton svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.mobileManualResetButton:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.mobileSelectedFilters {
+  min-height: 34px;
+  margin-top: var(--space-sm);
+  overflow-x: auto;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  color: var(--color-muted);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+  scrollbar-width: thin;
 }
 
 .mobileDataGrid,
@@ -1178,6 +1238,12 @@ button {
     background: var(--color-brand-pressed);
     transform: translateY(-1px);
   }
+
+  .mobileManualResetButton:hover {
+    border-color: var(--color-primary-rule);
+    background: var(--color-surface-tint);
+    transform: translateY(-1px);
+  }
 }
 
 .mobileGhostLink:active,
@@ -1186,6 +1252,7 @@ button {
 .mobileLang button:active,
 .mobileSearchControl button:active,
 .mobileMarketSearchButton:active,
+.mobileManualResetButton:active,
 .mobileScenarioCard:active {
   transform: translateY(1px);
 }
