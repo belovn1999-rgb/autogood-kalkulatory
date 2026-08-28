@@ -578,7 +578,7 @@ function collectWholeReportPowertrainEvidence(text) {
   const powertrainContext = /(?:engine|motor|silnik|двигател|топливо|paliwo|fuel|powertrain|drive\s+system|drivetrain|alternative\s+(?:drive|powertrain)|alternatywny\s+układ\s+napędowy|система\s+привода|альтернативная\s+система\s+привода|гибридн\w*\s+(?:систем\w*|привод\w*))/i;
   const explicitPowertrainValue = /(?:gasoline|petrol|diesel|benzyn|benzin|бензин|дизел|\b(?:PHEV|HEV|M[\s-]*HEV|BEV)\b|plug[\s-]*in|mild[\s-]*hybrid|electric\s+(?:engine|motor|vehicle)|silnik\s+elektrycz|электрическ\w*\s+(?:двигател|автомобил)|электродвигател)/i;
   const hybridDriveValue = /(?:hybrid|hybryd\w*|гибрид\w*)\s+(?:system|drive|powertrain|систем\w*|привод\w*)/i;
-  const negativePowertrain = /(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ[а-яё]*\s+двигател[а-яё]*|электродвигател[а-яё]*)\s*\(?\s*(?:(?:not|nie|не)\s+)?(?:hybrid|hybryd\w*|гибрид[а-яё]*)\s*\)?/i;
+  const negativePowertrain = /(?:without|bez|без)[^\r\n]{0,60}(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ[а-яё]*\s+двигател[а-яё]*|электродвигател[а-яё]*|high\s+voltage\s+battery)|only\s+combustion\s+engine|combustion\s+engine\s+only|tylko\s+silnik\s+spalinowy|только\s+(?:двс|двигател\w*\s+внутренн\w*\s+сгоран)|no\s+electric\s+vehicle\s+inlet/i;
   const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim());
   const matches = [];
 
@@ -604,7 +604,7 @@ function findFallbackEngineEvidence(text) {
   const fuelOrPowertrain = /gasoline|petrol|diesel|hybrid|mild[\s-]*hybrid|plug[\s-]*in|\bphev\b|\bmhev\b|battery\s+electric|electric\s+(?:engine|motor|vehicle)|benzyn|olej[\s-]*napędowy|hybryd|silnik\s+elektrycz|benzin|\bbenz\.|\bбенз\.|бензин|дизел|гибрид|электродвигател|электромобил/i;
   const engineContext = /engine|motor|silnik|specyfikacj|base\s+engine|basic\s+engine|двигател|спецификац|базовый\s+двигател/i;
   const capacity = /\d[\d\s]*(?:[.,]\d+)?\s*(?:cm3|cm³|см3|см³|ccm|cc|l|л)\b/i;
-  const negativePowertrain = /(?:without|bez|без)\s+(?:an?\s+)?(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ[а-яё]*\s+двигател[а-яё]*|электродвигател[а-яё]*)\s*\(?\s*(?:(?:not|nie|не)\s+)?(?:hybrid|hybryd\w*|гибрид[а-яё]*)\s*\)?/i;
+  const negativePowertrain = /(?:without|bez|без)[^\r\n]{0,60}(?:electric\s+(?:engine|motor)|silnik(?:a)?\s+elektryczn\w*|электрическ[а-яё]*\s+двигател[а-яё]*|электродвигател[а-яё]*|high\s+voltage\s+battery)|only\s+combustion\s+engine|combustion\s+engine\s+only|tylko\s+silnik\s+spalinowy|только\s+(?:двс|двигател\w*\s+внутренн\w*\s+сгоран)|no\s+electric\s+vehicle\s+inlet/i;
   const nonEngineVolume = /fuel\s+(?:tank|filling)|zbiornik\s+paliwa|tankowanie|топливн\w*\s+бак|заправк/i;
   const matches = [];
 

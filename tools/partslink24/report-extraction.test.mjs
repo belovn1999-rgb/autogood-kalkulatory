@@ -822,6 +822,35 @@ FUEL TANK, VOLUME                    Volume 54 Litre
 `, { brand: "Volvo", language: "ENG" });
   assert.equal(compactEngine.productionDate, "01-07.01.2024");
   assert.equal(compactEngine.engineVolume, "1500 cm³");
+
+  const combustionOnly = extractVehicleInfoFromText(`
+Модель                                 EX40 / XC40
+Производственная неделя                202325
+Двигатель                              B3154T9
+C701        ELECTRIC ENGINE            Only combustion engine for propulsion
+CB01        PROPULSION TYPE             Combustion engine only
+CF36        ENGINE                     GEP3 MP 1.5L 129/245
+CG01        FUEL                       Petrol
+CI01        ELECTRIC PROPULSION MOTOR  Without Electric Rear Propulsion Motor
+CJ01        ELECTRIC VEHICLE INLET     No Electric Vehicle Inlet
+CK01        HIGH VOLTAGE BATTERY       Without High Voltage Battery
+CP01        FRONT EL PROPULSION MOTOR  Without Front Electric Propulsion Motor
+`, { brand: "Volvo", language: "RU" });
+  assert.deepEqual(combustionOnly, {
+    model: "EX40 / XC40",
+    productionDate: "19-25.06.2023",
+    engineType: "Бензин",
+    engineVolume: "1500 cm³"
+  });
+
+  const electric = extractVehicleInfoFromText(`
+Model                                  EX40
+Structured week                        202410
+C701        ELECTRIC ENGINE            Electric engine for propulsion
+CB04        PROPULSION TYPE             Battery electric vehicle
+`, { brand: "Volvo", language: "ENG" });
+  assert.equal(electric.engineType, "Электрический");
+  assert.equal(electric.engineVolume, "");
 });
 
 test("brand engine-code fallbacks cover Toyota, Nissan and Suzuki", () => {
