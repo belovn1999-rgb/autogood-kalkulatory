@@ -949,6 +949,7 @@
           copyTitle: "Скопировать VIN и дату производства",
           copied: "Скопировано",
           clipboardProductionDate: "Дата производства",
+          clipboardDeliveryDate: "Дата поставки",
           emptyFile: "После проверки здесь появится файл VIN.",
           copyError: "Не удалось скопировать данные.",
           noFile: "Сервер не вернул файл.",
@@ -1004,6 +1005,7 @@
           copyTitle: "Kopiuj VIN i datę produkcji",
           copied: "Skopiowano",
           clipboardProductionDate: "Data produkcji",
+          clipboardDeliveryDate: "Data dostawy",
           emptyFile: "Po weryfikacji pojawi się tutaj plik VIN.",
           copyError: "Nie udało się skopiować danych.",
           noFile: "Serwer nie zwrócił pliku.",
@@ -1383,7 +1385,12 @@
         if (!vin || !productionDate) return;
 
         try {
-          await writeClipboardText(`VIN: ${vin}\n${uiText("clipboardProductionDate")}: ${productionDate}`);
+          const isMercedes = brandSelect.value.startsWith("Mercedes");
+          const dateLabel = uiText(isMercedes ? "clipboardDeliveryDate" : "clipboardProductionDate");
+          const copiedDate = isMercedes
+            ? productionDate.replace(/\s*\((?:дата поставки|data dostawy)\)\s*$/i, "")
+            : productionDate;
+          await writeClipboardText(`VIN: ${vin}\n${dateLabel}: ${copiedDate}`);
           copyResultButton.querySelector("span").textContent = "✓";
           copyResultButton.dataset.copied = "true";
           updateCopyButtonLabel();
