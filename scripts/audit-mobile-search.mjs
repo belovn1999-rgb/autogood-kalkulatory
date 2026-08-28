@@ -54,6 +54,32 @@ function requireSource(fragment, label) {
   if (!mobileSource.includes(fragment)) throw new Error(`Brak mapowania: ${label}.`);
 }
 
+function extractFunction(source, name) {
+  const declaration = source.indexOf(`function ${name}(`);
+  if (declaration < 0) throw new Error(`Nie znaleziono funkcji ${name}.`);
+  const start = source.indexOf("{", declaration);
+  let depth = 0;
+  let quote = "";
+  let escaped = false;
+
+  for (let index = start; index < source.length; index += 1) {
+    const character = source[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === quote) quote = "";
+      continue;
+    }
+    if (character === '"' || character === "'" || character === "`") {
+      quote = character;
+      continue;
+    }
+    if (character === "{") depth += 1;
+    else if (character === "}" && --depth === 0) return source.slice(declaration, index + 1);
+  }
+  throw new Error(`Nie zamknięto funkcji ${name}.`);
+}
+
 const generatedContext = { window: {} };
 vm.runInNewContext(generatedSource, generatedContext);
 const generatedCatalog = generatedContext.window.AUTOGOOD_MOBILE_MODEL_CATALOG;
@@ -170,6 +196,52 @@ if (Object.keys(groupsByBrand).length !== catalogBrandCount) {
 }
 if (!groupsByBrand.Mazda?.flatMap((group) => group.models).length) {
   throw new Error("Mazda: brak modeli.");
+}
+
+const seriesContext = {
+  normalizeToken: (value) => String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim(),
+};
+vm.runInNewContext([
+  extractFunction(mobileSource, "escapeModelPrefix"),
+  extractFunction(mobileSource, "seriesBaseModel"),
+  extractFunction(mobileSource, "withSeriesBaseModels"),
+].join("\n"), seriesContext);
+
+const seriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand["Mercedes-Benz"]);
+const bmwSeriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand.BMW);
+const lexusSeriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand.Lexus);
+const volkswagenSeriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand.Volkswagen);
+const miniSeriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand.Mini);
+const firstModel = (groups, groupName) => groups.find((group) => group.group === groupName)?.models[0];
+const requiredSeries = [
+  [seriesGroups, "GLC-Class", "GLC"],
+  [bmwSeriesGroups, "5 Series", "5"],
+  [bmwSeriesGroups, "8 Series", "8"],
+  [lexusSeriesGroups, "RX Series", "RX"],
+  [volkswagenSeriesGroups, "T6", "T6"],
+  [miniSeriesGroups, "Aceman", "Aceman"],
+];
+requiredSeries.forEach(([groups, groupName, expected]) => {
+  if (firstModel(groups, groupName) !== expected) {
+    throw new Error(`${groupName}: oczekiwano bazowego modelu ${expected}.`);
+  }
+});
+if (bmwSeriesGroups.find((group) => group.group === "X Series")?.models[0] === "X") {
+  throw new Error("X Series: nie wolno dodawać ogólnego modelu X.");
+}
+if (bmwSeriesGroups.find((group) => group.group === "M Models")?.models[0] === "M") {
+  throw new Error("M Models: nie wolno dodawać ogólnego modelu M.");
+}
+for (const [brand, groups] of Object.entries(groupsByBrand)) {
+  const projectedModels = seriesContext.withSeriesBaseModels(groups).flatMap((group) => group.models);
+  if (new Set(projectedModels).size !== projectedModels.length) {
+    throw new Error(`${brand}: duplikat po dodaniu bazowych modeli serii.`);
+  }
 }
 
 async function getJson(url) {

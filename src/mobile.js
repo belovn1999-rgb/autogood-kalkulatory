@@ -551,7 +551,8 @@ const modelGroupsByBrand = {
     { group: "M Models", models: ["M135", "M140i", "M2", "M235", "M240i", "M3", "M340d", "M340i", "M4", "M440", "M5", "M550", "M6", "M760", "M8", "M850"] },
     { group: "X Series", models: ["ActiveHybrid X6", "X1", "X2", "X3", "X3 M", "X3 M40", "X3 M50", "X4", "X4 M", "X4 M40", "X5", "X5 M", "X5 M50", "X5 M60", "X6", "X6 M", "X6 M50", "X6 M60", "X7", "X7 M50", "X7 M60", "XM"] },
     { group: "Z Series", models: ["Z1", "Z3", "Z3 M", "Z4", "Z4 M", "Z4 M40", "Z8"] },
-    { group: "Pozostałe BMW", models: ["2002", "840", "850", "i3", "i4", "i5", "i7", "i8", "iX", "iX1", "iX2", "iX3", "Other"] },
+    { group: "8 Series", models: ["840", "850"] },
+    { group: "Pozostałe BMW", models: ["2002", "i3", "i4", "i5", "i7", "i8", "iX", "iX1", "iX2", "iX3", "Other"] },
   ],
 };
 
@@ -978,9 +979,52 @@ function modelMenuGroupLabel(group, brand) {
   return [brand, groupLabel].filter(Boolean).join(" ");
 }
 
+function escapeModelPrefix(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function seriesBaseModel(group) {
+  const models = Array.isArray(group?.models) ? group.models : [];
+  if (models.length < 2) return "";
+
+  const rawGroup = String(group?.group || "").trim().replace(/\s*\(alle\)\s*$/i, "");
+  if (!rawGroup || /^(pozostałe|other)\b/i.test(rawGroup) || /\b(models?|modelle)\b/i.test(rawGroup)) return "";
+
+  const candidate = rawGroup.replace(/(?:\s+|-)(?:class|klasse|series|serie)$/i, "").trim();
+  if (!candidate || /\b(other|others|pozostałe)\b/i.test(candidate)) return "";
+  if (models.some((model) => normalizeToken(model) === normalizeToken(candidate))) return "";
+
+  const prefix = escapeModelPrefix(candidate);
+  const pattern = /^\d+$/.test(candidate)
+    ? new RegExp(`^${prefix}(?:\\d|\\s|-)`, "i")
+    : new RegExp(`^${prefix}(?:\\s|-)`, "i");
+  return models.filter((model) => pattern.test(model)).length >= 2 ? candidate : "";
+}
+
+function withSeriesBaseModels(groups) {
+  const assignments = new Map();
+  groups.forEach((group, index) => {
+    const baseModel = seriesBaseModel(group);
+    const normalized = normalizeToken(baseModel);
+    if (baseModel && normalized && !assignments.has(normalized)) {
+      assignments.set(normalized, { index, baseModel });
+    }
+  });
+
+  return groups.map((group, index) => {
+    const assignment = [...assignments.values()].find((item) => item.index === index);
+    const models = group.models.filter((model) => {
+      const destination = assignments.get(normalizeToken(model));
+      return !destination || destination.index === index;
+    });
+    return assignment ? { ...group, models: [assignment.baseModel, ...models] } : { ...group, models };
+  });
+}
+
 function modelGroupsForBrand(brand) {
   const catalogBrand = canonicalBrand(brand) || brand;
-  return modelGroupsByBrand[mobileModelCatalogAliases[catalogBrand] || catalogBrand] || [];
+  const groups = modelGroupsByBrand[mobileModelCatalogAliases[catalogBrand] || catalogBrand] || [];
+  return withSeriesBaseModels(groups);
 }
 
 function renderModelOptions(extraModel = "") {
