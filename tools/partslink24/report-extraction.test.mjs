@@ -893,8 +893,25 @@ ENGINE 1                1800CC 16-VALVE DOHC EFI (2ZRFXE)
 051I wireless charger           without
 `, { brand: "Lexus", language: "ENG" });
 
-  assert.equal(plugIn.engineType, "PHEV (подключаемый гибрид)");
+  assert.equal(plugIn.engineType, "Бензин + PHEV (подключаемый гибрид)");
   assert.equal(selfCharging.engineType, "HEV (обычный гибрид)");
+});
+
+test("Toyota Prius PHV with AC-charge Type2 is a gasoline plug-in hybrid", () => {
+  const result = extractVehicleInfoFromText(`
+Модель                         PRIUS PHV
+Дата производства              24.08.2018
+ENGINE 1                       1800CC 16-VALVE DOHC EFI (2ZRFXE)
+006M battery charging cable    eu se 7.5m
+011D charger                   ac-charge (type2) only
+`, { brand: "Toyota", language: "RU" });
+
+  assert.deepEqual(result, {
+    model: "PRIUS PHV",
+    productionDate: "24.08.2018",
+    engineType: "Бензин + PHEV (подключаемый гибрид)",
+    engineVolume: "1800 cm³"
+  });
 });
 
 test("Toyota reads fuel and displacement from a first-page powertrain row", () => {

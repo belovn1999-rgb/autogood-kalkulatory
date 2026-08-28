@@ -269,7 +269,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
       fallbackEngineType: baseEngineType
     })
     : "";
-  const engineType = fordEngineType || (toyotaPlugInRaw && baseEngineType === hevEngineType ? formatPhevEngineType() : baseEngineType);
+  const toyotaPlugInEngineType = toyotaPlugInRaw && baseEngineType === hevEngineType
+    ? formatPhevEngineType(/\b[A-Z0-9-]*(?:FXE|FXS)\b|\bEFI\b/i.test([toyotaFirstPageEngineRaw, engineTypeRaw, engineSpecificationRaw].filter(Boolean).join(" ")) ? "Бензин" : "")
+    : "";
+  const engineType = fordEngineType || toyotaPlugInEngineType || baseEngineType;
 
   return {
     model,
@@ -530,7 +533,11 @@ function collectStellantisPowertrainEvidence(text) {
 function findToyotaPlugInEvidence(text) {
   for (const line of String(text || "").split(/\r?\n/)) {
     const normalized = line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-    if (/\bcharger\b.*\bac\s*type\s*2\b/i.test(normalized) && !/\b(?:without|w\/?o|none)\b/i.test(normalized)) {
+    const negative = /\b(?:without|w\/?o|none|not\s+fitted)\b|без|отсутств/i.test(normalized);
+    if (!negative && (/\bmodel\b.*\b(?:PHV|PHEV)\b|модель.*\b(?:PHV|PHEV)\b/i.test(normalized))) {
+      return normalized;
+    }
+    if (!negative && /\bcharger\b.*\bac[\s-]*(?:charge\s*)?\(?\s*type\s*2\s*\)?/i.test(normalized)) {
       return normalized;
     }
   }
