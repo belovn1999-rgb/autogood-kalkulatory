@@ -207,10 +207,18 @@ const seriesContext = {
     .trim(),
 };
 vm.runInNewContext([
+  extractFunction(mobileSource, "modelMenuGroupLabel"),
   extractFunction(mobileSource, "escapeModelPrefix"),
   extractFunction(mobileSource, "seriesBaseModel"),
   extractFunction(mobileSource, "withSeriesBaseModels"),
 ].join("\n"), seriesContext);
+
+if (seriesContext.modelMenuGroupLabel("7 Series", "BMW") !== "7 Series") {
+  throw new Error("BMW: nazwa marki nie może być powielana w nagłówku grupy modeli.");
+}
+if (seriesContext.modelMenuGroupLabel("Pozostałe BMW", "BMW") !== "") {
+  throw new Error("Pozostałe modele: nagłówek grupy powinien pozostać ukryty.");
+}
 
 const seriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand["Mercedes-Benz"]);
 const bmwSeriesGroups = seriesContext.withSeriesBaseModels(groupsByBrand.BMW);

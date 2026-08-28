@@ -972,11 +972,10 @@ function renderDatalist(el, values) {
   el.innerHTML = values.map((value) => datalistOptionHtml(String(value))).join("");
 }
 
-function modelMenuGroupLabel(group, brand) {
+function modelMenuGroupLabel(group) {
   const rawGroup = String(group || "").trim();
   if (/^(pozostałe|other)\b/i.test(rawGroup)) return "";
-  const groupLabel = rawGroup.replace(/\s*\(alle\)\s*/i, "").trim();
-  return [brand, groupLabel].filter(Boolean).join(" ");
+  return rawGroup.replace(/\s*\(alle\)\s*/i, "").trim();
 }
 
 function escapeModelPrefix(value) {
@@ -1146,7 +1145,6 @@ function renderComboMenus(filterControl = null) {
     }
     control.setAttribute("aria-expanded", control.classList.contains("isOpen") ? "true" : "false");
     const menuType = control.dataset.mobileOptions;
-    const currentBrand = canonicalBrand(els.brand?.value) || String(els.brand?.value || "").trim();
     let previousGroup = null;
     let previousPopular = null;
     menu.innerHTML = visibleOptions.flatMap((option) => {
@@ -1155,7 +1153,7 @@ function renderComboMenus(filterControl = null) {
         items.push('<div class="mobileComboMenuDivider" aria-hidden="true"></div>');
       }
       if (menuType === "model" && option.group && option.group !== previousGroup) {
-        const groupLabel = modelMenuGroupLabel(option.group, currentBrand);
+        const groupLabel = modelMenuGroupLabel(option.group);
         if (groupLabel) items.push(`<div class="mobileComboMenuGroup">${escapeHtml(groupLabel)}</div>`);
         else if (previousGroup) items.push('<div class="mobileComboMenuDivider" aria-hidden="true"></div>');
       }
