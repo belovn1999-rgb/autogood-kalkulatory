@@ -272,7 +272,10 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const toyotaPlugInEngineType = toyotaPlugInRaw && baseEngineType === hevEngineType
     ? formatPhevEngineType(/\b[A-Z0-9-]*(?:FXE|FXS)\b|\bEFI\b/i.test([toyotaFirstPageEngineRaw, engineTypeRaw, engineSpecificationRaw].filter(Boolean).join(" ")) ? "Бензин" : "")
     : "";
-  const engineType = fordEngineType || toyotaPlugInEngineType || baseEngineType;
+  const koreanMildHybridEngineType = ["Hyundai", "Kia"].includes(brand)
+    ? resolveKoreanMildHybridEngineType(text, brand, baseEngineType)
+    : "";
+  const engineType = fordEngineType || toyotaPlugInEngineType || koreanMildHybridEngineType || baseEngineType;
 
   return {
     model,
@@ -280,6 +283,23 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
     engineType,
     engineVolume: engineType === "Электрический" ? "" : normalizePdfEngineVolume(resolvedEngineVolumeRaw)
   };
+}
+
+function resolveKoreanMildHybridEngineType(text, brand, fallbackEngineType) {
+  if (fallbackEngineType !== "Дизель") return fallbackEngineType;
+
+  const source = String(text || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ");
+  const verifiedModelFamily = brand === "Kia"
+    ? /\bSPORTAGE\s*22\b/i.test(source)
+    : /\bTUCSON\s*(?:21|22|23|24|25|NX4)\b/i.test(source);
+  const d4feDiesel = /\bD4FE[A-Z0-9]*\b/i.test(source)
+    && /\b1600\s*(?:CC|CM3|CM³|СМ3|СМ³)\b/i.test(source)
+    && /\bDIESEL\b|ДИЗЕЛ|OLEJ[\s-]*NAPĘDOWY/i.test(source);
+  const sevenSpeedDct = /\bDCT\b[^\r\n]{0,40}\b7\s*(?:SPEED|BIEG|СТУП)|\b7\s*(?:SPEED|BIEG|СТУП)[^\r\n]{0,40}\bDCT\b/i.test(source);
+
+  return verifiedModelFamily && d4feDiesel && sevenSpeedDct
+    ? formatMhevEngineType("Дизель")
+    : fallbackEngineType;
 }
 
 function resolveStellantisEngineType({

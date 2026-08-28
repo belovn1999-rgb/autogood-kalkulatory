@@ -586,6 +586,61 @@ test("Kia detects an electric motor from the labeled engine and fuel rows", () =
   assert.equal(result.engineVolume, "");
 });
 
+test("Kia and Hyundai identify the D4FE 1.6 CRDi 7DCT Sportage/Tucson configuration as diesel MHEV", () => {
+  const reports = [
+    ["Kia", `
+Модель                SPORTAGE 22 SEURPHW22 / HWW51JC5U
+Дата производства     08.03.2023
+Рабочий объем двигателя 1600 CC - NEW U
+Двигатель             DOHC - TCI
+Топливо               DIESEL - DIESEL
+АКП                    DCT - 7 SPEED 2WD
+Номер двигателя       D4FEPZ504679
+94X4A1                AUTO STOP (ISG)
+9819A2                BLADE TYPE - HYBRID
+`],
+    ["Kia", `
+model                 SPORTAGE 22 SEURPHW22 / HWW51JC5X
+Data produkcji        2022-06-14
+ENGINE CAPACITY       1600 CC - NEW U
+ENGINE TYPE           DOHC - TCI
+FUEL TYPE             DIESEL - DIESEL
+TRANSAXLE             DCT - 7 SPEED 4WD
+numer siln.           D4FENZ463756
+`],
+    ["Hyundai", `
+model                 TUCSON 21
+Date of production    2022-06-14
+ENGINE CAPACITY       1600 CC - NEW U
+ENGINE TYPE           DOHC - TCI
+FUEL TYPE             DIESEL - DIESEL
+TRANSAXLE             DCT - 7 SPEED 4WD
+Engine number         D4FE1234567
+`]
+  ];
+
+  for (const [brand, text] of reports) {
+    const result = extractVehicleInfoFromText(text, { brand, language: "RU" });
+    assert.equal(result.engineType, "Дизель + MHEV (мягкий гибрид)", brand);
+    assert.equal(result.engineVolume, "1600 cm³", brand);
+  }
+});
+
+test("Kia and Hyundai do not infer MHEV from ISG, hybrid wipers or D4FE without a verified 7DCT model configuration", () => {
+  const result = extractVehicleInfoFromText(`
+model                 SPORTAGE 19
+ENGINE CAPACITY       1600 CC - NEW U
+FUEL TYPE             DIESEL - DIESEL
+TRANSAXLE             MANUAL T/M - 6 SPEED 2WD
+Engine number         D4FE1234567
+94X4A1                AUTO STOP (ISG)
+9819A2                BLADE TYPE - HYBRID
+`, { brand: "Kia", language: "ENG" });
+
+  assert.equal(result.engineType, "Дизель");
+  assert.equal(result.engineVolume, "1600 cm³");
+});
+
 test("Land Rover upgrades a gasoline engine to PHEV from the full report", () => {
   const result = extractVehicleInfoFromText(`
 Тип двигателя                PETROL
