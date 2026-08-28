@@ -988,6 +988,23 @@ DBG02                          FUEL TANK CAP WITH LOCK
   });
 });
 
+test("Toyota FTS turbo engine stays gasoline despite a HYBRID catalog group name", () => {
+  const result = extractVehicleInfoFromText(`
+model                            AURIS/HYBRID (UKP)
+Data produkcji                  15.04.2016
+ENGINE 1                        1200CC 16-VALVE DOHC D4 (8NRFTS)
+FUEL INDUCTION                  TURBO SYSTEM
+007B package option 2           stop & start system
+`, { brand: "Toyota", language: "PL" });
+
+  assert.deepEqual(result, {
+    model: "AURIS/HYBRID (UKP)",
+    productionDate: "15.04.2016",
+    engineType: "Бензин",
+    engineVolume: "1200 cm³"
+  });
+});
+
 test("translated and shortened dates are normalized", () => {
   assert.equal(formatProductionDate("21 нояб. 2023?г.", "RU"), "21.11.2023");
   assert.equal(formatProductionDate("Nov 21, 2023", "ENG"), "21.11.2023");

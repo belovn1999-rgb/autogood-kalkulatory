@@ -708,7 +708,7 @@ function inferEngineEvidence(brand, values) {
   if (["Toyota", "Lexus"].includes(brand)) {
     if (/\b[A-Z0-9-]*(?:FXE|FXS)\b/i.test(upper)) return " hybrid";
     if (/\b(?:1ND|[12]GD|1KD|2KD|1VD)[A-Z0-9-]*\b/i.test(upper)) return " diesel";
-    if (/\b[A-Z0-9-]*FKS\b/i.test(upper)) return " gasoline";
+    if (/\b[A-Z0-9-]*(?:FKS|FTS)\b/i.test(upper)) return " gasoline";
     if (/\bEFI\b|\b(?:FE|FSE|FAE)\b/i.test(upper)) return " gasoline";
   }
 
