@@ -4,11 +4,11 @@
   const analysisView = document.querySelector("[data-mobile-market-analysis-view]");
   const analysisContent = document.querySelector("[data-mobile-market-analysis-content]");
   const manualView = document.querySelector('[data-mobile-method-view="manual"]');
-  const historySave = document.querySelector("[data-mobile-market-history-save]");
+  const historySaves = Array.from(document.querySelectorAll("[data-mobile-market-history-save]"));
   const historyList = document.querySelector("[data-mobile-market-history-list]");
   const historyCount = document.querySelector("[data-mobile-market-history-count]");
 
-  if (!analysisOpen || !analysisBack || !analysisView || !analysisContent || !manualView || !historySave || !historyList || !historyCount) return;
+  if (!analysisOpen || !analysisBack || !analysisView || !analysisContent || !manualView || !historySaves.length || !historyList || !historyCount) return;
 
   const marketCopy = {
     pl: {
@@ -907,6 +907,12 @@
       const value = c[node.dataset.marketI18n];
       if (value) node.textContent = value;
     });
+    document.querySelectorAll("[data-market-icon-label]").forEach((button) => {
+      const value = c[button.dataset.marketIconLabel];
+      if (!value) return;
+      button.setAttribute("aria-label", value);
+      button.title = value;
+    });
     renderHistory();
     renderAnalysis();
   }
@@ -952,7 +958,7 @@
     renderAnalysis();
   });
 
-  historySave.addEventListener("click", saveCurrentHistory);
+  historySaves.forEach((button) => button.addEventListener("click", saveCurrentHistory));
   historyList.addEventListener("click", (event) => {
     const deleteButton = event.target.closest("[data-mobile-market-history-delete]");
     if (deleteButton) {

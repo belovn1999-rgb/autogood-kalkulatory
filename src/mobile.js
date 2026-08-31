@@ -19,6 +19,7 @@ const copy = {
     manualEyebrow: "WPISZ DANE RĘCZNIE",
     clearManualFilters: "Wyczyść filtry",
     selectedFiltersEmpty: "Brak wybranych parametrów",
+    offerCountLabel: "AKTUALNE OFERTY",
     vehicleDataLabel: "DANE PODSTAWOWE POJAZDU",
     drivetrainLabel: "NAPĘD I SKRZYNIA",
     conditionLabel: "WNĘTRZE I STAN",
@@ -199,6 +200,7 @@ const copy = {
     manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
     clearManualFilters: "Очистить фильтры",
     selectedFiltersEmpty: "Нет выбранных параметров",
+    offerCountLabel: "АКТУАЛЬНЫЕ ОБЪЯВЛЕНИЯ",
     vehicleDataLabel: "ОСНОВНЫЕ ДАННЫЕ АВТОМОБИЛЯ",
     drivetrainLabel: "ПРИВОД И КОРОБКА ПЕРЕДАЧ",
     conditionLabel: "САЛОН И СОСТОЯНИЕ",
@@ -429,15 +431,15 @@ const fuelOptions = [
 ];
 
 const bodyOptions = [
-  { value: "limousine", pl: "Limousine / Sedan", ru: "Седан / Limousine" },
+  { value: "limousine", pl: "Sedan", ru: "Седан" },
   { value: "estate", pl: "Kombi", ru: "Универсал" },
-  { value: "suv", pl: "SUV / Terenowy", ru: "SUV / Внедорожник" },
+  { value: "suv", pl: "SUV", ru: "SUV" },
   { value: "hatchback", pl: "Hatchback", ru: "Хэтчбек" },
   { value: "coupe", pl: "Coupe", ru: "Купе" },
-  { value: "cabrio", pl: "Cabrio", ru: "Кабрио" },
-  { value: "van_minibus", pl: "Van / Minibus", ru: "Van / Minibus" },
+  { value: "cabrio", pl: "Cabrio", ru: "Кабриолет" },
+  { value: "van_minibus", pl: "VAN", ru: "VAN" },
   { value: "pickup", pl: "Pickup", ru: "Пикап" },
-  { value: "other", pl: "Inne", ru: "Другое" },
+  { value: "other", pl: "Inne", ru: "Другой" },
 ];
 
 const mobileDeMakeIds = {
@@ -805,7 +807,7 @@ const els = {
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
   marketSearch: document.querySelector("[data-mobile-market-search]"),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
-  manualReset: document.querySelector("[data-mobile-manual-reset]"),
+  manualResets: Array.from(document.querySelectorAll("[data-mobile-manual-reset]")),
   selectedFilters: document.querySelector("[data-mobile-selected-filters]"),
   methodChooser: document.querySelector("[data-mobile-method-chooser]"),
   methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
@@ -871,10 +873,10 @@ function renderI18n() {
   });
   const label = els.submit?.querySelector("span");
   if (label) label.textContent = state.status === "loading" ? c.loadingButton : c.loadButton;
-  if (els.manualReset) {
-    els.manualReset.setAttribute("aria-label", c.clearManualFilters);
-    els.manualReset.title = c.clearManualFilters;
-  }
+  els.manualResets.forEach((button) => {
+    button.setAttribute("aria-label", c.clearManualFilters);
+    button.title = c.clearManualFilters;
+  });
   setRangePlaceholders();
   renderManualOptions(true);
 }
@@ -1455,17 +1457,51 @@ function readManualFields() {
   };
 }
 
+function optionLabelText(input) {
+  return input.closest("label")?.textContent.replace(/\s+/g, " ").trim() || "";
+}
+
 function selectedInputLabels(inputs) {
   return inputs
     .filter((input) => input.checked)
-    .map((input) => input.closest("label")?.innerText.replace(/\s+/g, " ").trim() || "")
+    .map(optionLabelText)
     .filter(Boolean);
 }
 
-function selectedRadioLabel(inputs, value) {
-  if (!value || value === "any") return "";
+function selectedInputSummaryParts(inputs, icon) {
+  return inputs
+    .filter((input) => input.checked)
+    .map((input) => ({
+      value: optionLabelText(input),
+      icon,
+      target: input,
+    }))
+    .filter((part) => part.value);
+}
+
+function selectedRadioSummaryPart(inputs, value, icon) {
+  if (!value || value === "any") return null;
   const input = inputs.find((candidate) => candidate.value === value);
-  return input?.closest("label")?.innerText.replace(/\s+/g, " ").trim() || "";
+  const label = input ? optionLabelText(input) : "";
+  return label ? { value: label, icon, target: input } : null;
+}
+
+function summaryTargetFor(target) {
+  if (!(target instanceof Element)) return "";
+  if (!target.dataset.mobileSummaryAnchor) {
+    target.dataset.mobileSummaryAnchor = `mobile-summary-target-${document.querySelectorAll("[data-mobile-summary-anchor]").length + 1}`;
+  }
+  return `[data-mobile-summary-anchor="${target.dataset.mobileSummaryAnchor}"]`;
+}
+
+function focusManualFilter(selector) {
+  const target = selector ? document.querySelector(selector) : null;
+  if (!target) return;
+  const multiSelect = target.closest(".mobileMultiSelect");
+  if (multiSelect) multiSelect.open = true;
+  const scrollTarget = target.closest(".mobileField, .mobileChoiceField, .mobileMultiSelect") || target;
+  scrollTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (typeof target.focus === "function") target.focus({ preventScroll: true });
 }
 
 function rangeFilterSummary(label, from, to, unit = "") {
@@ -1479,32 +1515,32 @@ function updateSelectedFiltersSummary() {
   const c = copy[state.lang];
   const filters = readManualFields();
   const parts = [
-    { value: [filters.brand, filters.model].filter(Boolean).join(" - "), icon: "car", primary: true },
-    { value: filters.version, icon: "list" },
-    ...selectedInputLabels(els.fuels).map((value) => ({ value, icon: "fuel" })),
-    { value: els.bodyLabel?.value, icon: "car" },
-    { value: rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"), icon: "gauge" },
-    { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar" },
-    { value: rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"), icon: "settings" },
-    { value: rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"), icon: "zap" },
-    { value: selectedRadioLabel(els.drive, filters.drive), icon: "route" },
-    { value: selectedRadioLabel(els.gearbox, filters.gearbox), icon: "git-branch" },
-    ...selectedInputLabels(els.interiorMaterials).map((value) => ({ value, icon: "armchair" })),
-    { value: selectedRadioLabel(els.airConditioning, filters.airConditioning), icon: "settings" },
-    { value: selectedRadioLabel(els.trailerCoupling, filters.trailerCoupling), icon: "route" },
-    ...selectedInputLabels(els.features).map((value) => ({ value, icon: "settings" })),
-    ...selectedInputLabels(els.parkingSensors).map((value) => ({ value, icon: "car" })),
-    { value: selectedRadioLabel(els.cruiseControl, filters.cruiseControl), icon: "gauge" },
-    ...selectedInputLabels(els.exteriorColors).map((value) => ({ value, icon: "palette" })),
-    ...selectedInputLabels(els.interiorColors).map((value) => ({ value, icon: "palette" })),
-    { value: filters.matte ? c.matteLabel : "", icon: "palette" },
-    { value: filters.metallic ? c.metallicLabel : "", icon: "palette" },
-    { value: filters.nonSmoking ? c.nonSmokingLabel : "", icon: "settings" },
-    { value: els.vatLabel?.value, icon: "percent" },
-    ...selectedInputLabels(els.countries).map((value) => ({ value, icon: "map-pin" })),
-    { value: els.sellerLabel?.value, icon: "store" },
-    { value: filters.damagedVehicles === "show" ? els.damagedVehiclesLabel?.value : "", icon: "alert" },
-  ].filter((part) => part.value);
+    { value: [filters.brand, filters.model].filter(Boolean).join(" - "), icon: "", primary: true, target: els.brand },
+    { value: filters.version, icon: "list", target: els.version },
+    ...selectedInputSummaryParts(els.fuels, "fuel"),
+    { value: els.bodyLabel?.value, icon: "car", target: els.bodyLabel },
+    { value: rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"), icon: "gauge", target: els.mileageFrom },
+    { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar", target: els.yearFrom },
+    { value: rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"), icon: "settings", target: els.displacementFrom },
+    { value: rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"), icon: "zap", target: els.powerFrom },
+    selectedRadioSummaryPart(els.gearbox, filters.gearbox, "git-branch"),
+    selectedRadioSummaryPart(els.drive, filters.drive, "route"),
+    ...selectedInputSummaryParts(els.interiorMaterials, "armchair"),
+    selectedRadioSummaryPart(els.airConditioning, filters.airConditioning, "settings"),
+    selectedRadioSummaryPart(els.trailerCoupling, filters.trailerCoupling, "route"),
+    ...selectedInputSummaryParts(els.features, "settings"),
+    ...selectedInputSummaryParts(els.parkingSensors, "car"),
+    selectedRadioSummaryPart(els.cruiseControl, filters.cruiseControl, "gauge"),
+    ...selectedInputSummaryParts(els.exteriorColors, "palette"),
+    ...selectedInputSummaryParts(els.interiorColors, "palette"),
+    { value: filters.matte ? c.matteLabel : "", icon: "palette", target: els.matte },
+    { value: filters.metallic ? c.metallicLabel : "", icon: "palette", target: els.metallic },
+    { value: filters.nonSmoking ? c.nonSmokingLabel : "", icon: "settings", target: els.nonSmoking },
+    { value: els.vatLabel?.value, icon: "percent", target: els.vatLabel },
+    ...selectedInputSummaryParts(els.countries, "map-pin"),
+    { value: els.sellerLabel?.value, icon: "store", target: els.sellerLabel },
+    { value: filters.damagedVehicles === "show" ? els.damagedVehiclesLabel?.value : "", icon: "alert", target: els.damagedVehiclesLabel },
+  ].filter((part) => part?.value);
 
   els.selectedFilters.replaceChildren();
   if (!parts.length) {
@@ -1516,18 +1552,25 @@ function updateSelectedFiltersSummary() {
     if (index) {
       const separator = document.createElement("span");
       separator.className = "mobileSelectedFilterSeparator";
-      separator.textContent = " - ";
+      separator.textContent = "-";
       els.selectedFilters.append(separator);
     }
 
-    const item = document.createElement(part.primary ? "strong" : "span");
+    const item = document.createElement("button");
+    item.type = "button";
     item.className = `mobileSelectedFilterItem${part.primary ? " isVehicle" : ""}`;
-    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    icon.setAttribute("aria-hidden", "true");
-    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", `./src/mobile-icons.svg?v=manual-filter-multifuel-20260831#${part.icon}`);
-    icon.append(use);
-    item.append(icon, document.createTextNode(part.value));
+    const target = summaryTargetFor(part.target);
+    if (target) item.dataset.mobileSummaryTarget = target;
+    item.title = part.value;
+    if (part.icon) {
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("aria-hidden", "true");
+      const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+      use.setAttribute("href", `./src/mobile-icons.svg?v=manual-filter-navigation-20260831#${part.icon}`);
+      icon.append(use);
+      item.append(icon);
+    }
+    item.append(document.createTextNode(part.value));
     els.selectedFilters.append(item);
   });
 }
@@ -1905,6 +1948,12 @@ document.querySelectorAll("[data-mobile-back]").forEach((button) => {
 document.addEventListener("click", (event) => {
   closeMultiSelects(event.target.closest(".mobileMultiSelect"));
 
+  const summaryButton = event.target.closest("[data-mobile-summary-target]");
+  if (summaryButton) {
+    focusManualFilter(summaryButton.dataset.mobileSummaryTarget);
+    return;
+  }
+
   const optionButton = event.target.closest("[data-mobile-option-value]");
   if (optionButton) {
     const control = optionButton.closest(".mobileComboControl");
@@ -1973,11 +2022,13 @@ els.fuels.forEach((input) => input.addEventListener("change", updateFuelSummary)
 document.querySelector(".mobileManualForm")?.addEventListener("input", updateSelectedFiltersSummary);
 document.querySelector(".mobileManualForm")?.addEventListener("change", updateSelectedFiltersSummary);
 
-els.manualReset?.addEventListener("click", () => {
-  closeComboMenus();
-  closeMultiSelects();
-  renderManualOptions(false);
-  setMarketSearchStatus("");
+els.manualResets.forEach((button) => {
+  button.addEventListener("click", () => {
+    closeComboMenus();
+    closeMultiSelects();
+    renderManualOptions(false);
+    setMarketSearchStatus("");
+  });
 });
 
 els.marketSearch?.addEventListener("click", (event) => {
