@@ -1133,6 +1133,12 @@ function closeComboMenus(exceptControl = null) {
   });
 }
 
+function closeMultiSelects(exceptSelect = null) {
+  document.querySelectorAll(".mobileMultiSelect[open]").forEach((select) => {
+    if (select !== exceptSelect) select.removeAttribute("open");
+  });
+}
+
 function renderComboMenus(filterControl = null) {
   const sets = comboOptionSets();
   document.querySelectorAll(".mobileComboControl[data-mobile-options]").forEach((control) => {
@@ -1473,8 +1479,7 @@ function updateSelectedFiltersSummary() {
   const c = copy[state.lang];
   const filters = readManualFields();
   const parts = [
-    { value: filters.brand, icon: "tag", primary: true },
-    { value: filters.model, icon: "car", primary: true },
+    { value: [filters.brand, filters.model].filter(Boolean).join(" - "), icon: "car", primary: true },
     { value: filters.version, icon: "list" },
     ...selectedInputLabels(els.fuels).map((value) => ({ value, icon: "fuel" })),
     { value: els.bodyLabel?.value, icon: "car" },
@@ -1516,7 +1521,7 @@ function updateSelectedFiltersSummary() {
     }
 
     const item = document.createElement(part.primary ? "strong" : "span");
-    item.className = "mobileSelectedFilterItem";
+    item.className = `mobileSelectedFilterItem${part.primary ? " isVehicle" : ""}`;
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     icon.setAttribute("aria-hidden", "true");
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
@@ -1898,6 +1903,8 @@ document.querySelectorAll("[data-mobile-back]").forEach((button) => {
 });
 
 document.addEventListener("click", (event) => {
+  closeMultiSelects(event.target.closest(".mobileMultiSelect"));
+
   const optionButton = event.target.closest("[data-mobile-option-value]");
   if (optionButton) {
     const control = optionButton.closest(".mobileComboControl");
@@ -1938,7 +1945,10 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeComboMenus();
+  if (event.key === "Escape") {
+    closeComboMenus();
+    closeMultiSelects();
+  }
 });
 
 const rangeEndsByStart = new Map([
@@ -1965,7 +1975,7 @@ document.querySelector(".mobileManualForm")?.addEventListener("change", updateSe
 
 els.manualReset?.addEventListener("click", () => {
   closeComboMenus();
-  document.querySelector("[data-mobile-country-select]")?.removeAttribute("open");
+  closeMultiSelects();
   renderManualOptions(false);
   setMarketSearchStatus("");
 });

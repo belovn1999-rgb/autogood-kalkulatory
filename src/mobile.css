@@ -341,8 +341,8 @@ button {
 .mobileManualPanelHeadRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  justify-content: flex-start;
+  gap: var(--space-sm);
 }
 
 .mobileManualPanelHeadRow p {
@@ -416,6 +416,10 @@ button {
 .mobileSelectedFilters strong {
   color: var(--color-ink);
   font-weight: 800;
+}
+
+.mobileSelectedFilterItem.isVehicle {
+  font-size: calc(var(--text-sm) - 1px);
 }
 
 .mobileSelectedFilterSeparator {
@@ -509,6 +513,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.05em;
   line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .mobileField {
@@ -530,6 +535,11 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.mobileFieldLabel,
+.mobileFieldLegend {
+  text-transform: uppercase;
 }
 
 .mobileFieldIcon {
@@ -597,6 +607,11 @@ button {
 
 .mobileVehicleDetailsDivider {
   margin-top: 0;
+}
+
+.mobileYearDivider {
+  margin: var(--space-md) 0 var(--space-sm);
+  border-top-color: var(--color-field);
 }
 
 .mobileComboControl {
@@ -748,6 +763,10 @@ button {
 .mobileFeatureBlock,
 .mobileFeatureBlock + .mobileColorField {
   margin-top: var(--space-sm);
+}
+
+.mobileFeatureOptionsSection .mobileManualSectionTitle {
+  margin-bottom: var(--space-md);
 }
 
 .mobileOpenFilterRows {
