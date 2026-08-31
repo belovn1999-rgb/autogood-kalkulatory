@@ -425,6 +425,7 @@ const fuelOptions = [
   { value: "hybrid_diesel", pl: "Hybryda diesel", ru: "Гибрид дизель" },
   { value: "hybrid_petrol", pl: "Hybryda benzyna", ru: "Гибрид бензин" },
   { value: "electric", pl: "Elektryk", ru: "Электрик" },
+  { value: "plugin", pl: "Plug-in", ru: "Plug-in" },
 ];
 
 const bodyOptions = [
@@ -765,9 +766,8 @@ const els = {
   model: document.querySelector("[data-mobile-model]"),
   version: document.querySelector("[data-mobile-version]"),
   modelOptions: document.querySelector("[data-mobile-model-options]"),
-  fuel: document.querySelector("[data-mobile-fuel]"),
-  fuelLabel: document.querySelector("[data-mobile-fuel-label]"),
-  plugin: document.querySelector("[data-mobile-plugin]"),
+  fuels: Array.from(document.querySelectorAll("[data-mobile-fuel]")),
+  fuelSummary: document.querySelector("[data-mobile-fuel-summary]"),
   body: document.querySelector("[data-mobile-body]"),
   bodyLabel: document.querySelector("[data-mobile-body-label]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
@@ -1100,10 +1100,6 @@ function comboOptionSets() {
       value,
       label: `${value} KM`,
     })),
-    fuel: [
-      { value: "", label: c.selectEmpty },
-      ...fuelOptions.map((fuel) => ({ value: fuel.value, label: fuel[state.lang] })),
-    ],
     body: [
       { value: "", label: c.selectEmpty },
       ...bodyOptions.map((body) => ({
@@ -1210,6 +1206,21 @@ function updateCountrySummary() {
   els.countrySummary.textContent = selected.length ? selected.join(", ") : copy[state.lang].selectEmpty;
 }
 
+function manualFuelValues(filters) {
+  const values = Array.isArray(filters?.fuels) ? filters.fuels : [];
+  const legacyValues = [
+    filters?.fuel,
+    filters?.plugin === "yes" ? "plugin" : "",
+  ];
+  return [...new Set([...values, ...legacyValues].filter(Boolean))];
+}
+
+function updateFuelSummary() {
+  if (!els.fuelSummary) return;
+  const selected = selectedInputLabels(els.fuels);
+  els.fuelSummary.textContent = selected.length ? selected.join(", ") : copy[state.lang].selectEmpty;
+}
+
 function setCheckedValue(radios, value) {
   radios.forEach((radio) => {
     radio.checked = radio.value === value;
@@ -1268,7 +1279,6 @@ function setBodyDisplay(value) {
 
 function setSimpleSelectDisplays(values) {
   const c = copy[state.lang];
-  setComboDisplay(els.fuelLabel, values.fuel, fuelOptions);
   setComboDisplay(els.vatLabel, values.vat, [
     { value: "reclaimable", [state.lang]: c.vatReclaimable },
     { value: "non_reclaimable", [state.lang]: c.vatNonReclaimable },
@@ -1314,8 +1324,7 @@ function defaultManualFields() {
     brand: "",
     model: "",
     version: "",
-    fuel: "",
-    plugin: "",
+    fuels: [],
     body: "",
     mileageFrom: "",
     mileageTo: "",
@@ -1354,9 +1363,7 @@ function renderManualOptions(keepValues = true) {
   els.brand.placeholder = c.selectEmpty;
   renderBrandOptions(currentBrand);
 
-  els.fuel.value = current.fuel || "";
-
-  els.plugin.checked = current.plugin === "yes";
+  setCheckedValues(els.fuels, manualFuelValues(current));
 
   els.body.value = current.body || "";
   setBodyDisplay(current.body);
@@ -1365,7 +1372,6 @@ function renderManualOptions(keepValues = true) {
   els.seller.value = current.seller || "";
   els.damagedVehicles.value = current.damagedVehicles || "hide";
   setSimpleSelectDisplays({
-    fuel: current.fuel,
     vat: current.vat,
     seller: current.seller,
     damagedVehicles: current.damagedVehicles || "hide",
@@ -1401,6 +1407,7 @@ function renderManualOptions(keepValues = true) {
   els.matte.checked = Boolean(current.matte);
   els.metallic.checked = Boolean(current.metallic);
   els.nonSmoking.checked = Boolean(current.nonSmoking);
+  updateFuelSummary();
   updateCountrySummary();
   updateSelectedFiltersSummary();
 }
@@ -1410,8 +1417,9 @@ function readManualFields() {
     brand: canonicalBrand(els.brand?.value) || String(els.brand?.value || "").trim(),
     model: els.model?.value || "",
     version: els.version?.value || "",
-    fuel: els.fuel?.value || "",
-    plugin: els.plugin?.checked ? "yes" : "",
+    fuels: checkedValues(els.fuels),
+    fuel: checkedValues(els.fuels).find((value) => value !== "plugin") || "",
+    plugin: checkedValues(els.fuels).includes("plugin") ? "yes" : "",
     body: els.body?.value || "",
     mileageFrom: els.mileageFrom?.value || "",
     mileageTo: els.mileageTo?.value || "",
@@ -1465,35 +1473,58 @@ function updateSelectedFiltersSummary() {
   const c = copy[state.lang];
   const filters = readManualFields();
   const parts = [
-    filters.brand,
-    filters.model,
-    filters.version,
-    els.fuelLabel?.value,
-    filters.plugin === "yes" ? c.pluginLabel : "",
-    els.bodyLabel?.value,
-    rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"),
-    rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo),
-    rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"),
-    rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"),
-    selectedRadioLabel(els.drive, filters.drive),
-    selectedRadioLabel(els.gearbox, filters.gearbox),
-    ...selectedInputLabels(els.interiorMaterials),
-    selectedRadioLabel(els.airConditioning, filters.airConditioning),
-    selectedRadioLabel(els.trailerCoupling, filters.trailerCoupling),
-    ...selectedInputLabels(els.features),
-    ...selectedInputLabels(els.parkingSensors),
-    selectedRadioLabel(els.cruiseControl, filters.cruiseControl),
-    ...selectedInputLabels(els.exteriorColors),
-    ...selectedInputLabels(els.interiorColors),
-    filters.matte ? c.matteLabel : "",
-    filters.metallic ? c.metallicLabel : "",
-    filters.nonSmoking ? c.nonSmokingLabel : "",
-    els.vatLabel?.value,
-    ...selectedInputLabels(els.countries),
-    els.sellerLabel?.value,
-    filters.damagedVehicles === "show" ? els.damagedVehiclesLabel?.value : "",
-  ].filter(Boolean);
-  els.selectedFilters.textContent = parts.join(" - ") || c.selectedFiltersEmpty;
+    { value: filters.brand, icon: "tag", primary: true },
+    { value: filters.model, icon: "car", primary: true },
+    { value: filters.version, icon: "list" },
+    ...selectedInputLabels(els.fuels).map((value) => ({ value, icon: "fuel" })),
+    { value: els.bodyLabel?.value, icon: "car" },
+    { value: rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"), icon: "gauge" },
+    { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar" },
+    { value: rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"), icon: "settings" },
+    { value: rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"), icon: "zap" },
+    { value: selectedRadioLabel(els.drive, filters.drive), icon: "route" },
+    { value: selectedRadioLabel(els.gearbox, filters.gearbox), icon: "git-branch" },
+    ...selectedInputLabels(els.interiorMaterials).map((value) => ({ value, icon: "armchair" })),
+    { value: selectedRadioLabel(els.airConditioning, filters.airConditioning), icon: "settings" },
+    { value: selectedRadioLabel(els.trailerCoupling, filters.trailerCoupling), icon: "route" },
+    ...selectedInputLabels(els.features).map((value) => ({ value, icon: "settings" })),
+    ...selectedInputLabels(els.parkingSensors).map((value) => ({ value, icon: "car" })),
+    { value: selectedRadioLabel(els.cruiseControl, filters.cruiseControl), icon: "gauge" },
+    ...selectedInputLabels(els.exteriorColors).map((value) => ({ value, icon: "palette" })),
+    ...selectedInputLabels(els.interiorColors).map((value) => ({ value, icon: "palette" })),
+    { value: filters.matte ? c.matteLabel : "", icon: "palette" },
+    { value: filters.metallic ? c.metallicLabel : "", icon: "palette" },
+    { value: filters.nonSmoking ? c.nonSmokingLabel : "", icon: "settings" },
+    { value: els.vatLabel?.value, icon: "percent" },
+    ...selectedInputLabels(els.countries).map((value) => ({ value, icon: "map-pin" })),
+    { value: els.sellerLabel?.value, icon: "store" },
+    { value: filters.damagedVehicles === "show" ? els.damagedVehiclesLabel?.value : "", icon: "alert" },
+  ].filter((part) => part.value);
+
+  els.selectedFilters.replaceChildren();
+  if (!parts.length) {
+    els.selectedFilters.textContent = c.selectedFiltersEmpty;
+    return;
+  }
+
+  parts.forEach((part, index) => {
+    if (index) {
+      const separator = document.createElement("span");
+      separator.className = "mobileSelectedFilterSeparator";
+      separator.textContent = " - ";
+      els.selectedFilters.append(separator);
+    }
+
+    const item = document.createElement(part.primary ? "strong" : "span");
+    item.className = "mobileSelectedFilterItem";
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("aria-hidden", "true");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", `./src/mobile-icons.svg?v=manual-filter-multifuel-20260831#${part.icon}`);
+    icon.append(use);
+    item.append(icon, document.createTextNode(part.value));
+    els.selectedFilters.append(item);
+  });
 }
 
 function mobileDeNumber(value) {
@@ -1587,8 +1618,10 @@ function buildMobileDeSearchUrl(filters) {
     (powerPs) => Math.round(powerPs * 0.735499),
   );
 
-  const fuel = filters.plugin === "yes" ? "HYBRID_PLUGIN" : mobileDeFuelValues[filters.fuel];
-  if (fuel) params.append("ft", fuel);
+  manualFuelValues(filters)
+    .map((value) => value === "plugin" ? "HYBRID_PLUGIN" : mobileDeFuelValues[value])
+    .filter(Boolean)
+    .forEach((fuel) => params.append("ft", fuel));
 
   const drive = mobileDeDriveValues[filters.drive];
   if (drive) params.set("dt", drive);
@@ -1701,8 +1734,10 @@ function applyRecognizedManualFields(data) {
   const next = {
     brand: brandMatch?.value || "",
     model,
-    fuel: normalizeFuel(data?.fuel, title),
-    plugin: normalizePlugin(data?.fuel, title),
+    fuels: [
+      normalizeFuel(data?.fuel, title),
+      normalizePlugin(data?.fuel, title) === "yes" ? "plugin" : "",
+    ].filter(Boolean),
     body: normalizeBody(data?.bodyType),
     mileageFrom: mileageBucket(data?.mileageKm, "from"),
     mileageTo: mileageBucket(data?.mileageKm, "to"),
@@ -1717,9 +1752,7 @@ function applyRecognizedManualFields(data) {
 
   els.brand.value = next.brand;
   els.model.value = next.model;
-  els.fuel.value = next.fuel;
-  setComboDisplay(els.fuelLabel, next.fuel, fuelOptions);
-  els.plugin.checked = next.plugin === "yes";
+  setCheckedValues(els.fuels, next.fuels);
   els.body.value = next.body;
   setBodyDisplay(next.body);
   els.mileageFrom.value = next.mileageFrom;
@@ -1734,6 +1767,8 @@ function applyRecognizedManualFields(data) {
   setCheckedValue(els.gearbox, next.gearbox);
 
   renderModelOptions(next.model);
+  updateFuelSummary();
+  updateSelectedFiltersSummary();
 }
 
 function calculatorUrl(scenario) {
@@ -1888,6 +1923,10 @@ document.addEventListener("click", (event) => {
 
   const control = event.target.closest(".mobileComboControl[data-mobile-options]");
   if (control) {
+    if (event.target.closest("input")) {
+      openComboMenu(control, control);
+      return;
+    }
     const isOpen = control.classList.contains("isOpen");
     closeComboMenus(control);
     if (!isOpen) openComboMenu(control);
@@ -1919,6 +1958,7 @@ document.querySelectorAll(".mobileComboControl input").forEach((input) => {
 });
 
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
+els.fuels.forEach((input) => input.addEventListener("change", updateFuelSummary));
 
 document.querySelector(".mobileManualForm")?.addEventListener("input", updateSelectedFiltersSummary);
 document.querySelector(".mobileManualForm")?.addEventListener("change", updateSelectedFiltersSummary);

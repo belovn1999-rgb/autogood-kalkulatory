@@ -379,6 +379,8 @@ button {
 }
 
 .mobileSelectedFilters {
+  display: flex;
+  align-items: center;
   min-height: 34px;
   margin-top: var(--space-sm);
   overflow-x: auto;
@@ -392,6 +394,32 @@ button {
   line-height: 1.35;
   white-space: nowrap;
   scrollbar-width: thin;
+}
+
+.mobileSelectedFilterItem {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+}
+
+.mobileSelectedFilterItem svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.mobileSelectedFilters strong {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
+.mobileSelectedFilterSeparator {
+  flex: 0 0 auto;
 }
 
 .mobileDataGrid,
@@ -567,6 +595,10 @@ button {
   border-top: var(--rule-thick) solid var(--color-rule-soft);
 }
 
+.mobileVehicleDetailsDivider {
+  margin-top: 0;
+}
+
 .mobileComboControl {
   position: relative;
   display: grid;
@@ -586,24 +618,6 @@ button {
 
 .mobileSelectCombo input[readonly] {
   cursor: pointer;
-}
-
-.mobileBrandCombo .mobileComboMenu,
-.mobileModelCombo .mobileComboMenu {
-  top: 50%;
-  width: 360px;
-  max-height: min(440px, calc(100dvh - 32px));
-  transform: translateY(-50%);
-}
-
-.mobileBrandCombo .mobileComboMenu {
-  left: calc(50% + var(--space-sm));
-  right: auto;
-}
-
-.mobileModelCombo .mobileComboMenu {
-  left: auto;
-  right: 0;
 }
 
 .mobileField .mobileComboControl input {
@@ -861,6 +875,10 @@ button {
   background: var(--color-surface);
   box-shadow: 0 12px 28px rgba(12, 37, 54, 0.14);
   padding: var(--space-sm);
+}
+
+.mobileFuelMultiSelect .mobileMultiSelectMenu {
+  grid-template-columns: 1fr;
 }
 
 .mobileMultiSelectMenu label,
@@ -1275,16 +1293,6 @@ button {
 }
 
 @media (max-width: 40rem) {
-  .mobileBrandCombo .mobileComboMenu,
-  .mobileModelCombo .mobileComboMenu {
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    width: auto;
-    max-height: min(320px, calc(100dvh - 120px));
-    transform: none;
-  }
-
   .mobileShell {
     width: min(100% - 28px, 1200px);
     padding-top: var(--space-lg);

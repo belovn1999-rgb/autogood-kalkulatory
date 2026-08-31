@@ -316,15 +316,18 @@
 
   function historyMeta(filters) {
     const c = copy();
-    const engine = filters.plugin === "yes"
-      ? c.fuelPlugin
-      : {
-          petrol: c.fuelPetrol,
-          diesel: c.fuelDiesel,
-          hybrid_diesel: c.fuelHybridDiesel,
-          hybrid_petrol: c.fuelHybridPetrol,
-          electric: c.fuelElectric,
-        }[filters.fuel];
+    const fuelLabels = {
+      petrol: c.fuelPetrol,
+      diesel: c.fuelDiesel,
+      hybrid_diesel: c.fuelHybridDiesel,
+      hybrid_petrol: c.fuelHybridPetrol,
+      electric: c.fuelElectric,
+      plugin: c.fuelPlugin,
+    };
+    const engine = manualFuelValues(filters)
+      .map((fuel) => fuelLabels[fuel])
+      .filter(Boolean)
+      .join(", ");
     const gearbox = {
       automatic: c.gearboxAutomatic,
       manual: c.gearboxManual,
@@ -398,7 +401,6 @@
       brand: "[data-mobile-brand]",
       model: "[data-mobile-model]",
       version: "[data-mobile-version]",
-      fuel: "[data-mobile-fuel]",
       body: "[data-mobile-body]",
       mileageFrom: "[data-mobile-mileage-from]",
       mileageTo: "[data-mobile-mileage-to]",
@@ -429,20 +431,20 @@
       input.checked = input.value === (filters.cruiseControl || "any");
     });
     setHistoryCheckboxes("[data-mobile-country]", filters.countries?.length ? filters.countries : ["DE"]);
+    setHistoryCheckboxes("[data-mobile-fuel]", manualFuelValues(filters));
     setHistoryCheckboxes("[data-mobile-interior-material]", filters.interiorMaterials);
     setHistoryCheckboxes("[data-mobile-feature]", filters.features);
     setHistoryCheckboxes("[data-mobile-parking-sensor]", filters.parkingSensors);
     setHistoryCheckboxes("[data-mobile-exterior-color]", filters.exteriorColors);
     setHistoryCheckboxes("[data-mobile-interior-color]", filters.interiorColors);
     const booleanSelectors = {
-      plugin: "[data-mobile-plugin]",
       matte: "[data-mobile-matte]",
       metallic: "[data-mobile-metallic]",
       nonSmoking: "[data-mobile-non-smoking]",
     };
     Object.entries(booleanSelectors).forEach(([key, selector]) => {
       const input = document.querySelector(selector);
-      if (input) input.checked = key === "plugin" ? filters[key] === "yes" : Boolean(filters[key]);
+      if (input) input.checked = Boolean(filters[key]);
     });
     if (typeof renderManualOptions === "function") renderManualOptions(true);
   }
@@ -577,7 +579,6 @@
     const option = document.querySelector(`${selector} option:checked`);
     if (option?.value) return option.textContent.trim();
     const displaySelectors = {
-      "[data-mobile-fuel]": "[data-mobile-fuel-label]",
       "[data-mobile-body]": "[data-mobile-body-label]",
       "[data-mobile-vat]": "[data-mobile-vat-label]",
       "[data-mobile-seller]": "[data-mobile-seller-label]",
@@ -607,8 +608,8 @@
     const c = copy();
     const summary = [];
     summary.push([filters.brand, filters.model, filters.version].filter(Boolean).join(" "));
-    const fuel = selectedOptionText("[data-mobile-fuel]");
-    if (fuel) summary.push(filters.plugin === "yes" ? `${fuel} · Plug-in` : fuel);
+    const fuelLabels = checkedLabels("[data-mobile-fuel]");
+    if (fuelLabels.length) summary.push(fuelLabels.join(", "));
     const body = selectedOptionText("[data-mobile-body]");
     if (body) summary.push(body);
     summary.push(rangeSummary(c.year, filters.yearFrom, filters.yearTo));

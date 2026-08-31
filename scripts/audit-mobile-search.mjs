@@ -97,6 +97,12 @@ equalObject(extractLiteral(mobileSource, "mobileDeFuelValues"), {
   hybrid_petrol: "HYBRID",
   electric: "ELECTRIC",
 }, "Paliwo");
+
+const fuelContext = {};
+vm.runInNewContext(extractFunction(mobileSource, "manualFuelValues"), fuelContext);
+equalObject(fuelContext.manualFuelValues({ fuels: ["petrol", "plugin"] }), ["petrol", "plugin"], "Wielokrotny wybór paliwa");
+equalObject(fuelContext.manualFuelValues({ fuel: "diesel", plugin: "yes" }), ["diesel", "plugin"], "Zapisana historia Plug-in");
+
 equalObject(extractLiteral(mobileSource, "mobileDeBodyValues"), {
   limousine: "Limousine",
   estate: "EstateCar",
@@ -154,7 +160,8 @@ const contractFragments = [
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
   ['appendMobileDeRange(\n    params,\n    "pw"', "moc"],
-  ['filters.plugin === "yes" ? "HYBRID_PLUGIN"', "Plug-in"],
+  ['manualFuelValues(filters)', "wielokrotny wybór paliwa"],
+  ['value === "plugin" ? "HYBRID_PLUGIN"', "Plug-in"],
   ['params.append("ft", fuel)', "paliwo"],
   ['params.set("dt", drive)', "napęd"],
   ['params.set("tr", gearbox)', "skrzynia biegów"],

@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=manual-filter-summary-20260828" />
+  <link rel="stylesheet" href="./src/mobile.css?v=manual-filter-multifuel-20260831" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-search-link-20260828" />
   </head>
   <body class="mobileBody">
@@ -120,6 +120,7 @@
                 <input data-mobile-model type="text" autocomplete="off" />
               </div>
             </label>
+            <div class="mobileRangeDivider mobileVehicleDetailsDivider" aria-hidden="true"></div>
             <div class="mobileVehicleTripleRow mobileWideField">
               <label class="mobileField">
                 <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="versionLabel">Wersja</span></span>
@@ -127,11 +128,17 @@
               </label>
               <label class="mobileField">
                 <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#fuel"></use></svg><span data-i18n="fuelLabel">Paliwo</span></span>
-                <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="fuel" data-mobile-options-target="data-mobile-fuel-label" data-mobile-value-target="data-mobile-fuel">
-                  <input data-mobile-fuel-label type="text" autocomplete="off" readonly />
-                  <input data-mobile-fuel type="hidden" />
-                </div>
-                <span class="mobileInlineCheck"><input data-mobile-plugin type="checkbox" /> <span data-i18n="pluginLabel">Plug-in</span></span>
+                <details class="mobileMultiSelect mobileFuelMultiSelect" data-mobile-fuel-select>
+                  <summary data-mobile-fuel-summary></summary>
+                  <div class="mobileMultiSelectMenu">
+                    <label><input data-mobile-fuel type="checkbox" value="petrol" /> <span data-i18n="fuelPetrol">Benzyna</span></label>
+                    <label><input data-mobile-fuel type="checkbox" value="diesel" /> <span data-i18n="fuelDiesel">Diesel</span></label>
+                    <label><input data-mobile-fuel type="checkbox" value="hybrid_diesel" /> <span data-i18n="fuelHybridDiesel">Hybryda diesel</span></label>
+                    <label><input data-mobile-fuel type="checkbox" value="hybrid_petrol" /> <span data-i18n="fuelHybridPetrol">Hybryda benzyna</span></label>
+                    <label><input data-mobile-fuel type="checkbox" value="electric" /> <span data-i18n="fuelElectric">Elektryk</span></label>
+                    <label><input data-mobile-fuel type="checkbox" value="plugin" /> <span data-i18n="pluginLabel">Plug-in</span></label>
+                  </div>
+                </details>
               </label>
               <label class="mobileField">
                 <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="bodyLabel">Nadwozie</span></span>
@@ -248,8 +255,28 @@
                 <label class="mobileChoiceOption"><input data-mobile-interior-material type="checkbox" value="full_leather" /> <span data-i18n="materialFullLeather">Skóra</span></label>
               </div>
             </fieldset>
-            <fieldset class="mobileField mobileChoiceField mobileWideField mobileFeatureBlock">
-              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></legend>
+            <div class="mobileOpenFilterRows mobileFeatureSubfilters mobileWideField">
+              <fieldset class="mobileField mobileChoiceField">
+                <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="parkingSensorsLabel">Asystenci parkowania</span></legend>
+                <div class="mobileOpenChoiceRow">
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="CAM_360_DEGREES" /> <span data-i18n="parkingCamera360">Kamera 360°</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_VIEW_CAM" /> <span data-i18n="parkingCamera">Kamera</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="FRONT_SENSORS" /> <span data-i18n="parkingFront">Przód</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_SENSORS" /> <span data-i18n="parkingRear">Tył</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_TRAFFIC_ALERT" /> <span data-i18n="parkingRearTrafficAlert">Asystent ruchu poprzecznego z tyłu</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="AUTOMATIC_PARKING" /> <span data-i18n="parkingSelfSteering">Systemy samoparkowania</span></label>
+                </div>
+              </fieldset>
+              <fieldset class="mobileField mobileChoiceField">
+                <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="cruiseControlLabel">Tempomat</span></legend>
+                <div class="mobileOpenChoiceRow">
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="any" checked /> <span data-i18n="cruiseControlAny">Dowolny</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="CRUISE_CONTROL" /> <span data-i18n="cruiseControlStandard">Tempomat</span></label>
+                  <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="ADAPTIVE_CRUISE_CONTROL" /> <span data-i18n="cruiseControlAdaptive">Adaptacyjny tempomat</span></label>
+                </div>
+              </fieldset>
+            </div>
+            <div class="mobileWideField mobileFeatureBlock">
               <div class="mobileOpenFilterRows">
                 <fieldset class="mobileField mobileChoiceField">
                   <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="airConditioningLabel">Klimatyzacja</span></legend>
@@ -272,7 +299,9 @@
                   </div>
                 </fieldset>
               </div>
-              <div class="mobileFeatureChoiceGroup">
+              <fieldset class="mobileField mobileChoiceField">
+                <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></legend>
+                <div class="mobileFeatureChoiceGroup">
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="PANORAMIC_GLASS_ROOF" /> <span data-i18n="featurePanoramicRoof">Dach panoramiczny</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="AIR_SUSPENSION" /> <span data-i18n="featureAirSuspension">Zawieszenie pneumatyczne</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="PERFORMANCE_HANDLING_SYSTEM" /> <span data-i18n="featureSportsSuspension">Sportowe zawieszenie</span></label>
@@ -302,29 +331,9 @@
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WIRELESS_CHARGING" /> <span data-i18n="featureWirelessCharging">Ładowanie indukcyjne smartfona</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WINTER_TIRES" /> <span data-i18n="featureWinterTyres">Opony zimowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SUMMER_TIRES" /> <span data-i18n="featureSummerTyres">Opony letnie</span></label>
-              </div>
-              <div class="mobileOpenFilterRows mobileFeatureSubfilters">
-                <fieldset class="mobileField mobileChoiceField">
-                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="parkingSensorsLabel">Asystenci parkowania</span></legend>
-                  <div class="mobileOpenChoiceRow">
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="CAM_360_DEGREES" /> <span data-i18n="parkingCamera360">Kamera 360°</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_VIEW_CAM" /> <span data-i18n="parkingCamera">Kamera</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="FRONT_SENSORS" /> <span data-i18n="parkingFront">Przód</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_SENSORS" /> <span data-i18n="parkingRear">Tył</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_TRAFFIC_ALERT" /> <span data-i18n="parkingRearTrafficAlert">Asystent ruchu poprzecznego z tyłu</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="AUTOMATIC_PARKING" /> <span data-i18n="parkingSelfSteering">Systemy samoparkowania</span></label>
-                  </div>
-                </fieldset>
-                <fieldset class="mobileField mobileChoiceField">
-                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="cruiseControlLabel">Tempomat</span></legend>
-                  <div class="mobileOpenChoiceRow">
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="any" checked /> <span data-i18n="cruiseControlAny">Dowolny</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="CRUISE_CONTROL" /> <span data-i18n="cruiseControlStandard">Tempomat</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="ADAPTIVE_CRUISE_CONTROL" /> <span data-i18n="cruiseControlAdaptive">Adaptacyjny tempomat</span></label>
-                  </div>
-                </fieldset>
-              </div>
-            </fieldset>
+                </div>
+              </fieldset>
+            </div>
             <fieldset class="mobileField mobileChoiceField mobileWideField mobileColorField">
               <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#palette"></use></svg><span data-i18n="exteriorColorLabel">Kolor nadwozia</span></legend>
               <div class="mobileSwatchGroup mobileColorGroup">
@@ -461,7 +470,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-catalog-complete-20260826"></script>
-    <script src="./src/mobile.js?v=manual-filter-summary-20260828"></script>
-    <script src="./src/mobile-market-analysis.js?v=history-search-link-20260828"></script>
+    <script src="./src/mobile.js?v=manual-filter-multifuel-20260831"></script>
+    <script src="./src/mobile-market-analysis.js?v=history-multifuel-20260831"></script>
   </body>
 </html>
