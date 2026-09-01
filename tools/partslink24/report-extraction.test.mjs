@@ -396,6 +396,12 @@ BADGES                          H:DRIVE`]
       assert.equal(result.engineType, "Бензин + MHEV (мягкий гибрид)", `${brand} ${language}`);
     }
   }
+
+  // The badge is written H:DRIVE. A bare "H" and a "DRIVE" landing in separate
+  // -layout columns must not be glued into that badge.
+  const columnGap = extractVehicleInfoFromText(`ДВИГАТЕЛЬ                    1,0 Л БЕНЗИН
+ПРИВОД            H            DRIVE PACKAGE`, { brand: "Fiat", language: "RU" });
+  assert.equal(columnGap.engineType, "Бензин");
 });
 
 test("Stellantis engine rows outrank unrelated electric equipment descriptions", () => {
