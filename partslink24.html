@@ -397,7 +397,6 @@
         flex-wrap: wrap;
       }
 
-      .partslinkSaveButton,
       .partslinkHistoryDelete {
         display: inline-flex;
         align-items: center;
@@ -415,28 +414,6 @@
         cursor: pointer;
       }
 
-      .partslinkSaveButton:disabled {
-        border-color: var(--ag-color-rule-2);
-        background: var(--ag-color-rule);
-        color: var(--ag-color-muted);
-        cursor: not-allowed;
-      }
-
-      .partslinkSaveButton:not(:disabled) {
-        background: transparent;
-        color: var(--ag-color-accent);
-        transition: background-color var(--ag-dur-short) var(--ag-ease-out), color var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
-      }
-
-      .partslinkSaveButton:not(:disabled):hover {
-        background: var(--ag-color-surface-tint);
-        transform: translateY(-1px);
-      }
-
-      .partslinkSaveButton:not(:disabled):active {
-        transform: translateY(1px);
-      }
-
       .partslinkIconButton {
         display: inline-flex;
         align-items: center;
@@ -446,108 +423,57 @@
         height: 32px;
         min-height: 32px;
         padding: 0;
+        box-sizing: border-box;
         border: 1px solid var(--ag-color-rule-2);
         border-radius: var(--ag-radius-control);
         background: var(--ag-color-surface);
         color: var(--ag-color-accent-dark);
         font-family: var(--ag-font-body);
-        font-size: 19px;
-        font-weight: 400;
+        font-size: 12px;
+        font-weight: 700;
         line-height: 1;
         cursor: pointer;
       }
 
-      .partslinkActions .partslinkIconButton:hover:not(:disabled),
-      .partslinkActions .partslinkIconButton:focus-visible,
-      .partslinkFileActions .partslinkIconButton:hover:not(:disabled),
-      .partslinkFileActions .partslinkIconButton:focus-visible {
+      .partslinkIconButton:hover:not(:disabled),
+      .partslinkIconButton:focus-visible {
         border-color: var(--ag-color-accent);
         background: var(--ag-color-surface-tint);
         color: var(--ag-color-accent-dark);
         outline: 0;
       }
 
-      .partslinkActions .partslinkIconButton:disabled,
-      .partslinkFileActions .partslinkIconButton:disabled {
+      .partslinkIconButton:disabled {
         border-color: var(--ag-color-rule-2);
         background: var(--ag-color-surface-tint);
         color: var(--ag-color-muted);
         cursor: not-allowed;
       }
 
-      .partslinkCheckButton {
-        width: 48px;
-        min-width: 48px;
-        height: 48px;
-        min-height: 48px;
-      }
-
-      .partslinkSearchIcon {
-        position: relative;
-        display: block;
-        width: 18px;
-        height: 18px;
-        border: 2px solid currentColor;
-        border-radius: 50%;
-        box-sizing: border-box;
-        transform: translate(-2px, -2px);
-      }
-
-      .partslinkSearchIcon::after {
-        content: "";
-        position: absolute;
-        bottom: -5px;
-        left: 13px;
-        width: 9px;
-        height: 2px;
-        border-radius: 2px;
-        background: currentColor;
-        transform: rotate(45deg);
-        transform-origin: left center;
-      }
-
-      .partslinkSaveIcon {
-        position: relative;
-        display: block;
-        width: 15px;
-        height: 15px;
-        border: 2px solid currentColor;
-        border-radius: 2px;
-        box-sizing: border-box;
-      }
-
-      .partslinkSaveIcon::before {
-        content: "";
-        position: absolute;
-        top: 1px;
-        left: 3px;
-        width: 6px;
-        height: 4px;
-        background: currentColor;
-      }
-
-      .partslinkSaveIcon::after {
-        content: "";
-        position: absolute;
-        right: 2px;
-        bottom: 2px;
-        left: 2px;
-        height: 4px;
-        border: 1px solid currentColor;
-        box-sizing: border-box;
-      }
-
-      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon {
-        width: auto;
-        height: auto;
-        border: 0;
-        font-size: 17px;
+      .partslinkActions .partslinkIconButton {
+        padding: 0;
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-accent-dark);
+        font-family: var(--ag-font-body);
+        font-size: 12px;
         font-weight: 700;
       }
 
-      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon::before,
-      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon::after {
-        display: none;
+      .partslinkActions .partslinkIconButton:disabled {
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-surface-tint);
+        color: var(--ag-color-muted);
+      }
+
+      .partslinkActionIcon {
+        width: 17px;
+        height: 17px;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
       }
 
       .partslinkHistory {
@@ -966,8 +892,11 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" class="partslinkIconButton partslinkCheckButton" type="button" aria-label="Проверить данные" title="Проверить данные">
-              <span class="partslinkSearchIcon" aria-hidden="true"></span>
+            <button id="partslinkCheckButton" class="partslinkIconButton" type="button" aria-label="Проверить данные" title="Проверить данные">
+              <svg class="partslinkActionIcon" aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
             </button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
@@ -1005,8 +934,12 @@
         <div class="partslinkFileHead">
           <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
           <div class="partslinkFileActions">
-            <button id="partslinkSaveButton" class="partslinkSaveButton partslinkIconButton" type="button" aria-label="Сохранить VIN" title="Сохранить VIN" disabled>
-              <span class="partslinkSaveIcon" aria-hidden="true"></span>
+            <button id="partslinkSaveButton" class="partslinkIconButton" type="button" aria-label="Сохранить VIN" title="Сохранить VIN" disabled>
+              <svg class="partslinkActionIcon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M15.2 3.1a2 2 0 0 1 1.4.6l3.7 3.7a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+                <path d="M17 21v-8H7v8"></path>
+                <path d="M7 3v5h8"></path>
+              </svg>
             </button>
             <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
           </div>
@@ -1037,6 +970,7 @@
       const engineVolumeInput = document.getElementById("partslinkEngineVolume");
       const copyResultButton = document.getElementById("partslinkCopyResult");
       const saveButton = document.getElementById("partslinkSaveButton");
+      const saveButtonIcon = saveButton.querySelector("svg");
       const downloadLinks = document.getElementById("partslinkDownloadLinks");
       const fileViewer = document.getElementById("partslinkFileViewer");
       const historyList = document.getElementById("partslinkHistoryList");
@@ -1385,13 +1319,9 @@
         vinHistory = [item, ...vinHistory.filter((entry) => entry.vin !== vin)].slice(0, 100);
         writeVinHistory();
         renderVinHistory();
-        saveButton.dataset.saved = "true";
-        saveButton.querySelector("span").textContent = "✓";
-        updateActionButtonLabels();
+        setSaveButtonIcon(true);
         window.setTimeout(() => {
-          saveButton.dataset.saved = "false";
-          saveButton.querySelector("span").textContent = "";
-          updateActionButtonLabels();
+          setSaveButtonIcon(false);
         }, 1400);
       }
 
@@ -1456,6 +1386,14 @@
         const saveKey = saveButton.dataset.saved === "true" ? "savedTitle" : "saveTitle";
         saveButton.title = uiText(saveKey);
         saveButton.setAttribute("aria-label", saveButton.title);
+      }
+
+      function setSaveButtonIcon(saved) {
+        saveButton.dataset.saved = String(saved);
+        saveButtonIcon.innerHTML = saved
+          ? '<path d="M20 6 9 17l-5-5"></path>'
+          : '<path d="M15.2 3.1a2 2 0 0 1 1.4.6l3.7 3.7a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path>';
+        updateActionButtonLabels();
       }
 
       function applyUiLanguage(language, { persist = true } = {}) {
@@ -1526,12 +1464,10 @@
         setVehicleDescription("");
         copyResultButton.disabled = true;
         saveButton.disabled = true;
-        saveButton.dataset.saved = "false";
-        saveButton.querySelector("span").textContent = "";
+        setSaveButtonIcon(false);
         copyResultButton.dataset.copied = "false";
         copyResultButton.querySelector("span").innerHTML = "&#10697;";
         updateCopyButtonLabel();
-        updateActionButtonLabels();
         statusLine.textContent = "";
         delete statusLine.dataset.messageKey;
         statusLine.removeAttribute("data-tone");
@@ -1681,6 +1617,7 @@
           pickerOption.role = "option";
           pickerOption.dataset.value = brand.value;
           pickerOption.dataset.favorite = String(brand.favorite);
+          pickerOption.dataset.search = `${brand.label} ${brand.value}`.toLocaleLowerCase();
           pickerOption.textContent = brand.label;
           pickerOption.addEventListener("click", () => {
             brandSelect.value = brand.value;
@@ -1753,6 +1690,17 @@
         }
       }
 
+      function selectBrandOption(option, { focus = true } = {}) {
+        if (!option) return;
+        brandSelect.value = option.dataset.value;
+        brandSelect.dispatchEvent(new Event("change"));
+        if (brandPickerOptions.hidden) toggleBrandPicker();
+        if (focus) {
+          option.focus();
+          option.scrollIntoView({ block: "nearest" });
+        }
+      }
+
       function selectBrandFromTypeahead(event) {
         if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1 || !event.key.trim()) return;
 
@@ -1761,11 +1709,11 @@
         const options = [...brandPickerOptions.querySelectorAll("[role='option']")];
         const currentIndex = options.findIndex((option) => option.dataset.value === brandSelect.value);
         brandTypeahead += typed;
-        let matches = options.filter((option) => option.textContent.trim().toLocaleLowerCase().startsWith(brandTypeahead));
+        let matches = options.filter((option) => option.dataset.search.startsWith(brandTypeahead));
 
         if (!matches.length) {
           brandTypeahead = typed;
-          matches = options.filter((option) => option.textContent.trim().toLocaleLowerCase().startsWith(typed));
+          matches = options.filter((option) => option.dataset.search.startsWith(typed));
           if (matches.length > 1) {
             const next = options.slice(currentIndex + 1).find((option) => matches.includes(option));
             if (next) matches = [next];
@@ -1780,11 +1728,42 @@
         const match = matches[0];
         if (!match) return;
 
-        if (brandPickerOptions.hidden) toggleBrandPicker();
-        brandSelect.value = match.dataset.value;
-        brandSelect.dispatchEvent(new Event("change"));
-        match.focus();
-        match.scrollIntoView({ block: "nearest" });
+        selectBrandOption(match);
+      }
+
+      function navigateBrandPicker(event) {
+        const options = [...brandPickerOptions.querySelectorAll("[role='option']")];
+        if (!options.length) return;
+        const activeOption = document.activeElement.closest?.("[role='option']");
+        const selectedIndex = options.findIndex((option) => option.dataset.value === brandSelect.value);
+        const currentIndex = activeOption ? options.indexOf(activeOption) : selectedIndex;
+
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          if (brandPickerOptions.hidden) toggleBrandPicker();
+          const direction = event.key === "ArrowDown" ? 1 : -1;
+          const nextIndex = (Math.max(currentIndex, 0) + direction + options.length) % options.length;
+          options[nextIndex].focus();
+          options[nextIndex].scrollIntoView({ block: "nearest" });
+          return;
+        }
+
+        if (event.key === "Enter" && activeOption) {
+          event.preventDefault();
+          selectBrandOption(activeOption, { focus: false });
+          closeBrandPicker();
+          brandPickerButton.focus();
+          return;
+        }
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeBrandPicker();
+          brandPickerButton.focus();
+          return;
+        }
+
+        selectBrandFromTypeahead(event);
       }
 
       function closeLanguagePicker() {
@@ -1812,13 +1791,9 @@
       });
       brandPickerButton.addEventListener("click", toggleBrandPicker);
       brandPickerButton.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault();
-          if (brandPickerOptions.hidden) toggleBrandPicker();
-          return;
-        }
-        selectBrandFromTypeahead(event);
+        navigateBrandPicker(event);
       });
+      brandPickerOptions.addEventListener("keydown", navigateBrandPicker);
       languagePickerButton.addEventListener("click", toggleLanguagePicker);
       languagePickerButton.addEventListener("keydown", (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -1833,7 +1808,7 @@
       document.addEventListener("keydown", (event) => {
         const isTypingField = event.target.closest?.("input, textarea, select, [contenteditable='true']");
         if (!event.defaultPrevented && !brandPickerOptions.hidden && !isTypingField) {
-          selectBrandFromTypeahead(event);
+          navigateBrandPicker(event);
         }
         if (event.key === "Escape") {
           closeBrandPicker();
