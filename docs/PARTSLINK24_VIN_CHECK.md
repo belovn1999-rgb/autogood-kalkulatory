@@ -30,6 +30,23 @@
 
 - Mercedes-Benz
 - Peugeot
+- Fiat — общий поиск VIN со стартовой страницы авто не находит (01.09.2026). Сначала плитка `Fiat`, потом VIN. Проверочный VIN и текстовые признаки PDF ещё не зафиксированы.
+
+## Выбор плитки марки
+
+Плитка ищется сначала по точному совпадению подписи и только потом по вхождению подстроки. Рядом стоят варианты с тем же началом названия, и поиск по подстроке уводил на соседнюю плитку:
+
+| Нужна плитка | Соседние плитки, куда можно промахнуться |
+| --- | --- |
+| `Fiat` | `Fiat Professional` |
+| `Ford` | `Ford Pro` / `Ford Commercial` |
+| `BMW` | `BMW Classic`, `BMW Motorrad`, `BMW Motorrad Classic` |
+| `Mercedes-Benz` | `Mercedes Classic`, `Trucks`, `Mercedes Unimog`, `Vans` |
+| `MINI` | `MINI Classic` |
+| `Opel` | `Opel Legacy` |
+| `Porsche` | `Porsche Classic` |
+| `Vauxhall` | `Vauxhall Legacy` |
+| `Volkswagen` | `Volkswagen Classic Parts`, `VW Nutzfahrzeuge` |
 
 ## Критерий успешного PDF
 

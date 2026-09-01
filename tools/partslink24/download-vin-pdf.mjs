@@ -533,19 +533,30 @@ function formatDamProductionDate(damCode) {
 async function clickBrandTile(page, brandConfig) {
   const names = [brandConfig.brandTile, ...(brandConfig.brandTileAliases || [])].filter(Boolean);
 
-  for (const name of names) {
-    const escapedName = escapeRegExp(name);
-    const candidates = [
-      page.getByRole("button", { name: new RegExp(escapedName, "i") }).first(),
-      page.getByRole("img", { name: new RegExp(escapedName, "i") }).first(),
-      page.locator(`[title="${cssString(name)}"]`).first(),
-      page.getByText(new RegExp(escapedName, "i")).first()
-    ];
+  // Two passes: an exact label match first, substring only as a fallback.
+  // Many tiles sit next to a variant whose label contains the base name —
+  // Fiat/Fiat Professional, Ford/Ford Pro, BMW/BMW Classic/BMW Motorrad,
+  // Mini/Mini Classic, Opel/Opel Legacy, Porsche/Porsche Classic,
+  // Volkswagen/Volkswagen Classic Parts — so a plain substring match can
+  // silently open the wrong catalogue.
+  for (const exactPass of [true, false]) {
+    for (const name of names) {
+      const escapedName = escapeRegExp(name);
+      const pattern = exactPass
+        ? new RegExp(`^\\s*${escapedName}\\s*$`, "i")
+        : new RegExp(escapedName, "i");
+      const candidates = [
+        page.getByRole("button", { name: pattern }).first(),
+        page.getByRole("img", { name: pattern }).first(),
+        page.locator(`[title="${cssString(name)}"]`).first(),
+        page.getByText(pattern).first()
+      ];
 
-    for (const candidate of candidates) {
-      if (!await candidate.isVisible({ timeout: 1200 }).catch(() => false)) continue;
-      await clickHuman(candidate);
-      return;
+      for (const candidate of candidates) {
+        if (!await candidate.isVisible({ timeout: 1200 }).catch(() => false)) continue;
+        await clickHuman(candidate);
+        return;
+      }
     }
   }
 

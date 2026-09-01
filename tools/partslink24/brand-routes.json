@@ -64,8 +64,12 @@
       "brandTileAliases": ["Citroën DS", "DS"]
     },
     "Fiat": {
-      "route": "general_vin_search",
-      "brandTile": "Fiat"
+      "route": "brand_first_search",
+      "brandTile": "Fiat",
+      "notes": [
+        "Общий поиск VIN со стартовой страницы не находит авто (проверено 01.09.2026): сначала плитка Fiat, потом VIN.",
+        "Плитка Fiat — первая во втором ряду, рядом стоит Fiat Professional."
+      ]
     },
     "Fiat Professional": {
       "route": "pending_demo",
