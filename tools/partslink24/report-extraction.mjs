@@ -534,16 +534,39 @@ function collectStellantisPowertrainEvidence(text) {
   // JavaScript \b does not recognize Cyrillic characters as word characters,
   // so Russian "без" must be checked outside the ASCII-word-boundary group.
   const negative = /\b(?:without|w\/?o|none|not fitted|bez|brak)\b|без|отсутств/i;
+  // The equipment table lists every option the catalogue knows, fitted or not:
+  // "07B  Нет  EV/PHEV SMART CHARGING PORT" means the car has no charging port,
+  // so such a row must never count as plug-in proof. A row opens with its code
+  // and a Да/Нет column; a description too long for one row continues on the
+  // next line without a code and belongs to that same row.
+  const optionRow = /^[A-Z0-9]{2,8}\s+(Да|Нет|Tak|Nie|Yes|No)\s/i;
+  const notFitted = /^(?:Нет|Nie|No)$/i;
   const matches = [];
 
-  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim());
+  const rawLines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\u00a0/g, " "));
+  const lines = rawLines.map((line) => line.replace(/\s+/g, " ").trim());
+  // A table row starts in the first column; a wrapped description is indented.
+  const startsRow = (index) => /^\S/.test(rawLines[index] || "");
 
+  let optionNotFitted = false;
   for (let index = 0; index < lines.length; index += 1) {
     const normalized = lines[index];
-    if (!normalized) continue;
-    // PDF tables may split a label and its value into adjacent lines. Inspect
-    // both so a following "без/without" value cannot become PHEV evidence.
-    const evidenceBlock = [normalized, lines[index + 1]].filter(Boolean).join(" ");
+    if (!normalized) {
+      optionNotFitted = false;
+      continue;
+    }
+
+    if (startsRow(index)) {
+      const option = normalized.match(optionRow);
+      optionNotFitted = Boolean(option) && notFitted.test(option[1]);
+    }
+    if (optionNotFitted) continue;
+
+    // PDF tables may split a label and its value across lines, so read the
+    // continuation too — but only when it really continues this row. Gluing on
+    // the next row instead lent a fitted option the "Нет" row's EV/PHEV text.
+    const continuation = startsRow(index + 1) ? "" : lines[index + 1];
+    const evidenceBlock = [normalized, continuation].filter(Boolean).join(" ");
     if (negative.test(evidenceBlock)) continue;
     if (explicitPlugIn.test(evidenceBlock) || chargingEvidence.test(evidenceBlock) || mildHybrid.test(evidenceBlock) || (hybrid.test(evidenceBlock) && powertrainContext.test(evidenceBlock))) {
       matches.push(evidenceBlock);

@@ -373,6 +373,26 @@ test("all Stellantis reports ignore explicitly absent charging equipment", () =>
   }
 });
 
+test("Stellantis equipment rows marked Нет are not plug-in evidence", () => {
+  // Real ZFA5FBBT1SJ100264 shape: a mild hybrid whose catalogue lists every
+  // EV/PHEV charging option as not fitted, with wrapped descriptions indented.
+  const report = `Ввод данных по модели                SIGNATURE 1.2 136CV MHEV 1200
+CMB                     BE           ТОПЛИВО = Petrol/ELECTRIC
+ELT                     MHEV         ТИП ЭЛЕКТРИФИКАЦИИ = MILD HYBRID ELECTRIC
+                                     VEHICLE P2 W DISCON
+ENG                     B235         ENGINE ASSEMBLY = 1.2 BZ MHEV 6.4 136 CV
+                                     eAWD
+06S                 Нет           ЭЛЕКТРИЧЕСКИМ ДВИГАТЕЛЕМ УПРАВЛЯЕМАЯ
+                                  ТЕМПЕРАТУРА EV/PHEV
+07B                 Нет           EV/PHEV SMART CHARGING PORT
+1H2                 Да            АВТО ДАЛЬНИЙ/БЛИЖНИЙ СВЕТ
+1LF                 Нет           Кабель зарядки EV/PHEV MODE 2 1
+`;
+
+  const result = extractVehicleInfoFromText(report, { brand: "Fiat", language: "RU" });
+  assert.equal(result.engineType, "Бензин + MHEV (мягкий гибрид)");
+});
+
 test("all Stellantis reports recognize BSG and H:DRIVE as mild-hybrid evidence", () => {
   const reports = [
     ["RU", `ДВИГАТЕЛЬ                    1,0 Л БЕНЗИН
