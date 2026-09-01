@@ -26,7 +26,9 @@ const mode = readOption(args, "--mode") || (args.includes("--production-date-onl
 const outDir = resolve(readOption(args, "--out-dir") || process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
-const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || 280);
+const pace = Math.max(1, Number(process.env.PARTSLINK24_PACE || 1.5));
+const paced = (ms) => Math.round(ms / pace);
+const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || paced(280));
 const systemChromePaths = [
   process.env.PARTSLINK24_CHROME_PATH,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -905,8 +907,10 @@ async function readJson(path) {
 
 async function fillHuman(locator, value) {
   await locator.click();
-  await humanDelay(160, 400);
+  await humanDelay(paced(160), paced(400));
   await locator.fill("");
+  // Keystroke cadence stays as it is: 36-96 ms is already at the fast end of
+  // real typing, and shortening it further is what looks synthetic.
   await locator.pressSequentially(String(value), { delay: randomInt(36, 96) });
 }
 
@@ -916,7 +920,7 @@ async function clickHuman(locator) {
   await humanDelay();
 }
 
-async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || 520), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || 1280)) {
+async function humanDelay(min = Number(process.env.PARTSLINK24_DELAY_MIN_MS || paced(520)), max = Number(process.env.PARTSLINK24_DELAY_MAX_MS || paced(1280))) {
   await new Promise((resolveDelay) => setTimeout(resolveDelay, randomInt(min, max)));
 }
 

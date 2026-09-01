@@ -409,6 +409,81 @@
         transform: none;
       }
 
+      .partslinkActions button.partslinkCheckAction {
+        gap: var(--ag-space-xs);
+        min-height: var(--ag-size-action);
+        padding: 0 var(--ag-space-button-x);
+      }
+
+      .partslinkActions button.partslinkCancelAction {
+        gap: var(--ag-space-xs);
+        min-height: var(--ag-size-action);
+        padding: 0 var(--ag-space-md);
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-ink-2);
+      }
+
+      .partslinkActions button.partslinkCancelAction:hover,
+      .partslinkActions button.partslinkCancelAction:focus-visible {
+        border-color: var(--ag-color-accent);
+        color: var(--ag-color-accent-dark);
+      }
+
+      .partslinkCancelAction[hidden] {
+        display: none;
+      }
+
+      .partslinkProgress {
+        order: -1;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        margin-right: auto;
+      }
+
+      .partslinkProgress[hidden] {
+        display: none;
+      }
+
+      .partslinkWheel {
+        width: 34px;
+        height: 34px;
+        animation: partslinkWheelSpin 1.05s linear infinite;
+      }
+
+      .partslinkWheelTyre {
+        fill: none;
+        stroke: var(--ag-color-accent-dark);
+        stroke-width: 4.5;
+      }
+
+      .partslinkWheelRim {
+        fill: var(--ag-color-surface);
+        stroke: var(--ag-color-accent);
+        stroke-width: 2;
+      }
+
+      .partslinkWheelSpokes line {
+        stroke: var(--ag-color-accent);
+        stroke-width: 3;
+        stroke-linecap: round;
+      }
+
+      .partslinkWheelHub {
+        fill: var(--ag-color-accent);
+      }
+
+      @keyframes partslinkWheelSpin {
+        to { transform: rotate(360deg); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .partslinkWheel {
+          animation-duration: 3.2s;
+        }
+      }
+
       .partslinkDownloadLink[hidden] {
         display: none;
       }
@@ -952,11 +1027,29 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" class="partslinkIconButton" type="button" aria-label="Проверить данные" title="Проверить данные">
+            <div id="partslinkProgress" class="partslinkProgress" role="presentation" hidden>
+              <svg class="partslinkWheel" viewBox="0 0 48 48" aria-hidden="true">
+                <circle class="partslinkWheelTyre" cx="24" cy="24" r="20.5"></circle>
+                <circle class="partslinkWheelRim" cx="24" cy="24" r="15"></circle>
+                <g class="partslinkWheelSpokes">
+                  <line x1="24" y1="19" x2="24" y2="10"></line>
+                  <line x1="28.76" y1="22.45" x2="37.31" y2="19.67"></line>
+                  <line x1="26.94" y1="28.05" x2="32.23" y2="35.33"></line>
+                  <line x1="21.06" y1="28.05" x2="15.77" y2="35.33"></line>
+                  <line x1="19.24" y1="22.45" x2="10.69" y2="19.67"></line>
+                </g>
+                <circle class="partslinkWheelHub" cx="24" cy="24" r="3.2"></circle>
+              </svg>
+            </div>
+            <button id="partslinkCancelButton" class="partslinkCancelAction" type="button" title="Отменить проверку" hidden>
+              <span data-ui-key="cancelButton">Отменить</span>
+            </button>
+            <button id="partslinkCheckButton" class="partslinkCheckAction" type="button" title="Проверить данные">
               <svg class="partslinkActionIcon partslinkSearchIcon" aria-hidden="true" viewBox="0 0 24 24">
                 <circle cx="10.5" cy="10.5" r="6.5"></circle>
                 <path d="m15.5 15.5 4.5 4.5"></path>
               </svg>
+              <span data-ui-key="checkButton">Проверить данные</span>
             </button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
@@ -1025,6 +1118,8 @@
       const brandPickerOptions = document.getElementById("partslinkBrandOptions");
       const vinInput = document.getElementById("partslinkVin");
       const checkButton = document.getElementById("partslinkCheckButton");
+      const cancelButton = document.getElementById("partslinkCancelButton");
+      const progressBar = document.getElementById("partslinkProgress");
       const vehicleDescriptionInput = document.getElementById("partslinkVehicleDescription");
       const productionDateInput = document.getElementById("partslinkProductionDate");
       const engineTypeInput = document.getElementById("partslinkEngineType");
@@ -1083,6 +1178,12 @@
           copyableText: "Текст отчёта — можно выделять и копировать",
           invalidVin: "VIN должен содержать 17 символов: проверьте ввод и повторите.",
           checking: "Проверяем данные и готовим файл VIN...",
+          checkingElapsed: (seconds) => `Проверяем данные и готовим файл VIN... ${seconds} с`,
+          cancelButton: "Отменить",
+          cancelTitle: "Отменить проверку",
+          checkCancelled: "Проверка отменена.",
+          checkTimeout: "Проверка прервана: сервер не ответил за 3 минуты. Проверьте туннель и повторите.",
+          invalidVinChars: (chars) => `VIN не может содержать ${chars}: это запрещённые символы. Проверьте ввод.`,
           backendUnavailable: "Сервер проверки VIN недоступен.",
           vinCheckFailed: (reason) => `Не удалось проверить VIN на данную модель: ${reason}`,
           vinCheckReasons: {
@@ -1143,6 +1244,12 @@
           copyableText: "Tekst raportu — można zaznaczać i kopiować",
           invalidVin: "VIN musi zawierać 17 znaków. Sprawdź wpisane dane i spróbuj ponownie.",
           checking: "Sprawdzamy dane i przygotowujemy plik VIN...",
+          checkingElapsed: (seconds) => `Sprawdzamy dane i przygotowujemy plik VIN... ${seconds} s`,
+          cancelButton: "Anuluj",
+          cancelTitle: "Anuluj weryfikację",
+          checkCancelled: "Weryfikacja anulowana.",
+          checkTimeout: "Weryfikacja przerwana: serwer nie odpowiedział w ciągu 3 minut. Sprawdź tunel i spróbuj ponownie.",
+          invalidVinChars: (chars) => `VIN nie może zawierać ${chars}: to znaki niedozwolone. Sprawdź wpisane dane.`,
           backendUnavailable: "Serwer weryfikacji VIN jest niedostępny.",
           vinCheckFailed: (reason) => `Nie udało się zweryfikować VIN dla tego modelu: ${reason}`,
           vinCheckReasons: {
@@ -1248,6 +1355,12 @@
       let brandTypeahead = "";
       let brandTypeaheadTimer;
       const brandTypeaheadTimeout = 2000;
+      const checkTimeoutMs = 180000;
+      const forbiddenVinCharacters = /[IOQ]/g;
+      let statusArgs = [];
+      let checkElapsedTimer = null;
+      let activeCheckController = null;
+      let checkAbortReason = "";
 
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -1443,7 +1556,8 @@
 
       function updateActionButtonLabels() {
         checkButton.title = uiText("checkTitle");
-        checkButton.setAttribute("aria-label", checkButton.title);
+        checkButton.removeAttribute("aria-label");
+        cancelButton.title = uiText("cancelTitle");
         const saveKey = saveButton.dataset.saved === "true" ? "savedTitle" : "saveTitle";
         saveButton.title = uiText(saveKey);
         saveButton.setAttribute("aria-label", saveButton.title);
@@ -1478,7 +1592,7 @@
           fileViewer.replaceChildren(makeFileMessage(uiText("emptyFile")));
         }
         const messageKey = statusLine.dataset.messageKey;
-        if (messageKey) statusLine.textContent = uiText(messageKey);
+        if (messageKey) statusLine.textContent = uiText(messageKey, ...statusArgs);
         if (persist) {
           try {
             localStorage.setItem("partslink24-ui-language", uiLanguage);
@@ -1592,12 +1706,29 @@
         }
       }
 
-      function setStatusFromKey(key, tone = "") {
-        setStatus(uiText(key), tone, key);
+      function setStatusFromKey(key, tone = "", ...args) {
+        statusArgs = args;
+        setStatus(uiText(key, ...args), tone, key);
       }
 
       function setBusy(isBusy) {
         checkButton.disabled = isBusy;
+        cancelButton.hidden = !isBusy;
+        progressBar.hidden = !isBusy;
+      }
+
+      function startCheckProgress() {
+        stopCheckProgress();
+        const startedAt = Date.now();
+        setStatusFromKey("checkingElapsed", "", 0);
+        checkElapsedTimer = window.setInterval(() => {
+          setStatusFromKey("checkingElapsed", "", Math.round((Date.now() - startedAt) / 1000));
+        }, 1000);
+      }
+
+      function stopCheckProgress() {
+        window.clearInterval(checkElapsedTimer);
+        checkElapsedTimer = null;
       }
 
       async function renderDownloadLinks(files, apiBase, brand, vin) {
@@ -1871,6 +2002,11 @@
         vinInput.value = vinInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 17);
         resetResults();
       });
+      vinInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        runVinCheck();
+      });
       brandSelect.addEventListener("change", () => {
         vinInput.value = "";
         resetResults();
@@ -1922,8 +2058,15 @@
         const brand = brandSelect.value;
         const language = languageSelect.value;
 
-        if (!/^[A-Z0-9]{17}$/.test(vin)) {
+        if (vin.length !== 17) {
           setStatusFromKey("invalidVin", "error");
+          vinInput.focus();
+          return null;
+        }
+
+        const forbidden = [...new Set(vin.match(forbiddenVinCharacters) || [])];
+        if (forbidden.length) {
+          setStatusFromKey("invalidVinChars", "error", forbidden.join(", "));
           vinInput.focus();
           return null;
         }
@@ -1931,21 +2074,33 @@
         return { brand, vin, language };
       }
 
-      checkButton.addEventListener("click", async () => {
+      async function runVinCheck() {
+        if (activeCheckController) return;
+
         const payload = readPayload();
         if (!payload) return;
 
+        const controller = new AbortController();
+        activeCheckController = controller;
+        checkAbortReason = "";
+        const timeoutId = window.setTimeout(() => {
+          checkAbortReason = "timeout";
+          controller.abort();
+        }, checkTimeoutMs);
+
         setBusy(true);
         resetResults();
-        setStatusFromKey("checking");
+        startCheckProgress();
         try {
           const apiBase = getPartslinkApiBase();
           const response = await fetch(`${apiBase}/api/partslink24/check-vin`, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           });
           const result = await response.json().catch(() => ({}));
+          stopCheckProgress();
 
           if (!response.ok || !result.ok) {
             throw new Error(result.error || uiText("backendUnavailable"));
@@ -1964,10 +2119,26 @@
           await renderDownloadLinks(files, apiBase, payload.brand, payload.vin);
           setStatusFromKey(files.length > 1 ? "readyMany" : "readyOne", "success");
         } catch (error) {
-          setStatus(formatVinCheckError(error), "error");
+          if (error?.name === "AbortError") {
+            setStatusFromKey(checkAbortReason === "timeout" ? "checkTimeout" : "checkCancelled", "error");
+          } else {
+            setStatus(formatVinCheckError(error), "error");
+          }
         } finally {
+          window.clearTimeout(timeoutId);
+          stopCheckProgress();
+          activeCheckController = null;
+          checkAbortReason = "";
           setBusy(false);
         }
+      }
+
+      checkButton.addEventListener("click", runVinCheck);
+
+      cancelButton.addEventListener("click", () => {
+        if (!activeCheckController) return;
+        checkAbortReason = "cancel";
+        activeCheckController.abort();
       });
 
     </script>
