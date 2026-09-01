@@ -338,7 +338,7 @@
         padding-top: var(--ag-space-xs);
       }
 
-      .partslinkActions button,
+      .partslinkActions button:not(.partslinkIconButton),
       .partslinkDownloadLink {
         display: inline-flex;
         align-items: center;
@@ -432,6 +432,88 @@
 
       .partslinkSaveButton:not(:disabled):active {
         transform: translateY(1px);
+      }
+
+      .partslinkIconButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        min-height: 32px;
+        padding: 0;
+        border: 1px solid var(--ag-color-rule-2);
+        border-radius: var(--ag-radius-control);
+        background: var(--ag-color-surface);
+        color: var(--ag-color-accent-dark);
+        font-family: var(--ag-font-body);
+        font-size: 19px;
+        font-weight: 400;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .partslinkActions .partslinkIconButton:hover:not(:disabled),
+      .partslinkActions .partslinkIconButton:focus-visible,
+      .partslinkFileActions .partslinkIconButton:hover:not(:disabled),
+      .partslinkFileActions .partslinkIconButton:focus-visible {
+        border-color: var(--ag-color-accent);
+        background: var(--ag-color-surface-tint);
+        color: var(--ag-color-accent-dark);
+        outline: 0;
+      }
+
+      .partslinkActions .partslinkIconButton:disabled,
+      .partslinkFileActions .partslinkIconButton:disabled {
+        border-color: var(--ag-color-rule-2);
+        background: var(--ag-color-surface-tint);
+        color: var(--ag-color-muted);
+        cursor: not-allowed;
+      }
+
+      .partslinkSaveIcon {
+        position: relative;
+        display: block;
+        width: 15px;
+        height: 15px;
+        border: 2px solid currentColor;
+        border-radius: 2px;
+        box-sizing: border-box;
+      }
+
+      .partslinkSaveIcon::before {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 3px;
+        width: 6px;
+        height: 4px;
+        background: currentColor;
+      }
+
+      .partslinkSaveIcon::after {
+        content: "";
+        position: absolute;
+        right: 2px;
+        bottom: 2px;
+        left: 2px;
+        height: 4px;
+        border: 1px solid currentColor;
+        box-sizing: border-box;
+      }
+
+      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon {
+        width: auto;
+        height: auto;
+        border: 0;
+        font-size: 17px;
+        font-weight: 700;
+      }
+
+      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon::before,
+      .partslinkSaveButton[data-saved="true"] .partslinkSaveIcon::after {
+        display: none;
       }
 
       .partslinkHistory {
@@ -766,7 +848,7 @@
           flex-direction: column;
         }
 
-        .partslinkActions button,
+        .partslinkActions button:not(.partslinkIconButton),
         .partslinkDownloadLink {
           width: 100%;
           min-height: var(--ag-size-action);
@@ -848,7 +930,9 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" type="button" data-ui-key="checkButton">Проверить данные</button>
+            <button id="partslinkCheckButton" class="partslinkIconButton" type="button" aria-label="Проверить данные" title="Проверить данные">
+              <span aria-hidden="true">&#10227;</span>
+            </button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
         </div>
@@ -885,7 +969,9 @@
         <div class="partslinkFileHead">
           <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
           <div class="partslinkFileActions">
-            <button id="partslinkSaveButton" class="partslinkSaveButton" type="button" data-ui-key="save" disabled>Сохранить VIN</button>
+            <button id="partslinkSaveButton" class="partslinkSaveButton partslinkIconButton" type="button" aria-label="Сохранить VIN" title="Сохранить VIN" disabled>
+              <span class="partslinkSaveIcon" aria-hidden="true"></span>
+            </button>
             <div id="partslinkDownloadLinks" class="partslinkDownloadLinks" hidden></div>
           </div>
         </div>
@@ -930,6 +1016,7 @@
           vehicleBrand: "2. Марка авто",
           vinField: "3. VIN (17 символов)",
           checkButton: "Проверить данные",
+          checkTitle: "Проверить данные",
           result: "Результат",
           brandAndModel: "Марка и модель авто",
           productionDate: "Дата производства",
@@ -938,6 +1025,8 @@
           vinFile: "Файл VIN",
           save: "Сохранить VIN",
           saved: "Сохранено",
+          saveTitle: "Сохранить VIN",
+          savedTitle: "VIN сохранён",
           history: "История VIN",
           historyBrandModel: "Марка и модель",
           historyVin: "VIN",
@@ -987,6 +1076,7 @@
           vehicleBrand: "2. Marka samochodu",
           vinField: "3. VIN (17 znaków)",
           checkButton: "Sprawdź dane",
+          checkTitle: "Sprawdź dane",
           result: "Wynik",
           brandAndModel: "Marka i model samochodu",
           productionDate: "Data produkcji",
@@ -995,6 +1085,8 @@
           vinFile: "Plik VIN",
           save: "Zapisz VIN",
           saved: "Zapisano",
+          saveTitle: "Zapisz VIN",
+          savedTitle: "VIN zapisano",
           history: "Historia VIN",
           historyBrandModel: "Marka i model",
           historyVin: "VIN",
@@ -1257,9 +1349,13 @@
         vinHistory = [item, ...vinHistory.filter((entry) => entry.vin !== vin)].slice(0, 100);
         writeVinHistory();
         renderVinHistory();
-        saveButton.textContent = uiText("saved");
+        saveButton.dataset.saved = "true";
+        saveButton.querySelector("span").textContent = "✓";
+        updateActionButtonLabels();
         window.setTimeout(() => {
-          saveButton.textContent = uiText("save");
+          saveButton.dataset.saved = "false";
+          saveButton.querySelector("span").textContent = "";
+          updateActionButtonLabels();
         }, 1400);
       }
 
@@ -1318,6 +1414,14 @@
         copyResultButton.setAttribute("aria-label", copyResultButton.title);
       }
 
+      function updateActionButtonLabels() {
+        checkButton.title = uiText("checkTitle");
+        checkButton.setAttribute("aria-label", checkButton.title);
+        const saveKey = saveButton.dataset.saved === "true" ? "savedTitle" : "saveTitle";
+        saveButton.title = uiText(saveKey);
+        saveButton.setAttribute("aria-label", saveButton.title);
+      }
+
       function applyUiLanguage(language, { persist = true } = {}) {
         uiLanguage = language === "pl" ? "pl" : "ru";
         document.documentElement.lang = uiLanguage;
@@ -1332,6 +1436,7 @@
         document.querySelector(".partslinkResultCard")?.setAttribute("aria-label", uiText("resultAria"));
         document.querySelector(".partslinkFileBlock")?.setAttribute("aria-label", uiText("fileAria"));
         updateCopyButtonLabel();
+        updateActionButtonLabels();
         renderLocalizedResultValues();
         renderVinHistory();
         if (fileViewer.dataset.empty === "true") {
@@ -1385,9 +1490,12 @@
         setVehicleDescription("");
         copyResultButton.disabled = true;
         saveButton.disabled = true;
+        saveButton.dataset.saved = "false";
+        saveButton.querySelector("span").textContent = "";
         copyResultButton.dataset.copied = "false";
         copyResultButton.querySelector("span").innerHTML = "&#10697;";
         updateCopyButtonLabel();
+        updateActionButtonLabels();
         statusLine.textContent = "";
         delete statusLine.dataset.messageKey;
         statusLine.removeAttribute("data-tone");
