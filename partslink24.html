@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD VIN спецификация</title>
+    <meta name="description" content="Внутренний инструмент AUTOGOOD: проверка VIN по каталогу производителя, отчёт PDF, дата производства и данные двигателя." />
+    <meta name="theme-color" content="#15304a" />
+    <link rel="icon" href="./assets/ag-opt.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/autogood-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -137,20 +141,6 @@
         letter-spacing: 0.05em;
         line-height: 1.2;
         text-transform: uppercase;
-      }
-
-      .partslinkHero h1 {
-        max-width: 22ch;
-        min-width: 0;
-        margin: var(--ag-space-xs) 0 0;
-        color: var(--ag-color-ink);
-        font-family: var(--ag-font-display);
-        font-size: var(--ag-text-display);
-        font-style: normal;
-        font-weight: 800;
-        letter-spacing: 0;
-        line-height: 1.15;
-        overflow-wrap: anywhere;
       }
 
       .partslinkWorkbench {
@@ -430,7 +420,7 @@
         color: var(--ag-color-accent-dark);
       }
 
-      .partslinkCancelAction[hidden] {
+      .partslinkActions button.partslinkCancelAction[hidden] {
         display: none;
       }
 
@@ -986,40 +976,40 @@
 
       <section class="partslinkHero">
         <div>
-          <p class="partslinkEyebrow" data-ui-key="vinCheck">Проверка VIN</p>
+          <h1 class="partslinkEyebrow" data-ui-key="vinCheck">Проверка VIN</h1>
         </div>
       </section>
 
       <section class="partslinkWorkbench" aria-label="VIN PDF and production date form">
         <div class="partslinkCard">
-          <p class="partslinkPanelTitle" data-ui-key="checkData">Данные проверки</p>
-          <label class="partslinkField">
-            <span data-ui-key="reportLanguage">1. Язык отчёта</span>
+          <h2 class="partslinkPanelTitle" data-ui-key="checkData">Данные проверки</h2>
+          <div class="partslinkField">
+            <span id="partslinkLanguageFieldLabel" data-ui-key="reportLanguage">1. Язык отчёта</span>
             <div class="partslinkBrandPicker partslinkLanguagePicker">
-              <button id="partslinkLanguageButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkLanguageOptions">
+              <button id="partslinkLanguageButton" class="partslinkBrandPickerButton" type="button" role="combobox" aria-labelledby="partslinkLanguageFieldLabel partslinkLanguageLabel" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkLanguageOptions">
                 <span id="partslinkLanguageLabel"></span>
                 <span class="partslinkBrandCaret" aria-hidden="true">&#9662;</span>
               </button>
-              <div id="partslinkLanguageOptions" class="partslinkBrandOptions" role="listbox" hidden></div>
-              <select id="partslinkLanguage" class="partslinkBrandNativeSelect" name="language" tabindex="-1" aria-hidden="true">
+              <div id="partslinkLanguageOptions" class="partslinkBrandOptions" role="listbox" aria-labelledby="partslinkLanguageFieldLabel" hidden></div>
+              <select id="partslinkLanguage" class="partslinkBrandNativeSelect" name="language" tabindex="-1" inert>
                 <option value="RU">RU</option>
                 <option value="PL">PL</option>
                 <option value="ENG">ENG</option>
               </select>
             </div>
-          </label>
+          </div>
 
-          <label class="partslinkField">
-            <span data-ui-key="vehicleBrand">2. Марка авто</span>
+          <div class="partslinkField">
+            <span id="partslinkBrandFieldLabel" data-ui-key="vehicleBrand">2. Марка авто</span>
             <div class="partslinkBrandPicker">
-              <button id="partslinkBrandButton" class="partslinkBrandPickerButton" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkBrandOptions">
+              <button id="partslinkBrandButton" class="partslinkBrandPickerButton" type="button" role="combobox" aria-labelledby="partslinkBrandFieldLabel partslinkBrandLabel" aria-haspopup="listbox" aria-expanded="false" aria-controls="partslinkBrandOptions">
                 <span id="partslinkBrandLabel"></span>
                 <span class="partslinkBrandCaret" aria-hidden="true">&#9662;</span>
               </button>
-              <div id="partslinkBrandOptions" class="partslinkBrandOptions" role="listbox" hidden></div>
-              <select id="partslinkBrand" class="partslinkBrandNativeSelect" name="brand" tabindex="-1" aria-hidden="true"></select>
+              <div id="partslinkBrandOptions" class="partslinkBrandOptions" role="listbox" aria-labelledby="partslinkBrandFieldLabel" hidden></div>
+              <select id="partslinkBrand" class="partslinkBrandNativeSelect" name="brand" tabindex="-1" inert></select>
             </div>
-          </label>
+          </div>
 
           <label class="partslinkField">
             <span data-ui-key="vinField">3. VIN (17 символов)</span>
@@ -1057,7 +1047,7 @@
 
         <aside class="partslinkResultCard" aria-label="VIN check result">
           <div class="partslinkResultHead">
-            <p class="partslinkPanelTitle" data-ui-key="result">Результат</p>
+            <h2 class="partslinkPanelTitle" data-ui-key="result">Результат</h2>
             <button id="partslinkCopyResult" class="partslinkCopyResult" type="button" aria-label="Скопировать VIN и дату производства" title="Скопировать VIN и дату производства" disabled>
               <span class="partslinkCopyResultIcon" aria-hidden="true">&#10697;</span>
             </button>
@@ -1085,7 +1075,7 @@
 
       <section class="partslinkFileBlock" aria-label="Файл VIN">
         <div class="partslinkFileHead">
-          <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
+          <h2 class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</h2>
           <div class="partslinkFileActions">
             <button id="partslinkSaveButton" class="partslinkIconButton" type="button" aria-label="Сохранить VIN" title="Сохранить VIN" disabled>
               <svg class="partslinkActionIcon partslinkSaveIcon" aria-hidden="true" viewBox="0 0 24 24">
@@ -1101,7 +1091,7 @@
       </section>
 
       <section class="partslinkHistory" aria-label="История VIN">
-        <p class="partslinkPanelTitle" data-ui-key="history">История VIN</p>
+        <h2 class="partslinkPanelTitle" data-ui-key="history">История VIN</h2>
         <div id="partslinkHistoryList" class="partslinkHistoryList"></div>
       </section>
 
@@ -1816,6 +1806,10 @@
           pickerOption.type = "button";
           pickerOption.className = "partslinkBrandOption";
           pickerOption.role = "option";
+          // Roving focus: options are reachable with the arrow keys from the
+          // combobox, never as 54 separate tab stops.
+          pickerOption.tabIndex = -1;
+          pickerOption.id = `partslinkBrandOption-${brand.value.replace(/[^A-Za-z0-9]+/g, "-")}`;
           pickerOption.dataset.value = brand.value;
           pickerOption.dataset.favorite = String(brand.favorite);
           pickerOption.dataset.search = [brand.label, brand.value]
@@ -1843,6 +1837,8 @@
           pickerOption.type = "button";
           pickerOption.className = "partslinkBrandOption";
           pickerOption.role = "option";
+          pickerOption.tabIndex = -1;
+          pickerOption.id = `partslinkLanguageOption-${language.value}`;
           pickerOption.dataset.value = language.value;
           pickerOption.dataset.favorite = "true";
           pickerOption.textContent = language.textContent;
