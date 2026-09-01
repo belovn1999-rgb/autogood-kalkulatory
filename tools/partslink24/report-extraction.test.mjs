@@ -373,6 +373,30 @@ test("all Stellantis reports ignore explicitly absent charging equipment", () =>
   }
 });
 
+test("Stellantis BEV rows outrank the EV/PHEV charging equipment", () => {
+  // Real ZFAEFAC47NX048495 (Fiat 500e): the car does carry a charging port and
+  // cables, and the catalogue labels them "EV/PHEV" — but ELT/ENG/CMB name the
+  // powertrain as battery electric, which settles the category on its own.
+  const report = `Ввод данных по модели                NEW 500 EME HIGH HB 320 KM
+CC                      NA           CILINDRATA (COMMERC.) (ELECTRIC NOT
+CMB                     EL           FUEL = ЭЛЕКТРИЧЕСКИЙ
+EKW                     87           ELECTRIC POWER = 87KW ELETTRICO
+ELT                     BEV          TIPO ELECTRIFICATION = BATTERY ELETRIC VEHICLE
+ENG                     E002         ENGINE ASSEMBLY = BEV (370KM RANGE)
+TRM                     E001         TRANSMISSION ASSEMBLY = НЕПОСРЕДСТВ.
+06S                 Да           EV/PHEV ELECTRICALLY DRIVEN TEMPERATURE
+07B                 Да           EV/PHEV SMART CHARGING PORT
+07C                 Да           EV/PHEV MODE 2 CHARGING CABLE
+07D                 Да           EV/PHEV MODE 3 CHARGING CABLE
+`;
+
+  for (const brand of ["Fiat", "Peugeot", "Citroen", "Opel", "Jeep", "Alfa Romeo"]) {
+    const result = extractVehicleInfoFromText(report, { brand, language: "RU" });
+    assert.equal(result.engineType, "Электрический", brand);
+    assert.equal(result.engineVolume, "", brand);
+  }
+});
+
 test("Stellantis equipment rows marked Нет are not plug-in evidence", () => {
   // Real ZFA5FBBT1SJ100264 shape: a mild hybrid whose catalogue lists every
   // EV/PHEV charging option as not fitted, with wrapped descriptions indented.

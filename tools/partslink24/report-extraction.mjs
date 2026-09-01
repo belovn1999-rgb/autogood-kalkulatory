@@ -223,6 +223,7 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   });
   const stellantisEngineType = stellantisBrands.has(brand)
     ? resolveStellantisEngineType({
+      text,
       engineSpecificationRaw,
       engineTypeRaw,
       fuelTypeRaw,
@@ -308,7 +309,24 @@ function resolveKoreanMildHybridEngineType(text, brand, fallbackEngineType) {
     : fallbackEngineType;
 }
 
+function hasBatteryElectricRow(text) {
+  // The Stellantis data table names the powertrain directly, one row per field:
+  //   CMB  EL    FUEL = ЭЛЕКТРИЧЕСКИЙ
+  //   ELT  BEV   TIPO ELECTRIFICATION = BATTERY ELETRIC VEHICLE   (sic, one C)
+  //   ENG  E002  ENGINE ASSEMBLY = BEV (370KM RANGE)
+  // Each row starts in the first column, so anchor to the line start and never
+  // accept a bare "BEV" from an equipment description.
+  const rows = [
+    /^ELT\s+BEV\b/im,
+    /^ELT\s+\S+\s[^\r\n]*battery\s+ele[ck]?tric/im,
+    /^ENG\s+\S+\s[^\r\n]*=\s*BEV\b/im,
+    /^CMB\s+EL\s[^\r\n]*(?:fuel|топливо)[^\r\n]*(?:электрическ|electric)/im
+  ];
+  return rows.some((row) => row.test(String(text || "")));
+}
+
 function resolveStellantisEngineType({
+  text,
   engineSpecificationRaw,
   engineTypeRaw,
   fuelTypeRaw,
@@ -318,6 +336,11 @@ function resolveStellantisEngineType({
   mildHybridRaw,
   fallbackEngineType
 }) {
+  // A battery-electric car is its own category, so it is decided before any
+  // hybrid check: its charging port and cables are BEV equipment, and the
+  // catalogue labels them "EV/PHEV", which would otherwise read as plug-in.
+  if (hasBatteryElectricRow(text)) return "Электрический";
+
   const directInfo = normalizeEngineInfo({
     engineTypeRaw: [engineTypeRaw, engineSpecificationRaw].filter(Boolean).join(" "),
     fuelTypeRaw
