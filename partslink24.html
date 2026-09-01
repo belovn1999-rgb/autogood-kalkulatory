@@ -15,6 +15,35 @@
     <link rel="stylesheet" href="./src/tools.css?v=vincheck-20260724-1" />
     <style>
       /* Hallmark · macrostructure: Workbench · tone: utilitarian · anchor hue: AUTOGOOD blue · nav: N9 · footer: Ft2 · contrast: pass (40–41) · mobile: pass (34, 49, 50–57) */
+      :root {
+        color-scheme: light;
+        --ag-color-option-selected: oklch(93% 0.025 240);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --ag-color-paper: oklch(20.5% 0.014 248);
+          --ag-color-surface: oklch(24.5% 0.016 248);
+          --ag-color-surface-tint: oklch(28.5% 0.018 248);
+          --ag-color-ink: oklch(95% 0.006 248);
+          --ag-color-ink-2: oklch(80% 0.012 248);
+          --ag-color-muted: oklch(66% 0.016 248);
+          --ag-color-soft: oklch(52% 0.018 248);
+          --ag-color-rule: oklch(33% 0.018 248);
+          --ag-color-rule-2: oklch(41% 0.022 248);
+          /* The brand blue sits at 41.5% lightness, which disappears against a
+             dark surface, so accent and its emphasis step swap direction. */
+          --ag-color-accent: oklch(72% 0.105 240);
+          --ag-color-accent-dark: oklch(83% 0.085 240);
+          --ag-color-accent-ink: oklch(19% 0.02 248);
+          --ag-color-success: oklch(75% 0.13 164);
+          --ag-color-error: oklch(72% 0.14 25);
+          --ag-color-focus: oklch(80% 0.1 240);
+          --ag-color-option-selected: oklch(36% 0.05 240);
+        }
+      }
+
       html,
       body {
         overflow-x: clip;
@@ -69,6 +98,18 @@
         max-width: var(--ag-logo-max-width);
         height: auto;
         display: block;
+        /* The logo PNG carries an opaque white plate (RGBA, alpha 255 white
+           throughout), which reads as a box on the grey page and as a slab in
+           dark mode. Multiply drops white onto a lighter backdrop; inverting
+           first turns the plate black so screen can drop it on a dark one. */
+        mix-blend-mode: multiply;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .partslinkWordmark img {
+          filter: invert(1) hue-rotate(180deg);
+          mix-blend-mode: screen;
+        }
       }
 
       .partslinkWordmarkDivider {
@@ -308,7 +349,7 @@
       }
 
       .partslinkBrandOption[aria-selected="true"] {
-        background: oklch(93% 0.025 240);
+        background: var(--ag-color-option-selected);
         color: var(--ag-color-accent-dark);
         box-shadow: inset 3px 0 0 var(--ag-color-accent);
         font-weight: 600;
@@ -469,8 +510,17 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
+        /* The global reduce block forces animation-duration and
+           iteration-count with !important, so a slower spin is not reachable.
+           Hold the wheel still instead: the elapsed-seconds counter already
+           carries liveness without motion. */
         .partslinkWheel {
-          animation-duration: 3.2s;
+          animation: none;
+        }
+
+        .partslinkResultCard[data-loading="true"] .partslinkReadonlyField {
+          background-image: none;
+          background-color: var(--ag-color-rule);
         }
       }
 
@@ -772,6 +822,26 @@
         color: var(--ag-color-muted);
       }
 
+      .partslinkResultCard[data-loading="true"] .partslinkReadonlyField {
+        color: transparent;
+        background-image: linear-gradient(
+          90deg,
+          var(--ag-color-surface-tint) 0%,
+          var(--ag-color-rule) 50%,
+          var(--ag-color-surface-tint) 100%
+        );
+        background-size: 200% 100%;
+        animation: partslinkSkeleton 1.4s ease-in-out infinite;
+      }
+
+      .partslinkResultCard[data-loading="true"] .partslinkReadonlyField::placeholder {
+        color: transparent;
+      }
+
+      @keyframes partslinkSkeleton {
+        to { background-position: -200% 0; }
+      }
+
       .partslinkFileBlock {
         display: grid;
         gap: var(--ag-space-md);
@@ -928,6 +998,11 @@
         .partslinkWordmark {
           align-items: flex-start;
           flex-direction: column;
+          gap: var(--ag-space-2xs);
+        }
+
+        .partslinkWordmarkDivider {
+          display: none;
         }
 
         .partslinkActions {
@@ -944,6 +1019,51 @@
         .partslinkSpecRow {
           grid-template-columns: 1fr;
           gap: var(--ag-space-xs);
+        }
+
+        /* The 1fr row exists to match the result card's height side by side.
+           Stacked, it is just a hole under the VIN field. */
+        .partslinkCard {
+          grid-template-rows: none;
+        }
+
+        .partslinkProgress {
+          align-self: flex-start;
+          margin-right: 0;
+        }
+
+        .partslinkHistoryHeader {
+          display: none;
+        }
+
+        .partslinkHistoryList {
+          overflow-x: visible;
+        }
+
+        .partslinkHistoryRow {
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: var(--ag-space-sm) var(--ag-space-sm);
+          min-width: 0;
+          text-align: left;
+        }
+
+        .partslinkHistoryRow .partslinkHistoryValue {
+          display: grid;
+          gap: 2px;
+          grid-column: 1;
+        }
+
+        .partslinkHistoryRow .partslinkHistoryValue::before {
+          content: attr(data-label);
+          color: var(--ag-color-muted);
+          font-size: var(--ag-text-xs);
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        .partslinkHistoryDelete {
+          grid-column: 2;
+          grid-row: 1;
         }
       }
 
@@ -1121,6 +1241,7 @@
       const fileViewer = document.getElementById("partslinkFileViewer");
       const historyList = document.getElementById("partslinkHistoryList");
       const statusLine = document.getElementById("partslinkStatus");
+      const resultCard = document.querySelector(".partslinkResultCard");
       const uiLanguageSwitch = document.getElementById("partslinkUiLanguageSwitch");
       const uiLanguageButtons = [...uiLanguageSwitch.querySelectorAll("[data-ui-language]")];
       const uiCopy = {
@@ -1352,15 +1473,38 @@
       let activeCheckController = null;
       let checkAbortReason = "";
 
+      // A crafted link used to be able to post the VIN to any https host it
+      // named. Extend this list when the backend moves off quick tunnels.
+      const allowedApiHostPatterns = [
+        /^[a-z0-9-]+\.trycloudflare\.com$/i,
+        /^localhost$/i,
+        /^127\.0\.0\.1$/
+      ];
+
       function readApiBaseFromUrl() {
         const params = new URLSearchParams(window.location.search);
         const value = params.get("api") || params.get("backend");
         if (!value) return "";
-        const normalized = value.trim().replace(/\/$/, "");
-        if (/^https:\/\/[a-z0-9.-]+/i.test(normalized)) {
-          return normalized;
+
+        let url;
+        try {
+          url = new URL(value.trim());
+        } catch {
+          console.warn("PartsLink24: ?api= is not a valid URL, ignoring it.");
+          return "";
         }
-        return "";
+
+        const isLocal = /^(?:localhost|127\.0\.0\.1)$/i.test(url.hostname);
+        if (url.protocol !== "https:" && !(isLocal && url.protocol === "http:")) {
+          console.warn("PartsLink24: ?api= must use https, ignoring it.");
+          return "";
+        }
+        if (!allowedApiHostPatterns.some((pattern) => pattern.test(url.hostname))) {
+          console.warn(`PartsLink24: ?api= host ${url.hostname} is not allowed, ignoring it.`);
+          return "";
+        }
+
+        return `${url.protocol}//${url.host}`;
       }
 
       function getPartslinkApiBase() {
@@ -1442,13 +1586,23 @@
         vinHistory.forEach((item) => {
           const row = document.createElement("div");
           row.className = "partslinkHistoryRow";
-          [item.vehicleDescription, item.vin, item.productionDate, localizeEngineType(item.engineType), item.engineVolume].forEach((value) => {
+          [
+            ["historyBrandModel", item.vehicleDescription],
+            ["historyVin", item.vin],
+            ["historyProductionDate", item.productionDate],
+            ["historyEngineType", localizeEngineType(item.engineType)],
+            ["historyEngineVolume", item.engineVolume]
+          ].forEach(([key, value]) => {
             const field = document.createElement("span");
             field.className = "partslinkHistoryValue";
+            // Read by the stacked mobile layout, which drops the header row.
+            field.dataset.label = uiText(key);
             field.textContent = value || "—";
             row.append(field);
           });
-          row.append(makeSavedAtCell(item.savedAt));
+          const savedAtCell = makeSavedAtCell(item.savedAt);
+          savedAtCell.dataset.label = uiText("historySavedAt");
+          row.append(savedAtCell);
 
           const removeButton = document.createElement("button");
           removeButton.type = "button";
@@ -1705,6 +1859,7 @@
         checkButton.disabled = isBusy;
         cancelButton.hidden = !isBusy;
         progressBar.hidden = !isBusy;
+        resultCard.dataset.loading = String(isBusy);
       }
 
       function startCheckProgress() {
