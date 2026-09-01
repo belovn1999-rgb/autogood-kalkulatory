@@ -12,3 +12,7 @@ contract-pdf-work/output/
 contract-pdf-work/examples/
 contract-pdf-work/assets/signature*
 .claude/
+
+# Local run artifacts
+output/
+tmp/

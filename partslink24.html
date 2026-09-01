@@ -514,6 +514,17 @@
         stroke-width: 2;
       }
 
+      .partslinkSearchIcon {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.8;
+      }
+
+      .partslinkSaveIcon {
+        width: 16px;
+        height: 16px;
+      }
+
       .partslinkHistory {
         display: grid;
         gap: var(--ag-space-md);
@@ -931,9 +942,9 @@
 
           <div class="partslinkActions">
             <button id="partslinkCheckButton" class="partslinkIconButton" type="button" aria-label="Проверить данные" title="Проверить данные">
-              <svg class="partslinkActionIcon" aria-hidden="true" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
+              <svg class="partslinkActionIcon partslinkSearchIcon" aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                <path d="m15.5 15.5 4.5 4.5"></path>
               </svg>
             </button>
           </div>
@@ -973,8 +984,8 @@
           <p class="partslinkPanelTitle" data-ui-key="vinFile">Файл VIN</p>
           <div class="partslinkFileActions">
             <button id="partslinkSaveButton" class="partslinkIconButton" type="button" aria-label="Сохранить VIN" title="Сохранить VIN" disabled>
-              <svg class="partslinkActionIcon" aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M15.2 3.1a2 2 0 0 1 1.4.6l3.7 3.7a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+              <svg class="partslinkActionIcon partslinkSaveIcon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9z"></path>
                 <path d="M17 21v-8H7v8"></path>
                 <path d="M7 3v5h8"></path>
               </svg>
@@ -998,6 +1009,7 @@
       const languagePickerOptions = document.getElementById("partslinkLanguageOptions");
       const brandSelect = document.getElementById("partslinkBrand");
       const brandPickerButton = document.getElementById("partslinkBrandButton");
+      const brandPicker = brandPickerButton.closest(".partslinkBrandPicker");
       const brandPickerLabel = document.getElementById("partslinkBrandLabel");
       const brandPickerOptions = document.getElementById("partslinkBrandOptions");
       const vinInput = document.getElementById("partslinkVin");
@@ -1430,7 +1442,7 @@
         saveButton.dataset.saved = String(saved);
         saveButtonIcon.innerHTML = saved
           ? '<path d="M20 6 9 17l-5-5"></path>'
-          : '<path d="M15.2 3.1a2 2 0 0 1 1.4.6l3.7 3.7a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path>';
+          : '<path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9z"></path><path d="M17 21v-8H7v8"></path><path d="M7 3v5h8"></path>';
         updateActionButtonLabels();
       }
 
@@ -1664,7 +1676,10 @@
           pickerOption.role = "option";
           pickerOption.dataset.value = brand.value;
           pickerOption.dataset.favorite = String(brand.favorite);
-          pickerOption.dataset.search = `${brand.label} ${brand.value}`.toLocaleLowerCase();
+          pickerOption.dataset.search = [brand.label, brand.value]
+            .map(normalizeBrandSearch)
+            .filter((value, index, values) => value && values.indexOf(value) === index)
+            .join("\n");
           pickerOption.textContent = brand.label;
           pickerOption.addEventListener("click", () => {
             brandSelect.value = brand.value;
@@ -1748,19 +1763,33 @@
         }
       }
 
+      function normalizeBrandSearch(value) {
+        return String(value || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toLocaleLowerCase();
+      }
+
+      function brandOptionMatches(option, query) {
+        return String(option.dataset.search || "")
+          .split("\n")
+          .some((value) => value.startsWith(query));
+      }
+
       function selectBrandFromTypeahead(event) {
-        if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1 || !event.key.trim()) return;
+        if (event.ctrlKey || event.metaKey || event.altKey || !/^[a-z]$/i.test(event.key)) return;
 
         clearTimeout(brandTypeaheadTimer);
-        const typed = event.key.toLocaleLowerCase();
+        const typed = normalizeBrandSearch(event.key);
         const options = [...brandPickerOptions.querySelectorAll("[role='option']")];
         const currentIndex = options.findIndex((option) => option.dataset.value === brandSelect.value);
         brandTypeahead += typed;
-        let matches = options.filter((option) => option.dataset.search.startsWith(brandTypeahead));
+        let matches = options.filter((option) => brandOptionMatches(option, brandTypeahead));
 
         if (!matches.length) {
           brandTypeahead = typed;
-          matches = options.filter((option) => option.dataset.search.startsWith(typed));
+          matches = options.filter((option) => brandOptionMatches(option, typed));
           if (matches.length > 1) {
             const next = options.slice(currentIndex + 1).find((option) => matches.includes(option));
             if (next) matches = [next];
@@ -1837,10 +1866,9 @@
         applyBrandLogic();
       });
       brandPickerButton.addEventListener("click", toggleBrandPicker);
-      brandPickerButton.addEventListener("keydown", (event) => {
+      brandPicker.addEventListener("keydown", (event) => {
         navigateBrandPicker(event);
       });
-      brandPickerOptions.addEventListener("keydown", navigateBrandPicker);
       languagePickerButton.addEventListener("click", toggleLanguagePicker);
       languagePickerButton.addEventListener("keydown", (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -1853,10 +1881,6 @@
         if (!event.target.closest(".partslinkLanguagePicker")) closeLanguagePicker();
       });
       document.addEventListener("keydown", (event) => {
-        const isTypingField = event.target.closest?.("input, textarea, select, [contenteditable='true']");
-        if (!event.defaultPrevented && !brandPickerOptions.hidden && !isTypingField) {
-          navigateBrandPicker(event);
-        }
         if (event.key === "Escape") {
           closeBrandPicker();
           closeLanguagePicker();

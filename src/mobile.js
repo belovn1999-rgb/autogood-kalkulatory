@@ -2031,6 +2031,16 @@ els.manualResets.forEach((button) => {
   });
 });
 
+function playManualIconFeedback(button) {
+  button.classList.remove("isAcknowledged");
+  window.requestAnimationFrame(() => button.classList.add("isAcknowledged"));
+  window.setTimeout(() => button.classList.remove("isAcknowledged"), 380);
+}
+
+document.querySelectorAll(".mobileManualIconButton").forEach((button) => {
+  button.addEventListener("click", () => playManualIconFeedback(button));
+});
+
 els.marketSearch?.addEventListener("click", (event) => {
   try {
     const searchUrl = buildMobileDeSearchUrl(readManualFields());

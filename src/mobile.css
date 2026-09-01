@@ -427,6 +427,40 @@ button {
   outline-offset: 2px;
 }
 
+.mobileManualIconButton.isAcknowledged {
+  border-color: var(--color-brand-pressed);
+  background: var(--color-surface-tint);
+  animation: mobileManualIconFeedback 360ms var(--ease-out);
+}
+
+.mobileManualIconButton[data-mobile-manual-reset].isAcknowledged svg {
+  animation: mobileManualResetSpin 360ms var(--ease-out);
+}
+
+.mobileManualIconButton[data-mobile-market-history-save].isAcknowledged svg {
+  animation: mobileManualSavePop 360ms var(--ease-out);
+}
+
+@keyframes mobileManualIconFeedback {
+  50% { transform: translateY(-1px) scale(1.06); }
+}
+
+@keyframes mobileManualResetSpin {
+  to { transform: rotate(-280deg); }
+}
+
+@keyframes mobileManualSavePop {
+  50% { transform: scale(1.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileManualIconButton.isAcknowledged,
+  .mobileManualIconButton[data-mobile-manual-reset].isAcknowledged svg,
+  .mobileManualIconButton[data-mobile-market-history-save].isAcknowledged svg {
+    animation: none;
+  }
+}
+
 .mobileSelectedFilters {
   display: flex;
   align-items: center;
