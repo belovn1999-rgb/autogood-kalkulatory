@@ -2961,7 +2961,7 @@ function App() {
             <img className="logoMark" src="./assets/autogood-logo.png" alt="AUTOGOOD" />
           </a>
           <span className="logoDivider" aria-hidden="true" />
-          <span className="logoTitle">{c.navTitle}</span>
+          <h1 className="logoTitle">{c.navTitle}</h1>
         </div>
         <div className="headerActions">
           <div className="langSwitch" aria-label="Language">

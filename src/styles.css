@@ -2411,6 +2411,7 @@ body {
 }
 
 .logoTitle {
+  margin: 0;
   font-size: 19px;
   font-weight: 600;
   color: var(--ag-ink-600);

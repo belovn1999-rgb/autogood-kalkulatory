@@ -2,6 +2,7 @@ const DEFAULT_MOBILEDE_API_URL = "https://dual-combines-syndrome-existed.tryclou
 
 const copy = {
   pl: {
+    pageHeading: "Mobile.de — wyszukiwanie auta",
     eyebrow: "LINK MOBILE.DE",
     lead: "Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.",
     methodPrompt: "WYBIERZ METODĘ",
@@ -183,6 +184,7 @@ const copy = {
     ],
   },
   ru: {
+    pageHeading: "Mobile.de — поиск автомобиля",
     eyebrow: "ССЫЛКА MOBILE.DE",
     lead: "Вставь ссылку, проверь данные авто и выбери сценарий покупки. Калькулятор получит цену, доставку, осмотр и акциз.",
     methodPrompt: "ВЫБЕРИ СПОСОБ",

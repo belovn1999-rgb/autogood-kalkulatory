@@ -650,7 +650,13 @@ function configureContractVariant() {
   // The variant is named by the "Eksport do Białorusi" pill on .brandTitle::after,
   // matching the "Umowa [Sprzedaż]" badge on the sale contract.
   const brandLabel = document.querySelector(".brandTitle");
-  if (brandLabel) brandLabel.textContent = "Umowa";
+  if (brandLabel) {
+    brandLabel.textContent = "Umowa";
+    // .brandTitle is the page heading, and its aria-label names the variant.
+    // Setting textContent drops the Polska badge, so the name must follow the
+    // pill that ::after puts there instead.
+    brandLabel.setAttribute("aria-label", "Umowa — Eksport do Białorusi");
+  }
 
   document.querySelectorAll("[data-subject-option]").forEach((label) => {
     const option = label.dataset.subjectOption;

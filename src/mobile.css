@@ -1531,3 +1531,17 @@ button {
     transition-duration: 150ms !important;
   }
 }
+
+/* Names the page for the document outline and screen readers without
+   changing the visual design. Stays hidden in print too. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

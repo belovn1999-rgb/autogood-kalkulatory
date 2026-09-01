@@ -101,6 +101,7 @@ button:disabled {
 }
 
 .brandTitle {
+  margin: 0;
   color: var(--brand-dark);
   font-size: 18px;
   font-weight: 800;

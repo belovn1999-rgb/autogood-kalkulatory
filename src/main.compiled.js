@@ -3061,7 +3061,7 @@ function App() {
   })), /*#__PURE__*/React.createElement("span", {
     className: "logoDivider",
     "aria-hidden": "true"
-  }), /*#__PURE__*/React.createElement("span", {
+  }), /*#__PURE__*/React.createElement("h1", {
     className: "logoTitle"
   }, c.navTitle)), /*#__PURE__*/React.createElement("div", {
     className: "headerActions"
