@@ -170,6 +170,7 @@
 
       .partslinkCard {
         display: grid;
+        grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
         gap: var(--ag-space-sm);
       }
 
@@ -332,10 +333,12 @@
 
       .partslinkActions {
         display: flex;
-        align-items: center;
+        align-items: flex-end;
+        justify-content: flex-end;
         gap: var(--ag-space-xs);
         flex-wrap: wrap;
-        padding-top: var(--ag-space-xs);
+        padding-top: var(--ag-space-md);
+        order: 2;
       }
 
       .partslinkActions button:not(.partslinkIconButton),
@@ -470,6 +473,37 @@
         background: var(--ag-color-surface-tint);
         color: var(--ag-color-muted);
         cursor: not-allowed;
+      }
+
+      .partslinkCheckButton {
+        width: 48px;
+        min-width: 48px;
+        height: 48px;
+        min-height: 48px;
+      }
+
+      .partslinkSearchIcon {
+        position: relative;
+        display: block;
+        width: 18px;
+        height: 18px;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        box-sizing: border-box;
+        transform: translate(-2px, -2px);
+      }
+
+      .partslinkSearchIcon::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 13px;
+        width: 9px;
+        height: 2px;
+        border-radius: 2px;
+        background: currentColor;
+        transform: rotate(45deg);
+        transform-origin: left center;
       }
 
       .partslinkSaveIcon {
@@ -773,6 +807,8 @@
       }
 
       .partslinkStatus {
+        align-self: start;
+        order: 1;
         min-height: 20px;
         margin: 0;
         color: var(--ag-color-ink-2);
@@ -844,7 +880,7 @@
         }
 
         .partslinkActions {
-          align-items: stretch;
+          align-items: flex-end;
           flex-direction: column;
         }
 
@@ -930,8 +966,8 @@
           </label>
 
           <div class="partslinkActions">
-            <button id="partslinkCheckButton" class="partslinkIconButton" type="button" aria-label="Проверить данные" title="Проверить данные">
-              <span aria-hidden="true">&#10227;</span>
+            <button id="partslinkCheckButton" class="partslinkIconButton partslinkCheckButton" type="button" aria-label="Проверить данные" title="Проверить данные">
+              <span class="partslinkSearchIcon" aria-hidden="true"></span>
             </button>
           </div>
           <p id="partslinkStatus" class="partslinkStatus" role="status" aria-live="polite"></p>
