@@ -341,6 +341,25 @@
         order: 2;
       }
 
+      .partslinkShell button:not(.partslinkBrandOption),
+      .partslinkDownloadLink {
+        transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out), color var(--ag-dur-short) var(--ag-ease-out), box-shadow var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
+      }
+
+      .partslinkShell button:not(.partslinkBrandOption):hover:not(:disabled),
+      .partslinkShell button:not(.partslinkBrandOption):focus-visible:not(:disabled),
+      .partslinkDownloadLink:hover,
+      .partslinkDownloadLink:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgb(12 72 111 / 14%);
+      }
+
+      .partslinkShell button:not(.partslinkBrandOption):active:not(:disabled),
+      .partslinkDownloadLink:active {
+        transform: translateY(1px);
+        box-shadow: none;
+      }
+
       .partslinkActions button:not(.partslinkIconButton),
       .partslinkDownloadLink {
         display: inline-flex;
@@ -381,6 +400,25 @@
 
       .partslinkDownloadLink[hidden] {
         display: none;
+      }
+
+      .partslinkDownloadLink.partslinkIconButton {
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        min-height: 32px;
+        flex: 0 0 auto;
+        border-color: var(--ag-color-accent);
+        background: var(--ag-color-accent);
+        color: var(--ag-color-accent-ink);
+        padding: 0;
+      }
+
+      .partslinkDownloadLink.partslinkIconButton:hover,
+      .partslinkDownloadLink.partslinkIconButton:focus-visible {
+        border-color: var(--ag-color-accent);
+        background: var(--ag-color-accent);
+        color: var(--ag-color-accent-ink);
       }
 
       .partslinkDownloadLinks {
@@ -1560,12 +1598,21 @@
           const directUrl = `${apiBase}${file.downloadUrl}${separator}downloadName=${encodeURIComponent(fileName)}`;
 
           const link = document.createElement("a");
-          link.className = "partslinkDownloadLink";
+          const downloadLabel = usableFiles.length > 1 ? uiText("downloadFileNumber", index + 1) : uiText("downloadFile");
+          link.className = "partslinkDownloadLink partslinkIconButton";
           // Always download from the server URL. The server enforces the final
           // filename, while the blob URL is used only for the embedded preview.
           link.href = directUrl;
           link.download = fileName;
-          link.textContent = usableFiles.length > 1 ? uiText("downloadFileNumber", index + 1) : uiText("downloadFile");
+          link.setAttribute("aria-label", downloadLabel);
+          link.title = downloadLabel;
+          link.innerHTML = `
+            <svg class="partslinkActionIcon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M12 3v12"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+          `;
           downloadLinks.append(link);
 
           const pane = document.createElement("div");
