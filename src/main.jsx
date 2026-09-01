@@ -708,11 +708,15 @@ function rowEditValue(item) {
   return String(Math.round(item.exact ? n(item.value) : roundedCurrencyValue(n(item.value), "PLN")));
 }
 
+function totalEditValue(total) {
+  return String(roundedCurrencyValue(total, "PLN"));
+}
+
 function applyManualOverrides(calc, overrides, tabId) {
   let hasOverrides = false;
   const rows = calc.rows.map((item, index) => {
     const key = rowOverrideKey(tabId, item.id || index);
-    if (!Object.prototype.hasOwnProperty.call(overrides, key)) {
+    if (item.derived || !Object.prototype.hasOwnProperty.call(overrides, key)) {
       return { ...item, totalValue: rowContribution(item) };
     }
 
@@ -878,6 +882,7 @@ function historySignature(item) {
     dealerDirect: item.dealerDirect,
     values: item.values || {},
     manualOverrides: item.manualOverrides || {},
+    manualTotalOverride: item.manualTotalOverride || "",
     marginAuctionState: item.marginAuctionState || {},
     processStepOverrides: item.processStepOverrides || {},
   });
@@ -1874,8 +1879,8 @@ class ErrorBoundary extends Component {
   }
 }
 
-function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1) {
-  return { label, value, tag, sub, highlight, exact, valuePrefix, totalValue, manualMultiplier };
+function row(label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1, derived = false) {
+  return { label, value, tag, sub, highlight, exact, valuePrefix, totalValue, manualMultiplier, derived };
 }
 
 function marginAuctionRow(id, label, value, tag, sub, highlight = false, exact = false, valuePrefix = "", totalValue = value, manualMultiplier = 1, extra = {}) {
@@ -2050,7 +2055,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
         row(t.to, TO_FEE, "", "", false, true),
         row(t.doc, DOC_TRANSLATION, "", "", false, true),
         ...registrationRows(t, values.registrationEnabled, registrationBrutto, 1.23),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0, true),
       ],
     };
   }
@@ -2084,7 +2089,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
         row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, commissionBase)),
         row(t.to, TO_FEE, "", "", false, true),
         ...registrationRows(t, values.registrationEnabled),
-        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
+        row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0, true),
       ],
     };
   }
@@ -2114,7 +2119,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
       row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)),
       row(t.to, TO_FEE, "", "", false, true),
       ...registrationRows(t, values.registrationEnabled),
-      row(t.vat, vat, "", `23% × ${money(vatBase)}`),
+      row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", vat, 1, true),
     ];
 
     return {
@@ -2153,7 +2158,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     row(t.commission, commissionNetto, "", commissionFormula(finFix, finPct, carPln, discountText), false, false, "", commissionBrutto, 1.23),
     row(t.to, TO_FEE, "", "", false, true, "", technicalBrutto, 1.23),
     ...registrationRows(t, values.registrationEnabled, registrationBrutto, 1.23),
-    row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0),
+    row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", 0, 0, true),
   ];
 
   return {
@@ -2415,6 +2420,8 @@ function App() {
   const [finalCustomName, setFinalCustomName] = useState("");
   const [manualOverrides, setManualOverrides] = useState({});
   const [editingOverride, setEditingOverride] = useState("");
+  const [manualTotalOverride, setManualTotalOverride] = useState("");
+  const [editingTotal, setEditingTotal] = useState(false);
   const [marginAuctionState, setMarginAuctionState] = useState(() => initialMarginAuctionState());
   const [marginAuctionDraft, setMarginAuctionDraft] = useState({ label: "", amount: "", currency: "PLN", vat: false });
   const [editingMarginAuctionText, setEditingMarginAuctionText] = useState(null);
@@ -2446,7 +2453,8 @@ function App() {
     [presentedCalc, manualOverrides, activeTab]
   );
   const finalCalc = useMemo(() => calculateFinalBalance(finalItems), [finalItems]);
-  const roundedTotal = roundedCurrencyValue(calc.total, "PLN");
+  const displayedTotal = String(manualTotalOverride).trim() === "" ? calc.total : n(manualTotalOverride);
+  const roundedTotal = roundedCurrencyValue(displayedTotal, "PLN");
   const activeTabName = calculatorName(tab, safeLang, activeTab > 0 && financed);
   const hasGermanCommission = (activeTab === 3 || activeTab === 4) && Boolean(values.germanCommissionEnabled);
   const defaultProcessSteps = getProcessSteps(tab, safeLang, financed, hasGermanCommission, activeTab === 3 && dealerDirect);
@@ -2495,6 +2503,8 @@ function App() {
     setDealerDirect(false);
     setManualOverrides({});
     setEditingOverride("");
+    setManualTotalOverride("");
+    setEditingTotal(false);
     setMarginAuctionState(initialMarginAuctionState());
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
     setEditingMarginAuctionText(null);
@@ -2512,6 +2522,8 @@ function App() {
   const clearManualOverrides = () => {
     setManualOverrides({});
     setEditingOverride("");
+    setManualTotalOverride("");
+    setEditingTotal(false);
   };
 
   const setField = (key, value) => {
@@ -2627,6 +2639,11 @@ function App() {
       Object.prototype.hasOwnProperty.call(current, key) ? current : { ...current, [key]: rowEditValue(item) }
     ));
     setEditingOverride(key);
+  };
+
+  const startTotalEdit = () => {
+    setManualTotalOverride((current) => (String(current).trim() === "" ? totalEditValue(calc.total) : current));
+    setEditingTotal(true);
   };
 
   const updateMarginAuctionState = (updater) => {
@@ -2756,9 +2773,10 @@ function App() {
       dealerDirect: activeTab === 3 && dealerDirect,
       values: normalizeHistoryValues(values),
       manualOverrides,
+      manualTotalOverride,
       marginAuctionState,
       processStepOverrides,
-      total: calc.total,
+      total: displayedTotal,
       title: activeTabName,
     };
     const signature = historySignature(item);
@@ -2777,6 +2795,8 @@ function App() {
       setActiveTab(FINAL_TAB_ID);
       setManualOverrides({});
       setEditingOverride("");
+      setManualTotalOverride("");
+      setEditingTotal(false);
       setMarginAuctionState(initialMarginAuctionState());
       setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
       setEditingMarginAuctionText(null);
@@ -2803,6 +2823,7 @@ function App() {
     setActiveTab(nextTab);
     setValues(item.values && typeof item.values === "object" ? item.values : {});
     setManualOverrides(item.manualOverrides && typeof item.manualOverrides === "object" ? item.manualOverrides : {});
+    setManualTotalOverride(typeof item.manualTotalOverride === "string" ? item.manualTotalOverride : "");
     setMarginAuctionState(normalizeMarginAuctionState(item.marginAuctionState));
     setProcessStepOverrides(item.processStepOverrides && typeof item.processStepOverrides === "object" ? item.processStepOverrides : {});
     setMarginAuctionDraft({ label: "", amount: "", currency: "PLN", vat: false });
@@ -2811,6 +2832,7 @@ function App() {
     setDraggedFinalRow("");
     setEditingFinalResult(null);
     setEditingOverride("");
+    setEditingTotal(false);
     setRate(item.rate || DEFAULT_RATE);
     rateTouchedRef.current = true;
     setEngineIndex(Number.isInteger(item.engineIndex) && engineTypes[item.engineIndex] ? item.engineIndex : 3);
@@ -2982,7 +3004,7 @@ function App() {
                   currency: finalCurrency,
                   rate: n(rate) || DEFAULT_RATE,
                 })
-                : printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: calc.total, rate: n(rate) || DEFAULT_RATE, financed, hasGermanCommission, dealerDirect: activeTab === 3 && dealerDirect, processStepHtml: processSteps.map((step) => step.html) })
+                : printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: displayedTotal, rate: n(rate) || DEFAULT_RATE, financed, hasGermanCommission, dealerDirect: activeTab === 3 && dealerDirect, processStepHtml: processSteps.map((step) => step.html) })
             )}
           >
             {c.print}
@@ -3216,7 +3238,28 @@ function App() {
             </div>
             <div className="totalBarRight">
               <div className="totalBarValueRow">
-                <strong className="totalBarValue">{money(calc.total)}</strong>
+                {editingTotal ? (
+                  <input
+                    className="totalBarValue totalBarValueInput"
+                    autoFocus
+                    inputMode="decimal"
+                    type="text"
+                    value={manualTotalOverride}
+                    aria-label={c.total}
+                    onChange={(event) => setManualTotalOverride(event.target.value)}
+                    onBlur={() => setEditingTotal(false)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
+                    }}
+                  />
+                ) : (
+                  <strong className="totalBarValue totalBarValueEdit" role="button" tabIndex={0} onClick={startTotalEdit} onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      startTotalEdit();
+                    }
+                  }}>{money(displayedTotal)}</strong>
+                )}
                 <em className="totalBarEur">= {money(roundedTotal / (n(rate) || DEFAULT_RATE), "EUR")}</em>
               </div>
               <div className="totalBarRate">{c.rateLine}: {calculationRateLabel(n(rate) || DEFAULT_RATE)} PLN</div>
