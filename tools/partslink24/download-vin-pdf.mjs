@@ -210,12 +210,33 @@ async function openVehicle(page, brandConfig, vin) {
     fail(`Для марки ${brand} нужен отдельный сценарий PartsLink. Запишите демонстрацию экрана перед включением загрузки.`);
   }
 
-  if (["brand_first_search", "hyundai_two_file_print", "two_file_print"].includes(brandConfig.route)) {
-    await clickBrandTile(page, brandConfig);
-    await page.waitForLoadState("networkidle").catch(() => {});
-    await humanDelay();
+  const brandFirst = ["brand_first_search", "hyundai_two_file_print", "two_file_print"].includes(brandConfig.route);
+  if (brandFirst) {
+    await openBrandCatalogue(page, brandConfig);
   }
 
+  await searchVin(page, vin);
+  if (await vehicleLoadedHandle(page, vin, 20000)) return;
+
+  // A start-page VIN search that PartsLink24 cannot resolve answers with
+  // "попробуйте ввести VIN в каталоге соответствующего бренда" — and the same
+  // VIN usually resolves inside the brand catalogue. Retry there once instead
+  // of failing the run; the general search is not reliable for every VIN.
+  if (!brandFirst && await needsBrandCatalogue(page)) {
+    await openBrandCatalogue(page, brandConfig);
+    await searchVin(page, vin);
+  }
+
+  await waitForVehicleLoaded(page, vin);
+}
+
+async function openBrandCatalogue(page, brandConfig) {
+  await clickBrandTile(page, brandConfig);
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await humanDelay();
+}
+
+async function searchVin(page, vin) {
   const search = page.locator('input:visible:not([type="submit"]):not([type="password"])').first();
   await fillHuman(search, vin);
   await humanDelay();
@@ -224,21 +245,28 @@ async function openVehicle(page, brandConfig, vin) {
     page.waitForLoadState("networkidle").catch(() => {}),
     page.keyboard.press("Enter")
   ]);
-
-  await waitForVehicleLoaded(page, vin);
 }
 
-async function waitForVehicleLoaded(page, vin) {
-  const result = await page.waitForFunction((expectedVin) => {
+function vehicleLoadedHandle(page, vin, timeout) {
+  return page.waitForFunction((expectedVin) => {
     const bodyText = document.body?.innerText || "";
     const url = window.location.href || "";
     const hasVin = bodyText.includes(expectedVin) || url.includes(expectedVin);
     const hasVehicleContext = /Идентификация автомобиля|identyfikacja pojazdu|vehicle identification|Данные автомобиля|parametry pojazdu/i.test(bodyText);
 
     return hasVin && hasVehicleContext;
-  }, vin, { timeout: 45000 }).catch(() => null);
+  }, vin, { timeout }).catch(() => null);
+}
 
-  if (result) return;
+async function needsBrandCatalogue(page) {
+  return page.evaluate(() => {
+    const text = String(document.body?.innerText || "").replace(/ /g, " ").replace(/\s+/g, " ");
+    return /невозможно установить модель|каталоге соответствующ\w* бренд|nie mo[żz]na (?:ustali[ćc]|okre[śs]li[ćc]) modelu|katalogu odpowiedniej marki|cannot .{0,30}determine.{0,30}model|catalogu?e of the corresponding brand/i.test(text);
+  }).catch(() => false);
+}
+
+async function waitForVehicleLoaded(page, vin) {
+  if (await vehicleLoadedHandle(page, vin, 45000)) return;
 
   const blockingMessage = await readPartslinkBlockingMessage(page);
   if (blockingMessage) fail(blockingMessage);
