@@ -1397,7 +1397,7 @@
         Dacia: { route: "general_vin_search" },
         DS: { route: "brand_first_search" },
         Fiat: { route: "general_vin_search" },
-        "Fiat Professional": { route: "pending_demo" },
+        "Fiat Professional": { route: "brand_first_search" },
         Ford: { sampleVin: "WF0MXXGBWMEL10535", route: "two_file_print" },
         "Ford Pro": { route: "two_file_print" },
         Hyundai: { sampleVin: "KMHS5811DMU002130", route: "two_file_print" },
@@ -1451,7 +1451,7 @@
       ];
       const favoriteBrandValues = new Set(favoriteBrands.map((brand) => brand.value));
       const brandLabels = {
-        "Fiat Professional": "Fiat",
+        "Fiat Professional": "Fiat Vans",
         "Ford Pro": "Ford Vans",
         "Mercedes Vans": "Mercedes Vans",
         "Vw Nutzfahrzeuge": "Volkswagen Vans"
@@ -2196,7 +2196,7 @@
       renderLanguages();
       resetDownloadLink();
 
-      fetch("./tools/partslink24/brand-routes.json?v=20260804-1")
+      fetch("./tools/partslink24/brand-routes.json?v=20260901-1")
         .then((response) => response.ok ? response.json() : Promise.reject())
         .then((data) => {
           brandRoutes = data.brands || fallbackBrands;

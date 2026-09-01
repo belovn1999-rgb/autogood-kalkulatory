@@ -72,8 +72,10 @@
       ]
     },
     "Fiat Professional": {
-      "route": "pending_demo",
-      "brandTile": "Fiat Professional"
+      "route": "brand_first_search",
+      "brandTile": "Fiat Professional",
+      "brandTileAliases": ["FIAT PROFESSIONAL"],
+      "notes": ["Выбирает второй логотип FIAT во втором ряду главной страницы PartsLink24."]
     },
     "Ford": {
       "route": "two_file_print",
