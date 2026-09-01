@@ -48,6 +48,21 @@ ${extraEvidence}
 `, { brand: "BMW", language: "RU" });
   assert.equal(invalidVolume.engineVolume, "2000 cm³");
 
+  // S1CEA also names a coolant in the fill-volume table; only an equipment
+  // line (code first) may be read as the recuperation option.
+  const coolantOnly = extractVehicleInfoFromText(`
+Модель                                     218i
+Код двигателя                              B38A15M2
+Рабочий объем                              1,50
+Спецоборудование
+S1AGA Увеличенный топливный бак
+S1CBA Объем CO2
+Объемы заполнения
+Двигатель B38N 4,50
+Coolant NT S1CEA (2,82l)
+`, { brand: "BMW", language: "RU" });
+  assert.equal(coolantOnly.engineType, "Бензин");
+
   const phev520e = extractVehicleInfoFromText(`
 Обозначение модели                         5' G31 Туринг LCI
 Дата производства                          02.05.2022

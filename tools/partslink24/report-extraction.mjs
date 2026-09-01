@@ -187,7 +187,13 @@ export function extractVehicleInfoFromText(text, { brand = "", language = "" } =
   const mercedesPowertrainRaw = mercedesBrands.has(brand) ? collectMercedesPowertrainEvidence(text) : "";
   const toyotaFirstPageEngineRaw = toyotaLexusBrands.has(brand) ? findToyotaFirstPageEngineEvidence(text) : "";
   const toyotaPlugInRaw = toyotaLexusBrands.has(brand) ? findToyotaPlugInEvidence(text) : "";
-  const bmwMildHybridRaw = ["BMW", "Mini"].includes(brand) && /\bS1CEA\b|rekuperacyjna\s+system|recuperation\s+system|рекуперационн\w*\s+систем/i.test(text) ? "MHEV" : "";
+  // S1CEA only counts as an equipment code, i.e. at the start of its own line.
+  // The fill-volume table carries an unrelated "Coolant NT S1CEA (2,82l)" row,
+  // which used to flag every such report as a mild hybrid.
+  const bmwMildHybridRaw = ["BMW", "Mini"].includes(brand)
+    && (/^\s*S1CEA\b/im.test(text) || /rekuperacyjna\s+system|recuperation\s+system|рекуперационн\w*\s+систем/i.test(text))
+    ? "MHEV"
+    : "";
   const mercedesMildHybridRaw = mercedesBrands.has(brand) && /^\s*B01\s+[^\r\n]*(?:48\s*[- ]?\s*(?:V|В)|48[\s-]*VOLT)/im.test(text) ? "MHEV" : "";
   const suzukiMildHybridRaw = brand === "Suzuki" && /\bSHVS\b/i.test(text) ? "MHEV" : "";
   const mildHybridRaw = text.match(/\bm[\s-]*hev\b|mild[\s-]*hybrid|mi[eę]kk(?:i|a)[\s-]*hybryd(?:a)?|мягк(?:ий|ая)[\s-]*гибрид|with\s+48v\s+kers|\bBSG\d*\b|belt[\s-]*starter[\s-]*generator|\bH[\s:.-]*DRIVE\b/i)?.[0] || bmwMildHybridRaw || mercedesMildHybridRaw || suzukiMildHybridRaw;
