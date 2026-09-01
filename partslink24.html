@@ -208,10 +208,15 @@
         background: var(--ag-color-surface-tint);
       }
 
-      .partslinkBrandNativeSelect {
+      .partslinkField select.partslinkBrandNativeSelect {
         position: absolute;
+        top: 0;
+        left: 0;
         width: 1px;
+        min-height: 0;
         height: 1px;
+        padding: 0;
+        border: 0;
         opacity: 0;
         pointer-events: none;
       }
@@ -236,12 +241,18 @@
         font-weight: 400;
         text-align: left;
         cursor: pointer;
+        transform: none;
+        transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out);
       }
 
       .partslinkBrandPickerButton:hover,
-      .partslinkBrandPickerButton:focus-visible {
+      .partslinkBrandPickerButton:focus-visible,
+      .partslinkBrandPickerButton:active,
+      .partslinkBrandPickerButton[aria-expanded="true"] {
         border-color: var(--ag-color-accent);
         background: var(--ag-color-surface-tint);
+        transform: none;
+        box-shadow: none;
       }
 
       .partslinkBrandPickerButton[data-favorite="true"] {
@@ -341,20 +352,20 @@
         order: 2;
       }
 
-      .partslinkShell button:not(.partslinkBrandOption),
+      .partslinkShell button:not(.partslinkBrandOption):not(.partslinkBrandPickerButton),
       .partslinkDownloadLink {
         transition: background-color var(--ag-dur-short) var(--ag-ease-out), border-color var(--ag-dur-short) var(--ag-ease-out), color var(--ag-dur-short) var(--ag-ease-out), box-shadow var(--ag-dur-short) var(--ag-ease-out), transform 100ms var(--ag-ease-out);
       }
 
-      .partslinkShell button:not(.partslinkBrandOption):hover:not(:disabled),
-      .partslinkShell button:not(.partslinkBrandOption):focus-visible:not(:disabled),
+      .partslinkShell button:not(.partslinkBrandOption):not(.partslinkBrandPickerButton):hover:not(:disabled),
+      .partslinkShell button:not(.partslinkBrandOption):not(.partslinkBrandPickerButton):focus-visible:not(:disabled),
       .partslinkDownloadLink:hover,
       .partslinkDownloadLink:focus-visible {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgb(12 72 111 / 14%);
       }
 
-      .partslinkShell button:not(.partslinkBrandOption):active:not(:disabled),
+      .partslinkShell button:not(.partslinkBrandOption):not(.partslinkBrandPickerButton):active:not(:disabled),
       .partslinkDownloadLink:active {
         transform: translateY(1px);
         box-shadow: none;
