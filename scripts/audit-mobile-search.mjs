@@ -192,6 +192,7 @@ const contractFragments = [
 ];
 contractFragments.forEach(([fragment, label]) => requireSource(fragment, label));
 requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "elektryczna klapa bagażnika w opcjach");
+requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {
