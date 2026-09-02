@@ -38,7 +38,9 @@ const mimeTypes = {
   ".ttf": "font/ttf",
   ".woff2": "font/woff2",
   // Declaration templates in assets/ are fetched by no-plates-declaration.js.
-  ".pdf": "application/pdf"
+  ".pdf": "application/pdf",
+  ".md": "text/markdown; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8"
 };
 
 // The static handler used to serve anything inside the repo root, which meant a

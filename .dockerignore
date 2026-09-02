@@ -8,3 +8,14 @@ contract-pdf-work/temp
 contract-pdf-work/*.zip
 contract-pdf-work/*.pdf
 contract-pdf-work/*.docx
+
+# Secrets must never enter an image layer. Layers travel with the image, so a
+# credential baked in at build time leaks anywhere the image is pushed or pulled
+# — deleting the file in a later layer does not remove it from the earlier one.
+.env
+**/.env
+
+# Local run artifacts
+output
+outputs
+tmp

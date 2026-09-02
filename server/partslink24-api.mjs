@@ -33,7 +33,9 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".ttf": "font/ttf",
   ".woff2": "font/woff2",
-  ".pdf": "application/pdf"
+  ".pdf": "application/pdf",
+  ".md": "text/markdown; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8"
 };
 
 // The static handler used to serve anything inside the repo root, which meant a
