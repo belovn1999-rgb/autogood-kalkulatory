@@ -28,19 +28,15 @@
       backToFilters: "← Wróć do filtrów",
       heading: "Analiza rynku",
       waitingLabel: "Brak danych ofert",
-      waitingDescription: "Wczytaj oferty z bezpośrednimi linkami mobile.de, aby zbudować analizę.",
-      demoLabel: "Dane testowe",
-      demoDescription: "Podgląd rozkładu cen dla wybranych filtrów. To nie są realne oferty mobile.de.",
-      demoPointHint: "Punkt testowy — nie prowadzi do ogłoszenia",
-      demoNotice: "Dane testowe służą wyłącznie do sprawdzenia wykresu. Przed analizą cen zaimportuj realne oferty lub podłącz API.",
+      waitingDescription: "Wczytaj ceny ofert, aby zbudować analizę.",
       importedLabel: "Dane importowane",
-      importedDescription: "Wykres przygotowany z wczytanych ofert i ich bezpośrednich linków.",
+      importedDescription: "Wykres przygotowany z wczytanych cen ofert.",
       importHeading: "Wczytaj realne oferty",
-      importDescription: "JSON lub CSV: wymagane są price i bezpośredni url konkretnego ogłoszenia mobile.de. Plik pozostaje tylko w tej przeglądarce.",
+      importDescription: "JSON lub CSV: wymagane jest price w EUR. Plik pozostaje tylko w tej przeglądarce.",
       importButton: "Importuj JSON / CSV",
       clearImport: "Usuń zaimportowane oferty",
       importedFile: "Wczytano {count} ofert z pliku {file}.",
-      importInvalid: "Plik musi zawierać co najmniej 3 poprawne oferty z ceną i bezpośrednim linkiem ogłoszenia mobile.de.",
+      importInvalid: "Plik musi zawierać co najmniej 3 poprawne oferty z ceną w EUR.",
       importReadError: "Nie udało się odczytać pliku JSON / CSV.",
       chartTitle: "Rozkład cen ofert",
       lowMarket: "Dół rynku",
@@ -53,8 +49,13 @@
       middleOffers: "Oferty w środku",
       maximum: "Maksimum",
       openSearch: "Otwórz wyszukiwanie mobile.de ↗",
-      pointHint: "Kliknij, aby otworzyć konkretne ogłoszenie",
-      directNotice: "Każda kropka prowadzi bezpośrednio do konkretnego ogłoszenia mobile.de.",
+      pointHint: "Punkt pokazuje cenę jednej oferty",
+      directNotice: "Każda kropka pokazuje cenę jednej oferty. Punkty nie prowadzą do ogłoszeń.",
+      refresh: "Odśwież dane",
+      refreshing: "Odświeżam dane rynku…",
+      refreshUnavailable: "Źródło danych nie jest jeszcze podłączone.",
+      refreshInvalid: "Źródło nie zwróciło co najmniej 3 cen ofert.",
+      snapshotSaved: "Zapisano nowy snapshot cen.",
       emptyHeading: "Brak realnych ofert do analizy",
       emptyDescription: "Zaimportuj JSON lub CSV. Wykres nie pokazuje punktów testowych ani linków do ogólnego wyszukiwania.",
       missingVehicle: "Wybierz markę i model przed uruchomieniem analizy rynku.",
@@ -93,19 +94,15 @@
       backToFilters: "← Вернуться к фильтрам",
       heading: "Анализ рынка",
       waitingLabel: "Нет данных объявлений",
-      waitingDescription: "Загрузите объявления с прямыми ссылками mobile.de, чтобы построить анализ.",
-      demoLabel: "Тестовые данные",
-      demoDescription: "Предварительный просмотр распределения цен для выбранных фильтров. Это не реальные объявления mobile.de.",
-      demoPointHint: "Тестовая точка — не ведёт к объявлению",
-      demoNotice: "Тестовые данные нужны только для проверки графика. Перед анализом цен импортируйте реальные объявления или подключите API.",
+      waitingDescription: "Загрузите цены объявлений, чтобы построить анализ.",
       importedLabel: "Импортированные данные",
-      importedDescription: "График построен по загруженным объявлениям и их прямым ссылкам.",
+      importedDescription: "График построен по загруженным ценам объявлений.",
       importHeading: "Загрузить реальные объявления",
-      importDescription: "JSON или CSV: обязательны price и прямой url конкретного объявления mobile.de. Файл остаётся только в этом браузере.",
+      importDescription: "JSON или CSV: обязателен price в EUR. Файл остаётся только в этом браузере.",
       importButton: "Импортировать JSON / CSV",
       clearImport: "Удалить импортированные объявления",
       importedFile: "Загружено объявлений: {count}. Файл: {file}.",
-      importInvalid: "Файл должен содержать минимум 3 корректных объявления с ценой и прямой ссылкой mobile.de.",
+      importInvalid: "Файл должен содержать минимум 3 корректных объявления с ценой в EUR.",
       importReadError: "Не удалось прочитать файл JSON / CSV.",
       chartTitle: "Распределение цен объявлений",
       lowMarket: "Низ рынка",
@@ -118,10 +115,15 @@
       middleOffers: "В середине рынка",
       maximum: "Максимум",
       openSearch: "Открыть поиск mobile.de ↗",
-      pointHint: "Нажмите, чтобы открыть конкретное объявление",
-      directNotice: "Каждая точка ведёт непосредственно на конкретное объявление mobile.de.",
+      pointHint: "Точка показывает цену одного объявления",
+      directNotice: "Каждая точка показывает цену одного объявления. Точки не ведут на объявления.",
+      refresh: "Обновить данные",
+      refreshing: "Обновляю рыночные данные…",
+      refreshUnavailable: "Источник данных ещё не подключён.",
+      refreshInvalid: "Источник не вернул минимум 3 цен объявлений.",
+      snapshotSaved: "Новый снимок цен сохранён.",
       emptyHeading: "Нет реальных объявлений для анализа",
-      emptyDescription: "Импортируйте JSON или CSV. График не показывает тестовые точки и ссылки на общий поиск.",
+      emptyDescription: "Импортируйте JSON или CSV либо подключите источник данных для текущих фильтров.",
       missingVehicle: "Выберите марку и модель перед запуском анализа рынка.",
       invalidData: "Источник не вернул минимум 3 корректных объявления mobile.de.",
       preparing: "Подготавливаю анализ рынка…",
@@ -143,7 +145,8 @@
     },
   };
 
-  const HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v1";
+  const HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v2";
+  const LEGACY_HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v1";
   const HISTORY_LIMIT = 15;
 
   let activeAnalysis = null;
@@ -219,18 +222,18 @@
   function normalizeListing(row, index) {
     const price = parseMarketNumber(listingValue(row, ["price", "price_eur", "cena", "preis"]));
     const urlValue = listingValue(row, ["url", "link", "listing_url", "listingurl"]);
-    let url;
+    let url = "";
     try {
-      url = new URL(String(urlValue || "").trim());
-      if (!/^https?:$/.test(url.protocol) || !isDirectMobileListingUrl(url)) return null;
+      const parsedUrl = new URL(String(urlValue || "").trim());
+      if (/^https?:$/.test(parsedUrl.protocol) && isDirectMobileListingUrl(parsedUrl)) url = parsedUrl.toString();
     } catch {
-      return null;
+      // A link is intentionally optional: prices, not outbound links, power this chart.
     }
     if (!price || price <= 0) return null;
     const yearMatch = String(listingValue(row, ["year", "registration_year", "first_registration", "rok"]) || "").match(/(?:19|20)\d{2}/);
     const mileage = parseMarketNumber(listingValue(row, ["mileage", "mileage_km", "km", "przebieg"]));
     const title = String(listingValue(row, ["title", "name", "model", "auto"]) || "").trim();
-    const id = String(listingValue(row, ["id", "listing_id", "ad_id"]) || url.searchParams.get("id") || `import-${index + 1}`);
+    const id = String(listingValue(row, ["id", "listing_id", "ad_id"]) || (url ? new URL(url).searchParams.get("id") : "") || `import-${index + 1}`);
     return {
       id,
       title: title || `mobile.de · ${String(index + 1).padStart(2, "0")}`,
@@ -243,33 +246,21 @@
   }
 
   function normalizeListings(rows) {
-    const seenUrls = new Set();
+    const seenListings = new Set();
     return (Array.isArray(rows) ? rows : [])
       .map(normalizeListing)
-      .filter((listing) => listing && !seenUrls.has(listing.url) && seenUrls.add(listing.url));
-  }
-
-  function createDemoListings(filters) {
-    const vehicle = [filters.brand, filters.model, filters.version].filter(Boolean).join(" ");
-    const seed = seededNumber(`${vehicle}|${filters.yearFrom}|${filters.yearTo}|${filters.mileageFrom}|${filters.mileageTo}`);
-    const basePrice = 18000 + (seed % 52000);
-    const yearFrom = Number(filters.yearFrom) || 2019;
-    const yearTo = Number(filters.yearTo) || Math.max(yearFrom, 2024);
-    const priceMultipliers = [0.73, 0.78, 0.82, 0.86, 0.89, 0.92, 0.95, 0.97, 0.99, 1, 1.02, 1.04, 1.06, 1.08, 1.11, 1.14, 1.18, 1.23, 1.29, 1.36, 1.44];
-    return priceMultipliers.map((multiplier, index) => ({
-      id: `demo-${seed}-${index + 1}`,
-      title: `${vehicle} · demo ${String(index + 1).padStart(2, "0")}`,
-      price: Math.round((basePrice * multiplier) / 100) * 100,
-      currency: "EUR",
-      year: yearFrom + (seededNumber(`${seed}|year|${index}`) % (yearTo - yearFrom + 1)),
-      mileage: 20000 + (seededNumber(`${seed}|mileage|${index}`) % 160000),
-      isDemo: true,
-    }));
+      .filter((listing) => {
+        if (!listing) return false;
+        const key = listing.url || listing.id;
+        if (seenListings.has(key)) return false;
+        seenListings.add(key);
+        return true;
+      });
   }
 
   function loadMarketHistory() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || "[]");
+      const parsed = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || localStorage.getItem(LEGACY_HISTORY_STORAGE_KEY) || "[]");
       if (!Array.isArray(parsed)) return [];
       return parsed
         .filter((entry) => entry?.filters?.brand && entry?.filters?.model)
@@ -303,6 +294,23 @@
   function historyEntryForFilters(filters) {
     const signature = filterSignature(filters);
     return marketHistory.find((entry) => entry.signature === signature) || null;
+  }
+
+  function createMarketSnapshot(filters, listings, sourceFileName = "", searchUrl = "") {
+    const now = new Date().toISOString();
+    const entry = {
+      id: `${Date.now()}-${seededNumber(`${filterSignature(filters)}|${now}`).toString(16)}`,
+      filters,
+      signature: filterSignature(filters),
+      listings: normalizeListings(listings),
+      sourceFileName,
+      searchUrl: searchUrl || buildMobileDeSearchUrl(filters),
+      createdAt: now,
+      updatedAt: now,
+    };
+    if (!storeMarketHistory([entry, ...marketHistory])) return null;
+    renderHistory();
+    return entry;
   }
 
   function formatHistoryDate(value) {
@@ -455,40 +463,18 @@
       const filters = readManualFields();
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
-      const signature = filterSignature(filters);
-      const existing = historyEntryForFilters(filters);
       const matchingImport = importedDataset?.filterKey === vehicleDataKey(filters) ? importedDataset : null;
-      const now = new Date().toISOString();
-      const entry = {
-        id: existing?.id || `${Date.now()}-${seededNumber(signature).toString(16)}`,
+      const existing = historyEntryForFilters(filters);
+      const snapshot = createMarketSnapshot(
         filters,
-        signature,
-        listings: matchingImport?.listings || existing?.listings || [],
-        sourceFileName: matchingImport?.fileName || existing?.sourceFileName || "",
+        matchingImport?.listings || existing?.listings || [],
+        matchingImport?.fileName || existing?.sourceFileName || "",
         searchUrl,
-        createdAt: existing?.createdAt || now,
-        updatedAt: now,
-      };
-      const nextHistory = [entry, ...marketHistory.filter((item) => item.id !== entry.id)].slice(0, HISTORY_LIMIT);
-      if (!storeMarketHistory(nextHistory)) return;
-      renderHistory();
-      setAnalysisStatus(c.saveSuccess);
+      );
+      if (snapshot) setAnalysisStatus(c.saveSuccess);
     } catch (error) {
       setAnalysisStatus(error.message || c.missingVehicle, true);
     }
-  }
-
-  function updateHistoryListings(historyId, filters, listings, sourceFileName) {
-    const historyEntry = marketHistory.find((entry) => entry.id === historyId) || historyEntryForFilters(filters);
-    if (!historyEntry) return;
-    const updatedEntry = {
-      ...historyEntry,
-      listings,
-      sourceFileName,
-      updatedAt: new Date().toISOString(),
-    };
-    storeMarketHistory([updatedEntry, ...marketHistory.filter((entry) => entry.id !== updatedEntry.id)]);
-    renderHistory();
   }
 
   function deleteHistoryEntry(historyId) {
@@ -513,9 +499,9 @@
     } : null;
     activeAnalysis = {
       filters: entry.filters,
-      listings: entry.listings.length >= 3 ? entry.listings : createDemoListings(entry.filters),
+      listings: entry.listings,
       searchUrl,
-      providerId: entry.listings.length >= 3 ? "history" : "demo",
+      providerId: entry.listings.length >= 3 ? "history" : "empty",
       sourceFileName: entry.sourceFileName,
       historyId: entry.id,
     };
@@ -648,62 +634,24 @@
   }
 
   function marketPriceStep(referencePrice) {
-    if (referencePrice < 20000) return 500;
-    if (referencePrice < 50000) return 1000;
-    if (referencePrice < 100000) return 2000;
-    if (referencePrice < 200000) return 5000;
-    return 10000;
-  }
-
-  function densestMarketBand(prices) {
-    const median = percentile(prices, 0.5);
-    const step = marketPriceStep(median);
-    const widthFactor = prices.length < 10 ? 0.2 : prices.length < 25 ? 0.15 : prices.length < 50 ? 0.12 : 0.1;
-    const windowWidth = Math.max(step * 2, Math.ceil((median * widthFactor) / step) * step);
-    let bestStart = 0;
-    let bestEnd = 1;
-    let right = 0;
-
-    for (let left = 0; left < prices.length; left += 1) {
-      if (right < left) right = left;
-      while (right < prices.length && prices[right] - prices[left] <= windowWidth) right += 1;
-      const candidateCount = right - left;
-      const bestCount = bestEnd - bestStart;
-      const candidateCenter = (prices[left] + prices[right - 1]) / 2;
-      const bestCenter = (prices[bestStart] + prices[bestEnd - 1]) / 2;
-      if (candidateCount > bestCount || (
-        candidateCount === bestCount
-        && Math.abs(candidateCenter - median) < Math.abs(bestCenter - median)
-      )) {
-        bestStart = left;
-        bestEnd = right;
-      }
-    }
-
-    const clusterCenter = (prices[bestStart] + prices[bestEnd - 1]) / 2;
-    const lower = Math.floor((clusterCenter - (windowWidth / 2)) / step) * step;
-    const upper = Math.ceil((clusterCenter + (windowWidth / 2)) / step) * step;
-    return {
-      lower: Math.max(0, lower),
-      upper: Math.max(step, upper),
-      step,
-    };
+    return 1000;
   }
 
   function marketStatistics(listings) {
     const prices = listings.map((listing) => listing.price).sort((left, right) => left - right);
-    const middleBand = densestMarketBand(prices);
+    const lowEnd = percentile(prices, 1 / 3);
+    const highStart = percentile(prices, 2 / 3);
     return {
       count: prices.length,
       min: prices[0],
       median: percentile(prices, 0.5),
       max: prices[prices.length - 1],
-      middleLow: middleBand.lower,
-      middleHigh: middleBand.upper,
-      middleCount: prices.filter((price) => price >= middleBand.lower && price <= middleBand.upper).length,
-      lowCount: prices.filter((price) => price < middleBand.lower).length,
-      highCount: prices.filter((price) => price > middleBand.upper).length,
-      step: middleBand.step,
+      middleLow: lowEnd,
+      middleHigh: highStart,
+      middleCount: prices.filter((price) => price >= lowEnd && price <= highStart).length,
+      lowCount: prices.filter((price) => price < lowEnd).length,
+      highCount: prices.filter((price) => price > highStart).length,
+      step: marketPriceStep(percentile(prices, 0.5)),
     };
   }
 
@@ -718,6 +666,15 @@
   function verticalMarketPosition(value, minimum, maximum) {
     if (maximum <= minimum) return 50;
     return 5 + (((maximum - value) / (maximum - minimum)) * 90);
+  }
+
+  function marketScaleTicks(minimum, maximum, step) {
+    const ticks = [];
+    const first = Math.ceil(minimum / step) * step;
+    for (let price = first; price < maximum; price += step) {
+      if (price > minimum) ticks.push(price);
+    }
+    return ticks;
   }
 
   function marketClass(price, statistics) {
@@ -735,7 +692,6 @@
     const c = copy();
     const { filters, listings, searchUrl, providerId, sourceFileName } = activeAnalysis;
     const stored = providerId === "import" || providerId === "history";
-    const isDemo = providerId === "demo";
     const hasListings = listings.length >= 3;
     const summary = filterSummary(filters);
     let marketContent = `
@@ -746,11 +702,12 @@
 
     if (hasListings) {
       const statistics = marketStatistics(listings);
-      const domainMinimum = Math.max(0, Math.min(statistics.min, statistics.middleLow) - statistics.step);
-      const domainMaximum = Math.max(statistics.max, statistics.middleHigh) + statistics.step;
+      const domainMinimum = statistics.min;
+      const domainMaximum = statistics.max;
       const middleHighPosition = verticalMarketPosition(statistics.middleHigh, domainMinimum, domainMaximum);
       const middleLowPosition = verticalMarketPosition(statistics.middleLow, domainMinimum, domainMaximum);
       const medianPosition = verticalMarketPosition(statistics.median, domainMinimum, domainMaximum);
+      const scaleTicks = marketScaleTicks(domainMinimum, domainMaximum, statistics.step);
       const points = [...listings]
         .sort((left, right) => right.price - left.price)
         .map((listing) => {
@@ -758,22 +715,12 @@
           const left = 24 + ((seededNumber(`${listing.id}|${listing.price}`) % 6800) / 100);
           const pointClass = marketClass(listing.price, statistics);
           const tooltipClass = left > 72 ? " isTooltipLeft" : "";
-          const secondaryDetails = [
-            listing.year,
-            Number.isFinite(listing.mileage) ? `${listing.mileage.toLocaleString(currentLanguage() === "ru" ? "ru-RU" : "pl-PL")} km` : "",
-          ].filter(Boolean).join(" · ");
-          const tooltipDetails = [listing.title, secondaryDetails].filter(Boolean).join(" · ");
-          const pointHint = listing.isDemo ? c.demoPointHint : c.pointHint;
-          const label = `${listing.title}, ${formatMarketPrice(listing.price)}${secondaryDetails ? `, ${secondaryDetails}` : ""}. ${pointHint}`;
+          const label = `${formatMarketPrice(listing.price)}. ${c.pointHint}`;
           const tooltip = `
               <span class="mobileMarketPointTooltip" aria-hidden="true">
                 <strong>${escapeMarketHtml(formatMarketPrice(listing.price))}</strong>
-                ${tooltipDetails ? `<span>${escapeMarketHtml(tooltipDetails)}</span>` : ""}
               </span>`;
-          if (listing.isDemo) {
-            return `<span class="mobileMarketPoint isDemo ${pointClass}${tooltipClass}" role="img" aria-label="${escapeMarketHtml(label)}" style="left:${left}%;top:${top}%">${tooltip}</span>`;
-          }
-          return `<a class="mobileMarketPoint ${pointClass}${tooltipClass}" href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener" aria-label="${escapeMarketHtml(label)}" style="left:${left}%;top:${top}%">${tooltip}</a>`;
+          return `<span class="mobileMarketPoint ${pointClass}${tooltipClass}" role="img" aria-label="${escapeMarketHtml(label)}" style="left:${left}%;top:${top}%">${tooltip}</span>`;
         })
         .join("");
 
@@ -806,15 +753,17 @@
           <div class="mobileMarketBoundary" style="top:${middleHighPosition}%"></div>
           <div class="mobileMarketMedian" style="top:${medianPosition}%"></div>
           <div class="mobileMarketBoundary" style="top:${middleLowPosition}%"></div>
+          ${scaleTicks.map((price) => {
+            const position = verticalMarketPosition(price, domainMinimum, domainMaximum);
+            return `<div class="mobileMarketGridLine" style="top:${position}%"></div><span class="mobileMarketTick isGrid" style="top:${position}%">${escapeMarketHtml(formatMarketPrice(price))}</span>`;
+          }).join("")}
           ${points}
-          <span class="mobileMarketTick" style="top:5%">${escapeMarketHtml(formatMarketPrice(domainMaximum))}</span>
-          <span class="mobileMarketTick isBoundary" style="top:${middleHighPosition}%">${escapeMarketHtml(formatMarketPrice(statistics.middleHigh))}</span>
-          <span class="mobileMarketTick isBoundary" style="top:${middleLowPosition}%">${escapeMarketHtml(formatMarketPrice(statistics.middleLow))}</span>
-          <span class="mobileMarketTick" style="top:95%">${escapeMarketHtml(formatMarketPrice(domainMinimum))}</span>
+          <span class="mobileMarketTick isLimit" style="top:5%">${escapeMarketHtml(formatMarketPrice(domainMaximum))}</span>
+          <span class="mobileMarketTick isLimit" style="top:95%">${escapeMarketHtml(formatMarketPrice(domainMinimum))}</span>
         </div>
 
         <footer class="mobileMarketNotice">
-          <p>${escapeMarketHtml(isDemo ? c.demoNotice : c.directNotice)}</p>
+          <p>${escapeMarketHtml(c.directNotice)}</p>
           <a class="mobileMarketSearchLink" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.openSearch)}</a>
         </footer>`;
     }
@@ -824,12 +773,12 @@
         <header class="mobileMarketAnalysisHead">
           <div>
             <h1>${escapeMarketHtml(c.heading)}</h1>
-            <p>${escapeMarketHtml(isDemo ? c.demoDescription : (hasListings ? c.importedDescription : c.waitingDescription))}</p>
+            <p>${escapeMarketHtml(hasListings ? c.importedDescription : c.waitingDescription)}</p>
             <div class="mobileMarketFilterSummary">
               ${summary.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}
             </div>
           </div>
-          <span class="mobileMarketTestLabel${isDemo ? " isDemo" : (hasListings ? " isImported" : "")}">${escapeMarketHtml(isDemo ? c.demoLabel : (hasListings ? c.importedLabel : c.waitingLabel))}</span>
+          <span class="mobileMarketTestLabel${hasListings ? " isImported" : ""}">${escapeMarketHtml(hasListings ? c.importedLabel : c.waitingLabel)}</span>
         </header>
 
         <section class="mobileMarketImport" aria-label="${escapeMarketHtml(c.importHeading)}">
@@ -843,6 +792,7 @@
               <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
               <span>${escapeMarketHtml(c.importButton)}</span>
             </label>
+            <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
             ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
           </div>
         </section>
@@ -870,19 +820,15 @@
       const provider = importedDataset || savedListings ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
       const rawListings = importedDataset?.listings || savedListings || (provider ? await provider.getListings({ filters, searchUrl }) : []);
       const normalizedListings = normalizeListings(rawListings);
-      const useDemo = !provider && !importedDataset && !savedListings;
-      const listings = useDemo ? createDemoListings(filters) : normalizedListings;
+      const listings = normalizedListings;
       activeAnalysis = {
         filters,
         listings,
         searchUrl,
-        providerId: importedDataset ? "import" : (savedListings ? "history" : (useDemo ? "demo" : (provider?.id || "empty"))),
+        providerId: importedDataset ? "import" : (savedListings ? "history" : (provider?.id || "empty")),
         sourceFileName: importedDataset?.fileName || savedEntry?.sourceFileName || "",
         historyId: savedEntry?.id || "",
       };
-      if (savedEntry && listings.length >= 3 && savedEntry.listings.length < 3) {
-        updateHistoryListings(savedEntry.id, filters, listings, activeAnalysis.sourceFileName);
-      }
       renderAnalysis();
       manualView.hidden = true;
       analysisView.hidden = false;
@@ -935,7 +881,8 @@
         providerId: "import",
         sourceFileName: input.files[0].name,
       };
-      updateHistoryListings(activeAnalysis.historyId, activeAnalysis.filters, listings, input.files[0].name);
+      const snapshot = createMarketSnapshot(activeAnalysis.filters, listings, input.files[0].name, activeAnalysis.searchUrl);
+      if (snapshot) activeAnalysis.historyId = snapshot.id;
       setAnalysisStatus("");
       renderAnalysis();
     } catch (error) {
@@ -944,17 +891,53 @@
     }
   });
 
+  async function refreshActiveAnalysis() {
+    if (!activeAnalysis) return;
+    const c = copy();
+    const provider = window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
+    if (!provider || typeof provider.getListings !== "function") {
+      setAnalysisStatus(c.refreshUnavailable, true);
+      return;
+    }
+    try {
+      setAnalysisStatus(c.refreshing);
+      const listings = normalizeListings(await provider.getListings({
+        filters: activeAnalysis.filters,
+        searchUrl: activeAnalysis.searchUrl,
+      }));
+      if (listings.length < 3) throw new Error(c.refreshInvalid);
+      const snapshot = createMarketSnapshot(activeAnalysis.filters, listings, "API", activeAnalysis.searchUrl);
+      if (!snapshot) return;
+      importedDataset = null;
+      activeAnalysis = {
+        ...activeAnalysis,
+        listings,
+        providerId: provider.id || "api",
+        sourceFileName: "API",
+        historyId: snapshot.id,
+      };
+      renderAnalysis();
+      setAnalysisStatus(c.snapshotSaved);
+    } catch (error) {
+      setAnalysisStatus(error.message || c.refreshInvalid, true);
+    }
+  }
+
   analysisContent.addEventListener("click", (event) => {
+    const refreshButton = event.target.closest("[data-mobile-market-refresh]");
+    if (refreshButton) {
+      refreshActiveAnalysis();
+      return;
+    }
     const clearButton = event.target.closest("[data-mobile-market-import-clear]");
     if (!clearButton || !activeAnalysis) return;
     importedDataset = null;
     activeAnalysis = {
       ...activeAnalysis,
-      listings: createDemoListings(activeAnalysis.filters),
-      providerId: "demo",
+      listings: [],
+      providerId: "empty",
       sourceFileName: "",
     };
-    updateHistoryListings(activeAnalysis.historyId, activeAnalysis.filters, [], "");
     renderAnalysis();
   });
 

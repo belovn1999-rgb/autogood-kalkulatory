@@ -258,11 +258,6 @@
   color: var(--color-surface);
 }
 
-.mobileMarketTestLabel.isDemo {
-  border-color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
-  color: var(--color-ink);
-}
 
 .mobileMarketImport {
   display: grid;
@@ -475,7 +470,8 @@
 }
 
 .mobileMarketBoundary,
-.mobileMarketMedian {
+.mobileMarketMedian,
+.mobileMarketGridLine {
   position: absolute;
   right: 18px;
   left: 86px;
@@ -488,6 +484,11 @@
   height: 0;
   border-top: var(--rule-thin) dashed color-mix(in oklch, var(--color-brand) 55%, transparent);
   background: transparent;
+}
+
+.mobileMarketGridLine {
+  height: 0;
+  border-top: var(--rule-thin) dashed color-mix(in oklch, var(--color-rule) 75%, transparent);
 }
 
 .mobileMarketTick {
@@ -507,6 +508,16 @@
   color: var(--color-ink);
 }
 
+.mobileMarketTick.isGrid {
+  color: var(--color-soft);
+  font-weight: 600;
+}
+
+.mobileMarketTick.isLimit {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+
 .mobileMarketPoint {
   position: absolute;
   z-index: 2;
@@ -515,10 +526,6 @@
   height: 32px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-}
-
-.mobileMarketPoint.isDemo {
-  cursor: default;
 }
 
 .mobileMarketPoint::before {

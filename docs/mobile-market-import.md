@@ -5,7 +5,7 @@ marki, modelu lub wersji zaimportowany zestaw jest automatycznie odłączany.
 
 ## CSV
 
-Minimalne kolumny: `price,url`. Obsługiwane są przecinek, średnik i tabulator.
+Minimalna kolumna: `price` (w EUR). `url`, `title`, `year`, `mileage` i `id` są opcjonalne. Obsługiwane są przecinek, średnik i tabulator.
 
 ```csv
 price;url;title;year;mileage
@@ -32,43 +32,37 @@ Akceptowana jest tablica ofert albo obiekt z tablicą `listings`, `results` lub 
 }
 ```
 
-Wymagane są co najmniej trzy poprawne, unikalne linki. `title`, `year`, `mileage`
-i `id` są opcjonalne. Ceny wykresu są prezentowane w EUR. Maksymalny rozmiar pliku:
-5 MB. Po imporcie każda kropka prowadzi bezpośrednio do adresu `url` danej oferty.
+Wymagane są co najmniej trzy poprawne ceny. Ceny wykresu są prezentowane w EUR.
+Maksymalny rozmiar pliku: 5 MB. Punkty nie prowadzą do konkretnych ogłoszeń.
+Jeśli `url` występuje, aplikacja może go zachować w lokalnym snapshocie, ale nie
+używa go do budowy ani obsługi punktów wykresu.
 
-Akceptowane są wyłącznie bezpośrednie linki do konkretnego ogłoszenia mobile.de:
-kanoniczny adres `fahrzeuge/details.html?id=...` albo lokalizowany adres kończący się
-numerycznym identyfikatorem ogłoszenia i `.html`. Link do ogólnego wyszukiwania nie
-tworzy punktu na wykresie.
+## Brak danych rynku
 
-## Tryb testowy bez API
-
-Gdy nie ma importu ani podłączonego dostawcy danych, aplikacja pokazuje oznaczony
-„Dane testowe” podgląd wykresu i statystyk dla wybranych filtrów. Punkty w tym trybie
-nie są ofertami mobile.de, nie prowadzą do ogłoszeń i nie są zapisywane jako dane rynku
-w historii. Służą wyłącznie do sprawdzenia działania interfejsu. Import realnych ofert
-albo autoryzowane API zawsze mają pierwszeństwo i przywracają klikalne punkty.
+Gdy nie ma importu, zapisanego snapshota ani podłączonego dostawcy danych, aplikacja
+nie rysuje punktów ani cen zastępczych. Wykres pokazuje wyłącznie ceny otrzymane dla
+aktualnych filtrów lub zapisane w konkretnym snapshocie.
 
 ## Podział rynku
 
-Cena rośnie od dołu do góry wykresu. Zielone tło i punkty oznaczają dół rynku,
-niebieskie środek, a czerwone górę. Środek rynku nie jest stałym kwartylem: aplikacja
+Cena rośnie od dołu do góry wykresu: minimum jest podpisane przy dolnej granicy, a
+maksimum przy górnej. Pomiędzy nimi widoczne są poziome kreski co €1 000. Zielone tło
+i punkty oznaczają dół rynku, niebieskie środek, a czerwone górę. Środek rynku nie jest stałym kwartylem: aplikacja
 szuka przedziału o największym skupieniu ofert. Szerokość badanego przedziału skaluje
 się z medianą ceny i liczbą ofert, a jego granice są zaokrąglane do czytelnego kroku
 cenowego. Statystyka „Środek rynku” pokazuje obie granice tego przedziału.
 
 ## Historia wyszukiwania
 
-Przycisk „Zapisz dane” zapisuje bieżący zestaw filtrów lokalnie w przeglądarce.
-Historia przechowuje maksymalnie 15 zestawów, najnowsze na górze. Ponowne zapisanie
-identycznego zestawu aktualizuje istniejący wpis, a dodanie szesnastego usuwa
-najstarszy.
+Przycisk „Zapisz dane” zapisuje bieżący zestaw filtrów jako osobny snapshot z datą
+i godziną lokalnie w przeglądarce. Historia przechowuje maksymalnie 15 snapshotów,
+najnowsze na górze. Przycisk „Odśwież dane” w analizie pobiera aktualny zestaw cen z
+podłączonego dostawcy i tworzy kolejny snapshot — wcześniejsze nie są nadpisywane.
 
 Każdy wpis ma osobny przycisk „Usuń”. Po potwierdzeniu usuwany jest wyłącznie
 wybrany zestaw wraz z jego zapisanymi ofertami, a licznik historii aktualizuje się
 od razu.
 
-Jeżeli dla zapisanego zestawu zostanie zaimportowany plik ofert, ceny i bezpośrednie
-linki ogłoszeń są dopisywane do tego wpisu. Przycisk „Analiza rynku” w historii
+Jeżeli zostanie zaimportowany plik ofert, tworzy on nowy snapshot cen. Przycisk „Analiza rynku” w historii
 odtwarza filtry oraz zapisany wykres również po ponownym otwarciu strony. Dane nie są
 synchronizowane między przeglądarkami ani urządzeniami.
