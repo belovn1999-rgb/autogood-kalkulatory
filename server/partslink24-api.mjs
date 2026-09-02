@@ -28,8 +28,27 @@ const mimeTypes = {
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
   ".svg": "image/svg+xml",
-  ".webp": "image/webp"
+  ".webp": "image/webp",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
+  ".pdf": "application/pdf"
 };
+
+// The static handler used to serve anything inside the repo root, which meant a
+// plain GET could read tools/partslink24/.env — the live PartsLink24 password.
+// It never leaked in the current setup only because the credentials happen to
+// live outside the served directory; the deployment guide's "upload the full
+// repo, create server/.env" layout would have published them on day one.
+// Two gates now: the extension must be one we intend to serve, and no path
+// segment may start with a dot (.env, .git, .gitignore).
+function isServablePath(filePath, repoRoot) {
+  if (!filePath.startsWith(`${repoRoot}/`)) return false;
+  const relative = filePath.slice(repoRoot.length + 1);
+  if (relative.split("/").some((segment) => segment.startsWith("."))) return false;
+  return Object.hasOwn(mimeTypes, extname(filePath).toLowerCase());
+}
 
 export async function handlePartslink24Request(request, response) {
   try {
@@ -345,11 +364,11 @@ function sendStatic(request, response) {
   const rawPath = url.pathname === "/" ? "/index.html" : url.pathname;
   const filePath = resolve(repoRoot, `.${normalize(rawPath)}`);
 
-  if (!filePath.startsWith(`${repoRoot}/`) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+  if (!isServablePath(filePath, repoRoot) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
     return sendJson(response, 404, { ok: false, error: "Not found." });
   }
 
-  const type = mimeTypes[extname(filePath).toLowerCase()] || "application/octet-stream";
+  const type = mimeTypes[extname(filePath).toLowerCase()];
   response.writeHead(200, {
     "content-type": type,
     "content-length": statSync(filePath).size,
@@ -416,7 +435,7 @@ function loadLocalEnv(path) {
   }
 }
 
-function hasPartslinkCredentials() {
+export function hasPartslinkCredentials() {
   return Boolean(process.env.PARTSLINK24_COMPANY_ID && process.env.PARTSLINK24_USERNAME && process.env.PARTSLINK24_PASSWORD);
 }
 

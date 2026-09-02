@@ -3,11 +3,27 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleMobiledeImport } from "./mobilede-import.mjs";
-import { handlePartslink24Request } from "./partslink24-api.mjs";
+import { handlePartslink24Request, hasPartslinkCredentials } from "./partslink24-api.mjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const port = Number(process.env.PORT || 8790);
 const host = process.env.HOST || "127.0.0.1";
+const buildRevision = process.env.GIT_SHA || process.env.RENDER_GIT_COMMIT || "local";
+
+// A VIN check needs a browser. Playwright ships its own, but a server may point
+// at a system Chrome instead, so accept either.
+function hasBrowser() {
+  const configured = process.env.PARTSLINK24_CHROME_PATH;
+  if (configured && existsSync(configured)) return true;
+  const systemPaths = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium"
+  ];
+  if (systemPaths.some((path) => existsSync(path))) return true;
+  return existsSync(resolve(repoRoot, "node_modules/playwright"));
+}
 
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -19,8 +35,25 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
-  ".ttf": "font/ttf"
+  ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
+  // Declaration templates in assets/ are fetched by no-plates-declaration.js.
+  ".pdf": "application/pdf"
 };
+
+// The static handler used to serve anything inside the repo root, which meant a
+// plain GET could read tools/partslink24/.env — the live PartsLink24 password.
+// It never leaked in the current setup only because the credentials happen to
+// live outside the served directory; the deployment guide's "upload the full
+// repo, create server/.env" layout would have published them on day one.
+// Two gates now: the extension must be one we intend to serve, and no path
+// segment may start with a dot (.env, .git, .gitignore).
+function isServablePath(filePath, repoRoot) {
+  if (!filePath.startsWith(`${repoRoot}/`)) return false;
+  const relative = filePath.slice(repoRoot.length + 1);
+  if (relative.split("/").some((segment) => segment.startsWith("."))) return false;
+  return Object.hasOwn(mimeTypes, extname(filePath).toLowerCase());
+}
 
 const server = http.createServer(async (request, response) => {
   try {
@@ -28,12 +61,22 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "OPTIONS") return sendNoContent(response);
     if (request.method === "GET" && requestUrl.pathname === "/health") {
+      const partslink24 = hasPartslinkCredentials() && hasBrowser();
       return sendJson(response, 200, {
         ok: true,
         service: "autogood-api",
+        revision: buildRevision,
         mobilede: true,
-        partslink24: true
+        partslink24,
+        // Spelled out so a failing deploy says which half is missing.
+        partslink24Detail: {
+          credentials: hasPartslinkCredentials(),
+          browser: hasBrowser()
+        }
       });
+    }
+    if (request.method === "GET" && requestUrl.pathname === "/version") {
+      return sendJson(response, 200, { ok: true, service: "autogood-api", revision: buildRevision });
     }
     if (requestUrl.pathname === "/mobilede/import") {
       return handleMobiledeImport(request, response);
@@ -63,11 +106,11 @@ function sendStatic(request, response) {
   const rawPath = url.pathname === "/" ? "/index.html" : url.pathname;
   const filePath = resolve(repoRoot, `.${normalize(rawPath)}`);
 
-  if (!filePath.startsWith(`${repoRoot}/`) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
+  if (!isServablePath(filePath, repoRoot) || !existsSync(filePath) || statSync(filePath).isDirectory()) {
     return sendJson(response, 404, { ok: false, error: "Not found." });
   }
 
-  const type = mimeTypes[extname(filePath).toLowerCase()] || "application/octet-stream";
+  const type = mimeTypes[extname(filePath).toLowerCase()];
   response.writeHead(200, {
     "content-type": type,
     "content-length": statSync(filePath).size,
