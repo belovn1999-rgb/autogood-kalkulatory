@@ -26,8 +26,27 @@ const mode = readOption(args, "--mode") || (args.includes("--production-date-onl
 const outDir = resolve(readOption(args, "--out-dir") || process.env.PARTSLINK24_OUTPUT_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-output"));
 const headless = !args.includes("--headed");
 const userDataDir = resolve(process.env.PARTSLINK24_PROFILE_DIR || join(homedir(), "Library/Application Support/AUTOGOOD/partslink24-profile"));
-const pace = Math.max(1, Number(process.env.PARTSLINK24_PACE || 1.5));
+const pace = Math.max(1, Number(process.env.PARTSLINK24_PACE || 2.25));
 const paced = (ms) => Math.round(ms / pace);
+// waitForLoadState("networkidle") has no timeout of its own, so it inherits
+// Playwright's 30s default. PartsLink24 polls in the background and often never
+// goes idle, and every call site swallows the rejection, so a stall burned 30
+// silent seconds. These waits are advisory: correctness is guarded by the
+// explicit isVisible/waitForFunction waits that follow, so cap them short.
+const networkSettleMs = Number(process.env.PARTSLINK24_NETWORK_SETTLE_MS || 2500);
+// PARTSLINK24_TIMING=1 prints a phase breakdown to stderr. stdout stays pure
+// JSON, which the API server parses.
+const timingEnabled = process.env.PARTSLINK24_TIMING === "1";
+const runStartedAt = Date.now();
+let lastPhaseAt = runStartedAt;
+function phase(name) {
+  if (!timingEnabled) return;
+  const now = Date.now();
+  process.stderr.write(`[timing] ${name}: ${now - lastPhaseAt}ms (total ${now - runStartedAt}ms)\n`);
+  lastPhaseAt = now;
+}
+const settleNetwork = (page) =>
+  page.waitForLoadState("networkidle", { timeout: networkSettleMs }).catch(() => {});
 const slowMo = Number(process.env.PARTSLINK24_SLOW_MO_MS || paced(280));
 const systemChromePaths = [
   process.env.PARTSLINK24_CHROME_PATH,
@@ -79,21 +98,28 @@ try {
     ...(executablePath ? { executablePath } : {})
   });
   page = context.pages()[0] || await context.newPage();
+  phase("browser launch");
   await login(page, { companyId, username, password, language });
+  phase("login");
   await openVehicle(page, brandConfig, vin);
+  phase("open vehicle");
   const vehicleDescription = await extractVehicleDescription(page, { brand });
+  phase("read description");
   if (mode === "production-date") {
     const productionDate = await extractProductionDate(page, { brand, language });
     const engineInfo = normalizeEngineInfo(await extractEngineInfo(page));
+    phase("extract data");
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, productionDate: productionDate.value, productionDateLabel: productionDate.label, engineType: engineInfo.engineType, engineVolume: engineInfo.engineVolume }, null, 2)}\n`);
   } else if (mode === "full") {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
+    phase("download pdf");
     const reportInfo = extractPdfVehicleInfo(pdfPaths[0], { brand, language });
     const displayBrand = brand === "Vw Nutzfahrzeuge" ? "Volkswagen" : brand;
     const reportVehicleDescription = reportInfo.model ? `${displayBrand} ${reportInfo.model}` : vehicleDescription;
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription: reportVehicleDescription, productionDate: reportInfo.productionDate, productionDateLabel: reportInfo.productionDate ? "PDF" : "", engineType: reportInfo.engineType, engineVolume: reportInfo.engineVolume, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   } else {
     const pdfPaths = await downloadVehiclePdfs(page, brandConfig, { brand, vin, language, outDir });
+    phase("download pdf");
     process.stdout.write(`${JSON.stringify({ ok: true, brand, vin, language, vehicleDescription, pdfPath: pdfPaths[0], pdfPaths }, null, 2)}\n`);
   }
 } catch (error) {
@@ -114,8 +140,10 @@ async function login(page, credentials) {
   await setLanguage(page, credentials.language);
 
   const loginId = page.locator(loginSelectors.companyId).last();
-  if (!await loginId.isVisible({ timeout: 10000 }).catch(() => false)) {
-    await page.waitForLoadState("networkidle").catch(() => {});
+  // The form ships with the document, so if it is not up by now the session is
+  // already live. The old 10s budget was dead time on every warm run.
+  if (!await loginId.isVisible({ timeout: 3500 }).catch(() => false)) {
+    await settleNetwork(page);
     return;
   }
 
@@ -125,7 +153,7 @@ async function login(page, credentials) {
   await humanDelay();
 
   await Promise.all([
-    page.waitForLoadState("networkidle").catch(() => {}),
+    settleNetwork(page),
     page.locator(loginSelectors.submit).last().click()
   ]);
 
@@ -142,7 +170,7 @@ async function confirmExistingSession(page) {
 
   await humanDelay();
   await Promise.all([
-    page.waitForLoadState("networkidle").catch(() => {}),
+    settleNetwork(page),
     confirmButton.click()
   ]);
 }
@@ -168,7 +196,7 @@ async function waitForLogin(page) {
   const result = await loginResult.jsonValue();
   if (!result.ok) fail(result.error || "PartsLink24 login failed.");
 
-  await page.waitForLoadState("networkidle").catch(() => {});
+  await settleNetwork(page);
 }
 
 async function setLanguage(page, language) {
@@ -180,7 +208,7 @@ async function setLanguage(page, language) {
   await page.goto(`https://www.partslink24.com/${code}/index.html`, {
     waitUntil: "domcontentloaded"
   });
-  await page.waitForLoadState("networkidle").catch(() => {});
+  await settleNetwork(page);
   await humanDelay();
 
   const portalToggle = page.locator('[data-test-id="pl24-portal-ui-desktopLanguageSwitcher-button-toggleMenu"]').first();
@@ -193,7 +221,7 @@ async function setLanguage(page, language) {
   await clickHuman(portalToggle);
   const targetLanguage = page.locator(`[data-test-id="pl24-portal-ui-desktopLanguageSwitcher-link-language-${code}"]`).first();
   await Promise.all([
-    page.waitForLoadState("networkidle").catch(() => {}),
+    settleNetwork(page),
     clickHuman(targetLanguage)
   ]);
   await page.waitForFunction((label) => {
@@ -232,7 +260,7 @@ async function openVehicle(page, brandConfig, vin) {
 
 async function openBrandCatalogue(page, brandConfig) {
   await clickBrandTile(page, brandConfig);
-  await page.waitForLoadState("networkidle").catch(() => {});
+  await settleNetwork(page);
   await humanDelay();
 }
 
@@ -242,7 +270,7 @@ async function searchVin(page, vin) {
   await humanDelay();
 
   await Promise.all([
-    page.waitForLoadState("networkidle").catch(() => {}),
+    settleNetwork(page),
     page.keyboard.press("Enter")
   ]);
 }
