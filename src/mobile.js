@@ -87,6 +87,7 @@ const copy = {
     trailerCouplingDetachableOrSwiveling: "Odpinany lub odchylany",
     trailerCouplingSwiveling: "Hak holowniczy odchylany",
     electricTailgate: "Elektryczna klapa bagażnika",
+    seatsRangeLabel: "Liczba miejsc",
     featurePanoramicRoof: "Dach panoramiczny",
     featureAirSuspension: "Zawieszenie pneumatyczne",
     featureSportsSuspension: "Sportowe zawieszenie",
@@ -146,9 +147,10 @@ const copy = {
     matteLabel: "Matowy",
     metallicLabel: "Metallic",
     nonSmokingLabel: "Auto niepalącego",
+    roadworthyLabel: "Sprawny technicznie",
     damagedVehiclesLabel: "Uszkodzone pojazdy",
     damagedVehiclesHide: "Nie pokazuj",
-    damagedVehiclesShow: "Pokaż wszystkie",
+    damagedVehiclesShow: "Pokaż",
     marketSearchButton: "Szukaj na mobile.de",
     marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
     marketSearchChooseBrand: "Wybierz markę przed wpisaniem modelu.",
@@ -269,6 +271,7 @@ const copy = {
     trailerCouplingDetachableOrSwiveling: "Съёмный или поворотный",
     trailerCouplingSwiveling: "Поворотный фаркоп",
     electricTailgate: "Электропривод крышки багажника",
+    seatsRangeLabel: "Количество мест",
     featurePanoramicRoof: "Панорамная крыша",
     featureAirSuspension: "Пневмоподвеска",
     featureSportsSuspension: "Спортивная подвеска",
@@ -328,9 +331,10 @@ const copy = {
     matteLabel: "Матовый",
     metallicLabel: "Металлик",
     nonSmokingLabel: "Авто для некурящих",
+    roadworthyLabel: "Технически исправный",
     damagedVehiclesLabel: "Повреждённые автомобили",
     damagedVehiclesHide: "Не показывать",
-    damagedVehiclesShow: "Показывать все",
+    damagedVehiclesShow: "Показывать",
     marketSearchButton: "Найти на mobile.de",
     marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
     marketSearchChooseBrand: "Сначала выбери марку, затем введи модель.",
@@ -443,6 +447,8 @@ const bodyOptions = [
   { value: "pickup", pl: "Pickup", ru: "Пикап" },
   { value: "other", pl: "Inne", ru: "Другой" },
 ];
+
+const seatsOptions = Array.from({ length: 9 }, (_, index) => String(index + 1));
 
 const mobileDeMakeIds = {
   Abarth: "140",
@@ -785,6 +791,8 @@ const els = {
   displacementOptions: document.querySelector("[data-mobile-displacement-options]"),
   powerFrom: document.querySelector("[data-mobile-power-from]"),
   powerTo: document.querySelector("[data-mobile-power-to]"),
+  seatsFrom: document.querySelector("[data-mobile-seats-from]"),
+  seatsTo: document.querySelector("[data-mobile-seats-to]"),
   powerOptions: document.querySelector("[data-mobile-power-options]"),
   drive: Array.from(document.querySelectorAll("[data-mobile-drive]")),
   gearbox: Array.from(document.querySelectorAll("[data-mobile-gearbox]")),
@@ -805,6 +813,7 @@ const els = {
   matte: document.querySelector("[data-mobile-matte]"),
   metallic: document.querySelector("[data-mobile-metallic]"),
   nonSmoking: document.querySelector("[data-mobile-non-smoking]"),
+  roadworthy: document.querySelector("[data-mobile-roadworthy]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
   marketSearch: document.querySelector("[data-mobile-market-search]"),
@@ -1104,6 +1113,8 @@ function comboOptionSets() {
       value,
       label: `${value} KM`,
     })),
+    seats: seatsOptions.map((value) => ({ value, label: value })),
+    seatsTo: valuesAfter(seatsOptions, els.seatsFrom?.value, true).map((value) => ({ value, label: value })),
     body: [
       { value: "", label: c.selectEmpty },
       ...bodyOptions.map((body) => ({
@@ -1344,6 +1355,8 @@ function defaultManualFields() {
     displacementTo: "",
     powerFrom: "",
     powerTo: "",
+    seatsFrom: "",
+    seatsTo: "",
     drive: "any",
     gearbox: "any",
     vat: "",
@@ -1359,7 +1372,8 @@ function defaultManualFields() {
     interiorColors: [],
     matte: false,
     metallic: false,
-    nonSmoking: false,
+    nonSmoking: true,
+    roadworthy: true,
     damagedVehicles: "hide",
   };
 }
@@ -1403,6 +1417,8 @@ function renderManualOptions(keepValues = true) {
   els.displacementTo.value = current.displacementTo || "";
   els.powerFrom.value = current.powerFrom || "";
   els.powerTo.value = current.powerTo || "";
+  els.seatsFrom.value = current.seatsFrom || "";
+  els.seatsTo.value = current.seatsTo || "";
   setCheckedValue(els.drive, current.drive || "any");
   setCheckedValue(els.gearbox, current.gearbox || "any");
   setCheckedValues(els.countries, current.countries?.length ? current.countries : ["DE"]);
@@ -1417,6 +1433,7 @@ function renderManualOptions(keepValues = true) {
   els.matte.checked = Boolean(current.matte);
   els.metallic.checked = Boolean(current.metallic);
   els.nonSmoking.checked = Boolean(current.nonSmoking);
+  els.roadworthy.checked = Boolean(current.roadworthy);
   updateFuelSummary();
   updateCountrySummary();
   updateSelectedFiltersSummary();
@@ -1439,6 +1456,8 @@ function readManualFields() {
     displacementTo: els.displacementTo?.value || "",
     powerFrom: els.powerFrom?.value || "",
     powerTo: els.powerTo?.value || "",
+    seatsFrom: els.seatsFrom?.value || "",
+    seatsTo: els.seatsTo?.value || "",
     drive: checkedValue(els.drive),
     gearbox: checkedValue(els.gearbox),
     vat: els.vat?.value || "",
@@ -1455,6 +1474,7 @@ function readManualFields() {
     matte: els.matte?.checked || false,
     metallic: els.metallic?.checked || false,
     nonSmoking: els.nonSmoking?.checked || false,
+    roadworthy: els.roadworthy?.checked || false,
     damagedVehicles: els.damagedVehicles?.value || "hide",
   };
 }
@@ -1525,6 +1545,7 @@ function updateSelectedFiltersSummary() {
     { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar", target: els.yearFrom },
     { value: rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"), icon: "settings", target: els.displacementFrom },
     { value: rangeFilterSummary(c.powerRangeLabel, filters.powerFrom, filters.powerTo, "KM"), icon: "zap", target: els.powerFrom },
+    { value: rangeFilterSummary(c.seatsRangeLabel, filters.seatsFrom, filters.seatsTo), icon: "armchair", target: els.seatsFrom },
     selectedRadioSummaryPart(els.gearbox, filters.gearbox, "git-branch"),
     selectedRadioSummaryPart(els.drive, filters.drive, "route"),
     ...selectedInputSummaryParts(els.interiorMaterials, "armchair"),
@@ -1538,6 +1559,7 @@ function updateSelectedFiltersSummary() {
     { value: filters.matte ? c.matteLabel : "", icon: "palette", target: els.matte },
     { value: filters.metallic ? c.metallicLabel : "", icon: "palette", target: els.metallic },
     { value: filters.nonSmoking ? c.nonSmokingLabel : "", icon: "settings", target: els.nonSmoking },
+    { value: filters.roadworthy ? c.roadworthyLabel : "", icon: "check", target: els.roadworthy },
     { value: els.vatLabel?.value, icon: "percent", target: els.vatLabel },
     ...selectedInputSummaryParts(els.countries, "map-pin"),
     { value: els.sellerLabel?.value, icon: "store", target: els.sellerLabel },
@@ -1568,7 +1590,7 @@ function updateSelectedFiltersSummary() {
       const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       icon.setAttribute("aria-hidden", "true");
       const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-      use.setAttribute("href", `./src/mobile-icons.svg?v=manual-filter-navigation-20260831#${part.icon}`);
+      use.setAttribute("href", `./src/mobile-icons.svg?v=manual-seats-roadworthy-20260902#${part.icon}`);
       icon.append(use);
       item.append(icon);
     }
@@ -1667,6 +1689,7 @@ function buildMobileDeSearchUrl(filters) {
     filters.powerTo,
     (powerPs) => Math.round(powerPs * 0.735499),
   );
+  appendMobileDeRange(params, "seats", filters.seatsFrom, filters.seatsTo);
 
   manualFuelValues(filters)
     .map((value) => value === "plugin" ? "HYBRID_PLUGIN" : mobileDeFuelValues[value])
@@ -1692,7 +1715,6 @@ function buildMobileDeSearchUrl(filters) {
   if (airConditioning) params.set("clim", airConditioning);
   const trailerCoupling = mobileDeTrailerCouplingValues[filters.trailerCoupling];
   if (trailerCoupling) params.set("tct", trailerCoupling);
-  if (filters.trailerCoupling === "electric_tailgate") params.append("fe", "ELECTRIC_TAILGATE");
   (filters.features || []).forEach((feature) => params.append("fe", feature));
   (filters.parkingSensors || []).forEach((sensor) => params.append("fe", sensor));
   if (filters.cruiseControl && filters.cruiseControl !== "any") params.append("fe", filters.cruiseControl);
@@ -1703,6 +1725,7 @@ function buildMobileDeSearchUrl(filters) {
   if (filters.matte) params.append("fe", "MATTE_COLOR");
   if (filters.metallic) params.append("fe", "METALLIC");
   if (filters.nonSmoking) params.append("fe", "NONSMOKER_VEHICLE");
+  if (filters.roadworthy) params.set("rd", "true");
 
   params.set("sb", "p");
   params.set("od", "up");
@@ -2007,6 +2030,7 @@ const rangeEndsByStart = new Map([
   [els.yearFrom, [els.yearTo, true]],
   [els.displacementFrom, [els.displacementTo, false]],
   [els.powerFrom, [els.powerTo, false]],
+  [els.seatsFrom, [els.seatsTo, true]],
 ]);
 
 document.querySelectorAll(".mobileComboControl input").forEach((input) => {

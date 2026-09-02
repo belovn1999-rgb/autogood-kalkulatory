@@ -65,6 +65,7 @@
       year: "Rok",
       displacement: "Pojemność",
       power: "Moc",
+      seats: "Liczba miejsc",
       engine: "Silnik",
       gearbox: "Skrzynia",
       fuelPetrol: "Benzyna",
@@ -131,6 +132,7 @@
       year: "Год",
       displacement: "Объём",
       power: "Мощность",
+      seats: "Количество мест",
       engine: "Двигатель",
       gearbox: "Коробка передач",
       fuelPetrol: "Бензин",
@@ -418,6 +420,8 @@
       displacementTo: "[data-mobile-displacement-to]",
       powerFrom: "[data-mobile-power-from]",
       powerTo: "[data-mobile-power-to]",
+      seatsFrom: "[data-mobile-seats-from]",
+      seatsTo: "[data-mobile-seats-to]",
       vat: "[data-mobile-vat]",
       seller: "[data-mobile-seller]",
       damagedVehicles: "[data-mobile-damaged-vehicles]",
@@ -449,10 +453,11 @@
       matte: "[data-mobile-matte]",
       metallic: "[data-mobile-metallic]",
       nonSmoking: "[data-mobile-non-smoking]",
+      roadworthy: "[data-mobile-roadworthy]",
     };
     Object.entries(booleanSelectors).forEach(([key, selector]) => {
       const input = document.querySelector(selector);
-      if (input) input.checked = Boolean(filters[key]);
+      if (input) input.checked = key === "roadworthy" ? filters[key] !== false : Boolean(filters[key]);
     });
     if (typeof renderManualOptions === "function") renderManualOptions(true);
   }
@@ -602,6 +607,7 @@
     summary.push(rangeSummary(c.mileage, filters.mileageFrom, filters.mileageTo, "km"));
     summary.push(rangeSummary(c.displacement, filters.displacementFrom, filters.displacementTo, "ccm"));
     summary.push(rangeSummary(c.power, filters.powerFrom, filters.powerTo, "KM"));
+    summary.push(rangeSummary(c.seats, filters.seatsFrom, filters.seatsTo));
     if (filters.drive && filters.drive !== "any") summary.push(checkedLabel("[data-mobile-drive]"));
     if (filters.gearbox && filters.gearbox !== "any") summary.push(checkedLabel("[data-mobile-gearbox]"));
     const vat = selectedOptionText("[data-mobile-vat]");
@@ -621,6 +627,7 @@
     if (filters.matte) summary.push(document.querySelector("[data-mobile-matte]")?.closest("label")?.textContent.trim());
     if (filters.metallic) summary.push(document.querySelector("[data-mobile-metallic]")?.closest("label")?.textContent.trim());
     if (filters.nonSmoking) summary.push(document.querySelector("[data-mobile-non-smoking]")?.closest("label")?.textContent.trim());
+    if (filters.roadworthy) summary.push(document.querySelector("[data-mobile-roadworthy]")?.closest("label")?.textContent.trim());
     return summary.filter(Boolean);
   }
 

@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=headings-20260901" />
+  <link rel="stylesheet" href="./src/mobile.css?v=manual-seats-roadworthy-20260902" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=live-price-zones-20260902" />
   </head>
   <body class="mobileBody">
@@ -292,6 +292,7 @@
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="manual" /> <span data-i18n="airConditioningManual">Manualna</span></label>
                   </div>
                 </fieldset>
+                <div class="mobileTrailerColumn">
                 <fieldset class="mobileField mobileChoiceField">
                   <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="trailerCouplingLabel">Hak holowniczy</span></legend>
                   <div class="mobileOpenChoiceRow">
@@ -299,9 +300,20 @@
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="all" /> <span data-i18n="trailerCouplingAll">Stały, odpinany lub odchylany</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="detachable_or_swiveling" /> <span data-i18n="trailerCouplingDetachableOrSwiveling">Odpinany lub odchylany</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="swiveling" /> <span data-i18n="trailerCouplingSwiveling">Hak holowniczy odchylany</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="electric_tailgate" /> <span data-i18n="electricTailgate">Elektryczna klapa bagażnika</span></label>
                   </div>
                 </fieldset>
+                <div class="mobileField mobileRangeField">
+                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#armchair"></use></svg><span data-i18n="seatsRangeLabel">Liczba miejsc</span></span>
+                  <div class="mobileRangePair">
+                    <div class="mobileComboControl" data-mobile-options="seats" data-mobile-options-target="data-mobile-seats-from">
+                      <input data-mobile-seats-from inputmode="numeric" autocomplete="off" />
+                    </div>
+                    <div class="mobileComboControl" data-mobile-options="seatsTo" data-mobile-options-target="data-mobile-seats-to">
+                      <input data-mobile-seats-to inputmode="numeric" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
+                </div>
               </div>
               <section class="mobileFeatureOptionsSection">
                 <h2 class="mobileManualSectionTitle mobileSectionTitleLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></h2>
@@ -335,6 +347,7 @@
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WIRELESS_CHARGING" /> <span data-i18n="featureWirelessCharging">Ładowanie indukcyjne smartfona</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WINTER_TIRES" /> <span data-i18n="featureWinterTyres">Opony zimowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SUMMER_TIRES" /> <span data-i18n="featureSummerTyres">Opony letnie</span></label>
+                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE" /> <span data-i18n="electricTailgate">Elektryczna klapa bagażnika</span></label>
                 </div>
               </section>
             </div>
@@ -377,10 +390,16 @@
                 <input data-mobile-damaged-vehicles type="hidden" />
               </div>
             </label>
-            <label class="mobileCheckOption mobileNonSmokingField">
-              <input data-mobile-non-smoking type="checkbox" checked />
-              <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
-            </label>
+            <div class="mobileVehicleChecks">
+              <label class="mobileCheckOption mobileNonSmokingField">
+                <input data-mobile-non-smoking type="checkbox" checked />
+                <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
+              </label>
+              <label class="mobileCheckOption mobileRoadworthyField">
+                <input data-mobile-roadworthy type="checkbox" checked />
+                <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-seats-roadworthy-20260902#check"></use></svg><span data-i18n="roadworthyLabel">Sprawny technicznie</span>
+              </label>
+            </div>
               </div>
             </section>
 
@@ -482,7 +501,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-catalog-complete-20260826"></script>
-    <script src="./src/mobile.js?v=headings-20260901"></script>
+    <script src="./src/mobile.js?v=manual-seats-roadworthy-20260902"></script>
     <script src="./src/mobile-market-analysis.js?v=live-price-zones-20260902"></script>
   </body>
 </html>

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mobileSource = await fs.readFile(path.join(repoRoot, "src/mobile.js"), "utf8");
+const mobileHtml = await fs.readFile(path.join(repoRoot, "mobile.html"), "utf8");
 const generatedSource = await fs.readFile(
   path.join(repoRoot, "src/mobile-model-catalog.generated.js"),
   "utf8",
@@ -48,6 +49,10 @@ function equalObject(actual, expected, label) {
   if (actualJson !== expectedJson) {
     throw new Error(`${label}: ${actualJson} != ${expectedJson}`);
   }
+}
+
+function requireHtml(fragment, label) {
+  if (!mobileHtml.includes(fragment)) throw new Error(`Brak kontraktu HTML: ${label}.`);
 }
 
 function requireSource(fragment, label) {
@@ -160,6 +165,7 @@ const contractFragments = [
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
   ['appendMobileDeRange(\n    params,\n    "pw"', "moc"],
+  ['appendMobileDeRange(params, "seats"', "liczba miejsc"],
   ['manualFuelValues(filters)', "wielokrotny wybór paliwa"],
   ['value === "plugin" ? "HYBRID_PLUGIN"', "Plug-in"],
   ['params.append("ft", fuel)', "paliwo"],
@@ -172,7 +178,6 @@ const contractFragments = [
   ['params.append("it", value)', "materiał wnętrza"],
   ['params.set("clim", airConditioning)', "klimatyzacja"],
   ['params.set("tct", trailerCoupling)', "hak holowniczy"],
-  ['params.append("fe", "ELECTRIC_TAILGATE")', "elektryczna klapa bagażnika"],
   ['params.append("fe", feature)', "wyposażenie"],
   ['params.append("fe", sensor)', "asystenci parkowania"],
   ['params.append("fe", filters.cruiseControl)', "tempomat"],
@@ -181,10 +186,12 @@ const contractFragments = [
   ['params.append("fe", "MATTE_COLOR")', "matowy"],
   ['params.append("fe", "METALLIC")', "metallic"],
   ['params.append("fe", "NONSMOKER_VEHICLE")', "niepalący"],
+  ['params.set("rd", "true")', "sprawny technicznie"],
   ['params.set("sb", "p")', "sortowanie po cenie"],
   ['params.set("od", "up")', "kolejność rosnąca"],
 ];
 contractFragments.forEach(([fragment, label]) => requireSource(fragment, label));
+requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "elektryczna klapa bagażnika w opcjach");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {

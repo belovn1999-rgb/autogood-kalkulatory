@@ -870,6 +870,12 @@ button {
   margin-bottom: var(--space-md);
 }
 
+.mobileTrailerColumn {
+  display: grid;
+  align-content: start;
+  gap: var(--space-md);
+}
+
 .mobileOpenChoiceRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1063,7 +1069,15 @@ button {
 .mobileColorOption .isWhite { background: #fff; }
 .mobileColorOption .isOther { background: linear-gradient(90deg, #ff4a4a, #ffd930, #41b95c, #4f77ec, #9d5be9); }
 
-.mobileNonSmokingField {
+.mobileVehicleChecks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: end;
+  gap: var(--space-sm);
+}
+
+.mobileNonSmokingField,
+.mobileRoadworthyField {
   display: inline-flex;
   align-items: center;
   align-self: end;
@@ -1481,6 +1495,10 @@ button {
 
   .mobileOpenChoiceRow,
   .mobileFeatureChoiceGroup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileVehicleChecks {
     grid-template-columns: minmax(0, 1fr);
   }
 
