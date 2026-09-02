@@ -334,8 +334,30 @@
         border-bottom: 0;
       }
 
-      .partslinkBrandOption--group-end {
+      .partslinkBrandGroupLabel {
+        position: sticky;
+        top: 0;
+        z-index: 1;
         border-bottom: 1px solid var(--ag-color-rule-2);
+        background: var(--ag-color-surface-tint);
+        padding: 7px var(--ag-space-field-x) 6px;
+        color: var(--ag-color-muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      /* Every group after the first opens with a heavier rule, so the three
+         blocks read apart even while scrolling past a sticky heading. */
+      .partslinkBrandGroupLabel + .partslinkBrandOption,
+      .partslinkBrandGroupLabel:not(:first-child) {
+        border-top: 2px solid var(--ag-color-rule-2);
+      }
+
+      .partslinkBrandGroupLabel:first-child {
+        border-top: 0;
       }
 
       .partslinkBrandOption[data-favorite="true"] {
@@ -1456,12 +1478,26 @@
         "Mercedes Vans": "Mercedes Vans",
         "Vw Nutzfahrzeuge": "Volkswagen Vans"
       };
-      const brandDisplayOrder = [
-        "Audi", "BMW", "Ford", "Mercedes-Benz", "Peugeot", "Toyota", "Volvo", "Volkswagen",
-        "Alfa Romeo", "Citroen", "Cupra", "DS", "Fiat", "Ford Pro", "Hyundai", "Jaguar", "Jeep", "Kia", "Land Rover", "Lexus", "Mini", "Mitsubishi", "Nissan", "Opel", "Porsche", "Porsche Classic", "Seat", "Skoda", "Suzuki", "Vw Nutzfahrzeuge",
-        "Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Fiat Professional", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Renault", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"
+      // Each group keeps its own alphabetical order; van variants sit next to the
+      // brand they belong to (Fiat Vans under Fiat, Ford Vans under Ford).
+      const brandGroups = [
+        {
+          label: "Топ запросов",
+          brands: ["Audi", "BMW", "Ford", "Mercedes-Benz", "Peugeot", "Toyota", "Volvo", "Volkswagen"]
+        },
+        {
+          label: "Марки авто",
+          brands: ["Alfa Romeo", "Citroen", "Cupra", "DS", "Fiat", "Fiat Professional", "Ford Pro", "Hyundai", "Jaguar", "Jeep", "Kia", "Land Rover", "Lexus", "Mini", "Mitsubishi", "Nissan", "Opel", "Porsche", "Porsche Classic", "Seat", "Skoda", "Suzuki", "Vw Nutzfahrzeuge"]
+        },
+        {
+          label: "Другие марки",
+          brands: ["Abarth", "Alpine", "Bentley", "BMW Classic", "BMW Motorrad", "BMW Motorrad Classic", "Dacia", "Infiniti", "Iveco", "Lancia", "MAN", "Mercedes Classic", "Mercedes Trucks", "Mercedes Unimog", "Mercedes Vans", "Mini Classic", "Opel Legacy", "Polestar", "Renault", "Smart", "Vauxhall", "Vauxhall Legacy", "Volkswagen Classic Parts"]
+        }
       ];
-      const brandGroupDividerAfter = new Set(["Volkswagen", "Vw Nutzfahrzeuge"]);
+      const brandDisplayOrder = brandGroups.flatMap((group) => group.brands);
+      const brandGroupLabels = new Map(
+        brandGroups.flatMap((group) => group.brands.map((brand) => [brand, group.label]))
+      );
       const defaultPartslinkApiBase = "https://shall-offers-careers-retro.trycloudflare.com";
       let brandTypeahead = "";
       let brandTypeaheadTimer;
@@ -1950,7 +1986,20 @@
           favorite: favoriteBrandValues.has(brand)
         }));
 
+        let renderedGroup = "";
         options.forEach((brand) => {
+          const groupLabel = brandGroupLabels.get(brand.value) || "";
+          if (groupLabel && groupLabel !== renderedGroup) {
+            renderedGroup = groupLabel;
+            // Headings carry no option role, so arrow keys, typeahead and the
+            // selected-option lookup keep seeing only real brands.
+            const heading = document.createElement("div");
+            heading.className = "partslinkBrandGroupLabel";
+            heading.role = "presentation";
+            heading.textContent = groupLabel;
+            brandPickerOptions.append(heading);
+          }
+
           const option = document.createElement("option");
           option.value = brand.value;
           option.textContent = brand.label;
@@ -1978,9 +2027,6 @@
             closeBrandPicker();
           });
           brandPickerOptions.append(pickerOption);
-          if (brandGroupDividerAfter.has(brand.value)) {
-            pickerOption.classList.add("partslinkBrandOption--group-end");
-          }
         });
         applyBrandLogic();
       }
