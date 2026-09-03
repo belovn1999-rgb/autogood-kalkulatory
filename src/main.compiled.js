@@ -133,6 +133,7 @@ const copy = {
       to: "Przegląd techniczny",
       doc: "Tłumaczenie dokumentów",
       registration: "Rejestracja",
+      customsDuty: "Cło",
       directCarBrutto: "Cena pojazdu brutto",
       germanCommission: "Prowizja firmy niemieckiej"
     }
@@ -227,6 +228,7 @@ const copy = {
       to: "Техосмотр",
       doc: "Перевод документов",
       registration: "Регистрация",
+      customsDuty: "Таможенная пошлина",
       directCarBrutto: "Цена автомобиля brutto",
       germanCommission: "Комиссия немецкой фирмы"
     }
@@ -321,6 +323,7 @@ const copy = {
       to: "Technical inspection",
       doc: "Document translation",
       registration: "Registration",
+      customsDuty: "Customs duty",
       directCarBrutto: "Vehicle price gross",
       germanCommission: "German company commission"
     }
@@ -2228,6 +2231,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     const carPln = car * useRate;
     const inspectionBrutto = inspection * 1.23;
     const excise = exciseRate * carPln;
+    const customsDuty = values.customsDutyEnabled ? carPln * 0.1 : 0;
     const bruttoBase = carPln * 1.23;
     const discountPln = discount * useRate;
     const discountCommission = 0.3 * discountPln;
@@ -2237,13 +2241,13 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
     const commissionPct = dealerDirect ? 0.01 : finPct;
     const vatBase = (dealerDirect ? 0 : carPln) + inspection + transport + (dealerDirect ? 0 : excise) + commissionNetto + TO_FEE + registrationNetto;
     const vat = vatBase * VAT;
-    const total = dealerDirect ? carPln + inspection + transport + excise + commissionNetto + TO_FEE + registrationNetto + vat + germanCommissionPln : vatBase + vat + germanCommissionPln;
-    const rows = [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", vat, 1, true)];
+    const total = dealerDirect ? carPln + inspection + transport + excise + customsDuty + commissionNetto + TO_FEE + registrationNetto + vat + germanCommissionPln : vatBase + vat + customsDuty + germanCommissionPln;
+    const rows = [row(t.carNetto, carPln, "", "", false, false, conversionPrefix(car)), ...(values.germanCommissionEnabled ? [row(t.germanCommission, germanCommissionPln, "", "", false, false, conversionPrefix(germanCommission))] : []), row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`), row(t.transport, transport, "", `${money(transport * 1.23)} brutto`), row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`), ...(customsDuty > 0 ? [row(t.customsDuty, customsDuty, "", `10% × ${money(carPln)}`)] : []), row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)), row(t.to, TO_FEE, "", "", false, true), ...registrationRows(t, values.registrationEnabled), row(t.vat, vat, "", `23% × ${money(vatBase)}`, false, false, "", vat, 1, true)];
     return {
       total,
       composition: {
         vehicle: carPln,
-        taxes: excise + vat,
+        taxes: excise + customsDuty + vat,
         inspection,
         transport,
         commission: commissionNetto,
@@ -2646,6 +2650,16 @@ function App() {
         ...current
       };
       if (checked) next.registrationEnabled = true;else delete next.registrationEnabled;
+      return next;
+    });
+  };
+  const setCustomsDutyEnabled = checked => {
+    clearManualOverrides();
+    setValues(current => {
+      const next = {
+        ...current
+      };
+      if (checked) next.customsDutyEnabled = true;else delete next.customsDutyEnabled;
       return next;
     });
   };
@@ -3217,6 +3231,10 @@ function App() {
     label: c.lines.registration,
     checked: Boolean(values.registrationEnabled),
     onToggle: setRegistrationEnabled
+  }), activeTab === 3 && /*#__PURE__*/React.createElement(OptionalFixedCostToggle, {
+    label: c.lines.customsDuty,
+    checked: Boolean(values.customsDutyEnabled),
+    onToggle: setCustomsDutyEnabled
   }), tab.fields.map(field => field.optional ? /*#__PURE__*/React.createElement(OptionalAmountInput, {
     key: field.key,
     label: field.label[lang],
