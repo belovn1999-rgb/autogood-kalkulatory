@@ -6,7 +6,6 @@ const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const contractHistoryLimit = 5;
 const pdfConversionTimeoutMs = 120_000;
 
-let currentDownloadUrls = [];
 let templateBytesPromise = null;
 let generationInProgress = false;
 const pageParams = new URLSearchParams(window.location.search);
@@ -343,21 +342,30 @@ function formatMoneyValue(amount, currency) {
 
 function addressFallback(text) {
   const lines = linesFromText(text);
-  for (const line of lines) {
-    if (isPolishAddressLine(line)) return line;
-  }
 
+  // A street line with the postal code and city on the line below is the shape
+  // people actually paste. Pair those two first and join them with a space:
+  // scanning for a single address-looking line would return the bare
+  // "00-950 Warszawa", losing the street, and cleanAddressValue then drops the
+  // whole thing for being incomplete.
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     if (!isAddressStreetLine(line)) continue;
     const nextLine = lines[index + 1] || "";
-    if (isPostalCityLine(nextLine)) return `${line}, ${nextLine}`;
-    return line;
+    if (isPostalCityLine(nextLine)) return `${line} ${nextLine}`;
+  }
+
+  for (const line of lines) {
+    if (isPolishAddressLine(line)) return line;
+  }
+
+  for (const line of lines) {
+    if (isAddressStreetLine(line)) return line;
   }
 
   const compact = normalizeSpace(text);
   const postalAddress = compact.match(
-    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+    /(?:(?:ul|al|pl|os|aleja)\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
   if (postalAddress) return stripKnownNoise(postalAddress[0]);
   const cityAddressLine = lines.find((line) => isPolishAddressLine(line));
@@ -378,12 +386,15 @@ function cleanAddressValue(value, { phone = "", email = "", pesel = "", nip = ""
     .replace(/\b\d{11}\b/g, " ")
     .replace(/\b(?:PESEL|NIP|Telefon|Tel\.?|Phone|Email|E-mail|Mail|Dokument|Dow[oó]d osobisty|Paszport|Karta pobytu)\b.*$/i, " ");
   const postalAddress = normalizeSpace(cleaned).match(
-    /(?:ul\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
+    /(?:(?:ul|al|pl|os|aleja)\.?\s+)?[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,4}\s+\d+[A-Za-z]?(?:\s*\/\s*\d+[A-Za-z]?|[,\s]+[A-Z]{1,4}\/\d+)?[,\s]+\d{2}-\d{3}\s+[\p{Lu}][\p{L}.'-]+(?:\s+[\p{Lu}][\p{L}.'-]+){0,3}/u
   );
   if (!postalAddress) return "";
+  // One shape whatever the paste looked like: "ul. Polna 8/12 61-001 Poznań".
+  // A comma survives only when the source had the whole address on one line,
+  // and mixing the two shapes across contracts is what looks like a mistake.
   let address = stripKnownNoise(postalAddress[0])
     .replace(/\s*\/\s*/g, "/")
-    .replace(/\s*,\s*/g, ", ");
+    .replace(/\s*,\s*/g, " ");
   if (!/^(?:ul\.?|al\.?|pl\.?|os\.?|aleja)\s+/i.test(address)) address = `ul. ${address}`;
   return address.replace(/^ul\.?\s*/i, "ul. ");
 }
@@ -514,60 +525,76 @@ function parseName(text, isCompany) {
   return personNameOnly(person || "");
 }
 
-function setStatus(text) {
-  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
-  currentDownloadUrls = [];
-  statusEl.innerHTML = "";
-  statusEl.textContent = text;
+const downloadOrder = ["docx", "pdf", "encrypted"];
+const downloadUrlsByKind = new Map();
+
+function statusMessageNode() {
+  let message = statusEl.querySelector(".status-message");
+  if (!message) {
+    message = document.createElement("div");
+    message.className = "status-message";
+    statusEl.prepend(message);
+  }
+  return message;
 }
 
-function showDownloads(items) {
-  currentDownloadUrls.forEach((url) => URL.revokeObjectURL(url));
-  currentDownloadUrls = [];
-  statusEl.innerHTML = "";
-
-  const list = document.createElement("div");
-  list.className = "download-list";
-  items.forEach(({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) => {
-    const url = URL.createObjectURL(blob);
-    currentDownloadUrls.push(url);
-
-    const row = document.createElement("div");
-    row.className = "download-row";
-    const label = document.createElement("span");
-    label.textContent = `${readyText} `;
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.textContent = filename;
-    row.append(label, link);
-    list.append(row);
-
-    if (openInViewer && viewerWindow && !viewerWindow.closed) {
-      viewerWindow.location.href = url;
-    }
-    if (autoDownload) link.click();
-  });
-  statusEl.append(list);
-}
-
-function showDownload(blob, filename, readyText, options = {}) {
-  showDownloads([{ blob, filename, readyText, autoDownload: Boolean(options.autoDownload) }]);
-}
-
-function appendDownload({ blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) {
+function downloadListNode() {
   let list = statusEl.querySelector(".download-list");
   if (!list) {
-    statusEl.innerHTML = "";
     list = document.createElement("div");
     list.className = "download-list";
     statusEl.append(list);
   }
+  return list;
+}
 
+// One row per document kind, always rendered DOCX -> PDF -> encrypted PDF, so
+// clicking the buttons one after another stacks the three files instead of
+// each result wiping the previous one.
+function downloadRowNode(kind) {
+  const list = downloadListNode();
+  let row = list.querySelector(`[data-download-kind="${kind}"]`);
+  if (!row) {
+    row = document.createElement("div");
+    row.className = "download-row";
+    row.dataset.downloadKind = kind;
+    const later = downloadOrder.slice(downloadOrder.indexOf(kind) + 1);
+    const before = later.map((key) => list.querySelector(`[data-download-kind="${key}"]`)).find(Boolean);
+    list.insertBefore(row, before || null);
+  }
+  return row;
+}
+
+function releaseDownload(kind) {
+  const url = downloadUrlsByKind.get(kind);
+  if (url) {
+    URL.revokeObjectURL(url);
+    downloadUrlsByKind.delete(kind);
+  }
+}
+
+function setStatus(text) {
+  statusMessageNode().textContent = text;
+}
+
+function clearStatus() {
+  downloadOrder.forEach(releaseDownload);
+  statusEl.innerHTML = "";
+}
+
+function setDownloadMessage(kind, text) {
+  releaseDownload(kind);
+  const row = downloadRowNode(kind);
+  row.textContent = text;
+}
+
+function showDownload(kind, { blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) {
+  releaseDownload(kind);
   const url = URL.createObjectURL(blob);
-  currentDownloadUrls.push(url);
-  const row = document.createElement("div");
-  row.className = "download-row";
+  downloadUrlsByKind.set(kind, url);
+
+  const row = downloadRowNode(kind);
+  row.textContent = "";
   const label = document.createElement("span");
   label.textContent = `${readyText} `;
   const link = document.createElement("a");
@@ -575,7 +602,6 @@ function appendDownload({ blob, filename, readyText, autoDownload = false, openI
   link.download = filename;
   link.textContent = filename;
   row.append(label, link);
-  list.append(row);
 
   if (openInViewer && viewerWindow && !viewerWindow.closed) viewerWindow.location.href = url;
   if (autoDownload) link.click();
@@ -1533,7 +1559,8 @@ async function generateContract() {
     try {
       setStatus("Przygotowuję DOCX...");
       const blob = await generateDocx();
-      showDownload(blob, filenameFor(collectData(), "docx"), "DOCX gotowy.", { autoDownload: false });
+      setStatus("");
+      showDownload("docx", { blob, filename: filenameFor(collectData(), "docx"), readyText: "DOCX gotowy." });
     } catch (error) {
       setStatus(`Nie udało się przygotować DOCX: ${error.message}`);
     }
@@ -1548,16 +1575,15 @@ async function generatePdf() {
       setStatus("Przygotowuję DOCX do konwersji PDF...");
       const data = collectData();
       const docxBlob = await generateDocx();
-      showDownloads([
-        { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy.", autoDownload: false },
-      ]);
+      showDownload("docx", { blob: docxBlob, filename: filenameFor(data, "docx"), readyText: "DOCX gotowy." });
       docxReady = true;
+      setDownloadMessage("pdf", "Konwertuję DOCX do PDF...");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filenameFor(data, "pdf"));
-      appendDownload({
+      setStatus("");
+      showDownload("pdf", {
         blob: pdfBlob,
         filename: filenameFor(data, "pdf"),
         readyText: "PDF gotowy.",
-        autoDownload: false,
         openInViewer: true,
         viewerWindow,
       });
@@ -1567,14 +1593,8 @@ async function generatePdf() {
       const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
         ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
         : message;
-      if (docxReady) {
-        const errorRow = document.createElement("div");
-        errorRow.className = "download-row";
-        errorRow.textContent = `Nie udało się przygotować PDF: ${converterMessage}`;
-        statusEl.querySelector(".download-list")?.append(errorRow);
-      } else {
-        setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
-      }
+      if (docxReady) setDownloadMessage("pdf", `Nie udało się przygotować PDF: ${converterMessage}`);
+      else setStatus(`Nie udało się przygotować PDF: ${converterMessage}`);
     }
   });
 }
@@ -1603,14 +1623,15 @@ async function generateEncryptedPdf() {
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
       if (!(await isPdfBlobEncrypted(pdfBlob))) {
         if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
-        setStatus(
+        setStatus("");
+        setDownloadMessage(
+          "encrypted",
           "Nie udało się zaszyfrować PDF: serwer zwrócił plik BEZ hasła. NIE wysyłaj go klientowi — zgłoś to do administratora (backend PDF wymaga aktualizacji)."
         );
         return;
       }
-      showDownloads([
-        { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
-      ]);
+      setStatus("");
+      showDownload("encrypted", { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", openInViewer: true, viewerWindow });
     } catch (error) {
       if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
@@ -1640,7 +1661,7 @@ function resetForm() {
   if (entrepreneur) entrepreneur.checked = false;
   syncClientTypeRules();
   updateDocumentFileName();
-  setStatus("");
+  clearStatus();
   updateSummary();
 }
 

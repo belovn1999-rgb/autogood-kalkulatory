@@ -447,6 +447,12 @@ body.export-contract .brandTitle::after {
   line-height: 1.35;
 }
 
+/* Sits above the download rows and holds only the transient progress line, so
+   a new message no longer wipes files the user already generated. */
+.status-message:not(:empty) {
+  margin-bottom: 6px;
+}
+
 .download-list {
   display: grid;
   gap: 4px;
