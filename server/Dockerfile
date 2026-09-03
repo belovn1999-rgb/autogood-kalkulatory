@@ -31,6 +31,12 @@ COPY src ./src
 COPY assets ./assets
 # calculators.html loads React and html2canvas from here rather than a CDN.
 COPY vendor ./vendor
+# The seeded EUR/PLN rate the calculators fall back on when the live provider
+# is unreachable. Leaving it out ships calculators with no exchange rate.
+COPY data ./data
+# auto1.html links this change log. Only this subtree — the rest of docs/ is
+# internal and has no business in a serving root.
+COPY docs/auto1-pdf-learning ./docs/auto1-pdf-learning
 COPY *.html tokens.css ./
 
 # The defaults in the code point at ~/Library/Application Support — a macOS path
