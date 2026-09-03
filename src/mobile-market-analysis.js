@@ -15,10 +15,13 @@
       analysisButton: "Analiza rynku",
       saveButton: "Zapisz dane",
       saveSuccess: "Dane zapisane w historii.",
+      historyUpdateSuccess: "Dane wpisu zostały zaktualizowane.",
       historyHeading: "Historia wyszukiwania",
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
       historyOpenList: "Otwórz listę",
+      historyEdit: "Edytuj dane",
+      historyEditReady: "Dane przeniesiono do formularza. Zapisz, aby zaktualizować ten wpis.",
       historyDelete: "Usuń",
       historyDeleteConfirm: "Usunąć ten zapis historii?",
       historyDeleteSuccess: "Wpis został usunięty z historii.",
@@ -82,10 +85,13 @@
       analysisButton: "Анализ рынка",
       saveButton: "Сохрани данные",
       saveSuccess: "Данные сохранены в истории.",
+      historyUpdateSuccess: "Данные записи обновлены.",
       historyHeading: "История поиска",
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
       historyOpenList: "Открыть список",
+      historyEdit: "Изменить данные",
+      historyEditReady: "Данные перенесены в форму. Сохраните, чтобы обновить эту запись.",
       historyDelete: "Удалить",
       historyDeleteConfirm: "Удалить эту запись из истории?",
       historyDeleteSuccess: "Запись удалена из истории.",
@@ -154,6 +160,7 @@
   let activeAnalysis = null;
   let importedDataset = null;
   let marketHistory = [];
+  let editingHistoryId = "";
 
   function currentLanguage() {
     return document.documentElement.lang === "ru" ? "ru" : "pl";
@@ -315,6 +322,26 @@
     return entry;
   }
 
+  function updateMarketSnapshot(historyId, filters, listings, sourceFileName = "", searchUrl = "") {
+    const index = marketHistory.findIndex((entry) => entry.id === historyId);
+    if (index < 0) return null;
+    const existing = marketHistory[index];
+    const entry = {
+      ...existing,
+      filters,
+      signature: filterSignature(filters),
+      listings: normalizeListings(listings),
+      sourceFileName,
+      searchUrl: searchUrl || buildMobileDeSearchUrl(filters),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedHistory = [...marketHistory];
+    updatedHistory[index] = entry;
+    if (!storeMarketHistory(updatedHistory)) return null;
+    renderHistory();
+    return entry;
+  }
+
   function formatHistoryDate(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
@@ -388,6 +415,7 @@
           <div class="mobileMarketHistoryActions">
             <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
             ${searchUrl ? `<a href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.historyOpenList)} <i aria-hidden="true">↗</i></a>` : ""}
+            <button type="button" data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyEdit)}</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
         </article>`;
@@ -469,14 +497,15 @@
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
       const matchingImport = importedDataset?.filterKey === vehicleDataKey(filters) ? importedDataset : null;
-      const existing = historyEntryForFilters(filters);
-      const snapshot = createMarketSnapshot(
-        filters,
-        matchingImport?.listings || existing?.listings || [],
-        matchingImport?.fileName || existing?.sourceFileName || "",
-        searchUrl,
-      );
-      if (snapshot) setAnalysisStatus(c.saveSuccess);
+      const editedEntry = marketHistory.find((entry) => entry.id === editingHistoryId) || null;
+      const existing = editedEntry || historyEntryForFilters(filters);
+      const matchingFilters = existing?.signature === filterSignature(filters);
+      const listings = matchingImport?.listings || (matchingFilters ? existing?.listings || [] : []);
+      const sourceFileName = matchingImport?.fileName || (matchingFilters ? existing?.sourceFileName || "" : "");
+      const snapshot = editedEntry
+        ? updateMarketSnapshot(editedEntry.id, filters, listings, sourceFileName, searchUrl)
+        : createMarketSnapshot(filters, listings, sourceFileName, searchUrl);
+      if (snapshot) setAnalysisStatus(editedEntry ? c.historyUpdateSuccess : c.saveSuccess);
     } catch (error) {
       setAnalysisStatus(error.message || c.missingVehicle, true);
     }
@@ -488,8 +517,21 @@
     if (!entry || !window.confirm(c.historyDeleteConfirm)) return;
     if (!storeMarketHistory(marketHistory.filter((item) => item.id !== historyId))) return;
     if (activeAnalysis?.historyId === historyId) activeAnalysis.historyId = "";
+    if (editingHistoryId === historyId) editingHistoryId = "";
     renderHistory();
     setAnalysisStatus(c.historyDeleteSuccess);
+  }
+
+  function editHistoryEntry(historyId) {
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry) return;
+    restoreManualFilters(entry.filters);
+    editingHistoryId = entry.id;
+    analysisView.hidden = true;
+    manualView.hidden = false;
+    setAnalysisStatus(copy().historyEditReady);
+    manualView.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelector("[data-mobile-brand]")?.focus({ preventScroll: true });
   }
 
   function openHistoryAnalysis(historyId) {
@@ -949,10 +991,18 @@
   });
 
   historySaves.forEach((button) => button.addEventListener("click", saveCurrentHistory));
+  document.querySelectorAll("[data-mobile-manual-reset]").forEach((button) => button.addEventListener("click", () => {
+    editingHistoryId = "";
+  }));
   historyList.addEventListener("click", (event) => {
     const deleteButton = event.target.closest("[data-mobile-market-history-delete]");
     if (deleteButton) {
       deleteHistoryEntry(deleteButton.dataset.mobileMarketHistoryDelete);
+      return;
+    }
+    const editButton = event.target.closest("[data-mobile-market-history-edit]");
+    if (editButton) {
+      editHistoryEntry(editButton.dataset.mobileMarketHistoryEdit);
       return;
     }
     const button = event.target.closest("[data-mobile-market-history-analysis]");

@@ -176,6 +176,7 @@
 }
 
 .mobileMarketHistoryItem button.isDelete {
+  margin-left: var(--space-sm);
   border-color: color-mix(in oklch, var(--color-error) 45%, var(--color-rule));
   color: var(--color-error);
 }
@@ -710,6 +711,10 @@
   .mobileMarketHistoryItem button,
 .mobileMarketHistoryItem a {
     width: 100%;
+  }
+
+  .mobileMarketHistoryItem button.isDelete {
+    margin-left: 0;
   }
 
   .mobileMarketAnalysisHead,
