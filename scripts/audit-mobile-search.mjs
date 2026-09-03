@@ -193,6 +193,10 @@ const contractFragments = [
 contractFragments.forEach(([fragment, label]) => requireSource(fragment, label));
 requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "elektryczna klapa bagażnika w opcjach");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
+requireHtml('data-i18n="vehicleConditionLabel"', "sekcja stanu pojazdu");
+requireSource('damagedVehiclesShow: "Pokazuj"', "pokazanie uszkodzonych pojazdów");
+requireSource('function selectComboOption(optionButton)', "wybór pozycji z listy");
+requireSource('document.addEventListener("pointerdown", (event) => {', "wybór po pierwszym kliknięciu");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {

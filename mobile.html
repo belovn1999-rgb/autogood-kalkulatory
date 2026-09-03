@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=roof-rails-option-20260902" />
+  <link rel="stylesheet" href="./src/mobile.css?v=manual-categories-20260903" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-edit-20260903" />
   </head>
   <body class="mobileBody">
@@ -152,6 +152,7 @@
                 </div>
               </label>
             </div>
+            <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
             <div class="mobileField mobileRangeField mobileWideField">
               <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="mileageRangeLabel">Przebieg</span></span>
               <div class="mobileRangePair">
@@ -315,6 +316,7 @@
                 </div>
                 </div>
               </div>
+              <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
               <section class="mobileFeatureOptionsSection">
                 <h2 class="mobileManualSectionTitle mobileSectionTitleLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></h2>
                 <div class="mobileFeatureChoiceGroup">
@@ -352,6 +354,7 @@
                 </div>
               </section>
             </div>
+            <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
             <fieldset class="mobileField mobileChoiceField mobileWideField mobileColorField">
               <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#palette"></use></svg><span data-i18n="exteriorColorLabel">Kolor nadwozia</span></legend>
               <div class="mobileSwatchGroup mobileColorGroup">
@@ -384,23 +387,29 @@
                 <label class="mobileColorOption"><input data-mobile-interior-color type="checkbox" value="other" /><i class="isOther"></i><span data-i18n="colorOther">inny</span></label>
               </div>
             </fieldset>
-            <label class="mobileField mobileDamagedField">
-              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#alert"></use></svg><span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span></span>
-              <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="damaged" data-mobile-options-target="data-mobile-damaged-label" data-mobile-value-target="data-mobile-damaged-vehicles">
-                <input data-mobile-damaged-label type="text" autocomplete="off" readonly />
-                <input data-mobile-damaged-vehicles type="hidden" />
+            <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
+            <section class="mobileManualSection mobileVehicleConditionSection mobileWideField" aria-labelledby="mobile-vehicle-condition-heading">
+              <h2 id="mobile-vehicle-condition-heading" class="mobileManualSectionTitle mobileSectionTitleLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#alert"></use></svg><span data-i18n="vehicleConditionLabel">STAN POJAZDU</span></h2>
+              <div class="mobileVehicleConditionGrid">
+                <label class="mobileField mobileDamagedField">
+                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#alert"></use></svg><span data-i18n="damagedVehiclesLabel">Uszkodzone pojazdy</span></span>
+                  <div class="mobileComboControl mobileTextComboControl mobileSelectCombo" data-mobile-options="damaged" data-mobile-options-target="data-mobile-damaged-label" data-mobile-value-target="data-mobile-damaged-vehicles">
+                    <input data-mobile-damaged-label type="text" autocomplete="off" readonly />
+                    <input data-mobile-damaged-vehicles type="hidden" />
+                  </div>
+                </label>
+                <div class="mobileVehicleChecks">
+                  <label class="mobileCheckOption mobileNonSmokingField">
+                    <input data-mobile-non-smoking type="checkbox" checked />
+                    <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
+                  </label>
+                  <label class="mobileCheckOption mobileRoadworthyField">
+                    <input data-mobile-roadworthy type="checkbox" checked />
+                    <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-seats-roadworthy-20260902#check"></use></svg><span data-i18n="roadworthyLabel">Sprawny technicznie</span>
+                  </label>
+                </div>
               </div>
-            </label>
-            <div class="mobileVehicleChecks">
-              <label class="mobileCheckOption mobileNonSmokingField">
-                <input data-mobile-non-smoking type="checkbox" checked />
-                <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
-              </label>
-              <label class="mobileCheckOption mobileRoadworthyField">
-                <input data-mobile-roadworthy type="checkbox" checked />
-                <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-seats-roadworthy-20260902#check"></use></svg><span data-i18n="roadworthyLabel">Sprawny technicznie</span>
-              </label>
-            </div>
+            </section>
               </div>
             </section>
 
@@ -502,7 +511,7 @@
       </footer>
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-catalog-complete-20260826"></script>
-    <script src="./src/mobile.js?v=roof-rails-option-20260902"></script>
+    <script src="./src/mobile.js?v=manual-categories-20260903"></script>
     <script src="./src/mobile-market-analysis.js?v=history-edit-20260903"></script>
   </body>
 </html>

@@ -151,7 +151,8 @@ const copy = {
     roadworthyLabel: "Sprawny technicznie",
     damagedVehiclesLabel: "Uszkodzone pojazdy",
     damagedVehiclesHide: "Nie pokazuj",
-    damagedVehiclesShow: "Pokaż",
+    damagedVehiclesShow: "Pokazuj",
+    vehicleConditionLabel: "STAN POJAZDU",
     marketSearchButton: "Szukaj na mobile.de",
     marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
     marketSearchChooseBrand: "Wybierz markę przed wpisaniem modelu.",
@@ -337,6 +338,7 @@ const copy = {
     damagedVehiclesLabel: "Повреждённые автомобили",
     damagedVehiclesHide: "Не показывать",
     damagedVehiclesShow: "Показывать",
+    vehicleConditionLabel: "СОСТОЯНИЕ АВТОМОБИЛЯ",
     marketSearchButton: "Найти на mobile.de",
     marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
     marketSearchChooseBrand: "Сначала выбери марку, затем введи модель.",
@@ -1968,6 +1970,35 @@ document.querySelectorAll("[data-mobile-back]").forEach((button) => {
   button.addEventListener("click", () => setMode(null));
 });
 
+function selectComboOption(optionButton) {
+  const control = optionButton.closest(".mobileComboControl");
+  const targetName = control?.dataset.mobileOptionsTarget;
+  const input = targetName ? control.querySelector(`[${targetName}]`) : null;
+  if (!input) return false;
+  const value = optionButton.dataset.mobileOptionValue || "";
+  const valueTargetName = control?.dataset.mobileValueTarget;
+  const valueTarget = valueTargetName ? control.querySelector(`[${valueTargetName}]`) : null;
+  if (valueTarget && valueTarget !== input) {
+    input.value = value ? optionButton.dataset.mobileOptionLabel || value : "";
+    valueTarget.value = value;
+  } else {
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  updateSelectedFiltersSummary();
+  closeComboMenus();
+  input.focus();
+  return true;
+}
+
+document.addEventListener("pointerdown", (event) => {
+  const optionButton = event.target.closest("[data-mobile-option-value]");
+  if (!optionButton) return;
+  event.preventDefault();
+  optionButton.dataset.mobileOptionSelected = "true";
+  selectComboOption(optionButton);
+});
+
 document.addEventListener("click", (event) => {
   closeMultiSelects(event.target.closest(".mobileMultiSelect"));
 
@@ -1979,24 +2010,7 @@ document.addEventListener("click", (event) => {
 
   const optionButton = event.target.closest("[data-mobile-option-value]");
   if (optionButton) {
-    const control = optionButton.closest(".mobileComboControl");
-    const targetName = control?.dataset.mobileOptionsTarget;
-    const input = targetName ? control.querySelector(`[${targetName}]`) : null;
-    if (input) {
-      const value = optionButton.dataset.mobileOptionValue || "";
-      const valueTargetName = control?.dataset.mobileValueTarget;
-      const valueTarget = valueTargetName ? control.querySelector(`[${valueTargetName}]`) : null;
-      if (valueTarget && valueTarget !== input) {
-        input.value = value ? optionButton.dataset.mobileOptionLabel || value : "";
-        valueTarget.value = value;
-      } else {
-        input.value = value;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-      input.focus();
-    }
-    updateSelectedFiltersSummary();
-    closeComboMenus();
+    if (optionButton.dataset.mobileOptionSelected !== "true") selectComboOption(optionButton);
     return;
   }
 
