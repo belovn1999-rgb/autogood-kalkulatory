@@ -22,7 +22,7 @@ from pypdf import PdfReader, PdfWriter
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SERVER_VERSION = "AUTOGOODConverter/1.3"
+SERVER_VERSION = "AUTOGOODConverter/1.4"
 BUILD_REVISION = os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_SHA") or "local"
 DEFAULT_MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 DEFAULT_CONVERSION_TIMEOUT_SECONDS = 120
@@ -114,6 +114,15 @@ class LibreOfficeService:
     @property
     def ready(self) -> bool:
         return self.process is not None and self.process.poll() is None
+
+    @property
+    def can_convert(self) -> bool:
+        # The warm instance is an optimization, not a liveness condition:
+        # convert() restarts it on demand, and a conversion succeeds even when
+        # it is gone. Tying health to it makes the service answer 503 as soon
+        # as the background process exits, which is enough for a platform
+        # health check to tear down a deploy that converts perfectly well.
+        return bool(self.soffice)
 
     def start(self) -> None:
         with self.lock:
@@ -279,7 +288,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
 
         payload = {
-            "ok": LIBREOFFICE.ready,
+            "ok": LIBREOFFICE.can_convert,
             "service": "AUTOGOOD DOCX to PDF converter",
             "soffice": bool(LIBREOFFICE.soffice),
             "libreoffice_ready": LIBREOFFICE.ready,
@@ -360,7 +369,14 @@ class Handler(SimpleHTTPRequestHandler):
 def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     host = os.environ.get("HOST", "127.0.0.1")
-    LIBREOFFICE.start()
+    try:
+        LIBREOFFICE.start()
+    except Exception as exc:
+        # Warming LibreOffice up is best effort. On a small instance the first
+        # start can outrun the startup timeout, and killing the container over
+        # that loses a deploy that would have served every request: convert()
+        # starts LibreOffice on demand anyway.
+        print(f"LibreOffice warm-up skipped: {exc}")
     server = ThreadingHTTPServer((host, port), Handler)
     print(f"http://{host}:{port}/")
     server.serve_forever()
