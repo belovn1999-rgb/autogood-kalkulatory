@@ -7,7 +7,6 @@ const generateButton = document.querySelector("#generateSaleDocx");
 const generatePdfButton = document.querySelector("#generateSalePdf");
 const encryptPdfButton = document.querySelector("#encryptSalePdf");
 const pullCrmDataButton = document.querySelector("#pullSaleCrmDataBtn");
-const printButton = document.querySelector("#printSaleContract");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
@@ -23,7 +22,6 @@ const saleHistoryKey = "autogoodSaleContractHistory.v1";
 const saleHistoryLimit = 5;
 
 let currentDownloadUrls = [];
-let currentPrintUrl = null;
 let saleTemplateBytesPromise = null;
 const activeGenerationOperations = new Set();
 
@@ -445,16 +443,25 @@ function setField(name, value) {
   field.value = field.type === "date" ? normalizeDateForInput(value) : value;
 }
 
+function syncBuyerIdentifierLabel() {
+  const label = document.querySelector("#buyerIdentifierLabel");
+  if (!label) return;
+  const selected = form.querySelector('input[name="buyerIdentifierType"]:checked');
+  label.textContent = selected?.value === "nip" ? "Numer NIP:" : "Numer PESEL:";
+}
+
 function setBuyerIdentifierType(value) {
   const normalizedValue = value === "nip" ? "nip" : "pesel";
   const option = form.querySelector(`input[name="buyerIdentifierType"][value="${normalizedValue}"]`);
   if (option) {
     option.checked = true;
+    syncBuyerIdentifierLabel();
     return;
   }
 
   const field = form.querySelector('[name="buyerIdentifierType"]');
   if (field) field.value = normalizedValue;
+  syncBuyerIdentifierLabel();
 }
 
 function stripKnownNoise(value) {
@@ -971,7 +978,7 @@ function appendDownloadMessage(text) {
 async function runGenerationOperation(key, button, operation) {
   if (activeGenerationOperations.size > 0) return;
   activeGenerationOperations.add(key);
-  const buttons = [pullCrmDataButton, generateButton, generatePdfButton, encryptPdfButton, printButton].filter(Boolean);
+  const buttons = [generateButton, generatePdfButton, encryptPdfButton].filter(Boolean);
   buttons.forEach((actionButton) => {
     actionButton.disabled = true;
     if (actionButton === button) actionButton.setAttribute("aria-busy", "true");
@@ -994,60 +1001,6 @@ function createPdfViewerWindow() {
   viewerWindow.document.write("<!doctype html><title>PDF</title><p>Przygotowuję PDF...</p>");
   viewerWindow.document.close();
   return viewerWindow;
-}
-
-function clearPrintUrl() {
-  if (currentPrintUrl) {
-    URL.revokeObjectURL(currentPrintUrl);
-    currentPrintUrl = null;
-  }
-}
-
-function createPrintWindow() {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return null;
-  printWindow.document.write("<!doctype html><title>Drukowanie umowy</title><p>Przygotowuję dokument do druku...</p>");
-  printWindow.document.close();
-  return printWindow;
-}
-
-function printPdfBlob(pdfBlob, printWindow) {
-  clearPrintUrl();
-  currentPrintUrl = URL.createObjectURL(pdfBlob);
-
-  if (printWindow && !printWindow.closed) {
-    printWindow.location.href = currentPrintUrl;
-    window.setTimeout(() => {
-      try {
-        printWindow.focus();
-        printWindow.print();
-      } catch {
-        setStatus("PDF gotowy do druku. Użyj polecenia drukowania w otwartym oknie.");
-      }
-    }, 1200);
-    return;
-  }
-
-  const frame = document.createElement("iframe");
-  frame.style.position = "fixed";
-  frame.style.right = "0";
-  frame.style.bottom = "0";
-  frame.style.width = "0";
-  frame.style.height = "0";
-  frame.style.border = "0";
-  frame.src = currentPrintUrl;
-  frame.addEventListener("load", () => {
-    window.setTimeout(() => {
-      try {
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-      } catch {
-        setStatus("PDF gotowy do druku, ale przeglądarka zablokowała automatyczne drukowanie.");
-      }
-    }, 400);
-  });
-  document.body.appendChild(frame);
-  window.setTimeout(() => frame.remove(), 120000);
 }
 
 function all(root, namespace, tagName) {
@@ -1551,6 +1504,57 @@ async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   }
 }
 
+function converterHealthEndpoint(endpoint) {
+  return endpoint.replace(/\/api\/convert-docx-to-pdf\/?$/i, "/api/health");
+}
+
+async function checkEncryptionSupport() {
+  const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
+  const endpoint = configuredEndpoint || defaultPdfConverterUrl;
+  const healthEndpoint = converterHealthEndpoint(endpoint);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch(healthEndpoint, { signal: controller.signal });
+    if (!response.ok) {
+      return { supported: false, reason: `Serwer PDF odpowiedział błędem (${response.status}).` };
+    }
+    const payload = await response.json().catch(() => null);
+    if (!payload || !payload.pdf_encryption) {
+      return {
+        supported: false,
+        reason: "Backend konwertera PDF jest nieaktualny i nie obsługuje jeszcze szyfrowania (brak pdf_encryption w /api/health). Zgłoś to do administratora — wymaga wdrożenia najnowszej wersji converter/server.py.",
+      };
+    }
+    return { supported: true };
+  } catch (error) {
+    const reason = error?.name === "AbortError" ? "Serwer PDF nie odpowiedział w 15 sekund." : "Nie można połączyć się z serwerem PDF, aby sprawdzić wsparcie szyfrowania.";
+    return { supported: false, reason };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+function bytesIncludeAscii(bytes, text) {
+  const needle = Array.from(text, (ch) => ch.charCodeAt(0));
+  const limit = bytes.length - needle.length;
+  outer: for (let i = 0; i <= limit; i += 1) {
+    for (let j = 0; j < needle.length; j += 1) {
+      if (bytes[i + j] !== needle[j]) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+
+async function isPdfBlobEncrypted(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  // Every PDF writer that actually encrypts a file (pypdf included) puts an
+  // /Encrypt entry in the trailer. No /Encrypt marker in the bytes means the
+  // server ignored the password and handed back a plain PDF.
+  return bytesIncludeAscii(bytes, "/Encrypt");
+}
+
 async function generateSalePdf() {
   await runGenerationOperation("pdf", generatePdfButton, async () => {
     const viewerWindow = createPdfViewerWindow();
@@ -1583,8 +1587,18 @@ async function generateSalePdf() {
 
 async function generateEncryptedSalePdf() {
   await runGenerationOperation("encrypted-pdf", encryptPdfButton, async () => {
+    setStatus("Sprawdzam wsparcie szyfrowania na serwerze...");
+    const support = await checkEncryptionSupport();
+    if (!support.supported) {
+      setStatus(`Nie można zaszyfrować PDF: ${support.reason}`);
+      return;
+    }
+
     const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
-    if (!password) return;
+    if (!password) {
+      setStatus("");
+      return;
+    }
 
     const viewerWindow = createPdfViewerWindow();
     try {
@@ -1593,6 +1607,13 @@ async function generateEncryptedSalePdf() {
       const docxBlob = await generateDocxBlob();
       const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+      if (!(await isPdfBlobEncrypted(pdfBlob))) {
+        if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
+        setStatus(
+          "Nie udało się zaszyfrować PDF: serwer zwrócił plik BEZ hasła. NIE wysyłaj go klientowi — zgłoś to do administratora (backend PDF wymaga aktualizacji)."
+        );
+        return;
+      }
       showDownloads([
         { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
       ]);
@@ -1604,48 +1625,22 @@ async function generateEncryptedSalePdf() {
   });
 }
 
-async function generateSalePrint() {
-  await runGenerationOperation("print", printButton, async () => {
-    const printWindow = createPrintWindow();
-    try {
-      setStatus("Przygotowuję dokument do druku...");
-      const data = collectSaleContract();
-      const docxBlob = await generateDocxBlob();
-      setStatus("Konwertuję dokument do PDF przed drukiem...");
-      const pdfBlob = await convertDocxBlobToPdf(docxBlob, saleFilename(data, "pdf"));
-      showDownload(pdfBlob, saleFilename(data, "pdf"), "PDF gotowy do druku.", { autoDownload: false });
-      printPdfBlob(pdfBlob, printWindow);
-    } catch (error) {
-      if (printWindow && !printWindow.closed) printWindow.close();
-      const message = String(error.message || error);
-      const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
-        ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
-        : message;
-      setStatus(`Nie udało się przygotować druku: ${converterMessage}`);
-    }
-  });
-}
-
 function resetSaleContract() {
   rawSaleDataInput.value = "";
-  [
-    "buyerName",
-    "buyerAddress",
-    "buyerIdentifier",
-    "buyerPhone",
-    "buyerEmail",
-    "vehicleMakeModel",
-    "vehicleVin",
-    "vehicleMileage",
-    "firstRegistration",
-    "fuelType",
-    "lastTechnicalInspection",
-  ].forEach((name) => {
-    const field = form.querySelector(`[name="${name}"]`);
-    if (field) field.value = "";
+  // Reset to the state a fresh page load produces, not to a blank sheet: the
+  // named-field list this used to clear left all 58 checklist answers, the
+  // price, the discount and the notes from the previous buyer in place, while
+  // the cleared name and VIN made the form look new.
+  fields.forEach((field) => {
+    if (field.type === "radio" || field.type === "checkbox") {
+      field.checked = false;
+      return;
+    }
+    field.value = "";
   });
   setBuyerIdentifierType("pesel");
-  setField("generalWear", "przecietne");
+  applyDefaultChecklistValues();
+  applyDefaultFieldValues();
   damageMarks = [];
   writeDamageMarks();
   renderDamageMarks();
@@ -1670,9 +1665,8 @@ fields.forEach((field) => {
 });
 
 saveButton.addEventListener("click", saveSaleContract);
-pullCrmDataButton.addEventListener("click", () => {
-  window.alert("Integracja z CRM zostanie podłączona w kolejnym etapie.");
-});
+// pullCrmDataButton stays permanently disabled (see umowa-sprzedazy.html) —
+// CRM integration isn't built yet, so there is no click handler to wire up.
 resetButton.addEventListener("click", resetSaleContract);
 parseButton.addEventListener("click", parseSaleData);
 damageCanvas.addEventListener("click", addDamageMark);
@@ -1684,11 +1678,15 @@ clearDamageButton.addEventListener("click", () => {
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
 encryptPdfButton.addEventListener("click", generateEncryptedSalePdf);
-if (printButton) printButton.addEventListener("click", generateSalePrint);
+
+form.querySelectorAll('input[name="buyerIdentifierType"]').forEach((option) => {
+  option.addEventListener("change", syncBuyerIdentifierLabel);
+});
 
 applyDefaultChecklistValues();
 applyDefaultFieldValues();
 loadSavedSaleContract();
 restoreDamageMarks(damageMarksInput.value);
+syncBuyerIdentifierLabel();
 updateSummary();
 renderSaleHistory();

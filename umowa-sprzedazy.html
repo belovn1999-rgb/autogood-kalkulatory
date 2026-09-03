@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=headings-20260901" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=20260820-history-icons-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260903-encrypt-guard-1" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=20260903-sale-reset-1" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -25,7 +25,7 @@
         </div>
         <div class="actions">
           <div class="document-flow" aria-label="Proces przygotowania dokumentu">
-            <button id="pullSaleCrmDataBtn" class="secondary-top-btn" type="button">Wyciągnij dane</button>
+            <button id="pullSaleCrmDataBtn" class="secondary-top-btn" type="button" disabled title="Integracja z CRM — w przygotowaniu, jeszcze niepodłączona">Wyciągnij dane<span class="soon-badge">wkrótce</span></button>
             <span class="flow-arrow" aria-hidden="true">→</span>
             <button id="generateSaleDocx" class="secondary-top-btn" type="button">DOCX</button>
             <span class="flow-arrow" aria-hidden="true">→</span>
@@ -113,9 +113,10 @@
                     <label><input name="buyerIdentifierType" type="radio" value="nip" /><span>NIP</span></label>
                   </div>
                 </div>
-                <div class="field">
-                  <input id="buyerIdentifier" name="buyerIdentifier" type="text" aria-label="Numer PESEL lub NIP" />
-                </div>
+                <label class="field">
+                  <span id="buyerIdentifierLabel">Numer PESEL:</span>
+                  <input id="buyerIdentifier" name="buyerIdentifier" type="text" />
+                </label>
                 <label class="field">
                   <span>Telefon:</span>
                   <input name="buyerPhone" type="text" />
@@ -271,6 +272,6 @@
 
     <script src="./src/pdf-config.js?v=20260616-4"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/sale-contract.js?v=20260820-identifier-strike-1"></script>
+    <script src="./src/sale-contract.js?v=20260903-sale-reset-1"></script>
   </body>
 </html>
