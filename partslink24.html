@@ -165,15 +165,6 @@
         color: var(--ag-color-accent-ink);
       }
 
-      .partslinkHero {
-        display: grid;
-        grid-template-columns: minmax(0, 0.86fr) minmax(var(--ag-hero-copy-min-width), 0.5fr);
-        gap: var(--ag-space-xl);
-        align-items: end;
-        padding: var(--ag-space-2xl) 0 var(--ag-space-lg);
-      }
-
-      .partslinkEyebrow,
       .partslinkPanelTitle {
         margin: 0;
         color: var(--ag-color-muted);
@@ -189,6 +180,8 @@
         grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
         gap: var(--ag-space-lg);
         align-items: stretch;
+        /* The hero section used to hold this gap below the header rule. */
+        margin-top: var(--ag-space-xl);
       }
 
       .partslinkCard,
@@ -976,7 +969,6 @@
         }
 
         .partslinkTopbar,
-        .partslinkHero,
         .partslinkWorkbench {
           grid-template-columns: 1fr;
         }
@@ -989,10 +981,6 @@
         .partslinkHeaderActions {
           justify-content: flex-end;
           width: 100%;
-        }
-
-        .partslinkHero {
-          gap: var(--ag-space-md);
         }
 
         .partslinkCard,
@@ -1116,11 +1104,9 @@
         </div>
       </header>
 
-      <section class="partslinkHero">
-        <div>
-          <h1 class="partslinkEyebrow" data-ui-key="vinCheck">Проверка VIN</h1>
-        </div>
-      </section>
+      <!-- The page keeps one h1 so the heading outline stays valid and the
+           document has a name; it is not painted above the form any more. -->
+      <h1 class="srOnly" data-ui-key="vinCheck">Проверка VIN</h1>
 
       <section class="partslinkWorkbench" aria-label="VIN PDF and production date form">
         <div class="partslinkCard">
