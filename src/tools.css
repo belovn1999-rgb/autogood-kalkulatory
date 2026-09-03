@@ -50,45 +50,6 @@ a {
   border-bottom: 1px solid #e0e6ec;
 }
 
-.umowyHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  min-width: 0;
-}
-
-.umowyWordmark {
-  color: #14507a;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.umowyNav {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  color: #8494a3;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.umowyNav span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  border-bottom: 2px solid transparent;
-}
-
-.umowyNav .isActive {
-  color: #14507a;
-  font-weight: 700;
-  border-bottom-color: #14507a;
-}
-
 .umowyLang {
   display: inline-flex;
   align-items: center;
@@ -328,16 +289,6 @@ a {
   white-space: nowrap;
 }
 
-.repoLink {
-  border: 1px solid #c9d5e1;
-  border-radius: 8px;
-  background: #fff;
-  color: #334155;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 .userBadge {
   display: inline-flex;
   align-items: center;
@@ -412,48 +363,14 @@ a {
   transition: border-color 0.15s ease;
 }
 
-.contractChoiceCard {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  min-height: 108px;
-  border: 1px solid #d5e0ea;
-  border-radius: 8px;
-  background: #fff;
-  padding: 18px;
-  box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
-}
-
-.contractChoiceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.contractChoiceCard {
-  min-height: 168px;
-}
-
 .toolCard.isReady {
   border-color: #e0e6ec;
-}
-
-.contractChoiceCard.isReady {
-  border-color: rgba(0, 91, 130, 0.35);
 }
 
 .toolCard.isReady:hover,
 .toolCard.isReady:focus-visible {
   border-color: #14507a;
   outline: none;
-}
-
-.contractChoiceCard.isReady:hover,
-.contractChoiceCard.isReady:focus-visible {
-  border-color: #005b82;
-  outline: none;
-  transform: translateY(-1px);
 }
 
 .toolNumber {
@@ -489,16 +406,6 @@ a {
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
-}
-
-.toolBadge {
-  border-radius: 8px;
-  background: #edf7f5;
-  color: #007c89;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 .archiveTools {
@@ -568,10 +475,6 @@ a {
   font-style: normal;
   font-weight: 400;
   line-height: 1.35;
-}
-
-.isSoon {
-  opacity: 0.72;
 }
 
 .workspaceShell {
@@ -761,53 +664,6 @@ a {
   font-weight: 900;
 }
 
-.auctionPanel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
-  border: 1px solid #d5e0ea;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(15, 35, 52, 0.06);
-  padding: 22px;
-}
-
-.auctionPanel h2 {
-  margin: 0;
-  color: #102033;
-  font-size: 28px;
-  line-height: 1.15;
-}
-
-.auctionPanel p:last-child {
-  max-width: 680px;
-  margin: 10px 0 0;
-  color: #526173;
-  font-size: 16px;
-  line-height: 1.45;
-}
-
-.emptyWorkspace {
-  display: grid;
-  min-height: 420px;
-  place-items: center;
-  border: 1px dashed #b7c7d8;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.62);
-  color: #64748b;
-  padding: 24px;
-  text-align: center;
-}
-
-.emptyWorkspace p {
-  max-width: 520px;
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.45;
-  font-weight: 800;
-}
-
 .dealHero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -926,18 +782,6 @@ a {
   resize: vertical;
 }
 
-.partslinkVinForm {
-  grid-template-columns: minmax(0, 560px);
-}
-
-.partslinkVinForm .dealPanelWide {
-  grid-column: auto;
-}
-
-.partslinkVinPanel {
-  width: min(560px, 100%);
-}
-
 .partslinkActions {
   display: grid;
   gap: 8px;
@@ -976,31 +820,6 @@ a {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-}
-
-.contractMetaPanel {
-  align-content: start;
-  align-self: start;
-}
-
-.contractMetaGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.contractMetaPanel input,
-.contractMetaPanel select {
-  height: 44px;
-  min-height: 44px;
-  padding: 9px 10px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.contractMetaPanel select {
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .saleStatus {
@@ -1224,20 +1043,6 @@ a {
   font-weight: 800;
 }
 
-.statusPill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  border-radius: 8px;
-  background: #edf7f5;
-  color: #007c89;
-  padding: 11px 12px;
-  font-size: 14px;
-  font-weight: 800;
-  text-align: center;
-}
-
 .messageLayout {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
@@ -1375,17 +1180,6 @@ a {
     gap: 16px;
   }
 
-  .umowyHeaderLeft {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .umowyNav {
-    flex-wrap: wrap;
-    gap: 18px;
-  }
-
   .umowyGrid {
     grid-template-columns: 1fr;
   }
@@ -1433,10 +1227,6 @@ a {
     gap: 12px;
   }
 
-  .repoLink {
-    padding: 9px 12px;
-  }
-
   .intro h1 {
     font-size: 22px;
   }
@@ -1463,10 +1253,6 @@ a {
     justify-self: end;
   }
 
-  .toolBadge {
-    grid-column: auto;
-  }
-
   .workspaceShell {
     width: min(100% - 24px, 1180px);
     padding-top: 18px;
@@ -1491,16 +1277,13 @@ a {
   }
 
   .pipeline,
-  .nextGrid,
-  .archiveGrid,
-  .contractChoiceGrid,
-  .saleChecklistGroups,
-  .dealLayout,
-  .dealForm,
-  .messageLayout,
-  .contractMetaGrid,
-  .auctionPanel,
-  .dealFieldsTwo {
+.nextGrid,
+.archiveGrid,
+.saleChecklistGroups,
+.dealLayout,
+.dealForm,
+.messageLayout,
+.dealFieldsTwo {
     grid-template-columns: 1fr;
   }
 
@@ -1536,10 +1319,10 @@ a {
 
 @media (min-width: 721px) and (max-width: 980px) {
   .pipeline,
-  .nextGrid,
-  .archiveGrid,
-  .dealLayout,
-  .messageLayout {
+.nextGrid,
+.archiveGrid,
+.dealLayout,
+.messageLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1558,8 +1341,8 @@ a {
   }
 
   .workspaceHeader,
-  .dealActions,
-  .dealQuickLinks {
+.dealActions,
+.dealQuickLinks {
     display: none;
   }
 
@@ -1569,7 +1352,7 @@ a {
   }
 
   .dealLayout,
-  .dealForm {
+.dealForm {
     grid-template-columns: 1fr;
   }
 
@@ -1578,9 +1361,9 @@ a {
   }
 
   .dealPanel,
-  .dealSummary,
-  .dealChecklist,
-  .documentMain {
+.dealSummary,
+.dealChecklist,
+.documentMain {
     box-shadow: none;
     break-inside: avoid;
   }

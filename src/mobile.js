@@ -857,10 +857,6 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
-function optionHtml(value, label, selected = false) {
-  return `<option value="${escapeHtml(value)}"${selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
-}
-
 function datalistOptionHtml(value, label = "") {
   return `<option value="${escapeHtml(value)}"${label ? ` label="${escapeHtml(label)}"` : ""}></option>`;
 }

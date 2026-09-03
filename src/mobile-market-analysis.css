@@ -6,8 +6,7 @@
   flex-wrap: wrap;
 }
 
-.mobileMarketAnalysisButton,
-.mobileMarketSaveButton {
+.mobileMarketAnalysisButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -25,10 +24,6 @@
   transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out);
 }
 
-.mobileMarketSaveButton {
-  border-color: var(--color-field);
-}
-
 .mobileMarketAnalysisButton i {
   font-size: var(--text-lg);
   font-style: normal;
@@ -36,7 +31,6 @@
 }
 
 .mobileMarketAnalysisButton:focus-visible,
-.mobileMarketSaveButton:focus-visible,
 .mobileMarketHistoryItem button:focus-visible,
 .mobileMarketHistoryItem a:focus-visible,
 .mobileMarketPoint:focus-visible,
@@ -257,7 +251,6 @@
   background: var(--color-brand);
   color: var(--color-surface);
 }
-
 
 .mobileMarketImport {
   display: grid;
@@ -504,10 +497,6 @@
   white-space: nowrap;
 }
 
-.mobileMarketTick.isBoundary {
-  color: var(--color-ink);
-}
-
 .mobileMarketTick.isGrid {
   color: var(--color-soft);
   font-weight: 600;
@@ -655,17 +644,15 @@
 
 @media (hover: hover) and (pointer: fine) {
   .mobileMarketAnalysisButton:hover,
-  .mobileMarketSaveButton:hover,
-  .mobileMarketHistoryItem button:hover,
-  .mobileMarketHistoryItem a:hover,
-  .mobileMarketSearchLink:hover {
+.mobileMarketHistoryItem button:hover,
+.mobileMarketHistoryItem a:hover,
+.mobileMarketSearchLink:hover {
     background: var(--color-surface-tint);
     transform: translateY(-1px);
   }
 }
 
 .mobileMarketAnalysisButton:active,
-.mobileMarketSaveButton:active,
 .mobileMarketHistoryItem button:active,
 .mobileMarketHistoryItem a:active,
 .mobileMarketSearchLink:active {
@@ -688,10 +675,9 @@
 
 @media (max-width: 40rem) {
   .mobileManualSearchButtons,
-  .mobileMarketAnalysisButton,
-  .mobileMarketSaveButton,
-  .mobileMarketSearchButton,
-  .mobileMarketSearchLink {
+.mobileMarketAnalysisButton,
+.mobileMarketSearchButton,
+.mobileMarketSearchLink {
     width: 100%;
   }
 
@@ -704,7 +690,7 @@
   }
 
   .mobileMarketHistoryHead,
-  .mobileMarketHistoryTitleRow {
+.mobileMarketHistoryTitleRow {
     display: grid;
   }
 
@@ -722,19 +708,19 @@
   }
 
   .mobileMarketHistoryItem button,
-  .mobileMarketHistoryItem a {
+.mobileMarketHistoryItem a {
     width: 100%;
   }
 
   .mobileMarketAnalysisHead,
-  .mobileMarketImport,
-  .mobileMarketNotice {
+.mobileMarketImport,
+.mobileMarketNotice {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .mobileMarketImportActions,
-  .mobileMarketImportButton,
-  .mobileMarketImportClear {
+.mobileMarketImportButton,
+.mobileMarketImportClear {
     width: 100%;
   }
 
@@ -772,7 +758,7 @@
   }
 
   .mobileMarketBoundary,
-  .mobileMarketMedian {
+.mobileMarketMedian {
     left: 68px;
   }
 
@@ -790,10 +776,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mobileMarketAnalysisButton,
-  .mobileMarketSaveButton,
-  .mobileMarketHistoryItem button,
-  .mobileMarketSearchLink,
-  .mobileMarketPoint::before {
+.mobileMarketHistoryItem button,
+.mobileMarketSearchLink,
+.mobileMarketPoint::before {
     transition: none;
   }
 }

@@ -455,8 +455,8 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .mobileManualIconButton.isAcknowledged,
-  .mobileManualIconButton[data-mobile-manual-reset].isAcknowledged svg,
-  .mobileManualIconButton[data-mobile-market-history-save].isAcknowledged svg {
+.mobileManualIconButton[data-mobile-manual-reset].isAcknowledged svg,
+.mobileManualIconButton[data-mobile-market-history-save].isAcknowledged svg {
     animation: none;
   }
 }
@@ -521,15 +521,13 @@ button {
   text-underline-offset: 3px;
 }
 
-.mobileDataGrid,
-.mobileMoneyRows {
+.mobileDataGrid {
   display: grid;
   gap: 0;
   margin: 0;
 }
 
-.mobileDataRow,
-.mobileMoneyRow {
+.mobileDataRow {
   display: grid;
   grid-template-columns: minmax(120px, 0.75fr) minmax(0, 1fr);
   gap: var(--space-md);
@@ -539,20 +537,17 @@ button {
   border-bottom: var(--rule-thick) solid var(--color-rule-soft);
 }
 
-.mobileDataRow:last-child,
-.mobileMoneyRow:last-child {
+.mobileDataRow:last-child {
   border-bottom: 0;
 }
 
-.mobileDataRow dt,
-.mobileMoneyRow span {
+.mobileDataRow dt {
   color: var(--color-soft);
   font-size: var(--text-sm);
   font-weight: 700;
 }
 
-.mobileDataRow dd,
-.mobileMoneyRow strong {
+.mobileDataRow dd {
   margin: 0;
   color: var(--color-ink);
   font-size: var(--text-base);
@@ -560,12 +555,6 @@ button {
   line-height: 1.35;
   text-align: left;
   overflow-wrap: anywhere;
-}
-
-.mobileMoneyRow.isPrimary strong {
-  color: var(--color-brand-pressed);
-  font-size: var(--text-lg);
-  font-weight: 800;
 }
 
 .mobileActions {
@@ -600,8 +589,7 @@ button {
   background: var(--color-surface);
 }
 
-.mobileManualSectionTitle,
-.mobileManualSubsectionTitle {
+.mobileManualSectionTitle {
   margin: 0 0 var(--space-md);
   color: var(--color-muted);
   font-size: calc(var(--text-sm) + 1px);
@@ -911,10 +899,6 @@ button {
   border-top: var(--rule-thick) solid var(--color-rule-soft);
 }
 
-.mobileVehicleControls .mobileManualSubsectionTitle {
-  margin-bottom: 0;
-}
-
 .mobileDrivetrainGearbox {
   order: 1;
 }
@@ -1092,26 +1076,6 @@ button {
   max-width: 360px;
 }
 
-.mobileInlineCheck {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-height: 22px;
-  margin-top: 2px;
-}
-
-.mobileInlineCheck input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--color-brand);
-}
-
-.mobileInlineCheck span {
-  color: var(--color-muted);
-  font-size: calc(var(--text-sm) + 1px);
-}
-
 .mobileManualSearchActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1190,13 +1154,6 @@ button {
   background: var(--color-surface-tint);
 }
 
-.mobileCheckboxField {
-  align-content: end;
-  grid-template-columns: 22px minmax(0, 1fr);
-  gap: var(--space-sm);
-  min-height: 68px;
-}
-
 .mobileListingDetails {
   padding-top: var(--space-md);
 }
@@ -1215,28 +1172,6 @@ button {
   letter-spacing: 0.05em;
   line-height: 1.2;
   text-transform: uppercase;
-}
-
-.mobileCheckboxField input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--color-brand);
-}
-
-.mobileSourceBlock {
-  margin-top: var(--space-lg);
-  padding-top: var(--space-md);
-  border-top: var(--rule-thin) solid var(--color-rule);
-}
-
-.mobileSourceBlock p {
-  margin: 0 0 var(--space-xs);
-  color: var(--color-soft);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
 }
 
 .mobileActionsHead {
@@ -1342,7 +1277,6 @@ button {
 .mobileLang button:focus-visible,
 .mobileSearchControl input:focus-visible,
 .mobileField input:not([type="checkbox"]):not([type="radio"]):focus-visible,
-.mobileCheckboxField input:focus-visible,
 .mobileChoiceOption:focus-within,
 .mobileField select:focus-visible,
 .mobileSearchControl button:focus-visible,
@@ -1354,8 +1288,8 @@ button {
 
 @media (hover: hover) and (pointer: fine) {
   .mobileGhostLink:hover,
-  .mobileMethodCard:hover,
-  .mobileScenarioCard:hover {
+.mobileMethodCard:hover,
+.mobileScenarioCard:hover {
     border-color: var(--color-brand);
     transform: translateY(-1px);
   }
@@ -1369,9 +1303,9 @@ button {
   }
 
   .mobileField input:not([type="checkbox"]):not([type="radio"]):hover,
-  .mobileComboControl:hover,
-  .mobileChoiceOption:hover,
-  .mobileField select:hover {
+.mobileComboControl:hover,
+.mobileChoiceOption:hover,
+.mobileField select:hover {
     background: var(--color-surface-tint);
     border-color: var(--color-primary-rule);
     box-shadow: inset 0 0 0 1px rgba(8, 80, 125, 0.12);
@@ -1412,8 +1346,8 @@ button {
 
 @media (max-width: 60rem) {
   .mobileIntro,
-  .mobileWorkbench,
-  .mobileActionsHead {
+.mobileWorkbench,
+.mobileActionsHead {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1430,7 +1364,7 @@ button {
   }
 
   .mobileManualPanel > .mobileManualForm,
-  .mobileSearchCountPanel {
+.mobileSearchCountPanel {
     grid-column: 1;
   }
 
@@ -1461,8 +1395,8 @@ button {
   }
 
   .mobileSearch,
-  .mobilePanel,
-  .mobileActions {
+.mobilePanel,
+.mobileActions {
     padding: var(--space-md);
   }
 
@@ -1479,8 +1413,7 @@ button {
     width: 100%;
   }
 
-  .mobileDataRow,
-  .mobileMoneyRow {
+  .mobileDataRow {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2xs);
   }
@@ -1494,7 +1427,7 @@ button {
   }
 
   .mobileOpenChoiceRow,
-  .mobileFeatureChoiceGroup {
+.mobileFeatureChoiceGroup {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1503,10 +1436,6 @@ button {
   }
 
   .mobileVehicleTripleRow {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .mobileModelVersionGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1542,8 +1471,8 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   *,
-  *::before,
-  *::after {
+*::before,
+*::after {
     animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 150ms !important;
