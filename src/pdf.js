@@ -583,7 +583,7 @@ function appendDownload({ blob, filename, readyText, autoDownload = false, openI
 
 function setGenerationBusy(busy) {
   generationInProgress = busy;
-  ["pullCrmDataBtn", "generateBtn", "printBtn", "encryptBtn"].forEach((id) => {
+  ["generateBtn", "printBtn", "encryptBtn"].forEach((id) => {
     const button = $(id);
     if (button) button.disabled = busy;
   });
@@ -1467,6 +1467,57 @@ async function convertDocxBlobToPdf(docxBlob, filename, password = "") {
   return await response.blob();
 }
 
+function converterHealthEndpoint(endpoint) {
+  return endpoint.replace(/\/api\/convert-docx-to-pdf\/?$/i, "/api/health");
+}
+
+async function checkEncryptionSupport() {
+  const configuredEndpoint = String(window.AUTOGOOD_PDF_CONVERTER_URL || "").trim();
+  const endpoint = configuredEndpoint || defaultPdfConverterUrl;
+  const healthEndpoint = converterHealthEndpoint(endpoint);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch(healthEndpoint, { signal: controller.signal });
+    if (!response.ok) {
+      return { supported: false, reason: `Serwer PDF odpowiedział błędem (${response.status}).` };
+    }
+    const payload = await response.json().catch(() => null);
+    if (!payload || !payload.pdf_encryption) {
+      return {
+        supported: false,
+        reason: "Backend konwertera PDF jest nieaktualny i nie obsługuje jeszcze szyfrowania (brak pdf_encryption w /api/health). Zgłoś to do administratora — wymaga wdrożenia najnowszej wersji converter/server.py.",
+      };
+    }
+    return { supported: true };
+  } catch (error) {
+    const reason = error?.name === "AbortError" ? "Serwer PDF nie odpowiedział w 15 sekund." : "Nie można połączyć się z serwerem PDF, aby sprawdzić wsparcie szyfrowania.";
+    return { supported: false, reason };
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+function bytesIncludeAscii(bytes, text) {
+  const needle = Array.from(text, (ch) => ch.charCodeAt(0));
+  const limit = bytes.length - needle.length;
+  outer: for (let i = 0; i <= limit; i += 1) {
+    for (let j = 0; j < needle.length; j += 1) {
+      if (bytes[i + j] !== needle[j]) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+
+async function isPdfBlobEncrypted(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  // Every PDF writer that actually encrypts a file (pypdf included) puts an
+  // /Encrypt entry in the trailer. No /Encrypt marker in the bytes means the
+  // server ignored the password and handed back a plain PDF.
+  return bytesIncludeAscii(bytes, "/Encrypt");
+}
+
 function parseRawText() {
   const text = $("rawClient").value;
   if (!text.trim()) {
@@ -1530,8 +1581,18 @@ async function generatePdf() {
 
 async function generateEncryptedPdf() {
   await withGenerationLock(async () => {
+    setStatus("Sprawdzam wsparcie szyfrowania na serwerze...");
+    const support = await checkEncryptionSupport();
+    if (!support.supported) {
+      setStatus(`Nie można zaszyfrować PDF: ${support.reason}`);
+      return;
+    }
+
     const password = await window.AUTOGOOD_PDF_ENCRYPTION.requestPassword();
-    if (!password) return;
+    if (!password) {
+      setStatus("");
+      return;
+    }
 
     const viewerWindow = createPdfViewerWindow();
     try {
@@ -1540,6 +1601,13 @@ async function generateEncryptedPdf() {
       const docxBlob = await generateDocx();
       const filename = filenameFor(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
+      if (!(await isPdfBlobEncrypted(pdfBlob))) {
+        if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
+        setStatus(
+          "Nie udało się zaszyfrować PDF: serwer zwrócił plik BEZ hasła. NIE wysyłaj go klientowi — zgłoś to do administratora (backend PDF wymaga aktualizacji)."
+        );
+        return;
+      }
       showDownloads([
         { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", autoDownload: false, openInViewer: true, viewerWindow },
       ]);
@@ -1583,9 +1651,8 @@ setDefaultSelectValues();
 updateDocumentFileName();
 renderContractHistory();
 $("parseBtn").addEventListener("click", parseRawText);
-$("pullCrmDataBtn").addEventListener("click", () => {
-  window.alert("Integracja z CRM zostanie podłączona w kolejnym etapie.");
-});
+// pullCrmDataBtn stays permanently disabled (see pdf.html) — CRM integration
+// isn't built yet, so there is no click handler to wire up.
 $("printBtn").addEventListener("click", generatePdf);
 $("encryptBtn").addEventListener("click", generateEncryptedPdf);
 $("generateBtn").addEventListener("click", generateContract);

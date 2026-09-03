@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=headings-20260901" />
+    <link rel="stylesheet" href="./src/pdf.css?v=20260903-encrypt-guard-1" />
   </head>
   <body>
     <main class="app-shell">
@@ -32,7 +32,7 @@
             <input id="sequence" type="number" min="1" value="1" />
           </label>
           <div class="document-flow" aria-label="Proces przygotowania dokumentu">
-            <button id="pullCrmDataBtn" class="secondary-top-btn" type="button">Wyciągnij dane</button>
+            <button id="pullCrmDataBtn" class="secondary-top-btn" type="button" disabled title="Integracja z CRM — w przygotowaniu, jeszcze niepodłączona">Wyciągnij dane<span class="soon-badge">wkrótce</span></button>
             <span class="flow-arrow" aria-hidden="true">→</span>
             <button id="generateBtn" class="secondary-top-btn" type="button">DOCX</button>
             <span class="flow-arrow" aria-hidden="true">→</span>
@@ -270,6 +270,6 @@
 
     <script src="./src/pdf-config.js?v=20260616-4"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/pdf.js?v=headings-20260901"></script>
+    <script src="./src/pdf.js?v=20260903-encrypt-guard-1"></script>
   </body>
 </html>
