@@ -2120,7 +2120,7 @@ function calculate(tabId, values, rate, exciseRate, financed, lang, dealerDirect
       row(t.inspection, inspection, "", `${money(inspectionBrutto)} brutto`),
       row(t.transport, transport, "", `${money(transport * 1.23)} brutto`),
       row(t.excise, excise, "", `${(exciseRate * 100).toFixed(2)}% × ${money(carPln)}`),
-      ...(customsDuty > 0 ? [row(t.customsDuty, customsDuty, "", `10% × ${money(carPln)}`)] : []),
+      ...(values.customsDutyEnabled ? [row(t.customsDuty, customsDuty, "", `10% × ${money(carPln)}`)] : []),
       row(t.commission, commissionNetto, "", commissionFormula(dealerDirect ? STD_FIX : finFix, commissionPct, commissionBase, discountText)),
       row(t.to, TO_FEE, "", "", false, true),
       ...registrationRows(t, values.registrationEnabled),
