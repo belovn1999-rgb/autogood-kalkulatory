@@ -153,6 +153,9 @@ const copy = {
     damagedVehiclesHide: "Nie pokazuj",
     damagedVehiclesShow: "Pokazuj",
     vehicleConditionLabel: "STAN POJAZDU",
+    otomotoSearchButton: "Szukaj na otomoto.pl",
+    otomotoSearchOpening: "Otwieram Otomoto: od najniższej ceny.",
+    otomotoSearchSkipped: "Otomoto nie ma dokładnego odpowiednika dla: {filters}. Pozostałe filtry zostały zastosowane.",
     marketSearchButton: "Szukaj na mobile.de",
     marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
     marketSearchChooseBrand: "Wybierz markę przed wpisaniem modelu.",
@@ -339,6 +342,9 @@ const copy = {
     damagedVehiclesHide: "Не показывать",
     damagedVehiclesShow: "Показывать",
     vehicleConditionLabel: "СОСТОЯНИЕ АВТОМОБИЛЯ",
+    otomotoSearchButton: "Найти на otomoto.pl",
+    otomotoSearchOpening: "Открываю Otomoto: сначала самые дешёвые.",
+    otomotoSearchSkipped: "В Otomoto нет точного аналога для: {filters}. Остальные фильтры применены.",
     marketSearchButton: "Найти на mobile.de",
     marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
     marketSearchChooseBrand: "Сначала выбери марку, затем введи модель.",
@@ -554,6 +560,181 @@ const mobileDeTrailerCouplingValues = {
   detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
   swiveling: "TRAILER_COUPLING_SWIVELING",
 };
+
+const otomotoMakeAliases = {
+  Citroen: "citroen",
+  DS: "ds-automobiles",
+  Mini: "mini",
+  "Mercedes Trucks": "mercedes-benz",
+  "Mercedes Vans": "mercedes-benz",
+  "Vw Nutzfahrzeuge": "volkswagen",
+};
+
+const otomotoModelAliases = {
+  Audi: {
+    "A6 e-tron": "a6-e-tron",
+    "Q4 e-tron": "q4",
+    "Q6 e-tron": "q6",
+    "R8": "r8",
+    "TT RS": "tt-rs",
+    TTS: "tt-s",
+  },
+  Cupra: {
+    Formentor: "cupra-formentor",
+    Leon: "cupra-leon",
+  },
+  Fiat: { "500e": "500-e" },
+  Ford: { "Ka+": "ka_plus" },
+  Mazda: {
+    "B series": "seria-b",
+    "E series": "seria-e",
+  },
+  "Mercedes-Benz": {
+    "T-Class": "t-klasa",
+    "X-Class": "x-klasa",
+  },
+  Tesla: { "Model Y": "y" },
+  Toyota: { "Prius+": "prius_plus" },
+  Volkswagen: {
+    "ID.3": "id3",
+    "ID.4": "id4",
+    "ID.5": "id5",
+    "ID.7 Tourer": "id7-tourer",
+    "up!": "up",
+  },
+};
+
+const otomotoFuelValues = {
+  petrol: "petrol",
+  diesel: "diesel",
+  hybrid_diesel: "hybrid",
+  hybrid_petrol: "hybrid",
+  electric: "electric",
+  plugin: "plugin-hybrid",
+};
+
+const otomotoBodyValues = {
+  limousine: "sedan",
+  estate: "combi",
+  suv: "suv",
+  hatchback: "compact",
+  coupe: "coupe",
+  cabrio: "cabrio",
+  van_minibus: "minivan",
+};
+
+const otomotoDriveValues = {
+  awd: ["all-wheel-auto", "all-wheel-lock", "all-wheel-permanent"],
+  fwd: ["front-wheel"],
+  rwd: ["rear-wheel"],
+};
+
+const otomotoGearboxValues = {
+  automatic: "automatic",
+  manual: "manual",
+};
+
+const otomotoSellerValues = {
+  dealer: "business",
+  company: "business",
+  private: "private",
+};
+
+const otomotoInteriorMaterialValues = {
+  alcantara: "alcantara-upholstery",
+  cloth: "textile-upholstery",
+  part_leather: "upholstery-with-leather-inserts",
+  full_leather: "leather-upholstery",
+};
+
+const otomotoAirConditioningValues = {
+  automatic: "automatic-climate-control",
+  manual: "air-conditioning",
+  automatic_2_zones: "dualzone-automatic-climate-control",
+  automatic_3_zones: "trizone-automatic-climate-control",
+  automatic_4_zones: "4-or-more-zone-automatic-climate-control",
+};
+
+const otomotoCountryOriginValues = {
+  DE: "d",
+  BE: "b",
+  NL: "nl",
+  FR: "f",
+  AT: "a",
+  LU: "l",
+  SE: "s",
+  IT: "i",
+  DK: "dk",
+  CZ: "cz",
+  LT: "lt",
+  LV: "lv",
+  EE: "est",
+  SK: "sk",
+};
+
+const otomotoExteriorColorValues = {
+  beige: "brown-beige",
+  black: "black",
+  blue: "blue",
+  brown: "brown",
+  yellow: "yellow",
+  gold: "yellow-gold",
+  green: "green",
+  grey: "grey",
+  orange: "orange",
+  red: "red",
+  silver: "silver",
+  purple: "violet",
+  white: "white",
+};
+
+const otomotoFeatureFilters = {
+  PANORAMIC_GLASS_ROOF: [["filter_enum_sunroof", "glass-sunroof-fixed"]],
+  AIR_SUSPENSION: [["filter_enum_air_suspension", "1"]],
+  PERFORMANCE_HANDLING_SYSTEM: [["filter_enum_sport_suspension", "1"]],
+  LASER_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "laser-head-lamps"]],
+  BI_XENON_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "bi-xenon-head-lamps"]],
+  ADAPTIVE_BENDING_LIGHTS: [["filter_enum_dynamic_directional_lights", "1"]],
+  BLIND_SPOT_MONITOR: [["filter_enum_blind_spot_warning", "1"]],
+  KEYLESS_ENTRY: [["filter_enum_keyless_entry", "1"]],
+  ELECTRIC_HEATED_SEATS: [
+    ["filter_enum_heated_seat_driver", "1"],
+    ["filter_enum_heated_seat_passenger", "1"],
+  ],
+  HEATED_WINDSHIELD: [["filter_enum_windscreen_heating", "1"]],
+  VENTILATED_SEATS: [["filter_enum_ventilated_front_seat", "1"]],
+  CARPLAY: [["filter_enum_apple_carplay", "1"]],
+  ANDROID_AUTO: [["filter_enum_android_auto", "1"]],
+  ELECTRIC_ADJUSTABLE_SEATS: [["filter_enum_driver_seat_electrically_adjustable", "1"]],
+  MEMORY_SEATS: [["filter_enum_memory_seat", "1"]],
+  WIRELESS_CHARGING: [["filter_enum_wireless_device_charging", "1"]],
+};
+
+const otomotoParkingFilters = {
+  CAM_360_DEGREES: [["filter_enum_360_view_camera", "1"]],
+  REAR_VIEW_CAM: [["filter_enum_rear_view_camera", "1"]],
+  FRONT_SENSORS: [["filter_enum_park_distance_control_front", "1"]],
+  REAR_SENSORS: [["filter_enum_park_distance_control_rear", "1"]],
+  AUTOMATIC_PARKING: [["filter_enum_park_assistant", "1"]],
+};
+
+const otomotoUnsupportedFeatures = new Set([
+  "ROOF_RAILS",
+  "LED_RUNNING_LIGHTS",
+  "SPORT_PACKAGE",
+  "HEATED_STEERING_WHEEL",
+  "ELECTRIC_HEATED_REAR_SEATS",
+  "SPORT_SEATS",
+  "MASSAGE_SEATS",
+  "NIGHT_VISION_ASSIST",
+  "ALLOY_WHEELS",
+  "TRAFFIC_SIGN_RECOGNITION",
+  "AMBIENT_LIGHTING",
+  "DIGITAL_COCKPIT",
+  "WINTER_TIRES",
+  "SUMMER_TIRES",
+  "ELECTRIC_TAILGATE",
+]);
 
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
 const powerOptions = ["75", "90", "101", "118", "131", "150", "200", "252", "303", "358", "402", "452"];
@@ -820,6 +1001,7 @@ const els = {
   roadworthy: document.querySelector("[data-mobile-roadworthy]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
+  otomotoSearch: document.querySelector("[data-mobile-otomoto-search]"),
   marketSearch: document.querySelector("[data-mobile-market-search]"),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
   manualResets: Array.from(document.querySelectorAll("[data-mobile-manual-reset]")),
@@ -1732,6 +1914,249 @@ function buildMobileDeSearchUrl(filters) {
   return `${searchBaseUrl}?${params.toString()}`;
 }
 
+function otomotoSlug(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function otomotoMakeSelection(brand) {
+  const slug = brand ? otomotoMakeAliases[brand] || otomotoSlug(brand) : "";
+  const catalog = window.AUTOGOOD_OTOMOTO_CATALOG?.modelsByMake;
+  const unsupported = Boolean(slug && catalog && !catalog[slug]);
+  return { slug: unsupported ? "" : slug, unsupported };
+}
+
+function otomotoModelToken(value) {
+  return otomotoSlug(value).replace(/-/g, "");
+}
+
+function validatedOtomotoModel(makeSlug, requestedSlugs, broad = false) {
+  const catalogModels = window.AUTOGOOD_OTOMOTO_CATALOG?.modelsByMake?.[makeSlug];
+  const slugs = [...new Set([requestedSlugs].flat().filter(Boolean))];
+  if (!catalogModels) return { slugs, broad, unsupported: false };
+  const validSlugs = slugs.filter((slug) => catalogModels.some((model) => model.id === slug));
+  return { slugs: validSlugs, broad, unsupported: Boolean(slugs.length && !validSlugs.length) };
+}
+
+function matchedOtomotoModels(makeSlug, model) {
+  const catalogModels = window.AUTOGOOD_OTOMOTO_CATALOG?.modelsByMake?.[makeSlug] || [];
+  const requestedSlug = otomotoSlug(model);
+  const requestedToken = otomotoModelToken(model);
+  if (!requestedSlug || !catalogModels.length) return { slugs: [], broad: false };
+
+  const exact = catalogModels.filter((candidate) => (
+    candidate.id === requestedSlug
+    || otomotoModelToken(candidate.id) === requestedToken
+    || otomotoModelToken(candidate.name) === requestedToken
+  ));
+  if (exact.length) return { slugs: exact.map((candidate) => candidate.id), broad: false };
+
+  const descendants = catalogModels.filter((candidate) => candidate.id !== "other" && (
+    candidate.id.startsWith(`${requestedSlug}-`)
+    || otomotoModelToken(candidate.name).startsWith(requestedToken)
+  ));
+  if (descendants.length) {
+    return { slugs: descendants.map((candidate) => candidate.id), broad: false };
+  }
+
+  const ancestors = catalogModels
+    .filter((candidate) => {
+      if (candidate.id === "other") return false;
+      const idToken = otomotoModelToken(candidate.id);
+      const nameToken = otomotoModelToken(candidate.name);
+      return idToken.length >= 2 && (
+        requestedToken.startsWith(idToken)
+        || requestedToken.startsWith(nameToken)
+        || requestedToken.endsWith(idToken)
+        || requestedToken.endsWith(nameToken)
+      );
+    })
+    .sort((left, right) => otomotoModelToken(right.name).length - otomotoModelToken(left.name).length);
+  if (!ancestors.length) return { slugs: [], broad: false };
+  const bestLength = otomotoModelToken(ancestors[0].name).length;
+  return { slugs: ancestors
+    .filter((candidate) => otomotoModelToken(candidate.name).length === bestLength)
+    .map((candidate) => candidate.id), broad: true };
+}
+
+function otomotoModelSelection(brand, model) {
+  const cleanModel = String(model || "").trim();
+  if (!cleanModel) return { slugs: [], broad: false, unsupported: false };
+  const makeSlug = otomotoMakeSelection(brand).slug;
+  if (!makeSlug) return { slugs: [], broad: false, unsupported: true };
+
+  if (brand === "BMW") {
+    const baseSeries = cleanModel.match(/^([1-8])$/)?.[1];
+    if (baseSeries) return validatedOtomotoModel(makeSlug, `seria-${baseSeries}`);
+
+    const numberedSeries = cleanModel.match(/^([1-8])(?:\d{2}|er\b)/i)?.[1]
+      || cleanModel.match(/^ActiveHybrid\s+([1-8])$/i)?.[1]
+      || cleanModel.match(/^M([1-8])\d/i)?.[1];
+    if (numberedSeries) return validatedOtomotoModel(makeSlug, `seria-${numberedSeries}`, true);
+
+    const xOrZVariant = cleanModel.match(/^([XZ]\d)(?:\s+(.+))$/i);
+    if (xOrZVariant && !/^[M]$/i.test(xOrZVariant[2])) {
+      return validatedOtomotoModel(makeSlug, otomotoSlug(xOrZVariant[1]), true);
+    }
+  }
+
+  if (brand === "Mercedes-Benz") {
+    const classVariant = cleanModel.match(/^(CLA|CLC|CLE|CLK|CLS|GLA|GLB|GLC|GLE|GLK|GLS|SLC|SLK|SL|CL|GL|ML|A|B|C|E|G|R|S|V|X)\s+\d/i);
+    if (classVariant) {
+      const modelClass = classVariant[1].toUpperCase();
+      const classSlug = ["A", "B", "C", "E", "G", "R", "S", "V"].includes(modelClass)
+        ? `klasa-${modelClass.toLowerCase()}`
+        : modelClass === "X" ? "x-klasa" : modelClass.toLowerCase();
+      return validatedOtomotoModel(makeSlug, classSlug, true);
+    }
+  }
+
+  const alias = otomotoModelAliases[brand]?.[cleanModel];
+  if (alias) return validatedOtomotoModel(makeSlug, alias);
+  const matches = matchedOtomotoModels(makeSlug, cleanModel);
+  return validatedOtomotoModel(
+    makeSlug,
+    matches.slugs.length ? matches.slugs : otomotoSlug(cleanModel),
+    matches.broad,
+  );
+}
+
+function appendOtomotoValues(params, filterId, values) {
+  const uniqueValues = [...new Set((values || []).filter(Boolean))];
+  if (!uniqueValues.length) return;
+  if (uniqueValues.length === 1) {
+    params.set(`search[${filterId}]`, uniqueValues[0]);
+    return;
+  }
+  uniqueValues.forEach((value, index) => params.set(`search[${filterId}][${index}]`, value));
+}
+
+function appendOtomotoRange(params, filterId, fromValue, toValue) {
+  const from = mobileDeNumber(fromValue);
+  const to = mobileDeNumber(toValue);
+  if (from !== null && to !== null && from > to) {
+    throw new Error(copy[state.lang].marketSearchInvalidRange);
+  }
+  if (from !== null) params.set(`search[${filterId}:from]`, String(from));
+  if (to !== null) params.set(`search[${filterId}:to]`, String(to));
+}
+
+function buildOtomotoSearchUrl(filters) {
+  const makeSlug = otomotoMakeSelection(filters.brand).slug;
+  if (filters.model && !filters.brand) throw new Error(copy[state.lang].marketSearchChooseBrand);
+
+  const modelSelection = otomotoModelSelection(filters.brand, filters.model);
+  const pathParts = ["https://www.otomoto.pl/osobowe", makeSlug].filter(Boolean);
+  const params = new URLSearchParams();
+
+  appendOtomotoValues(params, "filter_enum_model", modelSelection.slugs);
+  const body = otomotoBodyValues[filters.body];
+  if (body) params.set("search[filter_enum_body_type]", body);
+  appendOtomotoRange(params, "filter_float_mileage", filters.mileageFrom, filters.mileageTo);
+  appendOtomotoRange(params, "filter_float_year", filters.yearFrom, filters.yearTo);
+  appendOtomotoRange(params, "filter_float_engine_capacity", filters.displacementFrom, filters.displacementTo);
+  appendOtomotoRange(params, "filter_float_engine_power", filters.powerFrom, filters.powerTo);
+  appendOtomotoRange(params, "filter_float_nr_seats", filters.seatsFrom, filters.seatsTo);
+
+  appendOtomotoValues(
+    params,
+    "filter_enum_fuel_type",
+    manualFuelValues(filters).map((value) => otomotoFuelValues[value]),
+  );
+  appendOtomotoValues(params, "filter_enum_transmission", otomotoDriveValues[filters.drive]);
+
+  const gearbox = otomotoGearboxValues[filters.gearbox];
+  if (gearbox) params.set("search[filter_enum_gearbox]", gearbox);
+  if (filters.vat === "reclaimable") params.set("search[filter_enum_vat]", "1");
+  if (filters.vat === "non_reclaimable") params.set("search[filter_enum_vat_discount]", "1");
+
+  const seller = otomotoSellerValues[filters.seller];
+  if (seller) params.set("search[private_business]", seller);
+  appendOtomotoValues(
+    params,
+    "filter_enum_country_origin",
+    (filters.countries || []).map((country) => otomotoCountryOriginValues[country]),
+  );
+  appendOtomotoValues(
+    params,
+    "filter_enum_upholstery_type",
+    (filters.interiorMaterials || []).map((material) => otomotoInteriorMaterialValues[material]),
+  );
+
+  const airConditioning = otomotoAirConditioningValues[filters.airConditioning];
+  if (airConditioning) params.set("search[filter_enum_air_conditioning_type]", airConditioning);
+  if (filters.trailerCoupling && filters.trailerCoupling !== "any") {
+    params.set("search[filter_enum_towbar]", "1");
+  }
+
+  const equipment = new Map();
+  const addEquipment = (entries) => (entries || []).forEach(([filterId, value]) => {
+    equipment.set(filterId, [...(equipment.get(filterId) || []), value]);
+  });
+  (filters.features || []).forEach((feature) => addEquipment(otomotoFeatureFilters[feature]));
+  (filters.parkingSensors || []).forEach((sensor) => addEquipment(otomotoParkingFilters[sensor]));
+  if (filters.cruiseControl === "CRUISE_CONTROL") {
+    addEquipment([["filter_enum_cruisecontrol_type", "cruise-control"]]);
+  }
+  if (filters.cruiseControl === "ADAPTIVE_CRUISE_CONTROL") {
+    addEquipment([
+      ["filter_enum_cruisecontrol_type", "adaptive-cruise-control"],
+      ["filter_enum_cruisecontrol_type", "adaptive-cruise-control-predictive"],
+    ]);
+  }
+  equipment.forEach((values, filterId) => appendOtomotoValues(params, filterId, values));
+
+  appendOtomotoValues(
+    params,
+    "filter_enum_color",
+    (filters.exteriorColors || []).map((color) => otomotoExteriorColorValues[color]),
+  );
+  const colourTypes = [];
+  if (filters.matte) colourTypes.push("matt");
+  if (filters.metallic) colourTypes.push("metallic");
+  appendOtomotoValues(params, "filter_enum_colour_type", colourTypes);
+  if (filters.damagedVehicles !== "show") params.set("search[filter_enum_damaged]", "0");
+
+  params.set("search[order]", "filter_float_price:asc");
+  return `${pathParts.join("/")}?${params.toString()}`;
+}
+
+function otomotoSkippedFilterLabels(filters) {
+  const c = copy[state.lang];
+  const labels = [];
+  const add = (label) => {
+    if (label && !labels.includes(label)) labels.push(label);
+  };
+
+  if (otomotoMakeSelection(filters.brand).unsupported) add(c.brandLabel);
+  if (filters.version) add(c.versionLabel);
+  const modelSelection = otomotoModelSelection(filters.brand, filters.model);
+  if (modelSelection.broad || modelSelection.unsupported) add(c.modelLabel);
+  if (manualFuelValues(filters).some((fuel) => ["hybrid_diesel", "hybrid_petrol"].includes(fuel))) {
+    add(c.fuelLabel);
+  }
+  if (["pickup", "other"].includes(filters.body)) add(c.bodyLabel);
+  if (["dealer", "company"].includes(filters.seller)) add(c.sellerTypeLabel);
+  if ((filters.countries || []).length) add(c.countryLabel);
+  if (filters.trailerCoupling && filters.trailerCoupling !== "any") add(c.trailerCouplingLabel);
+  (filters.features || [])
+    .filter((feature) => otomotoUnsupportedFeatures.has(feature))
+    .forEach((feature) => {
+      const input = els.features.find((candidate) => candidate.value === feature);
+      add(input ? optionLabelText(input) : feature);
+    });
+  if ((filters.parkingSensors || []).includes("REAR_TRAFFIC_ALERT")) add(c.parkingSensorsLabel);
+  if ((filters.interiorColors || []).length) add(c.interiorColorLabel);
+  if (filters.nonSmoking) add(c.nonSmokingLabel);
+  if (filters.roadworthy) add(c.roadworthyLabel);
+  return labels;
+}
+
 function setMarketSearchStatus(message, isError = false) {
   if (!els.marketSearchStatus) return;
   els.marketSearchStatus.textContent = message;
@@ -2077,6 +2502,22 @@ function playManualIconFeedback(button) {
 
 document.querySelectorAll(".mobileManualIconButton").forEach((button) => {
   button.addEventListener("click", () => playManualIconFeedback(button));
+});
+
+els.otomotoSearch?.addEventListener("click", (event) => {
+  try {
+    const filters = readManualFields();
+    els.otomotoSearch.href = buildOtomotoSearchUrl(filters);
+    const skipped = otomotoSkippedFilterLabels(filters);
+    const message = skipped.length
+      ? copy[state.lang].otomotoSearchSkipped.replace("{filters}", skipped.join(", "))
+      : copy[state.lang].otomotoSearchOpening;
+    setMarketSearchStatus(message);
+  } catch (error) {
+    event.preventDefault();
+    els.otomotoSearch.href = "#";
+    setMarketSearchStatus(error.message || copy[state.lang].marketSearchInvalidRange, true);
+  }
 });
 
 els.marketSearch?.addEventListener("click", (event) => {

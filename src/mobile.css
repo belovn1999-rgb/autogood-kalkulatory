@@ -1137,6 +1137,12 @@ button {
   line-height: 1;
 }
 
+.mobileMarketSearchButtonSecondary {
+  border: var(--rule-thin) solid var(--color-brand);
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+}
+
 .mobileChoiceOption {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
@@ -1342,6 +1348,12 @@ button {
   .mobileMarketSearchButton:hover {
     background: var(--color-brand-pressed);
     transform: translateY(-1px);
+  }
+
+  .mobileMarketSearchButtonSecondary:hover {
+    border-color: var(--color-brand-pressed);
+    background: var(--color-surface-tint);
+    color: var(--color-brand-pressed);
   }
 
   .mobileManualIconButton:hover {
