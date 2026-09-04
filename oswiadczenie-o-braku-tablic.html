@@ -4,23 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Oświadczenie o braku tablic</title>
+    <meta
+      name="description"
+      content="Wewnętrzne narzędzie AUTOGOOD: oświadczenie o sprowadzeniu pojazdu bez tablic rejestracyjnych — wariant firmowy i klienta, podgląd i PDF bez wysyłania danych na serwer."
+    />
+    <meta name="theme-color" content="#0f3d5e" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="./assets/ag-opt.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=headings-20260901" />
-    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260820-history-icons-1" />
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+    <link rel="stylesheet" href="./src/pdf.css?v=20260902-declaration-1" />
+    <link rel="stylesheet" href="./src/no-plates-declaration.css?v=20260902-declaration-1" />
+    <!-- The template and the font are needed the moment the page finishes
+         parsing, so they download alongside the PDF engine instead of after it. -->
+    <link rel="preload" href="./assets/oswiadczenie-brak-tablic-autogood.pdf" as="fetch" crossorigin />
+    <link rel="preload" href="./assets/Tinos-Regular.ttf" as="fetch" crossorigin />
+    <!-- Self-hosted: this page handles personal data, so the PDF engine does not
+         come from a third-party CDN. All three scripts are deferred and run in order. -->
+    <script src="./vendor/pdf-lib.min.js" defer></script>
+    <script src="./vendor/fontkit.umd.min.js" defer></script>
+    <script src="./src/no-plates-declaration.js?v=20260902-declaration-1" defer></script>
   </head>
   <body>
     <main class="app-shell declarationWorkspace">
       <header class="topbar">
         <div class="brand">
           <a href="./umowy.html" aria-label="AUTOGOOD Umowy">
-            <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+            <img src="./assets/autogood-logo.png" alt="AUTOGOOD" width="164" height="40" decoding="async" />
           </a>
           <span class="brandDivider" aria-hidden="true"></span>
           <h1 class="brandTitle" aria-label="Oświadczenie o braku tablic">Oświadczenie<span class="badge-pill">Brak tablic</span></h1>
@@ -28,10 +42,16 @@
         <div class="actions">
           <button id="resetDeclaration" class="ghost-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7L21 16"/></svg><span>Wyzeruj dane</span></button>
           <button id="saveDeclarationData" class="secondary-top-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span>Zapisz</span></button>
-          <button id="printDeclaration" class="secondary-top-btn" type="button">Drukuj</button>
-          <button id="downloadDeclarationPdf" class="primary-btn" type="button">Pobierz PDF</button>
+          <button id="printDeclaration" class="secondary-top-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg><span>Drukuj</span></button>
+          <button id="downloadDeclarationPdf" class="primary-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span>Pobierz PDF</span></button>
         </div>
       </header>
+
+      <noscript>
+        <p class="noscript-note">
+          Ta strona przygotowuje PDF w przeglądarce. Włącz JavaScript, żeby wypełnić i pobrać oświadczenie.
+        </p>
+      </noscript>
 
       <section class="workspace">
         <aside class="utility-column">
@@ -50,7 +70,10 @@
                 <label><input name="clientGender" type="radio" value="woman" /><span>Pani</span></label>
               </fieldset>
               <p id="declarationHint" class="declaration-hint">Wypełnij dane do oświadczenia AUTOGOOD.</p>
-              <div id="declarationStatus" class="status" aria-live="polite"></div>
+              <p class="declaration-privacy-note">
+                Dane zostają w tej przeglądarce — nic nie jest wysyłane na serwer. Wpisane pola zapisują się
+                automatycznie i wrócą po odświeżeniu strony.
+              </p>
             </div>
           </section>
 
@@ -61,7 +84,7 @@
         </aside>
 
         <section class="form-section">
-          <form id="declarationForm" class="declaration-form">
+          <form id="declarationForm" class="declaration-form" novalidate>
             <section class="contract-grid declaration-grid">
               <section class="contract-card">
                 <div class="card-head">DANE OŚWIADCZENIA:</div>
@@ -76,7 +99,7 @@
                   </label>
                   <label class="field">
                     <span>VIN:</span>
-                    <input name="vehicleVin" type="text" autocomplete="off" />
+                    <input name="vehicleVin" type="text" autocomplete="off" inputmode="latin" maxlength="17" spellcheck="false" />
                   </label>
                 </div>
 
@@ -92,14 +115,8 @@
                     </label>
                   </div>
                   <label class="field">
-                    <span class="font-field-label">
-                      <span>Imię i nazwisko:</span>
-                      <span class="pdf-font-controls" aria-label="Rozmiar tekstu imienia i nazwiska w PDF">
-                        <button type="button" data-font-size-field="clientName" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst imienia i nazwiska o 0,5 pt">−</button>
-                        <button type="button" data-font-size-field="clientName" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst imienia i nazwiska o 0,5 pt">+</button>
-                      </span>
-                    </span>
-                    <input name="clientName" type="text" autocomplete="name" aria-label="Imię i nazwisko" />
+                    <span>Imię i nazwisko:</span>
+                    <input name="clientName" type="text" autocomplete="name" />
                   </label>
                   <div class="two-fields">
                     <label class="field">
@@ -117,18 +134,12 @@
                     </label>
                   </div>
                   <label class="field">
-                    <span class="font-field-label">
-                      <span>Marka i model:</span>
-                      <span class="pdf-font-controls" aria-label="Rozmiar tekstu marki i modelu w PDF">
-                        <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="-0.5" title="Zmniejsz tekst o 0,5 pt" aria-label="Zmniejsz tekst marki i modelu o 0,5 pt">−</button>
-                        <button type="button" data-font-size-field="vehicleMakeModel" data-font-size-step="0.5" title="Powiększ tekst o 0,5 pt" aria-label="Powiększ tekst marki i modelu o 0,5 pt">+</button>
-                      </span>
-                    </span>
-                    <input name="vehicleMakeModel" type="text" autocomplete="off" aria-label="Marka i model" />
+                    <span>Marka i model:</span>
+                    <input name="vehicleMakeModel" type="text" autocomplete="off" />
                   </label>
                   <label class="field">
                     <span>VIN:</span>
-                    <input name="vehicleVin" type="text" autocomplete="off" />
+                    <input name="vehicleVin" type="text" autocomplete="off" inputmode="latin" maxlength="17" spellcheck="false" />
                   </label>
                   <label class="field">
                     <span>Data sprowadzenia pojazdu:</span>
@@ -138,8 +149,11 @@
 
               </section>
 
-              <section class="contract-card declaration-pdf-preview" aria-label="Podgląd oświadczenia">
-                <div class="declaration-pdf-preview-head">Podgląd oświadczenia</div>
+              <section id="declarationPreviewCard" class="contract-card declaration-pdf-preview" aria-label="Podgląd oświadczenia">
+                <div class="declaration-pdf-preview-head">
+                  <span>Podgląd oświadczenia</span>
+                  <span class="preview-spinner" aria-hidden="true"></span>
+                </div>
                 <iframe id="declarationPreview" title="Podgląd oświadczenia o braku tablic"></iframe>
               </section>
             </section>
@@ -147,6 +161,21 @@
         </section>
       </section>
     </main>
-    <script src="./src/no-plates-declaration.js?v=20260820-history-1"></script>
+
+    <div id="declarationToast" class="declaration-toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="resetDeclarationDialog" class="password-dialog">
+      <form method="dialog" class="password-dialog-form">
+        <div class="password-dialog-head">
+          <strong>Wyzerować dane?</strong>
+          <button class="dialog-close" type="button" data-reset-cancel aria-label="Zamknij">&times;</button>
+        </div>
+        <p>Wszystkie wpisane pola zostaną wyczyszczone. Zapisy w historii pozostaną nietknięte.</p>
+        <div class="password-dialog-actions">
+          <button class="ghost-btn" type="button" data-reset-cancel>Anuluj</button>
+          <button class="primary-btn" type="submit" value="reset">Wyzeruj dane</button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>

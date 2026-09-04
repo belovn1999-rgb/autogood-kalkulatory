@@ -14,8 +14,22 @@
   min-width: 0;
 }
 
+/* The shared stylesheet sizes .paste-panel / .input-card around the big paste
+   textarea of the contract pages. This panel only holds two radio groups, so
+   the inherited 500px floor and 220px first row stretched the options to 95px
+   and left a third of the card empty. */
+.declarationWorkspace .paste-panel {
+  min-height: 0;
+}
+
+.declaration-choice-panel .input-card {
+  grid-template-rows: none;
+  grid-auto-rows: auto;
+  gap: 0;
+}
+
 .declarationWorkspace .history-strip {
-  min-height: 180px;
+  min-height: 140px;
   max-height: 360px;
 }
 
@@ -70,8 +84,7 @@
   transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
 }
 
-.declaration-choice label:hover span,
-.declaration-choice label:focus-within span {
+.declaration-choice label:hover span {
   border-color: var(--brand);
   background: var(--brand-tint);
   color: var(--brand-dark);
@@ -83,6 +96,13 @@
   color: #fff;
 }
 
+/* The radio itself is visually hidden, so the keyboard ring has to be drawn on
+   the option box — otherwise focus looked exactly like hover. */
+.declaration-choice input:focus-visible + span {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 .declaration-hint {
   margin: 16px 0 0;
   color: var(--muted);
@@ -90,55 +110,67 @@
   line-height: 1.45;
 }
 
-.field > .font-field-label {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
-}
-
-.pdf-font-controls {
-  display: grid;
-  grid-template-rows: repeat(2, 13px);
-  gap: 2px;
-  flex: 0 0 auto;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(4px);
-  transition: opacity 140ms ease, transform 140ms ease;
-}
-
-.field:hover .pdf-font-controls,
-.field:focus-within .pdf-font-controls {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(0);
-}
-
-.pdf-font-controls button {
-  display: grid;
-  width: 18px;
-  height: 13px;
-  place-items: center;
-  border: 1px solid var(--line-strong);
-  border-radius: 3px;
-  background: #fff;
-  color: var(--brand-dark);
+.declaration-privacy-note {
+  margin: 14px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+  color: var(--soft);
   font-size: 12px;
-  font-weight: 800;
-  line-height: 1;
+  line-height: 1.45;
 }
 
-.pdf-font-controls button:hover,
-.pdf-font-controls button:focus-visible {
-  border-color: var(--brand);
-  background: var(--brand-tint);
+.noscript-note {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: 1px solid #f0c9c4;
+  border-radius: 10px;
+  background: #fdf3f2;
+  color: #8c2c22;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.pdf-font-controls button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+/* --- Field notes and validation ---------------------------------------- */
+
+/* Written as `.field > …` so they beat the generic `.field > span` label rule
+   from the shared stylesheet, which would otherwise repaint them muted grey. */
+.field > .field-error,
+.field > .field-warning-note,
+.field > .field-hint-note {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
 }
+
+.field > .field-error {
+  color: #a02525;
+}
+
+.field > .field-warning-note {
+  color: #8a5a12;
+}
+
+.field > .field-hint-note {
+  color: var(--soft);
+}
+
+.field > .field-hint-note[data-tone="warn"] {
+  color: #8a5a12;
+}
+
+.field--invalid input,
+.field--invalid select {
+  border-color: #c9756b;
+  background: #fdf7f6;
+}
+
+.field--invalid input:focus-visible,
+.field--invalid select:focus-visible {
+  border-color: #a02525;
+  box-shadow: 0 0 0 3px rgb(160 37 37 / 14%);
+}
+
+/* --- Preview ------------------------------------------------------------ */
 
 .declaration-grid {
   grid-template-columns: minmax(0, 1fr);
@@ -150,12 +182,16 @@
 
 .declaration-pdf-preview {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 16px;
   overflow: hidden;
   padding: 22px;
 }
 
 .declaration-pdf-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 800;
@@ -164,15 +200,116 @@
   text-transform: uppercase;
 }
 
+.preview-spinner {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.declaration-pdf-preview[data-loading] .preview-spinner {
+  opacity: 1;
+  animation: preview-spin 700ms linear infinite;
+}
+
+@keyframes preview-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .declaration-pdf-preview[data-loading] .preview-spinner {
+    animation: none;
+  }
+}
+
+/* Shaped like the A4 page it shows, so the viewer has no dark filler to pad
+   with; the max-width keeps the frame inside the viewport on short screens. */
 .declaration-pdf-preview iframe {
   display: block;
   width: 100%;
-  height: min(74vh, 860px);
-  margin: 0;
-  min-height: 520px;
+  max-width: calc(min(74vh, 860px) / 1.414);
+  aspect-ratio: 1 / 1.414;
+  margin: 0 auto;
   border: 1px solid var(--line-strong);
   border-radius: 7px;
   background: #fff;
+  transition: opacity 160ms ease;
+}
+
+.declaration-pdf-preview[data-loading] iframe {
+  opacity: 0.55;
+}
+
+.declaration-pdf-preview[data-engine="missing"] iframe {
+  opacity: 0.35;
+}
+
+/* --- Toast -------------------------------------------------------------- */
+
+.declaration-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 20;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 12px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 12px 34px rgb(16 46 69 / 18%);
+}
+
+.declaration-toast[data-tone="ok"] {
+  border-color: #b8d8c4;
+  background: #f2faf5;
+  color: #1d5c38;
+}
+
+.declaration-toast[data-tone="error"] {
+  border-color: #edbcb5;
+  background: #fdf4f3;
+  color: #8c2c22;
+}
+
+/* --- Wide screens ------------------------------------------------------- */
+
+/* Form on the left, live document on the right, so filling a field and seeing
+   the result no longer costs a scroll to the bottom of the page. */
+@media (min-width: 1160px) {
+  .declaration-grid {
+    grid-template-columns: minmax(340px, 0.82fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .declaration-pdf-preview {
+    position: sticky;
+    top: 92px;
+  }
+
+  .declaration-pdf-preview iframe {
+    max-width: calc(min(100vh - 210px, 860px) / 1.414);
+  }
+}
+
+/* The shared stylesheet splits the utility column in two below 1100px, which
+   is meant for pages whose workspace has already gone single-column. Here the
+   sidebar is still a 280px rail at that width, so keep it stacked until the
+   workspace itself collapses. */
+@media (min-width: 941px) {
+  .declarationWorkspace .utility-column {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
 }
 
 @media (max-width: 940px) {
@@ -193,6 +330,23 @@
 @media (max-width: 640px) {
   .declarationWorkspace .utility-column {
     grid-template-columns: 1fr;
+  }
+
+  /* Nothing sits beside it here, so an empty history box should not reserve
+     140px of scroll. */
+  .declarationWorkspace .history-strip {
+    min-height: 0;
+  }
+
+  .declaration-pdf-preview iframe {
+    max-width: none;
+  }
+
+  .declaration-toast {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
   }
 }
 
