@@ -1840,9 +1840,20 @@ function buildMobileDeSearchUrl(filters) {
     const exactModelId = mobileDeModelId(filters.brand, filters.model);
     const version = String(filters.version || "").trim();
     if (exactModelId) params.set("ms", `${makeId};${exactModelId};;${version}`);
-    else if (filters.model || version) {
-      params.set("ms", `${makeId};;;${[filters.model, version].filter(Boolean).join(" ").trim()}`);
-    } else params.set("ms", makeId);
+    else if (filters.model) {
+      const slug = [filters.brand, filters.model]
+        .filter(Boolean)
+        .join(" ")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/&/g, " and ")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`;
+      if (version) params.set("ms", `;;;${version}`);
+    } else if (version) params.set("ms", `${makeId};;;${version}`);
+    else params.set("ms", makeId);
   } else if (makeKey) {
     const slug = [filters.brand, filters.model]
       .filter(Boolean)
