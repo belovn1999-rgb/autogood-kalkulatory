@@ -2442,7 +2442,7 @@ document.addEventListener("click", (event) => {
   const control = event.target.closest(".mobileComboControl[data-mobile-options]");
   if (control) {
     if (event.target.closest("input")) {
-      openComboMenu(control, control);
+      openComboMenu(control, event.target.readOnly ? null : control);
       return;
     }
     const isOpen = control.classList.contains("isOpen");
