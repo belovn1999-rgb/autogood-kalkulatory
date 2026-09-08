@@ -32,6 +32,7 @@ const copy = {
     fuelLabel: "Paliwo",
     pluginLabel: "Plug-in",
     bodyLabel: "Nadwozie",
+    priceRangeLabel: "Cena (EUR)",
     mileageRangeLabel: "Przebieg",
     yearRangeLabel: "Rok",
     displacementRangeLabel: "Pojemność silnika",
@@ -221,6 +222,7 @@ const copy = {
     fuelLabel: "Топливо",
     pluginLabel: "Plug-in",
     bodyLabel: "Кузов",
+    priceRangeLabel: "Цена (EUR)",
     mileageRangeLabel: "Пробег",
     yearRangeLabel: "Год",
     displacementRangeLabel: "Объём двигателя",
@@ -459,6 +461,23 @@ const bodyOptions = [
 ];
 
 const seatsOptions = Array.from({ length: 9 }, (_, index) => String(index + 1));
+const priceOptions = [
+  5000,
+  ...Array.from({ length: 15 }, (_, index) => (index + 6) * 1000),
+  22500,
+  25000,
+  27500,
+  30000,
+  35000,
+  40000,
+  45000,
+  50000,
+  55000,
+  60000,
+  70000,
+  80000,
+  "90000+",
+];
 
 const mobileDeMakeIds = {
   Abarth: "140",
@@ -965,6 +984,8 @@ const els = {
   fuelSummary: document.querySelector("[data-mobile-fuel-summary]"),
   body: document.querySelector("[data-mobile-body]"),
   bodyLabel: document.querySelector("[data-mobile-body-label]"),
+  priceFrom: document.querySelector("[data-mobile-price-from]"),
+  priceTo: document.querySelector("[data-mobile-price-to]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
   mileageTo: document.querySelector("[data-mobile-mileage-to]"),
   mileageOptions: document.querySelector("[data-mobile-mileage-options]"),
@@ -1269,6 +1290,14 @@ function comboOptionSets() {
   return {
     brand: brandCatalogOptions(),
     model: models,
+    price: priceOptions.map((value) => ({
+      value: String(value),
+      label: `${formatPriceValue(value)} EUR`,
+    })),
+    priceTo: valuesAfter(priceOptions, els.priceFrom?.value, true).map((value) => ({
+      value: String(value),
+      label: `${formatPriceValue(value)} EUR`,
+    })),
     mileage: mileage.map((value) => ({
       value: String(value),
       label: `${value.toLocaleString("pl-PL")} km`,
@@ -1433,10 +1462,12 @@ function setCheckedValue(radios, value) {
 function setRangePlaceholders() {
   const c = copy[state.lang];
   [
+    [els.priceFrom, c.fromPlaceholder],
     [els.mileageFrom, c.fromPlaceholder],
     [els.yearFrom, c.fromPlaceholder],
     [els.displacementFrom, c.fromPlaceholder],
     [els.powerFrom, c.fromPlaceholder],
+    [els.priceTo, c.toPlaceholder],
     [els.mileageTo, c.toPlaceholder],
     [els.yearTo, c.toPlaceholder],
     [els.displacementTo, c.toPlaceholder],
@@ -1529,6 +1560,8 @@ function defaultManualFields() {
     version: "",
     fuels: [],
     body: "",
+    priceFrom: "",
+    priceTo: "",
     mileageFrom: "",
     mileageTo: "",
     yearFrom: "",
@@ -1591,6 +1624,8 @@ function renderManualOptions(keepValues = true) {
   renderDatalist(els.displacementOptions, displacementOptions);
   renderDatalist(els.powerOptions, powerOptions);
   renderComboMenus();
+  els.priceFrom.value = current.priceFrom || "";
+  els.priceTo.value = current.priceTo || "";
   els.mileageFrom.value = current.mileageFrom || "";
   els.mileageTo.value = current.mileageTo || "";
   els.yearFrom.value = current.yearFrom || "";
@@ -1630,6 +1665,8 @@ function readManualFields() {
     fuel: checkedValues(els.fuels).find((value) => value !== "plugin") || "",
     plugin: checkedValues(els.fuels).includes("plugin") ? "yes" : "",
     body: els.body?.value || "",
+    priceFrom: els.priceFrom?.value || "",
+    priceTo: els.priceTo?.value || "",
     mileageFrom: els.mileageFrom?.value || "",
     mileageTo: els.mileageTo?.value || "",
     yearFrom: els.yearFrom?.value || "",
@@ -1714,6 +1751,13 @@ function rangeFilterSummary(label, from, to, unit = "") {
   return `${label}: ${range}${unit ? ` ${unit}` : ""}`;
 }
 
+function priceFilterSummary(from, to) {
+  if (!from && !to) return "";
+  const fromLabel = formatPriceValue(from) || copy[state.lang].fromPlaceholder;
+  const toLabel = formatPriceValue(to) || copy[state.lang].toPlaceholder;
+  return `${copy[state.lang].priceRangeLabel}: ${fromLabel} - ${toLabel} EUR`;
+}
+
 function updateSelectedFiltersSummary() {
   if (!els.selectedFilters) return;
   const c = copy[state.lang];
@@ -1723,6 +1767,7 @@ function updateSelectedFiltersSummary() {
     { value: filters.version, icon: "list", target: els.version },
     ...selectedInputSummaryParts(els.fuels, "fuel"),
     { value: els.bodyLabel?.value, icon: "car", target: els.bodyLabel },
+    { value: priceFilterSummary(filters.priceFrom, filters.priceTo), icon: "tag", target: els.priceFrom },
     { value: rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"), icon: "gauge", target: els.mileageFrom },
     { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar", target: els.yearFrom },
     { value: rangeFilterSummary(c.displacementRangeLabel, filters.displacementFrom, filters.displacementTo, "ccm"), icon: "settings", target: els.displacementFrom },
@@ -1786,6 +1831,13 @@ function mobileDeNumber(value) {
   if (!compact) return null;
   const number = Number(compact);
   return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function formatPriceValue(value) {
+  const amount = mobileDeNumber(value);
+  if (amount === null) return "";
+  const grouped = String(amount).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0");
+  return `${grouped}${String(value).trim().endsWith("+") ? "+" : ""}`;
 }
 
 function isAllowedRangeEndValue(value, fromValue, allowSame = false) {
@@ -1872,6 +1924,7 @@ function buildMobileDeSearchUrl(filters) {
   const body = mobileDeBodyValues[filters.body];
   if (body) params.set("c", body);
 
+  appendMobileDeRange(params, "p", filters.priceFrom, String(filters.priceTo || "").trim().endsWith("+") ? "" : filters.priceTo);
   appendMobileDeRange(params, "ml", filters.mileageFrom, filters.mileageTo);
   appendMobileDeRange(params, "fr", filters.yearFrom, filters.yearTo);
   appendMobileDeRange(params, "cc", filters.displacementFrom, filters.displacementTo);
@@ -2068,6 +2121,7 @@ function buildOtomotoSearchUrl(filters) {
   appendOtomotoValues(params, "filter_enum_model", modelSelection.slugs);
   const body = otomotoBodyValues[filters.body];
   if (body) params.set("search[filter_enum_body_type]", body);
+  appendOtomotoRange(params, "filter_float_price", filters.priceFrom, String(filters.priceTo || "").trim().endsWith("+") ? "" : filters.priceTo);
   appendOtomotoRange(params, "filter_float_mileage", filters.mileageFrom, filters.mileageTo);
   appendOtomotoRange(params, "filter_float_year", filters.yearFrom, filters.yearTo);
   appendOtomotoRange(params, "filter_float_engine_capacity", filters.displacementFrom, filters.displacementTo);
@@ -2474,6 +2528,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 const rangeEndsByStart = new Map([
+  [els.priceFrom, [els.priceTo, true]],
   [els.mileageFrom, [els.mileageTo, false]],
   [els.yearFrom, [els.yearTo, true]],
   [els.displacementFrom, [els.displacementTo, false]],

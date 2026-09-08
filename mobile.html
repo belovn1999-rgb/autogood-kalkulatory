@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=otomoto-search-20260904" />
+  <link rel="stylesheet" href="./src/mobile.css?v=mobile-price-range-20260908" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-edit-20260903" />
   </head>
   <body class="mobileBody">
@@ -151,6 +151,19 @@
                   <input data-mobile-body type="hidden" />
                 </div>
               </label>
+              <div class="mobileField mobileRangeField mobileVehiclePriceField">
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="priceRangeLabel">Cena (EUR)</span></span>
+                <div class="mobileRangePair">
+                  <div class="mobileComboControl" data-mobile-options="price" data-mobile-options-target="data-mobile-price-from">
+                    <input data-mobile-price-from inputmode="numeric" autocomplete="off" />
+                    <em>EUR</em>
+                  </div>
+                  <div class="mobileComboControl" data-mobile-options="priceTo" data-mobile-options-target="data-mobile-price-to">
+                    <input data-mobile-price-to inputmode="numeric" autocomplete="off" />
+                    <em>EUR</em>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
             <div class="mobileField mobileRangeField mobileWideField">
@@ -522,7 +535,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-model-catalog-complete-20260826"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260904-2"></script>
-    <script src="./src/mobile.js?v=mobile-select-options-20260907"></script>
-    <script src="./src/mobile-market-analysis.js?v=history-edit-20260903"></script>
+    <script src="./src/mobile.js?v=mobile-price-range-20260908"></script>
+    <script src="./src/mobile-market-analysis.js?v=mobile-price-range-20260908"></script>
   </body>
 </html>

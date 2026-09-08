@@ -65,6 +65,7 @@
       invalidData: "Źródło nie zwróciło co najmniej 3 poprawnych ogłoszeń mobile.de.",
       preparing: "Przygotowuję analizę rynku…",
       mileage: "Przebieg",
+      price: "Cena",
       year: "Rok",
       displacement: "Pojemność",
       power: "Moc",
@@ -135,6 +136,7 @@
       invalidData: "Источник не вернул минимум 3 корректных объявления mobile.de.",
       preparing: "Подготавливаю анализ рынка…",
       mileage: "Пробег",
+      price: "Цена",
       year: "Год",
       displacement: "Объём",
       power: "Мощность",
@@ -371,6 +373,7 @@
       any: c.gearboxAny,
     }[filters.gearbox || "any"] || c.gearboxAny;
     return [
+      rangeSummary(c.price, filters.priceFrom, filters.priceTo, "EUR"),
       rangeSummary(c.year, filters.yearFrom, filters.yearTo),
       rangeSummary(c.mileage, filters.mileageFrom, filters.mileageTo, "km"),
       engine ? `${c.engine}: ${engine}` : "",
@@ -440,6 +443,8 @@
       model: "[data-mobile-model]",
       version: "[data-mobile-version]",
       body: "[data-mobile-body]",
+      priceFrom: "[data-mobile-price-from]",
+      priceTo: "[data-mobile-price-to]",
       mileageFrom: "[data-mobile-mileage-from]",
       mileageTo: "[data-mobile-mileage-to]",
       yearFrom: "[data-mobile-year-from]",
@@ -645,6 +650,7 @@
     if (fuelLabels.length) summary.push(fuelLabels.join(", "));
     const body = selectedOptionText("[data-mobile-body]");
     if (body) summary.push(body);
+    summary.push(rangeSummary(c.price, filters.priceFrom, filters.priceTo, "EUR"));
     summary.push(rangeSummary(c.year, filters.yearFrom, filters.yearTo));
     summary.push(rangeSummary(c.mileage, filters.mileageFrom, filters.mileageTo, "km"));
     summary.push(rangeSummary(c.displacement, filters.displacementFrom, filters.displacementTo, "ccm"));

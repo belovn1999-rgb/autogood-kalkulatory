@@ -689,6 +689,10 @@ button {
   align-self: start;
 }
 
+.mobileVehiclePriceField {
+  grid-column: 3;
+}
+
 .mobileRangeDivider {
   grid-column: 1 / -1;
   margin: var(--space-xs) 0;
@@ -1471,6 +1475,10 @@ button {
 
   .mobileVehicleTripleRow {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobileVehiclePriceField {
+    grid-column: auto;
   }
 
   .mobileChoiceGroup {

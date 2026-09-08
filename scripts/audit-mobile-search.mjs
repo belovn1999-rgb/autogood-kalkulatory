@@ -119,6 +119,11 @@ equalObject(extractLiteral(mobileSource, "mobileDeBodyValues"), {
   pickup: "OffRoad",
   other: "OtherCar",
 }, "Nadwozie");
+equalObject(extractLiteral(mobileSource, "priceOptions"), [
+  5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000,
+  17000, 18000, 19000, 20000, 22500, 25000, 27500, 30000, 35000, 40000, 45000,
+  50000, 55000, 60000, 70000, 80000, "90000+",
+], "Cena");
 equalObject(extractLiteral(mobileSource, "mobileDeDriveValues"), {
   awd: "ALL_WHEEL",
   fwd: "FRONT",
@@ -161,6 +166,7 @@ const contractFragments = [
   ['params.set("ms", `${makeId};${exactModelId};;${version}`)', "marka/model/wersja"],
   ['searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`', "SEO fallback marki/modelu"],
   ['params.set("c", body)', "nadwozie"],
+  ['appendMobileDeRange(params, "p"', "cena"],
   ['appendMobileDeRange(params, "ml"', "przebieg"],
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
@@ -192,6 +198,8 @@ const contractFragments = [
 ];
 contractFragments.forEach(([fragment, label]) => requireSource(fragment, label));
 requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "elektryczna klapa bagażnika w opcjach");
+requireHtml('data-mobile-options="price"', "cena od");
+requireHtml('data-mobile-options="priceTo"', "cena do");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
 requireHtml('data-i18n="vehicleConditionLabel"', "sekcja stanu pojazdu");
 requireSource('damagedVehiclesShow: "Pokazuj"', "pokazanie uszkodzonych pojazdów");

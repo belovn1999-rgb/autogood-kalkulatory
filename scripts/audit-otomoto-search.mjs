@@ -118,6 +118,8 @@ const filters = {
   fuel: "diesel",
   plugin: "yes",
   body: "suv",
+  priceFrom: "15000",
+  priceTo: "30000",
   mileageFrom: "10000",
   mileageTo: "100000",
   yearFrom: "2020",
@@ -161,6 +163,8 @@ if (url.origin !== "https://www.otomoto.pl" || url.pathname !== "/osobowe/bmw") 
 }
 const expectedScalars = {
   "search[filter_enum_body_type]": "suv",
+  "search[filter_float_price:from]": "15000",
+  "search[filter_float_price:to]": "30000",
   "search[filter_float_mileage:from]": "10000",
   "search[filter_float_mileage:to]": "100000",
   "search[filter_float_year:from]": "2020",
@@ -251,7 +255,7 @@ if (!mobileHtml.includes("data-mobile-otomoto-search")) throw new Error("Missing
 if (!mobileHtml.includes("Szukaj na otomoto.pl")) throw new Error("Missing Polish Otomoto label.");
 
 const mappedOrReportedFields = [
-  "brand", "model", "version", "fuels", "fuel", "plugin", "body", "mileageFrom", "mileageTo",
+  "brand", "model", "version", "fuels", "fuel", "plugin", "body", "priceFrom", "priceTo", "mileageFrom", "mileageTo",
   "yearFrom", "yearTo", "displacementFrom", "displacementTo", "powerFrom", "powerTo", "seatsFrom",
   "seatsTo", "drive", "gearbox", "vat", "seller", "countries", "interiorMaterials", "airConditioning",
   "trailerCoupling", "features", "parkingSensors", "cruiseControl", "exteriorColors", "interiorColors",
