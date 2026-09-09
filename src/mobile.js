@@ -940,6 +940,12 @@ const mobileDeBmwModelIds = {
   "Other": "1",
 };
 
+// Verified in Mobile.de's own search form: Nissan Skyline resolves to model ID 33.
+// Keep this numeric ID instead of the SEO model route: SEO redirects discard filters.
+const mobileDeNissanModelIds = {
+  Skyline: "33",
+};
+
 const generatedMobileModelCatalog = globalThis.AUTOGOOD_MOBILE_MODEL_CATALOG || {};
 Object.assign(modelGroupsByBrand, generatedMobileModelCatalog.groups || {});
 const generatedMobileBrandRoutes = Object.fromEntries(
@@ -955,6 +961,7 @@ const mobileModelCatalogAliases = {
 };
 const mobileDeModelIdsByBrand = {
   BMW: mobileDeBmwModelIds,
+  Nissan: mobileDeNissanModelIds,
   ...(generatedMobileModelCatalog.modelIds || {}),
 };
 

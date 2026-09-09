@@ -34,13 +34,13 @@ const context = {
   state: { lang: "pl" },
   compactNumber: (value) => String(value || "").replace(/\s+/g, "").match(/\d+/)?.[0] || "",
   normalizeToken: (value) => String(value || "").trim().toLowerCase(),
-  mobileDeMakeIds: { Mazda: "16800" },
-  mobileDeModelIdsByBrand: { Mazda: {} },
+  mobileDeMakeIds: { Mazda: "16800", Nissan: "18700" },
+  mobileDeModelIdsByBrand: { Mazda: {}, Nissan: { Skyline: "33" } },
   generatedMobileModelCatalog: { makeKeys: {} },
-  mobileDeBodyValues: {},
-  mobileDeFuelValues: {},
+  mobileDeBodyValues: { coupe: "SportsCar" },
+  mobileDeFuelValues: { petrol: "PETROL" },
   mobileDeDriveValues: {},
-  mobileDeGearboxValues: {},
+  mobileDeGearboxValues: { automatic: "AUTOMATIC_GEAR" },
   mobileDeSellerValues: {},
   mobileDeInteriorMaterialValues: {},
   mobileDeAirConditioningValues: {},
@@ -98,3 +98,34 @@ assert.equal(emptyVersionUrl.searchParams.get("ms"), null, "empty Version must n
 const versionUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, version: "Kombi" }));
 assert.equal(versionUrl.pathname, "/auto/mazda-6.html", "selected model route must remain unchanged when Version is set");
 assert.equal(versionUrl.searchParams.get("ms"), ";;;Kombi", "only the Version value may occupy the Version segment");
+
+const skylineUrl = new URL(context.buildMobileDeSearchUrl({
+  ...baseFilters,
+  brand: "Nissan",
+  model: "Skyline",
+  body: "coupe",
+  priceFrom: "25000",
+  priceTo: "30000",
+  mileageTo: "135000",
+  yearFrom: "2017",
+  yearTo: "2019",
+  fuel: "petrol",
+  gearbox: "automatic",
+  countries: ["DE"],
+  features: ["PANORAMIC_GLASS_ROOF"],
+  nonSmoking: true,
+  roadworthy: true,
+}));
+assert.equal(skylineUrl.pathname, "/fahrzeuge/search.html", "verified model ID must avoid the SEO redirect route");
+assert.equal(skylineUrl.searchParams.get("ms"), "18700;33;;", "Nissan Skyline must keep its Mobile.de model ID");
+assert.equal(skylineUrl.searchParams.get("p"), "25000:30000", "price range must be preserved");
+assert.equal(skylineUrl.searchParams.get("ml"), ":135000", "mileage limit must be preserved");
+assert.equal(skylineUrl.searchParams.get("fr"), "2017:2019", "first-registration range must be preserved");
+assert.equal(skylineUrl.searchParams.get("c"), "SportsCar", "body type must be preserved");
+assert.deepEqual(skylineUrl.searchParams.getAll("ft"), ["PETROL"], "fuel must be preserved");
+assert.equal(skylineUrl.searchParams.get("tr"), "AUTOMATIC_GEAR", "transmission must be preserved");
+assert.deepEqual(skylineUrl.searchParams.getAll("cn"), ["DE"], "country must be preserved");
+assert.deepEqual(skylineUrl.searchParams.getAll("fe"), ["PANORAMIC_GLASS_ROOF", "NONSMOKER_VEHICLE"], "options must be preserved");
+assert.equal(skylineUrl.searchParams.get("rd"), "true", "roadworthy state must be preserved");
+assert.equal(skylineUrl.searchParams.get("sb"), "p", "result sorting must use price");
+assert.equal(skylineUrl.searchParams.get("od"), "up", "result sorting must use ascending order");
