@@ -339,7 +339,7 @@ body.export-contract .brandTitle::after {
 
 .workspace {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   align-items: stretch;
   padding: 24px 0 0;
@@ -356,6 +356,18 @@ body.export-contract .brandTitle::after {
 
 .form-section {
   min-width: 0;
+  grid-column: span 2;
+}
+
+.contract-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.contract-form-actions .ghost-btn {
+  width: auto;
 }
 
 .paste-panel,
@@ -470,6 +482,68 @@ body.export-contract .brandTitle::after {
   font-weight: 800;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.contract-pdf-preview {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.contract-pdf-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contract-pdf-preview-head h2 {
+  margin: 0;
+  color: var(--brand-dark);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.contract-pdf-preview-head span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.contract-pdf-preview-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.contract-pdf-preview-actions .secondary-top-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.contract-pdf-preview-actions .is-disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.contract-pdf-preview iframe {
+  display: block;
+  width: 100%;
+  height: min(74vh, 860px);
+  min-height: 520px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: #fff;
 }
 
 .contract-history {
@@ -970,6 +1044,10 @@ input[type="radio"] {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .form-section {
+    grid-column: auto;
+  }
+
   .utility-column {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto;
@@ -1005,6 +1083,15 @@ input[type="radio"] {
     align-items: stretch;
     flex-direction: column;
     padding: 18px 0 16px;
+  }
+
+  .contract-pdf-preview-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contract-pdf-preview iframe {
+    height: 560px;
   }
 
   .actions {
@@ -1071,6 +1158,19 @@ input[type="radio"] {
 
   .workspace {
     padding-top: 18px;
+  }
+
+  .contract-pdf-preview iframe {
+    min-height: 0;
+    height: 460px;
+  }
+
+  .contract-pdf-preview-actions {
+    width: 100%;
+  }
+
+  .contract-pdf-preview-actions .secondary-top-btn {
+    flex: 1;
   }
 
   .history-strip {

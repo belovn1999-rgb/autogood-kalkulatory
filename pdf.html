@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=20260903-downloads-1" />
+    <link rel="stylesheet" href="./src/pdf.css?v=contract-pdf-preview-20260909-2" />
   </head>
   <body>
     <main class="app-shell">
@@ -51,8 +51,6 @@
               <textarea id="rawClient" spellcheck="false" placeholder="Wklej dane klienta: imię, adres, PESEL, telefon, e-mail, marka i model, budżet..."></textarea>
               <div class="example-actions">
                 <button id="parseBtn" class="secondary-btn" type="button">Rozpoznaj dane</button>
-                <button id="resetBtn" class="ghost-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7L21 16"/></svg><span>Wyzeruj dane</span></button>
-                <button id="saveDataBtn" class="ghost-btn save-data-btn action-icon-btn" type="button"><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg><span>Zapisz</span></button>
               </div>
               <div id="status" class="status"></div>
             </div>
@@ -60,6 +58,10 @@
           <section class="contract-card contract-summary-panel">
             <div class="card-head">PODSUMOWANIE:</div>
             <dl class="contractSummaryList">
+              <div>
+                <dt>Nr umowy</dt>
+                <dd id="summaryContractNumber">Nie wskazano</dd>
+              </div>
               <div>
                 <dt>Klient</dt>
                 <dd id="summaryClient">Nie wskazano</dd>
@@ -86,6 +88,16 @@
         </section>
 
         <section class="form-section">
+          <div class="contract-form-actions" aria-label="Akcje danych umowy">
+            <button id="resetBtn" class="ghost-btn action-icon-btn" type="button">
+              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7L21 16"/></svg>
+              <span>Wyzeruj dane</span>
+            </button>
+            <button id="saveDataBtn" class="ghost-btn action-icon-btn" type="button">
+              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+              <span>Zapisz</span>
+            </button>
+          </div>
           <section class="contract-grid">
 
           <div class="contract-card">
@@ -243,6 +255,19 @@
           </section>
         </section>
       </section>
+      <section class="contract-pdf-preview" aria-labelledby="contractPdfPreviewTitle">
+        <div class="contract-pdf-preview-head">
+          <div>
+            <h2 id="contractPdfPreviewTitle">Ostatnia wersja PDF</h2>
+            <span id="pdfPreviewMeta">Po przygotowaniu dokumentu zobaczysz go tutaj.</span>
+          </div>
+          <div class="contract-pdf-preview-actions">
+            <a id="pdfPreviewDownload" class="secondary-top-btn is-disabled" aria-disabled="true" download>Pobierz PDF</a>
+            <button id="pdfPreviewPrint" class="secondary-top-btn" type="button" disabled>Drukuj</button>
+          </div>
+        </div>
+        <iframe id="pdfPreview" title="Podgląd ostatniej wersji PDF"></iframe>
+      </section>
     </main>
     <script src="./vendor/jszip.min.js"></script>
     <dialog id="pdfEncryptionDialog" class="password-dialog">
@@ -268,8 +293,8 @@
       </form>
     </dialog>
 
-    <script src="./src/pdf-config.js?v=20260616-4"></script>
+    <script src="./src/pdf-config.js?v=contract-pdf-preview-20260909-2"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/pdf.js?v=20260903-downloads-1"></script>
+    <script src="./src/pdf.js?v=contract-pdf-preview-20260909-2"></script>
   </body>
 </html>

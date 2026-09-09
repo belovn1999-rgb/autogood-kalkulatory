@@ -1,6 +1,10 @@
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $("status");
+const pdfPreview = $("pdfPreview");
+const pdfPreviewMeta = $("pdfPreviewMeta");
+const pdfPreviewDownload = $("pdfPreviewDownload");
+const pdfPreviewPrint = $("pdfPreviewPrint");
 const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260909-1";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const contractHistoryLimit = 5;
@@ -527,6 +531,7 @@ function parseName(text, isCompany) {
 
 const downloadOrder = ["docx", "pdf", "encrypted"];
 const downloadUrlsByKind = new Map();
+let currentPreviewUrl = null;
 
 function statusMessageNode() {
   let message = statusEl.querySelector(".status-message");
@@ -588,7 +593,30 @@ function setDownloadMessage(kind, text) {
   row.textContent = text;
 }
 
-function showDownload(kind, { blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) {
+function showPdfPreview(blob, filename, readyText) {
+  if (!pdfPreview || !pdfPreviewMeta || !pdfPreviewDownload || !pdfPreviewPrint) return;
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+  currentPreviewUrl = URL.createObjectURL(blob);
+  pdfPreview.src = currentPreviewUrl;
+  pdfPreviewMeta.textContent = `${readyText} ${filename}`;
+  pdfPreviewDownload.href = currentPreviewUrl;
+  pdfPreviewDownload.download = filename;
+  pdfPreviewDownload.classList.remove("is-disabled");
+  pdfPreviewDownload.removeAttribute("aria-disabled");
+  pdfPreviewPrint.disabled = false;
+}
+
+function printPreviewPdf() {
+  if (!currentPreviewUrl || !pdfPreview?.contentWindow) return;
+  try {
+    pdfPreview.contentWindow.focus();
+    pdfPreview.contentWindow.print();
+  } catch {
+    setStatus("PDF jest gotowy. Użyj przycisku Drukuj w podglądzie dokumentu.");
+  }
+}
+
+function showDownload(kind, { blob, filename, readyText, autoDownload = false, preview = false }) {
   releaseDownload(kind);
   const url = URL.createObjectURL(blob);
   downloadUrlsByKind.set(kind, url);
@@ -603,7 +631,7 @@ function showDownload(kind, { blob, filename, readyText, autoDownload = false, o
   link.textContent = filename;
   row.append(label, link);
 
-  if (openInViewer && viewerWindow && !viewerWindow.closed) viewerWindow.location.href = url;
+  if (preview) showPdfPreview(blob, filename, readyText);
   if (autoDownload) link.click();
 }
 
@@ -623,14 +651,6 @@ async function withGenerationLock(operation) {
   } finally {
     setGenerationBusy(false);
   }
-}
-
-function createPdfViewerWindow() {
-  const viewerWindow = window.open("", "_blank");
-  if (!viewerWindow) return null;
-  viewerWindow.document.write("<!doctype html><title>PDF</title><p>Przygotowuję PDF...</p>");
-  viewerWindow.document.close();
-  return viewerWindow;
 }
 
 function filenameFor(data, extension) {
@@ -656,6 +676,7 @@ function updateSummary() {
   const clientNode = $("summaryClient");
   if (!clientNode) return;
   const data = collectData();
+  $("summaryContractNumber").textContent = contractNumber(data.contract.date, data.contract.sequence);
   clientNode.textContent = summaryValue(data.client.name);
   $("summaryVehicle").textContent = summaryValue(data.vehicle.make_model);
   $("summaryBudget").textContent = summaryValue(data.budget.total);
@@ -1569,7 +1590,6 @@ async function generateContract() {
 
 async function generatePdf() {
   await withGenerationLock(async () => {
-    const viewerWindow = createPdfViewerWindow();
     let docxReady = false;
     try {
       setStatus("Przygotowuję DOCX do konwersji PDF...");
@@ -1584,11 +1604,9 @@ async function generatePdf() {
         blob: pdfBlob,
         filename: filenameFor(data, "pdf"),
         readyText: "PDF gotowy.",
-        openInViewer: true,
-        viewerWindow,
+        preview: true,
       });
     } catch (error) {
-      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
       const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
         ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
@@ -1614,7 +1632,6 @@ async function generateEncryptedPdf() {
       return;
     }
 
-    const viewerWindow = createPdfViewerWindow();
     try {
       setStatus("Przygotowuję zaszyfrowany PDF...");
       const data = collectData();
@@ -1622,7 +1639,6 @@ async function generateEncryptedPdf() {
       const filename = filenameFor(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
       if (!(await isPdfBlobEncrypted(pdfBlob))) {
-        if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
         setStatus("");
         setDownloadMessage(
           "encrypted",
@@ -1631,9 +1647,8 @@ async function generateEncryptedPdf() {
         return;
       }
       setStatus("");
-      showDownload("encrypted", { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", openInViewer: true, viewerWindow });
+      showDownload("encrypted", { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", preview: true });
     } catch (error) {
-      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
       setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
     }
@@ -1679,6 +1694,10 @@ $("encryptBtn").addEventListener("click", generateEncryptedPdf);
 $("generateBtn").addEventListener("click", generateContract);
 $("resetBtn").addEventListener("click", resetForm);
 $("saveDataBtn").addEventListener("click", saveCurrentContractData);
+pdfPreviewPrint?.addEventListener("click", printPreviewPdf);
+window.addEventListener("beforeunload", () => {
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+});
 document.querySelectorAll('input[name="clientType"]').forEach((node) => node.addEventListener("change", syncClientTypeRules));
 $("vehicleMakeModel").addEventListener("input", updateDocumentFileName);
 document.querySelectorAll("input, textarea, select").forEach((node) => {

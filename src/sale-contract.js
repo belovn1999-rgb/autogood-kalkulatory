@@ -9,6 +9,10 @@ const encryptPdfButton = document.querySelector("#encryptSalePdf");
 const pullCrmDataButton = document.querySelector("#pullSaleCrmDataBtn");
 const parseButton = document.querySelector("#parseSaleData");
 const statusEl = document.querySelector("#saleStatus");
+const pdfPreview = document.querySelector("#salePdfPreview");
+const pdfPreviewMeta = document.querySelector("#salePdfPreviewMeta");
+const pdfPreviewDownload = document.querySelector("#salePdfPreviewDownload");
+const pdfPreviewPrint = document.querySelector("#salePdfPreviewPrint");
 const rawSaleDataInput = document.querySelector("#rawSaleData");
 const saleHistoryList = document.querySelector("#saleHistoryList");
 const damageCanvas = document.querySelector("#damageMapCanvas");
@@ -933,6 +937,7 @@ function saleFilename(data, extension) {
 
 const downloadOrder = ["docx", "pdf", "encrypted"];
 const downloadUrlsByKind = new Map();
+let currentPreviewUrl = null;
 
 function statusMessageNode() {
   let message = statusEl.querySelector(".status-message");
@@ -993,7 +998,30 @@ function setDownloadMessage(kind, text) {
   downloadRowNode(kind).textContent = text;
 }
 
-function showDownload(kind, { blob, filename, readyText, autoDownload = false, openInViewer = false, viewerWindow = null }) {
+function showPdfPreview(blob, filename, readyText) {
+  if (!pdfPreview || !pdfPreviewMeta || !pdfPreviewDownload || !pdfPreviewPrint) return;
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+  currentPreviewUrl = URL.createObjectURL(blob);
+  pdfPreview.src = currentPreviewUrl;
+  pdfPreviewMeta.textContent = `${readyText} ${filename}`;
+  pdfPreviewDownload.href = currentPreviewUrl;
+  pdfPreviewDownload.download = filename;
+  pdfPreviewDownload.classList.remove("is-disabled");
+  pdfPreviewDownload.removeAttribute("aria-disabled");
+  pdfPreviewPrint.disabled = false;
+}
+
+function printPreviewPdf() {
+  if (!currentPreviewUrl || !pdfPreview?.contentWindow) return;
+  try {
+    pdfPreview.contentWindow.focus();
+    pdfPreview.contentWindow.print();
+  } catch {
+    setStatus("PDF jest gotowy. Użyj przycisku Drukuj w podglądzie dokumentu.");
+  }
+}
+
+function showDownload(kind, { blob, filename, readyText, autoDownload = false, preview = false }) {
   releaseDownload(kind);
   const url = URL.createObjectURL(blob);
   downloadUrlsByKind.set(kind, url);
@@ -1008,7 +1036,7 @@ function showDownload(kind, { blob, filename, readyText, autoDownload = false, o
   link.textContent = filename;
   row.append(label, link);
 
-  if (openInViewer && viewerWindow && !viewerWindow.closed) viewerWindow.location.href = url;
+  if (preview) showPdfPreview(blob, filename, readyText);
   if (autoDownload) link.click();
 }
 
@@ -1030,14 +1058,6 @@ async function runGenerationOperation(key, button, operation) {
       actionButton.removeAttribute("aria-busy");
     });
   }
-}
-
-function createPdfViewerWindow() {
-  const viewerWindow = window.open("", "_blank");
-  if (!viewerWindow) return null;
-  viewerWindow.document.write("<!doctype html><title>PDF</title><p>Przygotowuję PDF...</p>");
-  viewerWindow.document.close();
-  return viewerWindow;
 }
 
 function all(root, namespace, tagName) {
@@ -1595,7 +1615,6 @@ async function isPdfBlobEncrypted(blob) {
 
 async function generateSalePdf() {
   await runGenerationOperation("pdf", generatePdfButton, async () => {
-    const viewerWindow = createPdfViewerWindow();
     let docxBlob = null;
     try {
       setStatus("Przygotowuję DOCX do konwersji PDF...");
@@ -1609,11 +1628,9 @@ async function generateSalePdf() {
         blob: pdfBlob,
         filename: saleFilename(data, "pdf"),
         readyText: "PDF gotowy.",
-        openInViewer: true,
-        viewerWindow,
+        preview: true,
       });
     } catch (error) {
-      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
       const converterMessage = message.includes("Failed to fetch") || message.includes("Konwerter PDF")
         ? "Konwerter DOCX→PDF nie jest podłączony. Uruchom lub wdróż backend converter/server.py."
@@ -1640,7 +1657,6 @@ async function generateEncryptedSalePdf() {
       return;
     }
 
-    const viewerWindow = createPdfViewerWindow();
     try {
       setStatus("Przygotowuję zaszyfrowany PDF...");
       const data = collectSaleContract();
@@ -1648,7 +1664,6 @@ async function generateEncryptedSalePdf() {
       const filename = saleFilename(data, "pdf").replace(/\.pdf$/i, "_zaszyfrowany.pdf");
       const pdfBlob = await convertDocxBlobToPdf(docxBlob, filename, password);
       if (!(await isPdfBlobEncrypted(pdfBlob))) {
-        if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
         setStatus("");
         setDownloadMessage(
           "encrypted",
@@ -1657,9 +1672,8 @@ async function generateEncryptedSalePdf() {
         return;
       }
       setStatus("");
-      showDownload("encrypted", { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", openInViewer: true, viewerWindow });
+      showDownload("encrypted", { blob: pdfBlob, filename, readyText: "Zaszyfrowany PDF gotowy.", preview: true });
     } catch (error) {
-      if (viewerWindow && !viewerWindow.closed) viewerWindow.close();
       const message = String(error.message || error);
       setStatus(`Nie udało się zaszyfrować PDF: ${message}`);
     }
@@ -1719,6 +1733,10 @@ clearDamageButton.addEventListener("click", () => {
 generateButton.addEventListener("click", generateSaleDocx);
 generatePdfButton.addEventListener("click", generateSalePdf);
 encryptPdfButton.addEventListener("click", generateEncryptedSalePdf);
+pdfPreviewPrint?.addEventListener("click", printPreviewPdf);
+window.addEventListener("beforeunload", () => {
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+});
 
 form.querySelectorAll('input[name="buyerIdentifierType"]').forEach((option) => {
   option.addEventListener("change", syncBuyerIdentifierLabel);
