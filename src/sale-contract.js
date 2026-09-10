@@ -908,9 +908,13 @@ function saveSaleContract() {
   const data = collectSaleContract();
   localStorage.setItem(saleStorageKey, JSON.stringify(data, null, 2));
   saveSaleHistoryEntry(data);
-  saveButton.textContent = "Zapisano";
+  saveButton.classList.add("is-saved");
+  saveButton.setAttribute("aria-label", "Zapisano");
+  saveButton.title = "Zapisano";
   window.setTimeout(() => {
-    saveButton.textContent = "Zapisz";
+    saveButton.classList.remove("is-saved");
+    saveButton.setAttribute("aria-label", "Zapisz");
+    saveButton.title = "Zapisz";
   }, 1200);
 }
 

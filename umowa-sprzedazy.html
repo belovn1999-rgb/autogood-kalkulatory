@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./src/pdf.css?v=contract-pdf-preview-20260909-2" />
-    <link rel="stylesheet" href="./src/sale-contract.css?v=contract-pdf-preview-20260909-2" />
+    <link rel="stylesheet" href="./src/pdf.css?v=contract-pdf-preview-20260909-3" />
+    <link rel="stylesheet" href="./src/sale-contract.css?v=contract-pdf-preview-20260909-3" />
   </head>
   <body>
     <main class="app-shell saleWorkspace">
@@ -79,13 +79,11 @@
 
         <section class="form-section">
           <div class="contract-form-actions" aria-label="Akcje danych umowy">
-            <button id="resetSaleContract" class="ghost-btn action-icon-btn" type="button">
-              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7L21 16"/></svg>
-              <span>Wyzeruj dane</span>
+            <button id="resetSaleContract" class="ghost-btn action-icon-btn contract-action-icon" type="button" aria-label="Wyzeruj dane" title="Wyzeruj dane">
+              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
             </button>
-            <button id="saveSaleContract" class="ghost-btn action-icon-btn" type="button">
+            <button id="saveSaleContract" class="ghost-btn action-icon-btn contract-action-icon" type="button" aria-label="Zapisz" title="Zapisz">
               <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
-              <span>Zapisz</span>
             </button>
           </div>
           <form id="saleContractForm">
@@ -259,7 +257,9 @@
             <span id="salePdfPreviewMeta">Po przygotowaniu dokumentu zobaczysz go tutaj.</span>
           </div>
           <div class="contract-pdf-preview-actions">
-            <a id="salePdfPreviewDownload" class="secondary-top-btn is-disabled" aria-disabled="true" download>Pobierz PDF</a>
+            <a id="salePdfPreviewDownload" class="secondary-top-btn preview-download-icon is-disabled" aria-label="Pobierz PDF" title="Pobierz PDF" aria-disabled="true" download>
+              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            </a>
             <button id="salePdfPreviewPrint" class="secondary-top-btn" type="button" disabled>Drukuj</button>
           </div>
         </div>
@@ -293,6 +293,6 @@
 
     <script src="./src/pdf-config.js?v=contract-pdf-preview-20260909-2"></script>
     <script src="./src/pdf-encryption.js?v=20260809-pdf-encryption-1"></script>
-    <script src="./src/sale-contract.js?v=contract-pdf-preview-20260909-2"></script>
+    <script src="./src/sale-contract.js?v=contract-pdf-preview-20260909-3"></script>
   </body>
 </html>
