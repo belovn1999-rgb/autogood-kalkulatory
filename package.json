@@ -11,8 +11,9 @@
     "mobilede": "node server/mobilede-import.mjs",
     "converter": "python3 converter/server.py",
     "smoke:release": "node scripts/release-smoke.mjs",
+    "test:mobile-search": "node scripts/test-mobile-search-model-version.mjs && node scripts/audit-mobile-search.mjs --offline",
     "test": "node --test server/partslink24-api.test.mjs tools/partslink24/report-extraction.test.mjs",
-    "verify": "pnpm run check:js && pnpm run check:python && pnpm test"
+    "verify": "pnpm run check:js && pnpm run check:python && pnpm run test:mobile-search && pnpm test"
   },
   "dependencies": {
     "playwright": "^1.60.0"
