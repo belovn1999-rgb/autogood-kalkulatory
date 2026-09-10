@@ -527,7 +527,7 @@ const mobileDeFuelValues = {
   diesel: "DIESEL",
   hybrid_diesel: "HYBRID_DIESEL",
   hybrid_petrol: "HYBRID",
-  electric: "ELECTRIC",
+  electric: "ELECTRICITY",
 };
 
 const mobileDeBodyValues = {
@@ -1942,7 +1942,7 @@ function buildMobileDeSearchUrl(filters) {
     filters.powerTo,
     (powerPs) => Math.round(powerPs * 0.735499),
   );
-  appendMobileDeRange(params, "seats", filters.seatsFrom, filters.seatsTo);
+  appendMobileDeRange(params, "sc", filters.seatsFrom, filters.seatsTo);
 
   manualFuelValues(filters)
     .map((value) => value === "plugin" ? "HYBRID_PLUGIN" : mobileDeFuelValues[value])
@@ -1969,8 +1969,8 @@ function buildMobileDeSearchUrl(filters) {
   const trailerCoupling = mobileDeTrailerCouplingValues[filters.trailerCoupling];
   if (trailerCoupling) params.set("tct", trailerCoupling);
   (filters.features || []).forEach((feature) => params.append("fe", feature));
-  (filters.parkingSensors || []).forEach((sensor) => params.append("fe", sensor));
-  if (filters.cruiseControl && filters.cruiseControl !== "any") params.append("fe", filters.cruiseControl);
+  (filters.parkingSensors || []).forEach((sensor) => params.append("pa", sensor));
+  if (filters.cruiseControl && filters.cruiseControl !== "any") params.set("spc", filters.cruiseControl);
   filters.exteriorColors.forEach((color) => params.append("ecol", color.toUpperCase()));
   filters.interiorColors.forEach((color) => {
     params.append("icol", color === "other" ? "OTHER_INTERIOR_COLOR" : color.toUpperCase());
@@ -1978,7 +1978,7 @@ function buildMobileDeSearchUrl(filters) {
   if (filters.matte) params.append("fe", "MATTE_COLOR");
   if (filters.metallic) params.append("fe", "METALLIC");
   if (filters.nonSmoking) params.append("fe", "NONSMOKER_VEHICLE");
-  if (filters.roadworthy) params.set("rd", "true");
+  if (filters.roadworthy) params.set("rtd", "true");
 
   params.set("sb", "p");
   params.set("od", "up");

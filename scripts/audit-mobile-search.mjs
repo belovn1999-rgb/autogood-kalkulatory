@@ -100,7 +100,7 @@ equalObject(extractLiteral(mobileSource, "mobileDeFuelValues"), {
   diesel: "DIESEL",
   hybrid_diesel: "HYBRID_DIESEL",
   hybrid_petrol: "HYBRID",
-  electric: "ELECTRIC",
+  electric: "ELECTRICITY",
 }, "Paliwo");
 
 const fuelContext = {};
@@ -171,7 +171,7 @@ const contractFragments = [
   ['appendMobileDeRange(params, "fr"', "rok"],
   ['appendMobileDeRange(params, "cc"', "pojemność"],
   ['appendMobileDeRange(\n    params,\n    "pw"', "moc"],
-  ['appendMobileDeRange(params, "seats"', "liczba miejsc"],
+  ['appendMobileDeRange(params, "sc"', "liczba miejsc"],
   ['manualFuelValues(filters)', "wielokrotny wybór paliwa"],
   ['value === "plugin" ? "HYBRID_PLUGIN"', "Plug-in"],
   ['params.append("ft", fuel)', "paliwo"],
@@ -185,14 +185,14 @@ const contractFragments = [
   ['params.set("clim", airConditioning)', "klimatyzacja"],
   ['params.set("tct", trailerCoupling)', "hak holowniczy"],
   ['params.append("fe", feature)', "wyposażenie"],
-  ['params.append("fe", sensor)', "asystenci parkowania"],
-  ['params.append("fe", filters.cruiseControl)', "tempomat"],
+  ['params.append("pa", sensor)', "asystenci parkowania"],
+  ['params.set("spc", filters.cruiseControl)', "tempomat"],
   ['params.append("ecol", color.toUpperCase())', "kolor nadwozia"],
   ['params.append("icol"', "kolor wnętrza"],
   ['params.append("fe", "MATTE_COLOR")', "matowy"],
   ['params.append("fe", "METALLIC")', "metallic"],
   ['params.append("fe", "NONSMOKER_VEHICLE")', "niepalący"],
-  ['params.set("rd", "true")', "sprawny technicznie"],
+  ['params.set("rtd", "true")', "sprawny technicznie"],
   ['params.set("sb", "p")', "sortowanie po cenie"],
   ['params.set("od", "up")', "kolejność rosnąca"],
 ];

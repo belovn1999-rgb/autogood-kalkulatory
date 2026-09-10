@@ -38,7 +38,7 @@ const context = {
   mobileDeModelIdsByBrand: { Mazda: {}, Nissan: { Skyline: "33" } },
   generatedMobileModelCatalog: { makeKeys: {} },
   mobileDeBodyValues: { coupe: "SportsCar" },
-  mobileDeFuelValues: { petrol: "PETROL" },
+  mobileDeFuelValues: { petrol: "PETROL", electric: "ELECTRICITY" },
   mobileDeDriveValues: {},
   mobileDeGearboxValues: { automatic: "AUTOMATIC_GEAR" },
   mobileDeSellerValues: {},
@@ -99,6 +99,24 @@ const versionUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, vers
 assert.equal(versionUrl.pathname, "/auto/mazda-6.html", "selected model route must remain unchanged when Version is set");
 assert.equal(versionUrl.searchParams.get("ms"), ";;;Kombi", "only the Version value may occupy the Version segment");
 
+const filterUrl = new URL(context.buildMobileDeSearchUrl({
+  ...baseFilters,
+  model: "",
+  version: "",
+  fuels: ["electric"],
+  seatsFrom: "5",
+  seatsTo: "7",
+  parkingSensors: ["REAR_VIEW_CAM", "FRONT_SENSORS"],
+  cruiseControl: "ADAPTIVE_CRUISE_CONTROL",
+  roadworthy: true,
+}));
+assert.equal(filterUrl.searchParams.get("sc"), "5:7", "seat range must use Mobile.de's sc parameter");
+assert.deepEqual(filterUrl.searchParams.getAll("ft"), ["ELECTRICITY"], "electric fuel must use Mobile.de's ELECTRICITY value");
+assert.deepEqual(filterUrl.searchParams.getAll("pa"), ["REAR_VIEW_CAM", "FRONT_SENSORS"], "parking assistants must use Mobile.de's pa parameter");
+assert.equal(filterUrl.searchParams.get("spc"), "ADAPTIVE_CRUISE_CONTROL", "cruise control must use Mobile.de's spc parameter");
+assert.equal(filterUrl.searchParams.get("rtd"), "true", "roadworthy must use Mobile.de's rtd parameter");
+assert.equal(filterUrl.searchParams.get("rd"), null, "roadworthy must not set Mobile.de's location radius");
+
 const skylineUrl = new URL(context.buildMobileDeSearchUrl({
   ...baseFilters,
   brand: "Nissan",
@@ -126,6 +144,7 @@ assert.deepEqual(skylineUrl.searchParams.getAll("ft"), ["PETROL"], "fuel must be
 assert.equal(skylineUrl.searchParams.get("tr"), "AUTOMATIC_GEAR", "transmission must be preserved");
 assert.deepEqual(skylineUrl.searchParams.getAll("cn"), ["DE"], "country must be preserved");
 assert.deepEqual(skylineUrl.searchParams.getAll("fe"), ["PANORAMIC_GLASS_ROOF", "NONSMOKER_VEHICLE"], "options must be preserved");
-assert.equal(skylineUrl.searchParams.get("rd"), "true", "roadworthy state must be preserved");
+assert.equal(skylineUrl.searchParams.get("rtd"), "true", "roadworthy state must be preserved");
+assert.equal(skylineUrl.searchParams.get("rd"), null, "roadworthy must not create a location radius");
 assert.equal(skylineUrl.searchParams.get("sb"), "p", "result sorting must use price");
 assert.equal(skylineUrl.searchParams.get("od"), "up", "result sorting must use ascending order");
