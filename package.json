@@ -12,7 +12,7 @@
     "converter": "python3 converter/server.py",
     "smoke:release": "node scripts/release-smoke.mjs",
     "test:mobile-search": "node scripts/test-mobile-search-model-version.mjs && node scripts/audit-mobile-search.mjs --offline",
-    "test": "node --test server/partslink24-api.test.mjs tools/partslink24/report-extraction.test.mjs",
+    "test": "node --test server/partslink24-api.test.mjs tools/partslink24/report-extraction.test.mjs scripts/auto1.test.mjs",
     "verify": "pnpm run check:js && pnpm run check:python && pnpm run test:mobile-search && pnpm test"
   },
   "dependencies": {
