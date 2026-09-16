@@ -38,22 +38,39 @@ function mediaRecords(m,rows,cover=false) {
 }
 function mergeResources(a,b) {for(const [cat,dict] of Object.entries(b))Object.assign(a[cat] ||= {},dict);}
 
-function makeCover(models,data,titleHint) {
+export function makeCover(models,data,titleHint) {
   const m=models[0],sx=m.width/BASE_WIDTH,sy=m.height/BASE_HEIGHT;
   const rows=data[0].rows;
   const build=rows.find(r=>/^Build year\s*:/i.test(r.text));
   if(!build)throw new Error('Nie rozpoznano pól pierwszej strony. Potrzebna jest kontrola pliku.');
   const rightX=build.x-3;
-  let locationPage=-1,locationRows=[];
+  let locationPage=-1,locationEntries=[];
   for(let i=0;i<Math.min(data.length,3);i++) {
     const ri=data[i].rows.findIndex(r=>/^Car location\b/i.test(r.text));
     if(ri>=0) {
       locationPage=i;const label=data[i].rows[ri];
-      locationRows=data[i].rows.filter(r=>r.y<=label.y+.8&&r.y>=label.y-40*sy&&r.x>=rightX-10&&!/\d+:\d+/.test(r.text));break;
+      const sameRows=data[i].rows.filter(r=>r.y<=label.y+.8&&r.y>=label.y-40*sy&&r.x>=rightX-10&&!/\d+:\d+/.test(r.text));
+      locationEntries=sameRows.map(row=>({row,pageIndex:i,offset:0}));
+      // AUTO1 sometimes runs the "Car location" label to the very bottom of
+      // the page, pushing its value (city/country) onto the next page. Pull
+      // that overflow in the same way the field columns below are stitched.
+      if(sameRows.length<2&&i+1<data.length) {
+        const nextHeight=models[i+1].height,nextSy=nextHeight/BASE_HEIGHT;
+        const contRows=data[i+1].rows.filter(r=>r.x>=rightX-10&&r.y>=nextHeight-40*nextSy&&!/\d+:\d+/.test(r.text));
+        if(contRows.length) {
+          const bottomHere=Math.min(...sameRows.map(r=>r.y));
+          const offset=bottomHere-22*sy-Math.max(...contRows.map(r=>r.y));
+          for(const row of contRows)locationEntries.push({row,pageIndex:i+1,offset});
+        }
+      }
+      break;
     }
   }
+  const locationRows=locationEntries.map(e=>e.row);
   if(locationPage<0||locationRows.length<2)throw new Error('Nie znaleziono pełnej lokalizacji auta. Potrzebna jest kontrola pliku.');
-  const titleCandidates=rows.filter(r=>r.y>build.y&&r.x>=rightX&&!promotion.test(r.text)&&!/^Build year/i.test(r.text));
+  // A long car name is centred and can start left of the value column even
+  // though it still belongs to it; require it to reach the column instead.
+  const titleCandidates=rows.filter(r=>r.y>build.y&&r.right>=rightX&&!promotion.test(r.text)&&!/^Build year/i.test(r.text));
   const titleRow=titleCandidates.find(r=>norm(r.text)===norm(titleHint))||titleCandidates.filter(r=>r.height>=12*sy).sort((a,b)=>b.height-a.height)[0];
   if(!titleRow)throw new Error('Nie rozpoznano nazwy samochodu. Potrzebna jest kontrola pliku.');
   const titleRows=titleCandidates.filter(r=>Math.abs(r.height-titleRow.height)<.5&&Math.abs(r.y-titleRow.y)<titleRow.height*2.5);
@@ -91,9 +108,13 @@ function makeCover(models,data,titleHint) {
   }
   const locationY=Math.min(m.height-722.5*sy,buildTarget-(build.y-fieldBottom)*scale-54*sy);
   if(locationY<65*sy)throw new Error('Lokalizacja nie mieści się na pierwszej stronie.');
-  mergeResources(m.resources,models[locationPage].resources);
-  for(const r of models[locationPage].records)if(locationRows.some(row=>nearRow(r,row)))records.push(moveRecord(r,build.x-locationRows[0].x,locationY-locationRows[0].y));
-  return {records,orange:m.height-63*sy,blue:titleBottom-20*sy,requiredRows:[...titleRows,...fields.map(f=>f.row),...locationRows].flatMap(r=>r.items.map(i=>i.text))};
+  for(const entry of locationEntries) {
+    mergeResources(m.resources,models[entry.pageIndex].resources);
+    for(const r of models[entry.pageIndex].records)if(nearRow(r,entry.row))records.push(moveRecord(r,build.x-locationRows[0].x,locationY-locationRows[0].y+entry.offset));
+  }
+  const locationContinuation=[...new Set(locationEntries.filter(e=>e.pageIndex!==locationPage).map(e=>e.pageIndex))]
+    .map(pageIndex=>({pageIndex,rows:locationEntries.filter(e=>e.pageIndex===pageIndex).map(e=>e.row)}));
+  return {records,orange:m.height-63*sy,blue:titleBottom-20*sy,requiredRows:[...titleRows,...fields.map(f=>f.row),...locationRows].flatMap(r=>r.items.map(i=>i.text)),locationContinuation};
 }
 
 export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{}) {
@@ -113,19 +134,30 @@ export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{}) {
     const m=models[i],d=data[i],text=norm(d.text);let reason='',records,requiredRows=[];
     const images=mediaRecords(m,d.rows);
     const legal=/^Copyright\s+©?\s*\d{4}\s+Auto1\.com\s+Privacy\s+Terms and Conditions\s+Imprint$/i.test(text);
-    const logisticsTail=i>0&&logistics.test(data[i-1].text)&&/^location\. Thereafter, a fee of €[\d.,]+ per day applies\.$/i.test(text);
+    // The free-parking notice sometimes wraps so only "location. Thereafter…"
+    // lands on this page, and sometimes fits whole with its lead-in intact.
+    const logisticsTail=i>0&&logistics.test(data[i-1].text)&&/^(?:Enjoy free parking for up to \d+ calendar days after the car is moved to a pickup\s+)?location\. Thereafter, a fee of €[\d.,]+ per day applies\.$/i.test(text);
     const italyNote=/^OTHER NOTES\s+Some content has been automatically translated\. Show original\s+"Italian traders:.*VAT margin scheme\..*registration failure in Italy\."$/i.test(text);
+    const locationContinuation=cover.locationContinuation.find(c=>c.pageIndex===i);
     if(legal||logisticsTail||italyNote) {
       reason=legal?'legal-only':italyNote?'italian-trader-notice':'logistics-only';records=[];
     } else if(i===0) {records=cover.records;reason='cover';requiredRows=cover.requiredRows;}
     else if(i<firstSection&&images.length) {
       records=images;reason='gallery';
       // Only discard the recognised logistics column and text moved to the
-      // cover. An unfamiliar caption must never disappear with gallery UI.
+      // cover (which now includes an overflowed location value, if any). An
+      // unfamiliar caption must never disappear with gallery UI.
       const delivery=d.rows.filter(row=>logistics.test(row.text));
       const deliveryLeft=delivery.length?Math.min(...delivery.map(row=>row.x))-3:Infinity;
       const remaining=d.rows.filter(row=>row.x<deliveryLeft&&!/^\d+:\d+\s*\/\s*\d+:\d+$/.test(row.text)&&!row.items.every(item=>cover.requiredRows.includes(item.text)));
       if(remaining.length)throw new Error(`Strona ${i+1}: nierozpoznany tekst przy zdjęciach wymaga kontroli.`);
+    }
+    else if(locationContinuation) {
+      // No gallery photos here, so the whole page must be the location value
+      // moved onto the cover; any other text on it must never disappear silently.
+      const remaining=d.rows.filter(row=>!locationContinuation.rows.includes(row));
+      if(remaining.length)throw new Error(`Strona ${i+1}: nierozpoznany tekst przy lokalizacji wymaga kontroli.`);
+      reason='location-continuation';records=[];
     }
     else if(i<firstSection)throw new Error(`Strona ${i+1}: nie rozpoznano bezpiecznej reguły usunięcia strony.`);
     else {

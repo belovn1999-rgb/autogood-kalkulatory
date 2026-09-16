@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tokenize, moveRecord, serialize } from '../src/auto1-engine.mjs';
-import { textRows, validateOutputText } from '../src/auto1-rules.mjs';
+import { textRows, validateOutputText, makeCover } from '../src/auto1-rules.mjs';
 
 test('operator-like text inside strings and arrays remains literal', () => {
   assert.deepEqual(tokenize('% comment\n[(q Q Do) 20 (nested \\(text\\)) <5144>] TJ /Image Do'),
@@ -42,4 +42,29 @@ test('validation detects missing repeated text and text moved to the wrong page'
 
 test('an otherwise complete result still fails if auction content survives', () => {
   assert.throws(() => validateOutputText(['BMW General General Stock number RD123', 'Damage summary'], report), /aukcyjne/);
+});
+
+// Real coordinates from an AUTO1 report where the field list ran the "Car
+// location" label to the very bottom of page 1, pushing its value onto page
+// 2, and where the (long) car name is centred left of the value column.
+test('a cover survives a location value that overflows onto the next page, and a long centred title', () => {
+  const BASE_WIDTH = 594.96, BASE_HEIGHT = 841.92;
+  const wordItem = (str, x, y, width, height) => ({ str, width, height, transform: [1, 0, 0, 1, x, y] });
+  const page0Rows = textRows({ items: [
+    wordItem('Build', 262.8, 562.2, 26.6, 11.25), wordItem('year', 293.5, 562.2, 21.9, 11.25), wordItem(':', 314.6, 562.2, 4.9, 11.25),
+    wordItem('2018', 426.0, 562.2, 25.7, 11.25),
+    wordItem('Opel', 219.7, 761.7, 33.6, 16.5), wordItem('Insignia', 261.4, 761.7, 58.1, 16.5), wordItem('Grand', 327.6, 761.7, 45.9, 16.5),
+    wordItem('Sport', 381.3, 761.7, 39.4, 16.5), wordItem('2.0', 428.6, 761.7, 19.8, 16.5), wordItem('CDTI', 456.3, 761.7, 33.2, 16.5), wordItem('Exclusive', 497.5, 761.7, 65.7, 16.5),
+    wordItem('Car', 259.0, 29.7, 15.6, 10.5), wordItem('location', 280.1, 29.7, 44.2, 10.5),
+  ] });
+  const page1Rows = textRows({ items: [wordItem('DE,', 259.0, 816.4, 15.4, 10.5), wordItem('Hemau', 277.9, 816.4, 40.1, 10.5)] });
+  const models = [
+    { records: [{ kind: 'image', box: [10, 100, 300, 700] }], resources: {}, width: BASE_WIDTH, height: BASE_HEIGHT },
+    { records: [], resources: {}, width: BASE_WIDTH, height: BASE_HEIGHT },
+  ];
+  const data = [{ rows: page0Rows }, { rows: page1Rows }];
+  const cover = makeCover(models, data, 'Opel Insignia Grand Sport 2.0 CDTI Exclusive');
+  assert.deepEqual(cover.locationContinuation.map((c) => c.pageIndex), [1]);
+  assert.deepEqual(cover.requiredRows.filter((t) => t === 'Hemau'), ['Hemau']);
+  assert.ok(cover.requiredRows.includes('Opel'), 'long centred title must still be recognised');
 });
