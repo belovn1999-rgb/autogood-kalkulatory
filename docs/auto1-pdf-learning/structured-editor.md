@@ -13,7 +13,7 @@ file selection, progress, the second text verification pass and downloads.
 The supported evidence is the supplied English BMW report. The rules locate
 the cover fields, location and sections by text and position, rather than
 fixed page numbers. Document and damage images on mixed logistics pages are
-retained. The video thumbnail is identified by its timer. Only recognised
+retained. The image beneath the video player is retained; only the player controls are removed. A count check rejects any output that loses a recognised source image. Only recognised
 legal-only pages, the specific Italian-trader notice from the sample, and the
 recognised parking-fee continuation are dropped as entire pages.
 

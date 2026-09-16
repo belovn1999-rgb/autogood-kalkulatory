@@ -1,4 +1,4 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260916-structural';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260916-all-photos';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
@@ -34,8 +34,7 @@ function frame(r,m) {
 }
 function realImage(r,m) {return r.kind==='image'&&!rail(r,m)&&r.box[2]-r.box[0]>20&&r.box[3]-r.box[1]>18;}
 function mediaRecords(m,rows,cover=false) {
-  const timerRows=rows.filter(r=>/\b\d+:\d+\s*\/\s*\d+:\d+\b/.test(r.text));
-  return m.records.filter(r=>realImage(r,m)&&(!cover||r.box[3]<m.height-65*m.height/BASE_HEIGHT)&&!timerRows.some(t=>t.x>=r.box[0]-4&&t.x<=r.box[2]+4&&t.y>=r.box[1]-4&&t.y<=r.box[3]+4));
+  return m.records.filter(r=>realImage(r,m)&&(!cover||r.box[3]<m.height-65*m.height/BASE_HEIGHT));
 }
 function mergeResources(a,b) {for(const [cat,dict] of Object.entries(b))Object.assign(a[cat] ||= {},dict);}
 
@@ -169,6 +168,7 @@ export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{}) {
     report.pages.push({sourcePage:i+1,outputPage:records.length?output.getPageCount():null,reason,requiredRows,sourceImages:m.records.filter(r=>realImage(r,m)).length,outputImages:records.filter(r=>realImage(r,m)).length});
     onProgress(i+1,models.length);
   }
+  if(report.pages.reduce((sum,p)=>sum+p.outputImages,0)!==report.pages.reduce((sum,p)=>sum+p.sourceImages,0))throw new Error('Kontrola PDF: nie zachowano wszystkich zdjęć. Plik wymaga sprawdzenia.');
   return {pdfDoc:output,report};
 }
 
