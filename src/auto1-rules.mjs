@@ -1,4 +1,4 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260912-structural';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260916-structural';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
@@ -135,14 +135,18 @@ export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{}) {
       const photo=m.records.find(r=>realImage(r,m)&&r.box[2]-r.box[0]>m.width*.5);
       const damagePage=/\bDamages\b/.test(text)&&photo;
       const tracks=damagePage?m.records.filter(r=>r.kind==='path'&&r.style.cs==='/Pattern cs'&&r.box[2]-r.box[0]>m.width*.3&&r.box[3]-r.box[1]>5&&r.box[3]-r.box[1]<20&&r.box[3]<photo.box[1]):[];
+      const blueLines=damagePage?m.records.filter(r=>{
+        const c=rgb(r),w=r.box[2]-r.box[0],h=r.box[3]-r.box[1];
+        return r.kind==='path'&&r.box[3]<photo.box[1]&&c.length===3&&Math.abs(c[0]-.2078)<.005&&Math.abs(c[1]-.549)<.005&&Math.abs(c[2]-.7961)<.005&&((h<1.6&&w>20)||(w<1.6&&h>15));
+      }):[];
+      const headerLineY=Math.max(...blueLines.filter(r=>r.box[3]-r.box[1]<1.6).map(r=>r.box[3]));
       records=m.records.filter(r=>{
         if(rail(r,m)||frame(r,m)||[...counters,...notices].some(row=>nearRow(r,row)))return false;
+        // Keep the header separator; remove only the selected-row outline.
+        if(blueLines.includes(r)&&(r.box[3]-r.box[1]>=1.6||Math.abs(r.box[3]-headerLineY)>1))return false;
         if(damagePage&&r.kind==='path'&&r.box[3]<photo.box[1]) {
-          const [x,y,x1,y1]=r.box,c=rgb(r),w=x1-x,h=y1-y;
-          const selection=c.length===3&&Math.abs(c[0]-.2078)<.005&&Math.abs(c[1]-.549)<.005&&Math.abs(c[2]-.7961)<.005;
-          if(selection&&((h<1.6&&w>20)||(w<1.6&&h>15)))return false;
-          if(tracks.some(t=>x>=t.box[0]-1&&x1<=t.box[2]+1&&y>=t.box[1]-1&&y1<=t.box[3]+1))return false;
-          if(tracks.length&&grey(r)&&/\bS$/.test(r.body)&&w>m.width*.5&&h>25)return false;
+          const [x,y,x1,y1]=r.box;
+          if(tracks.some(t=>x>=t.box[0]-1&&x1<=t.box[2]+1&&y>=t.box[1]-1&&y1<=t.box[3]+1)&&!(y1-y<1.6&&x1-x>m.width*.3))return false;
         }
         // Remove the counter's camera glyph, not the image below it.
         if(counters.length&&photo&&r.kind==='path'&&r.box[2]-r.box[0]<20&&r.box[3]-r.box[1]<20&&r.box[1]>photo.box[3]-22&&r.box[0]<photo.box[0]+30)return false;
