@@ -1,9 +1,18 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260916-all-photos';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260917-content-rules';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
 const logistics=/Delivery to my address|Delivery to closest pickup|Pickup at car location|Delivery or pick up process|Enjoy free parking|Delivery time is shown/i;
 const promotion=/Premium Return Right|Stock number|Save cash|Export advantage|watchlist|high demand|Minimum bid|Purchase now|auction fee|VAT rate|^€/i;
+const legalRow=/^(?:Copyright\s*©?\s*\d{4}\s+Auto1\.com|Privacy|Terms and Conditions|Imprint)(?:\s+(?:Privacy|Terms and Conditions|Imprint))*$/i;
+const videoTimer=/^\d+:\d+\s*\/\s*\d+:\d+$/;
+const italyNote=/^OTHER NOTES\s+Some content has been automatically translated\. Show original\s+"Italian traders:.*VAT margin scheme\..*registration failure in Italy\."$/i;
+const auctionLeftover=/Premium Return Right|Stock number|watchlist|Save cash|Export advantage|Delivery to my address|Delivery to closest pickup|Pickup at car location|Total Pictures|\b\d+:\d+\s*\/\s*\d+:\d+\b/i;
+
+// Auction, logistics, player and footer text is never client content, wherever
+// on the page it lands.
+function junkRow(row) {return promotion.test(row.text)||logistics.test(row.text)||videoTimer.test(row.text)||legalRow.test(row.text);}
+function rowText(rows) {return rows.flatMap(r=>r.items.map(i=>i.text));}
 
 export function textRows(textContent) {
   const rows=[];
@@ -117,105 +126,124 @@ export function makeCover(models,data,titleHint) {
   return {records,orange:m.height-63*sy,blue:titleBottom-20*sy,requiredRows:[...titleRows,...fields.map(f=>f.row),...locationRows].flatMap(r=>r.items.map(i=>i.text)),locationContinuation};
 }
 
-export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{}) {
-  const data=pageData.map(p=>({...p,rows:textRows(p.textContent)}));
-  const models=[];
-  for(const [i,p] of source.getPages().entries()) {
-    const crop=p.getCropBox(),media=p.getMediaBox();
-    if(p.getRotation().angle%360||crop.x!==0||crop.y!==0||crop.width!==media.width||crop.height!==media.height)throw new Error(`Strona ${i+1}: nietypowy obrót lub obszar strony wymaga kontroli.`);
-    try {models.push(readRecords(lib,source,p,i));}catch(error){throw new Error(`Strona ${i+1}: ${error.message}`);}
+// A page whose structure cannot be edited safely is copied verbatim instead.
+function readModel(lib,source,page,index) {
+  const crop=page.getCropBox(),media=page.getMediaBox();
+  if(page.getRotation().angle%360||crop.x!==0||crop.y!==0||crop.width!==media.width||crop.height!==media.height)return null;
+  try {return readRecords(lib,source,page,index);}catch{return null;}
+}
+
+// Without the rebuilt layout the cover still loses its auction block.
+function basicCover(m,rows) {
+  const junk=rows.filter(junkRow);
+  return m.records.filter(r=>!rail(r,m)&&!frame(r,m)&&!junk.some(row=>nearRow(r,row)));
+}
+
+function cleanContent(m,d,text) {
+  const counters=d.rows.filter(r=>/^Total Pictures\b|^No images were taken\./i.test(r.text));
+  const notices=/CAR DATA ACCORDING TO IDENTIFICATION NUMBER/i.test(text)?d.rows.filter(r=>/^Some content has been automatically translated\.?$/i.test(r.text)):[];
+  const photo=m.records.find(r=>realImage(r,m)&&r.box[2]-r.box[0]>m.width*.5);
+  const damagePage=/\bDamages\b/.test(text)&&photo;
+  const tracks=damagePage?m.records.filter(r=>r.kind==='path'&&r.style.cs==='/Pattern cs'&&r.box[2]-r.box[0]>m.width*.3&&r.box[3]-r.box[1]>5&&r.box[3]-r.box[1]<20&&r.box[3]<photo.box[1]):[];
+  const blueLines=damagePage?m.records.filter(r=>{
+    const c=rgb(r),w=r.box[2]-r.box[0],h=r.box[3]-r.box[1];
+    return r.kind==='path'&&r.box[3]<photo.box[1]&&c.length===3&&Math.abs(c[0]-.2078)<.005&&Math.abs(c[1]-.549)<.005&&Math.abs(c[2]-.7961)<.005&&((h<1.6&&w>20)||(w<1.6&&h>15));
+  }):[];
+  const headerLineY=Math.max(...blueLines.filter(r=>r.box[3]-r.box[1]<1.6).map(r=>r.box[3]));
+  const records=m.records.filter(r=>{
+    if(rail(r,m)||frame(r,m)||[...counters,...notices].some(row=>nearRow(r,row)))return false;
+    // Keep the header separator; remove only the selected-row outline.
+    if(blueLines.includes(r)&&(r.box[3]-r.box[1]>=1.6||Math.abs(r.box[3]-headerLineY)>1))return false;
+    if(damagePage&&r.kind==='path'&&r.box[3]<photo.box[1]) {
+      const [x,y,x1,y1]=r.box;
+      if(tracks.some(t=>x>=t.box[0]-1&&x1<=t.box[2]+1&&y>=t.box[1]-1&&y1<=t.box[3]+1)&&!(y1-y<1.6&&x1-x>m.width*.3))return false;
+    }
+    // Remove the counter's camera glyph, not the image below it.
+    if(counters.length&&photo&&r.kind==='path'&&r.box[2]-r.box[0]<20&&r.box[3]-r.box[1]<20&&r.box[1]>photo.box[3]-22&&r.box[0]<photo.box[0]+30)return false;
+    return true;
+  });
+  return {records,requiredRows:rowText(d.rows.filter(row=>![...counters,...notices].includes(row)))};
+}
+
+// Pages are classified by what their rows say, never by where AUTO1 happened
+// to break them: the same report prints at different wrap points every time.
+export function planPage(i,m,d,cover,firstSection) {
+  const images=mediaRecords(m,d.rows),text=norm(d.text);
+  if(i===0)return cover?{records:cover.records,reason:'cover',requiredRows:cover.requiredRows}
+    :{records:basicCover(m,d.rows),reason:'cover-basic',requiredRows:rowText(d.rows.filter(r=>!junkRow(r)))};
+  if(!images.length&&d.rows.length&&d.rows.every(r=>legalRow.test(r.text)))return {records:[],reason:'legal-only',requiredRows:[]};
+  if(i<firstSection) {
+    // Between the cover and the first section AUTO1 prints only its own
+    // logistics and offer UI, so the photos are the sole client content.
+    if(cover)return {records:images,reason:images.length?'gallery':'auction-block',requiredRows:[]};
+    // The cover was not rebuilt, so fields spilled here still have to survive.
+    const keep=d.rows.filter(r=>!junkRow(r));
+    const records=m.records.filter(r=>images.includes(r)||keep.some(row=>nearRow(r,row)));
+    return {records,reason:records.length?'gallery':'auction-block',requiredRows:rowText(keep)};
   }
+  if(italyNote.test(text))return {records:[],reason:'italian-trader-notice',requiredRows:[]};
+  return {...cleanContent(m,d,text),reason:'content'};
+}
+
+export async function buildAuto1Pdf(lib,source,pageData,onProgress=()=>{},keepOriginal=new Set()) {
+  const data=pageData.map(p=>({...p,rows:textRows(p.textContent)}));
+  const models=source.getPages().map((p,i)=>keepOriginal.has(i)?null:readModel(lib,source,p,i));
   const output=await lib.PDFDocument.create(), copier=lib.PDFObjectCopier.for(source.context,output.context);
-  const report={pages:[],removedPages:0,removedObjects:0,requiredRows:[]};
-  const cover=makeCover(models,data,source.getTitle());
-  const firstSection=data.findIndex((p,i)=>i>0&&section.test(p.text));
-  if(firstSection<0)throw new Error('Nie rozpoznano sekcji raportu AUTO1.');
+  const report={pages:[],removedPages:0,removedObjects:0,requiredRows:[],review:[]};
+  let cover=null;
+  if(models[0])try {cover=makeCover(models,data,source.getTitle());}catch(error) {report.coverNote=error.message;}
+  let firstSection=data.findIndex((p,i)=>i>0&&section.test(p.text));
+  // An unfamiliar report keeps every page; only known artefacts are cleaned.
+  if(firstSection<0)firstSection=1;
   for(let i=0;i<models.length;i++) {
-    const m=models[i],d=data[i],text=norm(d.text);let reason='',records,requiredRows=[];
-    const images=mediaRecords(m,d.rows);
-    const legal=/^Copyright\s+©?\s*\d{4}\s+Auto1\.com\s+Privacy\s+Terms and Conditions\s+Imprint$/i.test(text);
-    // The free-parking notice sometimes wraps so only "location. Thereafter…"
-    // lands on this page, and sometimes fits whole with its lead-in intact.
-    const logisticsTail=i>0&&logistics.test(data[i-1].text)&&/^(?:Enjoy free parking for up to \d+ calendar days after the car is moved to a pickup\s+)?location\. Thereafter, a fee of €[\d.,]+ per day applies\.$/i.test(text);
-    const italyNote=/^OTHER NOTES\s+Some content has been automatically translated\. Show original\s+"Italian traders:.*VAT margin scheme\..*registration failure in Italy\."$/i.test(text);
-    const locationContinuation=cover.locationContinuation.find(c=>c.pageIndex===i);
-    if(legal||logisticsTail||italyNote) {
-      reason=legal?'legal-only':italyNote?'italian-trader-notice':'logistics-only';records=[];
-    } else if(i===0) {records=cover.records;reason='cover';requiredRows=cover.requiredRows;}
-    else if(i<firstSection&&images.length) {
-      records=images;reason='gallery';
-      // Only discard the recognised logistics column and text moved to the
-      // cover (which now includes an overflowed location value, if any). An
-      // unfamiliar caption must never disappear with gallery UI.
-      const delivery=d.rows.filter(row=>logistics.test(row.text));
-      const deliveryLeft=delivery.length?Math.min(...delivery.map(row=>row.x))-3:Infinity;
-      const remaining=d.rows.filter(row=>row.x<deliveryLeft&&!/^\d+:\d+\s*\/\s*\d+:\d+$/.test(row.text)&&!row.items.every(item=>cover.requiredRows.includes(item.text)));
-      if(remaining.length)throw new Error(`Strona ${i+1}: nierozpoznany tekst przy zdjęciach wymaga kontroli.`);
-    }
-    else if(locationContinuation) {
-      // No gallery photos here, so the whole page must be the location value
-      // moved onto the cover; any other text on it must never disappear silently.
-      const remaining=d.rows.filter(row=>!locationContinuation.rows.includes(row));
-      if(remaining.length)throw new Error(`Strona ${i+1}: nierozpoznany tekst przy lokalizacji wymaga kontroli.`);
-      reason='location-continuation';records=[];
-    }
-    else if(i<firstSection)throw new Error(`Strona ${i+1}: nie rozpoznano bezpiecznej reguły usunięcia strony.`);
-    else {
-      const counters=d.rows.filter(r=>/^Total Pictures\b|^No images were taken\./i.test(r.text));
-      const notices=/CAR DATA ACCORDING TO IDENTIFICATION NUMBER/i.test(text)?d.rows.filter(r=>/^Some content has been automatically translated\.?$/i.test(r.text)):[];
-      const photo=m.records.find(r=>realImage(r,m)&&r.box[2]-r.box[0]>m.width*.5);
-      const damagePage=/\bDamages\b/.test(text)&&photo;
-      const tracks=damagePage?m.records.filter(r=>r.kind==='path'&&r.style.cs==='/Pattern cs'&&r.box[2]-r.box[0]>m.width*.3&&r.box[3]-r.box[1]>5&&r.box[3]-r.box[1]<20&&r.box[3]<photo.box[1]):[];
-      const blueLines=damagePage?m.records.filter(r=>{
-        const c=rgb(r),w=r.box[2]-r.box[0],h=r.box[3]-r.box[1];
-        return r.kind==='path'&&r.box[3]<photo.box[1]&&c.length===3&&Math.abs(c[0]-.2078)<.005&&Math.abs(c[1]-.549)<.005&&Math.abs(c[2]-.7961)<.005&&((h<1.6&&w>20)||(w<1.6&&h>15));
-      }):[];
-      const headerLineY=Math.max(...blueLines.filter(r=>r.box[3]-r.box[1]<1.6).map(r=>r.box[3]));
-      records=m.records.filter(r=>{
-        if(rail(r,m)||frame(r,m)||[...counters,...notices].some(row=>nearRow(r,row)))return false;
-        // Keep the header separator; remove only the selected-row outline.
-        if(blueLines.includes(r)&&(r.box[3]-r.box[1]>=1.6||Math.abs(r.box[3]-headerLineY)>1))return false;
-        if(damagePage&&r.kind==='path'&&r.box[3]<photo.box[1]) {
-          const [x,y,x1,y1]=r.box;
-          if(tracks.some(t=>x>=t.box[0]-1&&x1<=t.box[2]+1&&y>=t.box[1]-1&&y1<=t.box[3]+1)&&!(y1-y<1.6&&x1-x>m.width*.3))return false;
-        }
-        // Remove the counter's camera glyph, not the image below it.
-        if(counters.length&&photo&&r.kind==='path'&&r.box[2]-r.box[0]<20&&r.box[3]-r.box[1]<20&&r.box[1]>photo.box[3]-22&&r.box[0]<photo.box[0]+30)return false;
-        return true;
-      });
-      reason='content';
-      requiredRows=d.rows.filter(row=>![...counters,...notices].includes(row)).flatMap(r=>r.items.map(i=>i.text));
-    }
-    if(!records.length)report.removedPages++;
-    else {
-      const page=writeRecords(lib,output,source,m,records,copier);
-      if(i===0) {
+    const m=models[i],d=data[i];
+    let plan=null,note=m?'':'struktura strony';
+    if(m)try {plan=planPage(i,m,d,cover,firstSection);}catch(error) {note=error.message;}
+    if(!plan) {
+      // Nothing recognised: ship the original page rather than the whole file.
+      const [copied]=await output.copyPages(source,[i]);
+      output.addPage(copied);
+      const requiredRows=rowText(d.rows);
+      report.requiredRows.push(...requiredRows);
+      report.review.push({page:output.getPageCount(),sourcePage:i+1,note});
+      report.pages.push({sourcePage:i+1,outputPage:output.getPageCount(),reason:'original',requiredRows,note,sourceImages:0,outputImages:0});
+    } else if(!plan.records.length) {
+      report.removedPages++;
+      report.pages.push({sourcePage:i+1,outputPage:null,reason:plan.reason,requiredRows:[],sourceImages:m.records.filter(r=>realImage(r,m)).length,outputImages:0});
+    } else {
+      const page=writeRecords(lib,output,source,m,plan.records,copier);
+      if(plan.reason==='cover') {
         const sx=m.width/BASE_WIDTH;
         page.drawLine({start:{x:15*sx,y:cover.orange},end:{x:584*sx,y:cover.orange},thickness:.75,color:lib.rgb(1,.4,.1)});
         page.drawLine({start:{x:262*sx,y:cover.blue},end:{x:536*sx,y:cover.blue},thickness:1,color:lib.rgb(.62,.75,.89)});
       }
+      const sourceImages=m.records.filter(r=>realImage(r,m)).length,outputImages=plan.records.filter(r=>realImage(r,m)).length;
+      if(plan.reason!=='cover'&&outputImages<sourceImages)report.review.push({page:output.getPageCount(),sourcePage:i+1,note:'zdjęcia'});
+      report.requiredRows.push(...plan.requiredRows);
+      report.removedObjects+=Math.max(0,m.records.length-plan.records.length);
+      report.pages.push({sourcePage:i+1,outputPage:output.getPageCount(),reason:plan.reason,requiredRows:plan.requiredRows,sourceImages,outputImages});
     }
-    report.requiredRows.push(...requiredRows);
-    report.removedObjects+=Math.max(0,m.records.length-records.length);
-    report.pages.push({sourcePage:i+1,outputPage:records.length?output.getPageCount():null,reason,requiredRows,sourceImages:m.records.filter(r=>realImage(r,m)).length,outputImages:records.filter(r=>realImage(r,m)).length});
     onProgress(i+1,models.length);
   }
-  if(report.pages.reduce((sum,p)=>sum+p.outputImages,0)!==report.pages.reduce((sum,p)=>sum+p.sourceImages,0))throw new Error('Kontrola PDF: nie zachowano wszystkich zdjęć. Plik wymaga sprawdzenia.');
   return {pdfDoc:output,report};
 }
 
-// A result is not marked ready until a second reader confirms that required
-// text survived and recognisable commercial blocks did not survive.
+// A second reader confirms that required text survived and that recognisable
+// commercial blocks did not. It names the pages at fault instead of rejecting
+// the whole file: a page that lost data is rebuilt from the original instead.
 export function validateOutputText(pages,report) {
   const compact=s=>norm(s).replace(/\s/g,'').toLowerCase();
-  if(!Array.isArray(pages)||pages.length!==report.pages.filter(p=>p.outputPage!==null).length)throw new Error('Kontrola PDF: niezgodna liczba stron.');
-  for(const page of report.pages.filter(p=>p.outputPage!==null)) {
+  const built=report.pages.filter(p=>p.outputPage!==null);
+  if(!Array.isArray(pages)||pages.length!==built.length)return {lost:built.map(p=>p.sourcePage),auction:[]};
+  const lost=[],auction=[];
+  for(const page of built) {
     const output=compact(pages[page.outputPage-1]);
     const expected=new Map();
     for(const row of page.requiredRows) {
       const key=compact(row);if(key)expected.set(key,(expected.get(key)||0)+1);
     }
-    for(const [key,count] of expected)if(output.split(key).length-1<count)throw new Error(`Kontrola PDF: nie zachowano wszystkich danych na stronie ${page.outputPage}.`);
+    for(const [key,count] of expected)if(output.split(key).length-1<count) {lost.push(page.sourcePage);break;}
+    if(auctionLeftover.test(pages[page.outputPage-1]||''))auction.push(page.outputPage);
   }
-  if(/Premium Return Right|Stock number|watchlist|Save cash|Export advantage|Delivery to my address|Delivery to closest pickup|Pickup at car location|Total Pictures|\b\d+:\d+\s*\/\s*\d+:\d+\b/i.test(pages.join('\n')))throw new Error('Kontrola PDF: pozostały elementy aukcyjne. Plik wymaga sprawdzenia.');
+  return {lost,auction};
 }
