@@ -12,10 +12,20 @@ const progressBar = document.querySelector("#progressBar");
 const statusText = document.querySelector("#statusText");
 const resultMeta = document.querySelector("#resultMeta");
 const resultPreview = document.querySelector("#resultPreview");
+const historyList = document.querySelector("#historyList");
+const historyCount = document.querySelector("#historyCount");
+
+const HISTORY_DB_NAME = "autogood-auto1-results";
+const HISTORY_DB_VERSION = 1;
+const HISTORY_LIMIT = 10;
+const HISTORY_ENTRY_STORE = "entries";
+const HISTORY_FILE_STORE = "files";
+
 let selectedFile = null;
 let resultUrl = null;
 let resultFileName = "";
 let pdfjsPromise = null;
+let historyDbPromise = null;
 let processing = false;
 
 function t(key, values) {
@@ -25,6 +35,165 @@ function t(key, values) {
 function setStatus(message, progress = null) {
   statusText.textContent = message;
   if (progress !== null) progressBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function historyRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.addEventListener("success", () => resolve(request.result), { once: true });
+    request.addEventListener("error", () => reject(request.error), { once: true });
+  });
+}
+
+function historyTransaction(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.addEventListener("complete", () => resolve(), { once: true });
+    transaction.addEventListener("abort", () => reject(transaction.error), { once: true });
+    transaction.addEventListener("error", () => reject(transaction.error), { once: true });
+  });
+}
+
+function openHistoryDb() {
+  if (!historyDbPromise) {
+    historyDbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(HISTORY_DB_NAME, HISTORY_DB_VERSION);
+      request.addEventListener("upgradeneeded", () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(HISTORY_ENTRY_STORE)) {
+          db.createObjectStore(HISTORY_ENTRY_STORE, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(HISTORY_FILE_STORE)) {
+          db.createObjectStore(HISTORY_FILE_STORE, { keyPath: "id" });
+        }
+      });
+      request.addEventListener("success", () => resolve(request.result), { once: true });
+      request.addEventListener("error", () => reject(request.error), { once: true });
+      request.addEventListener("blocked", () => reject(new Error(t("auto1.historyUnavailable"))), { once: true });
+    });
+  }
+  return historyDbPromise;
+}
+
+async function readHistoryEntries() {
+  const db = await openHistoryDb();
+  const transaction = db.transaction(HISTORY_ENTRY_STORE, "readonly");
+  const entries = await historyRequest(transaction.objectStore(HISTORY_ENTRY_STORE).getAll());
+  await historyTransaction(transaction);
+  return entries.sort((left, right) => right.createdAt - left.createdAt).slice(0, HISTORY_LIMIT);
+}
+
+function historyDate(value) {
+  const language = window.AUTOGOOD_AUCTION_LANGUAGE.currentLanguage();
+  return new Intl.DateTimeFormat(language === "ru" ? "ru-RU" : "pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+async function downloadHistoryFile(entry) {
+  const db = await openHistoryDb();
+  const transaction = db.transaction(HISTORY_FILE_STORE, "readonly");
+  const storedFile = await historyRequest(transaction.objectStore(HISTORY_FILE_STORE).get(entry.id));
+  await historyTransaction(transaction);
+  if (!storedFile?.blob) throw new Error(t("auto1.historyDownloadError"));
+
+  const url = URL.createObjectURL(storedFile.blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = entry.name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderHistoryEntries(entries) {
+  historyList.replaceChildren();
+  historyCount.textContent = `${entries.length}/${HISTORY_LIMIT}`;
+
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "auto1HistoryEmpty";
+    empty.textContent = t("auto1.historyEmpty");
+    historyList.appendChild(empty);
+    return;
+  }
+
+  entries.forEach((entry) => {
+    const item = document.createElement("article");
+    item.className = "auto1HistoryItem";
+
+    const info = document.createElement("div");
+    info.className = "auto1HistoryInfo";
+    const name = document.createElement("strong");
+    name.textContent = entry.name;
+    name.title = entry.name;
+    const meta = document.createElement("span");
+    meta.textContent = t("auto1.historyMeta", {
+      date: historyDate(entry.createdAt),
+      pages: entry.pageCount,
+      size: formatBytes(entry.size),
+    });
+    info.append(name, meta);
+
+    const download = document.createElement("button");
+    download.className = "auto1HistoryDownload";
+    download.type = "button";
+    download.textContent = t("auto1.historyDownload");
+    download.setAttribute("aria-label", t("auto1.historyDownloadLabel", { name: entry.name }));
+    download.addEventListener("click", async () => {
+      download.disabled = true;
+      try {
+        await downloadHistoryFile(entry);
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : t("auto1.historyDownloadError"));
+      } finally {
+        download.disabled = false;
+      }
+    });
+
+    item.append(info, download);
+    historyList.appendChild(item);
+  });
+}
+
+async function renderHistory() {
+  try {
+    renderHistoryEntries(await readHistoryEntries());
+  } catch (error) {
+    historyCount.textContent = "—";
+    const empty = document.createElement("p");
+    empty.className = "auto1HistoryEmpty";
+    empty.textContent = t("auto1.historyUnavailable");
+    historyList.replaceChildren(empty);
+  }
+}
+
+async function saveHistoryFile(blob, name, pageCount) {
+  const db = await openHistoryDb();
+  const existing = await readHistoryEntries();
+  const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const entry = { id, name, pageCount, size: blob.size, createdAt: Date.now() };
+  const removeEntries = existing.slice(HISTORY_LIMIT - 1);
+  const transaction = db.transaction([HISTORY_ENTRY_STORE, HISTORY_FILE_STORE], "readwrite");
+  const entriesStore = transaction.objectStore(HISTORY_ENTRY_STORE);
+  const filesStore = transaction.objectStore(HISTORY_FILE_STORE);
+
+  removeEntries.forEach((oldEntry) => {
+    entriesStore.delete(oldEntry.id);
+    filesStore.delete(oldEntry.id);
+  });
+  entriesStore.put(entry);
+  filesStore.put({ id, blob });
+  await historyTransaction(transaction);
+  await renderHistory();
 }
 
 function resetResult() {
@@ -42,7 +211,7 @@ function setFile(file) {
   resetResult();
   selectedFile = file;
   dropTitle.textContent = file.name;
-  const size = file.size < 1024 * 1024 ? `${Math.round(file.size / 1024)} KB` : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+  const size = formatBytes(file.size);
   fileMeta.textContent = t("auto1.fileReady", { size });
   processButton.disabled = false;
   setStatus(t("auto1.fileSelected"), 0);
@@ -107,7 +276,8 @@ async function processPdf() {
     // A page that lost data is not a reason to withhold the file: rebuild it
     // straight from the original and keep the rest of the cleaning.
     if (result.check.lost.length) result = await build(new Set(result.check.lost.map((page) => page - 1)));
-    resultUrl = URL.createObjectURL(new Blob([result.outputBytes], { type: "application/pdf" }));
+    const outputBlob = new Blob([result.outputBytes], { type: "application/pdf" });
+    resultUrl = URL.createObjectURL(outputBlob);
     resultFileName = file.name;
     downloadButton.href = resultUrl;
     downloadButton.download = resultFileName;
@@ -116,7 +286,15 @@ async function processPdf() {
     resultMeta.textContent = t("auto1.resultMeta", { pages: result.pdfDoc.getPageCount(), removedPages: result.report.removedPages });
     const review = [...new Set([...result.report.review.map((entry) => entry.page), ...result.check.auction])].sort((a, b) => a - b);
     if (review.length) console.warn("AUTO1 pages to review", review, result.report.review, result.report.coverNote);
-    setStatus(review.length ? t("auto1.doneReview", { pages: review.join(", ") }) : t("auto1.done"), 100);
+    let historySaved = true;
+    try {
+      await saveHistoryFile(outputBlob, resultFileName, result.pdfDoc.getPageCount());
+    } catch (error) {
+      historySaved = false;
+      console.warn("AUTO1 result history could not be saved", error);
+    }
+    const done = review.length ? t("auto1.doneReview", { pages: review.join(", ") }) : t("auto1.done");
+    setStatus(historySaved ? done : `${done} ${t("auto1.historySaveFailed")}`, 100);
   } catch (error) {
     console.warn("AUTO1 PDF could not be processed", error);
     resetResult();
@@ -151,3 +329,6 @@ downloadButton.addEventListener("click", (event) => {
   link.click();
   link.remove();
 });
+
+window.addEventListener("auctionlanguagechange", renderHistory);
+renderHistory();

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AUTOGOOD Auto1</title>
     <link rel="stylesheet" href="./src/tools.css?v=header-unified-20260721" />
-    <link rel="stylesheet" href="./src/auto1.css?v=20260814-auction-language" />
+    <link rel="stylesheet" href="./src/auto1.css?v=20260917-result-history" />
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <script type="module" src="./src/auction-language.js?v=20260916-auto1"></script>
-    <script type="module" src="./src/auto1.js?v=20260917-content-rules"></script>
+    <script type="module" src="./src/auction-language.js?v=20260917-auto1-history"></script>
+    <script type="module" src="./src/auto1.js?v=20260917-result-history"></script>
   </head>
   <body>
     <main class="workspaceShell">
@@ -66,20 +66,20 @@
           </div>
         </div>
 
-        <aside class="auto1Side" aria-label="Auto1 cleanup rules">
-          <h2 data-i18n="sidebar.removed">Automatycznie usuwane</h2>
-          <ul>
-            <li data-i18n="auto1.rule1">voucher, Save cash, Export advantage</li>
-            <li data-i18n="auto1.rule2">stock number i wewnetrzne numery aukcji</li>
-            <li data-i18n="auto1.rule3">watchlist, high demand i podobne komunikaty</li>
-            <li data-i18n="auto1.rule4">delivery, pickup, logistics, ceny i terminy odbioru</li>
-            <li data-i18n="auto1.rule5">video overlay, pasek postepu i czas odtwarzacza</li>
-            <li data-i18n="auto1.rule6">Total Pictures i techniczne komunikaty galerii</li>
-            <li data-i18n="auto1.rule7">puste strony prawne / stopki AUTO1</li>
-          </ul>
-          <a href="./docs/auto1-pdf-learning/jeep-compass-demo/confirmed-change-log.md" data-i18n="auto1.rulesLink">
-            Zobacz reguly z przykladu Jeep
-          </a>
+        <aside class="auto1Side" aria-labelledby="historyTitle">
+          <div class="auto1HistoryHeader">
+            <div>
+              <p class="eyebrow" data-i18n="auto1.historyEyebrow">Ostatnie wyniki</p>
+              <h2 id="historyTitle" data-i18n="auto1.historyTitle">Historia plików</h2>
+            </div>
+            <span id="historyCount">0/10</span>
+          </div>
+          <p class="auto1HistoryHint" data-i18n="auto1.historyHint">
+            Gotowe pliki zapisują się automatycznie w tej przeglądarce.
+          </p>
+          <div id="historyList" class="auto1HistoryList" aria-live="polite">
+            <p class="auto1HistoryEmpty" data-i18n="auto1.historyEmpty">Tutaj pojawi się 10 ostatnich plików.</p>
+          </div>
         </aside>
       </section>
 
