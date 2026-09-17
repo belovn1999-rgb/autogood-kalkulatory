@@ -1,4 +1,4 @@
-import { buildAuto1Pdf, validateOutputText } from "./auto1-rules.mjs?v=20260916-location-overflow";
+import { buildAuto1Pdf, validateOutputText } from "./auto1-rules.mjs?v=20260917-content-rules";
 
 const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
@@ -81,7 +81,6 @@ async function processPdf() {
   processButton.disabled = true;
   resetResult();
   let sourcePdf = null;
-  let checkedPdf = null;
   try {
     setStatus(t("auto1.loadingEngine"), 5);
     const pdfLib = window.PDFLib;
@@ -91,30 +90,39 @@ async function processPdf() {
     sourcePdf = await pdfjs.getDocument({ data: new Uint8Array(bytes.slice(0)) }).promise;
     const source = await pdfLib.PDFDocument.load(bytes);
     const pageData = await readPageData(sourcePdf);
-    const { pdfDoc, report } = await buildAuto1Pdf(pdfLib, source, pageData, (page, total) => {
-      setStatus(t("auto1.buildingPage", { page, total }), 30 + page / total * 50);
-    });
-    setStatus(t("auto1.saving"), 85);
-    const outputBytes = await pdfDoc.save();
-    setStatus(t("auto1.verifying"), 92);
-    checkedPdf = await pdfjs.getDocument({ data: outputBytes.slice() }).promise;
-    const checkedData = await readPageData(checkedPdf, false);
-    validateOutputText(checkedData.map((page) => page.text), report);
-    if (checkedPdf.numPages !== report.pages.filter((page) => page.outputPage !== null).length) throw new Error("Page verification failed");
-    resultUrl = URL.createObjectURL(new Blob([outputBytes], { type: "application/pdf" }));
+    const build = async (keepOriginal) => {
+      const { pdfDoc, report } = await buildAuto1Pdf(pdfLib, source, pageData, (page, total) => {
+        setStatus(t("auto1.buildingPage", { page, total }), 30 + page / total * 50);
+      }, keepOriginal);
+      setStatus(t("auto1.saving"), 85);
+      const outputBytes = await pdfDoc.save();
+      setStatus(t("auto1.verifying"), 92);
+      const checkedPdf = await pdfjs.getDocument({ data: outputBytes.slice() }).promise;
+      const checkedData = await readPageData(checkedPdf, false);
+      const check = validateOutputText(checkedData.map((page) => page.text), report);
+      await checkedPdf.destroy();
+      return { pdfDoc, report, outputBytes, check };
+    };
+    let result = await build(new Set());
+    // A page that lost data is not a reason to withhold the file: rebuild it
+    // straight from the original and keep the rest of the cleaning.
+    if (result.check.lost.length) result = await build(new Set(result.check.lost.map((page) => page - 1)));
+    resultUrl = URL.createObjectURL(new Blob([result.outputBytes], { type: "application/pdf" }));
     resultFileName = file.name;
     downloadButton.href = resultUrl;
     downloadButton.download = resultFileName;
     downloadButton.classList.remove("isDisabled");
     resultPreview.src = resultUrl;
-    resultMeta.textContent = t("auto1.resultMeta", { pages: pdfDoc.getPageCount(), removedPages: report.removedPages });
-    setStatus(t("auto1.done"), 100);
+    resultMeta.textContent = t("auto1.resultMeta", { pages: result.pdfDoc.getPageCount(), removedPages: result.report.removedPages });
+    const review = [...new Set([...result.report.review.map((entry) => entry.page), ...result.check.auction])].sort((a, b) => a - b);
+    if (review.length) console.warn("AUTO1 pages to review", review, result.report.review, result.report.coverNote);
+    setStatus(review.length ? t("auto1.doneReview", { pages: review.join(", ") }) : t("auto1.done"), 100);
   } catch (error) {
-    console.warn("AUTO1 PDF review required", error);
+    console.warn("AUTO1 PDF could not be processed", error);
     resetResult();
     setStatus(t("auto1.reviewNeeded"), 0);
   } finally {
-    await Promise.allSettled([sourcePdf?.destroy(), checkedPdf?.destroy()]);
+    await Promise.allSettled([sourcePdf?.destroy()]);
     processing = false;
     input.disabled = false;
     processButton.disabled = !selectedFile;

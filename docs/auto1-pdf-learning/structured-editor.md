@@ -10,18 +10,31 @@ object copying. `src/auto1-rules.mjs` associates text positions with the report
 sections and selects, removes or moves those operations. `src/auto1.js` handles
 file selection, progress, the second text verification pass and downloads.
 
-The supported evidence is the supplied English BMW report. The rules locate
-the cover fields, location and sections by text and position, rather than
-fixed page numbers. Document and damage images on mixed logistics pages are
-retained. The image beneath the video player is retained; only the player controls are removed. A count check rejects any output that loses a recognised source image. Only recognised
-legal-only pages, the specific Italian-trader notice from the sample, and the
-recognised parking-fee continuation are dropped as entire pages.
+Pages are classified by what their rows say, not by where AUTO1 broke the
+text. The same report prints at different wrap points depending on the length
+of the car name, the number of fields and the delivery prices, so any rule
+that matched a whole page's text failed on the next car. Rows carry the
+meaning: auction offers, logistics, player controls and the legal footer are
+junk wherever they land; everything else is client content.
 
-Unrecognised text around gallery images, missing cover fields, insufficient
-cover space, unsupported PDF operations, rotation and unusual CropBoxes stop
-processing. The UI then clears the previous download and asks for review.
-Support for all AUTO1 variants, other source languages, scans and arbitrary
-PDF generators has not been established.
+Between the cover and the first section heading AUTO1 prints only its own
+logistics and offer interface, so the photos there are the sole client
+content and the text is dropped. A page left with nothing is removed. In the
+report body only recognised artefacts are removed, and unknown text is kept.
+Document and damage images on mixed logistics pages are retained. The image
+beneath the video player is retained; only the player controls are removed.
+
+No single unrecognised detail withholds the file. A page that cannot be
+parsed, or whose rules throw, is copied verbatim from the original and listed
+for review; the cover falls back to removing its auction block without the
+rebuilt layout, and then to the original page. The second reader names the
+pages that lost text instead of rejecting the result, and those pages are
+rebuilt from the original in a second pass. The UI always offers the download
+and names the pages to check by eye.
+
+The cleaning quality is established for the English reports in this
+repository's samples. Other source languages, scans and arbitrary PDF
+generators degrade to keeping pages unchanged rather than to failing.
 
 Before offering a download, PDF.js reads the generated file again. It checks
 the output page count, required text on its expected page (including repeated
