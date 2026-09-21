@@ -14,7 +14,7 @@ const copy = {
     loadingButton: "Pobieram",
     helper: "",
     loading: "Pobieram dane z mobile.de. To może chwilę potrwać.",
-    ready: "Dane gotowe. Wybierz scenariusz zakupu na dole strony.",
+    ready: "Dane gotowe. Wybierz ścieżkę zakupu poniżej.",
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     manualEyebrow: "WPISZ DANE RĘCZNIE",
@@ -189,7 +189,7 @@ const copy = {
     seller: "Sprzedawca",
     delivery: "Transport netto",
     inspection: "Oględziny netto",
-    tariff: "Typ zakupu",
+    tariff: "Taryfa transportu",
     selectEmpty: "Wybierz",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Zakup bezpośredni" },
@@ -210,7 +210,7 @@ const copy = {
     loadingButton: "Загружаю",
     helper: "",
     loading: "Загружаю данные с mobile.de. Это может занять время.",
-    ready: "Данные готовы. Выбери сценарий покупки внизу страницы.",
+    ready: "Данные готовы. Выбери путь покупки ниже.",
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
@@ -385,7 +385,7 @@ const copy = {
     seller: "Продавец",
     delivery: "Доставка netto",
     inspection: "Осмотр netto",
-    tariff: "Тип закупа",
+    tariff: "Тариф доставки",
     selectEmpty: "Выбери",
     scenarios: [
       { key: "direct", number: "01", tab: 0, title: "Прямая покупка" },
@@ -1127,8 +1127,7 @@ const els = {
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
   manualResets: Array.from(document.querySelectorAll("[data-mobile-manual-reset]")),
   selectedFilters: document.querySelector("[data-mobile-selected-filters]"),
-  methodChooser: document.querySelector("[data-mobile-method-chooser]"),
-  methodViews: Array.from(document.querySelectorAll("[data-mobile-method-view]")),
+  listingResult: document.querySelector("[data-mobile-listing-result]"),
 };
 
 function readMobileDeApiUrl() {
@@ -1193,18 +1192,6 @@ function renderI18n() {
   });
   setRangePlaceholders();
   renderManualOptions(true);
-}
-
-function setMode(mode) {
-  state.mode = mode === "listing" || mode === "manual" ? mode : null;
-  els.methodChooser.hidden = Boolean(state.mode);
-  els.methodViews.forEach((view) => {
-    view.hidden = view.dataset.mobileMethodView !== state.mode;
-  });
-
-  if (state.mode === "listing") {
-    requestAnimationFrame(() => els.url?.focus());
-  }
 }
 
 function detailRow(label, value) {
@@ -2437,7 +2424,22 @@ function extractModel(title, brandMatch) {
       break;
     }
   }
-  return model.replace(/\s{2,}/g, " ");
+  model = model.replace(/\s{2,}/g, " ");
+  // Listing titles carry engine and trim after the model ("i40 1.7 CRDi Kombi Style").
+  // Keep the longest catalog model the title opens with, so searches use its ID.
+  const lowerTitle = model.toLowerCase();
+  const catalogModel = modelGroupsForBrand(brandMatch.value)
+    .flatMap((group) => group.models)
+    .filter((candidate) => candidate && candidate !== "Other")
+    .filter((candidate) => {
+      const lowerCandidate = candidate.toLowerCase();
+      if (!lowerTitle.startsWith(lowerCandidate)) return false;
+      const next = lowerTitle.charAt(lowerCandidate.length);
+      // "320d", "220i": a trim letter may follow a numeric model directly.
+      return !next || !/[a-z0-9]/.test(next) || (/\d$/.test(lowerCandidate) && /^[a-z]\b/.test(lowerTitle.slice(lowerCandidate.length)));
+    })
+    .sort((left, right) => right.length - left.length)[0];
+  return catalogModel || model.split(" ")[0] || model;
 }
 
 function normalizeFuel(value, title = "") {
@@ -2558,6 +2560,8 @@ function renderData() {
   const powerValue = data.powerHp ?? data.horsepower ?? data.powerPs;
 
   els.title.textContent = title;
+  // Listing data and purchase paths appear only once a link has been recognised.
+  if (els.listingResult) els.listingResult.hidden = !state.data;
   const listingRows = [
     detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
     detailRow(c.purchaseType, purchaseTypeLabel(data)),
@@ -2633,14 +2637,6 @@ document.querySelectorAll("[data-lang-button]").forEach((button) => {
     setStatus(state.status, state.error);
     renderData();
   });
-});
-
-document.querySelectorAll("[data-mobile-method]").forEach((button) => {
-  button.addEventListener("click", () => setMode(button.dataset.mobileMethod));
-});
-
-document.querySelectorAll("[data-mobile-back]").forEach((button) => {
-  button.addEventListener("click", () => setMode(null));
 });
 
 function selectComboOption(optionButton) {
@@ -2806,15 +2802,11 @@ els.brand.addEventListener("change", handleBrandInput);
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialUrl = initialParams.get("url");
-if (initialUrl) {
-  els.url.value = initialUrl;
-  setMode("listing");
-}
+if (initialUrl) els.url.value = initialUrl;
 
 renderManualOptions(false);
 renderI18n();
 renderData();
-setMode(state.mode);
 
 fetch("./tools/partslink24/brand-routes.json?v=20260720-5")
   .then((response) => response.ok ? response.json() : Promise.reject())

@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=filter-cards-20260921" />
+  <link rel="stylesheet" href="./src/mobile.css?v=listing-frame-20260921" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-edit-20260903" />
   </head>
   <body class="mobileBody">
@@ -31,71 +31,48 @@
         </div>
       </header>
 
-      <section class="mobileMethodChooser" data-mobile-method-chooser>
-        <p class="mobileEyebrow" data-i18n="methodPrompt">WYBIERZ METODĘ</p>
-        <div class="mobileMethodGrid">
-          <button class="mobileMethodCard" type="button" data-mobile-method="listing">
-            <strong data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</strong>
-            <span data-i18n="listingChoiceDescription">Wklej link z mobile.de i pobierz dane automatycznie.</span>
-          </button>
-          <button class="mobileMethodCard" type="button" data-mobile-method="manual">
-            <strong data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</strong>
-            <span data-i18n="manualChoiceDescription">Uzupełnij parametry auta samodzielnie.</span>
-          </button>
+      <section class="mobilePanel mobileListingFrame" aria-labelledby="mobile-listing-heading">
+        <div class="mobilePanelHead mobileListingFrameHead">
+          <p id="mobile-listing-heading" data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</p>
+          <span class="mobileListingFrameLead" data-i18n="lead">Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.</span>
+        </div>
+        <div class="mobileListingFrameBody">
+          <section class="mobileFilterCard mobileListingLinkCard" aria-labelledby="mobile-listing-link-heading">
+            <h2 id="mobile-listing-link-heading" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=listing-frame-20260921#link"></use></svg><span data-i18n="inputLabel">Link ogłoszenia</span></h2>
+            <form class="mobileSearch" data-mobile-form>
+              <label class="srOnly" for="mobile-url" data-i18n="inputLabel">Link ogłoszenia</label>
+              <div class="mobileSearchControl">
+                <input
+                  id="mobile-url"
+                  name="url"
+                  type="url"
+                  inputmode="url"
+                  autocomplete="url"
+                  placeholder="https://suchen.mobile.de/..."
+                  aria-describedby="mobile-helper"
+                  data-mobile-url
+                />
+                <button type="submit" data-mobile-submit>
+                  <span data-i18n="loadButton">Rozpoznaj</span>
+                </button>
+              </div>
+              <p id="mobile-helper" class="mobileHelper" data-mobile-status></p>
+            </form>
+          </section>
+          <div class="mobileListingResult" data-mobile-listing-result aria-live="polite" hidden>
+            <section class="mobileFilterCard mobileListingPanel" aria-labelledby="mobile-listing-title">
+              <h2 id="mobile-listing-title" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-mobile-title>—</span></h2>
+              <div class="mobileListingDetails" data-mobile-listing-details></div>
+            </section>
+            <section class="mobileFilterCard mobileActions" aria-labelledby="mobile-actions-heading">
+              <h2 id="mobile-actions-heading" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="actionsTitle">Wybierz ścieżkę zakupu</span></h2>
+              <div class="mobileScenarioGrid" data-mobile-scenarios></div>
+            </section>
+          </div>
         </div>
       </section>
 
-      <section class="mobileMethodView" data-mobile-method-view="listing" hidden>
-        <button class="mobileBackButton" type="button" data-mobile-back data-i18n="backToMethods">← Wybierz metodę</button>
-        <section class="mobileIntro">
-          <div>
-            <p class="mobileEyebrow" data-i18n="eyebrow">LINK MOBILE.DE</p>
-            <p class="mobileIntroLead" data-i18n="lead">
-              Wklej link, sprawdź dane auta i wybierz scenariusz zakupu. Kalkulator dostanie cenę, transport, oględziny i akcyzę.
-            </p>
-          </div>
-        </section>
-
-        <form class="mobileSearch" data-mobile-form>
-          <label for="mobile-url" data-i18n="inputLabel">Link ogłoszenia</label>
-          <div class="mobileSearchControl">
-            <input
-              id="mobile-url"
-              name="url"
-              type="url"
-              inputmode="url"
-              autocomplete="url"
-              placeholder="https://suchen.mobile.de/..."
-              aria-describedby="mobile-helper"
-              data-mobile-url
-            />
-            <button type="submit" data-mobile-submit>
-              <span data-i18n="loadButton">Rozpoznaj</span>
-            </button>
-          </div>
-          <p id="mobile-helper" class="mobileHelper" data-mobile-status></p>
-        </form>
-
-        <section class="mobileWorkbench mobileListingWorkbench" aria-live="polite">
-          <article class="mobilePanel mobileListingPanel">
-          <div class="mobilePanelHead">
-            <p data-i18n="listingEyebrow">DANE Z OGŁOSZENIA</p>
-            <strong data-mobile-title>—</strong>
-          </div>
-          <div class="mobileListingDetails" data-mobile-listing-details></div>
-          </article>
-        </section>
-
-        <section class="mobileActions" aria-label="Scenariusze zakupu">
-          <div class="mobileActionsHead">
-            <h2 class="mobileIntroLead" data-i18n="actionsTitle">Wybierz ścieżkę zakupu</h2>
-          </div>
-          <div class="mobileScenarioGrid" data-mobile-scenarios></div>
-        </section>
-      </section>
-
-      <section class="mobileMethodView" data-mobile-method-view="manual" hidden>
-        <button class="mobileBackButton" type="button" data-mobile-back data-i18n="backToMethods">← Wybierz metodę</button>
+      <section class="mobileMethodView" data-mobile-method-view="manual">
         <article class="mobilePanel mobileManualPanel">
           <div class="mobilePanelHead">
             <div class="mobileManualPanelHeadRow">
@@ -535,7 +512,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=filter-cards-20260921"></script>
-    <script src="./src/mobile-market-analysis.js?v=chip-rows-20260921"></script>
+    <script src="./src/mobile.js?v=listing-frame-20260921"></script>
+    <script src="./src/mobile-market-analysis.js?v=listing-frame-20260921"></script>
   </body>
 </html>

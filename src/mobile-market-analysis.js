@@ -4,6 +4,12 @@
   const analysisView = document.querySelector("[data-mobile-market-analysis-view]");
   const analysisContent = document.querySelector("[data-mobile-market-analysis-content]");
   const manualView = document.querySelector('[data-mobile-method-view="manual"]');
+  const listingFrame = document.querySelector(".mobileListingFrame");
+  // The market analysis replaces the whole search area: link frame and manual form.
+  const setManualViewHidden = (hidden) => {
+    manualView.hidden = hidden;
+    if (listingFrame) listingFrame.hidden = hidden;
+  };
   const historySaves = Array.from(document.querySelectorAll("[data-mobile-market-history-save]"));
   const historyList = document.querySelector("[data-mobile-market-history-list]");
   const historyCount = document.querySelector("[data-mobile-market-history-count]");
@@ -533,7 +539,7 @@
     restoreManualFilters(entry.filters);
     editingHistoryId = entry.id;
     analysisView.hidden = true;
-    manualView.hidden = false;
+    setManualViewHidden(false);
     setAnalysisStatus(copy().historyEditReady);
     manualView.scrollIntoView({ behavior: "smooth", block: "start" });
     document.querySelector("[data-mobile-brand]")?.focus({ preventScroll: true });
@@ -558,7 +564,7 @@
       historyId: entry.id,
     };
     renderAnalysis();
-    manualView.hidden = true;
+    setManualViewHidden(true);
     analysisView.hidden = false;
     setAnalysisStatus("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -884,7 +890,7 @@
         historyId: savedEntry?.id || "",
       };
       renderAnalysis();
-      manualView.hidden = true;
+      setManualViewHidden(true);
       analysisView.hidden = false;
       setAnalysisStatus("");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -897,7 +903,7 @@
 
   function closeAnalysis() {
     analysisView.hidden = true;
-    manualView.hidden = false;
+    setManualViewHidden(false);
     requestAnimationFrame(() => analysisOpen.focus());
   }
 

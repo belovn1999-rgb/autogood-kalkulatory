@@ -1641,3 +1641,75 @@ button {
     gap: var(--space-lg);
   }
 }
+
+/* Listing link frame: same look as the manual panel. Only the link card is
+   permanent; listing data and purchase paths appear after "Rozpoznaj". */
+.mobilePanel.mobileListingFrame {
+  margin-bottom: var(--space-xl);
+  background: var(--color-paper);
+}
+
+.mobileListingFrameHead {
+  min-height: 0;
+  margin-bottom: var(--space-lg);
+}
+
+.mobileListingFrameLead {
+  display: block;
+  max-width: 72ch;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.mobileListingFrameBody,
+.mobileListingResult {
+  display: grid;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+.mobileListingResult[hidden] {
+  display: none;
+}
+
+.mobileListingLinkCard .mobileSearch {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.mobileFilterCard.mobileActions {
+  margin-top: 0;
+}
+
+.mobileFilterCard .mobileScenarioGrid {
+  padding-top: 0;
+}
+
+.mobileListingPanel .mobileFilterCardTitle span {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .mobileFilterCard .mobileScenarioGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.mobileListingPanel .mobileDataGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-xl);
+}
+
+.mobileListingPanel .mobileDataRow:nth-last-child(2):nth-child(odd) {
+  border-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .mobileListingPanel .mobileDataGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
