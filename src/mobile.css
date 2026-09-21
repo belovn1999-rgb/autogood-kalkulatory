@@ -865,7 +865,7 @@ button {
   flex: 1 0 auto;
   grid-template-columns: 16px auto;
   gap: 6px;
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
 .mobileInlineChoiceGroup .mobileChoiceOption span {
@@ -1551,4 +1551,93 @@ button {
   overflow: hidden;
   white-space: nowrap;
   clip-path: inset(50%);
+}
+
+/* Filter categories as soft cards (variant A): each group sits on its own
+   white card with a light two-layer shadow, a tinted icon badge and more air
+   between rows. Kept last so it wins over the older divider-based layout. */
+.mobileManualForm {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.mobileManualPanel,
+.mobileManualPanel .mobilePanelHead {
+  background: var(--color-paper);
+}
+
+.mobileManualPanel .mobileSelectedFilters {
+  background: var(--color-surface);
+}
+
+.mobileFilterCard {
+  min-width: 0;
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgba(22, 43, 72, 0.05),
+    0 8px 20px -6px rgba(22, 43, 72, 0.1);
+  padding: var(--space-lg) var(--space-xl) var(--space-xl);
+}
+
+.mobileFilterCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: var(--rule-thin) solid var(--color-rule-soft);
+  color: var(--color-ink);
+  font-size: calc(var(--text-base) + 1px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.mobileFilterCardTitle .mobileFieldIcon {
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-brand) 10%, var(--color-surface));
+  color: var(--color-brand);
+  opacity: 1;
+}
+
+.mobileFilterCardBody {
+  display: grid;
+  gap: var(--space-xl);
+  min-width: 0;
+}
+
+.mobileFilterCardBody > .mobileRangeField.mobileWideField {
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+.mobileFilterCardBody > .mobileField,
+.mobileFilterCardBody > .mobileChoiceField {
+  margin: 0;
+}
+
+.mobileFilterCard .mobileTradeGrid,
+.mobileFilterCard .mobileVehicleConditionGrid {
+  gap: var(--space-lg);
+}
+
+@media (max-width: 720px) {
+  .mobileManualForm {
+    gap: var(--space-md);
+  }
+
+  .mobileFilterCard {
+    padding: var(--space-md);
+  }
+
+  .mobileFilterCardBody {
+    gap: var(--space-lg);
+  }
 }
