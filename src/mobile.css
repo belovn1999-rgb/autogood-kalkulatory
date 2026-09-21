@@ -463,10 +463,11 @@ button {
 
 .mobileSelectedFilters {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  row-gap: 4px;
   min-height: 34px;
   margin-top: var(--space-sm);
-  overflow-x: auto;
   border: var(--rule-thin) solid var(--color-field);
   border-radius: var(--radius-md);
   background: var(--color-surface-tint);
@@ -476,7 +477,6 @@ button {
   font-weight: 700;
   line-height: 1.35;
   white-space: nowrap;
-  scrollbar-width: thin;
 }
 
 .mobileSelectedFilterItem {
@@ -852,6 +852,24 @@ button {
 
 .mobileChoiceGroupTwo {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* One-click chip rows (Paliwo, Nadwozie): one line when it fits, wrapping otherwise. */
+.mobileInlineChoiceGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mobileInlineChoiceGroup .mobileChoiceOption {
+  flex: 1 0 auto;
+  grid-template-columns: 16px auto;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.mobileInlineChoiceGroup .mobileChoiceOption span {
+  overflow: visible;
 }
 
 .mobileInteriorMaterialGroup {

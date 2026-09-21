@@ -617,7 +617,6 @@
     const option = document.querySelector(`${selector} option:checked`);
     if (option?.value) return option.textContent.trim();
     const displaySelectors = {
-      "[data-mobile-body]": "[data-mobile-body-label]",
       "[data-mobile-vat]": "[data-mobile-vat-label]",
       "[data-mobile-seller]": "[data-mobile-seller-label]",
     };
@@ -648,7 +647,7 @@
     summary.push([filters.brand, filters.model, filters.version].filter(Boolean).join(" "));
     const fuelLabels = checkedLabels("[data-mobile-fuel]");
     if (fuelLabels.length) summary.push(fuelLabels.join(", "));
-    const body = selectedOptionText("[data-mobile-body]");
+    const body = filters.body ? checkedLabel("[data-mobile-body-choice]") : "";
     if (body) summary.push(body);
     summary.push(rangeSummary(c.price, filters.priceFrom, filters.priceTo, "EUR"));
     summary.push(rangeSummary(c.year, filters.yearFrom, filters.yearTo));

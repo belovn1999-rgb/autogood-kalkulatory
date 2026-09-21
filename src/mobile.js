@@ -44,6 +44,7 @@ const copy = {
     driveRwd: "RWD",
     gearboxLabel: "Skrzynia biegów",
     gearboxAny: "Dowolny",
+    bodyAny: "Dowolne",
     gearboxAutomatic: "Automatyczna",
     gearboxManual: "Manualna",
     vatLabel: "VAT",
@@ -234,6 +235,7 @@ const copy = {
     driveRwd: "Задний",
     gearboxLabel: "Коробка передач",
     gearboxAny: "Любая",
+    bodyAny: "Любой",
     gearboxAutomatic: "Автоматическая",
     gearboxManual: "Механическая",
     vatLabel: "VAT",
@@ -1071,7 +1073,7 @@ const els = {
   fuels: Array.from(document.querySelectorAll("[data-mobile-fuel]")),
   fuelSummary: document.querySelector("[data-mobile-fuel-summary]"),
   body: document.querySelector("[data-mobile-body]"),
-  bodyLabel: document.querySelector("[data-mobile-body-label]"),
+  bodyChoices: document.querySelector("[data-mobile-body-choices]"),
   priceFrom: document.querySelector("[data-mobile-price-from]"),
   priceTo: document.querySelector("[data-mobile-price-to]"),
   mileageFrom: document.querySelector("[data-mobile-mileage-from]"),
@@ -1595,8 +1597,17 @@ function setComboDisplay(input, value, options, emptyLabel = copy[state.lang].se
   input.placeholder = emptyLabel;
 }
 
+// Body type is a one-click chip row (like the gearbox); the hidden input keeps the value.
 function setBodyDisplay(value) {
-  setComboDisplay(els.bodyLabel, value, bodyOptions);
+  if (!els.bodyChoices) return;
+  const current = value || "";
+  const options = [{ value: "", pl: copy.pl.bodyAny, ru: copy.ru.bodyAny }, ...bodyOptions];
+  els.bodyChoices.innerHTML = options.map((option) => `
+    <label class="mobileChoiceOption">
+      <input data-mobile-body-choice name="mobile-body" type="radio" value="${escapeHtml(option.value)}"${option.value === current ? " checked" : ""} />
+      <span>${escapeHtml(option[state.lang])}</span>
+    </label>
+  `).join("");
 }
 
 function setSimpleSelectDisplays(values) {
@@ -1854,7 +1865,7 @@ function updateSelectedFiltersSummary() {
     { value: [filters.brand, filters.model].filter(Boolean).join(" - "), icon: "", primary: true, target: els.brand },
     { value: filters.version, icon: "list", target: els.version },
     ...selectedInputSummaryParts(els.fuels, "fuel"),
-    { value: els.bodyLabel?.value, icon: "car", target: els.bodyLabel },
+    { value: filters.body ? optionLabel(bodyOptions, filters.body) : "", icon: "car", target: els.bodyChoices },
     { value: priceFilterSummary(filters.priceFrom, filters.priceTo), icon: "tag", target: els.priceFrom },
     { value: rangeFilterSummary(c.mileageRangeLabel, filters.mileageFrom, filters.mileageTo, "km"), icon: "gauge", target: els.mileageFrom },
     { value: rangeFilterSummary(c.yearRangeLabel, filters.yearFrom, filters.yearTo), icon: "calendar", target: els.yearFrom },
@@ -2669,7 +2680,9 @@ document.addEventListener("click", (event) => {
   const control = event.target.closest(".mobileComboControl[data-mobile-options]");
   if (control) {
     if (event.target.closest("input")) {
-      openComboMenu(control, event.target.readOnly ? null : control);
+      // A click always shows the whole list; typing (the input event) narrows it.
+      openComboMenu(control);
+      if (!event.target.readOnly && event.target.value) event.target.select();
       return;
     }
     const isOpen = control.classList.contains("isOpen");
@@ -2707,6 +2720,10 @@ document.querySelectorAll(".mobileComboControl input").forEach((input) => {
   });
 });
 
+els.bodyChoices?.addEventListener("change", (event) => {
+  const choice = event.target.closest("[data-mobile-body-choice]");
+  if (choice) els.body.value = choice.value;
+});
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
 els.fuels.forEach((input) => input.addEventListener("change", updateFuelSummary));
 

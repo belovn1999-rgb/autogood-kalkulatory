@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=mobile-price-range-20260908" />
+  <link rel="stylesheet" href="./src/mobile.css?v=chip-rows-20260921" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-edit-20260903" />
   </head>
   <body class="mobileBody">
@@ -112,60 +112,55 @@
           <div class="mobileManualForm">
             <section class="mobileManualSection">
               <div class="mobileManualGrid">
-            <label class="mobileField">
-              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="brandLabel">Marka</span></span>
-              <div class="mobileComboControl mobileTextComboControl mobileBrandCombo" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
-                <input data-mobile-brand type="text" autocomplete="off" />
-              </div>
-            </label>
-            <label class="mobileField">
-              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="modelLabel">Model</span></span>
-              <div class="mobileComboControl mobileTextComboControl mobileModelCombo" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
-                <input data-mobile-model type="text" autocomplete="off" />
-              </div>
-            </label>
-            <div class="mobileRangeDivider mobileVehicleDetailsDivider" aria-hidden="true"></div>
             <div class="mobileVehicleTripleRow mobileWideField">
+              <label class="mobileField">
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="brandLabel">Marka</span></span>
+                <div class="mobileComboControl mobileTextComboControl mobileBrandCombo" data-mobile-options="brand" data-mobile-options-target="data-mobile-brand">
+                  <input data-mobile-brand type="text" autocomplete="off" />
+                </div>
+              </label>
+              <label class="mobileField">
+                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="modelLabel">Model</span></span>
+                <div class="mobileComboControl mobileTextComboControl mobileModelCombo" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
+                  <input data-mobile-model type="text" autocomplete="off" />
+                </div>
+              </label>
               <label class="mobileField">
                 <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="versionLabel">Wersja</span></span>
                 <input data-mobile-version type="text" autocomplete="off" />
               </label>
-              <label class="mobileField">
-                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#fuel"></use></svg><span data-i18n="fuelLabel">Paliwo</span></span>
-                <details class="mobileMultiSelect mobileFuelMultiSelect" data-mobile-fuel-select>
-                  <summary data-mobile-fuel-summary></summary>
-                  <div class="mobileMultiSelectMenu">
-                    <label><input data-mobile-fuel type="checkbox" value="petrol" /> <span data-i18n="fuelPetrol">Benzyna</span></label>
-                    <label><input data-mobile-fuel type="checkbox" value="diesel" /> <span data-i18n="fuelDiesel">Diesel</span></label>
-                    <label><input data-mobile-fuel type="checkbox" value="hybrid_diesel" /> <span data-i18n="fuelHybridDiesel">Hybryda diesel</span></label>
-                    <label><input data-mobile-fuel type="checkbox" value="hybrid_petrol" /> <span data-i18n="fuelHybridPetrol">Hybryda benzyna</span></label>
-                    <label><input data-mobile-fuel type="checkbox" value="electric" /> <span data-i18n="fuelElectric">Elektryk</span></label>
-                    <label><input data-mobile-fuel type="checkbox" value="plugin" /> <span data-i18n="pluginLabel">Plug-in</span></label>
-                  </div>
-                </details>
-              </label>
-              <label class="mobileField">
-                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="bodyLabel">Nadwozie</span></span>
-                <div class="mobileComboControl mobileTextComboControl" data-mobile-options="body" data-mobile-options-target="data-mobile-body-label" data-mobile-value-target="data-mobile-body">
-                  <input data-mobile-body-label type="text" autocomplete="off" readonly />
-                  <input data-mobile-body type="hidden" />
+            </div>
+            <div class="mobileRangeDivider mobileVehicleDetailsDivider" aria-hidden="true"></div>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#fuel"></use></svg><span data-i18n="fuelLabel">Paliwo</span></legend>
+              <div class="mobileChoiceGroup mobileInlineChoiceGroup">
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="petrol" /> <span data-i18n="fuelPetrol">Benzyna</span></label>
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="diesel" /> <span data-i18n="fuelDiesel">Diesel</span></label>
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="hybrid_diesel" /> <span data-i18n="fuelHybridDiesel">Hybryda diesel</span></label>
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="hybrid_petrol" /> <span data-i18n="fuelHybridPetrol">Hybryda benzyna</span></label>
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="electric" /> <span data-i18n="fuelElectric">Elektryk</span></label>
+                <label class="mobileChoiceOption"><input data-mobile-fuel type="checkbox" value="plugin" /> <span data-i18n="pluginLabel">Plug-in</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="mobileField mobileChoiceField mobileWideField">
+              <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="bodyLabel">Nadwozie</span></legend>
+              <div class="mobileChoiceGroup mobileInlineChoiceGroup" data-mobile-body-choices></div>
+              <input data-mobile-body type="hidden" />
+            </fieldset>
+            <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
+            <div class="mobileField mobileRangeField mobileWideField">
+              <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="priceRangeLabel">Cena (EUR)</span></span>
+              <div class="mobileRangePair">
+                <div class="mobileComboControl" data-mobile-options="price" data-mobile-options-target="data-mobile-price-from">
+                  <input data-mobile-price-from inputmode="numeric" autocomplete="off" />
+                  <em>EUR</em>
                 </div>
-              </label>
-              <div class="mobileField mobileRangeField mobileVehiclePriceField">
-                <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#tag"></use></svg><span data-i18n="priceRangeLabel">Cena (EUR)</span></span>
-                <div class="mobileRangePair">
-                  <div class="mobileComboControl" data-mobile-options="price" data-mobile-options-target="data-mobile-price-from">
-                    <input data-mobile-price-from inputmode="numeric" autocomplete="off" />
-                    <em>EUR</em>
-                  </div>
-                  <div class="mobileComboControl" data-mobile-options="priceTo" data-mobile-options-target="data-mobile-price-to">
-                    <input data-mobile-price-to inputmode="numeric" autocomplete="off" />
-                    <em>EUR</em>
-                  </div>
+                <div class="mobileComboControl" data-mobile-options="priceTo" data-mobile-options-target="data-mobile-price-to">
+                  <input data-mobile-price-to inputmode="numeric" autocomplete="off" />
+                  <em>EUR</em>
                 </div>
               </div>
             </div>
-            <div class="mobileRangeDivider mobileCategoryDivider" aria-hidden="true"></div>
             <div class="mobileField mobileRangeField mobileWideField">
               <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="mileageRangeLabel">Przebieg</span></span>
               <div class="mobileRangePair">
@@ -535,7 +530,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=open-ranges-20260921"></script>
-    <script src="./src/mobile-market-analysis.js?v=mobile-price-range-20260908"></script>
+    <script src="./src/mobile.js?v=chip-rows-20260921"></script>
+    <script src="./src/mobile-market-analysis.js?v=chip-rows-20260921"></script>
   </body>
 </html>
