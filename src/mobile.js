@@ -591,14 +591,25 @@ const mobileDeOptionParams = {
 };
 
 const otomotoMakeAliases = {
+  "Asia Motors": "asia",
   Citroen: "citroen",
+  Corvette: "chevrolet",
   DS: "ds-automobiles",
+  KGM: "ssangyong",
   Mini: "mini",
+  ORA: "gwm",
   "Mercedes Trucks": "mercedes-benz",
   "Mercedes Vans": "mercedes-benz",
   "Vw Nutzfahrzeuge": "volkswagen",
 };
 
+// Makes that Otomoto files as models of another make: every search stays on those models.
+const otomotoMakeModels = {
+  Corvette: ["corvette"],
+  ORA: ["ora-03", "ora-07"],
+};
+
+// Mobile.de model -> Otomoto model id(s). { slugs, broad } marks an approximate match; [] means no equivalent.
 const otomotoModelAliases = {
   Audi: {
     "A6 e-tron": "a6-e-tron",
@@ -608,20 +619,91 @@ const otomotoModelAliases = {
     "TT RS": "tt-rs",
     TTS: "tt-s",
   },
+  BAIC: {
+    "Beijing X35": "senova-x35",
+    "Beijing X55": "senova-x55",
+    X55: "senova-x55",
+  },
+  Bentley: { "Continental Supersports": { slugs: "continental-gt", broad: true } },
+  Citroen: { "Grand C4 Picasso / SpaceTourer": ["c4-grand-picasso", "c4-spacetourer"] },
   Cupra: {
     Formentor: "cupra-formentor",
     Leon: "cupra-leon",
   },
+  Dodge: { Demon: { slugs: "challenger", broad: true } },
+  DS: {
+    "Nº4": "n-4",
+    "Nº8": "n-8",
+  },
+  Ferrari: {
+    550: "f550",
+    "599 GTO": { slugs: "599gtb", broad: true },
+    "599 SA Aperta": { slugs: "599gtb", broad: true },
+  },
   Fiat: { "500e": "500-e" },
-  Ford: { "Ka+": "ka_plus" },
+  Ford: {
+    "Ka+": "ka_plus",
+    Sportka: { slugs: "ka", broad: true },
+    Raptor: { slugs: ["ranger-raptor", "f150"], broad: true },
+  },
+  Infiniti: {
+    G35: { slugs: "g", broad: true },
+    G37: { slugs: "g", broad: true },
+    M30: { slugs: "m", broad: true },
+    M35: { slugs: "m", broad: true },
+    M37: { slugs: "m", broad: true },
+  },
+  JAC: { "8 Pro": "t8-pro" },
+  Kia: { "cee'd Sportswagon": { slugs: "ceed", broad: true } },
+  Lada: {
+    Taiga: { slugs: "niva", broad: true },
+    Urban: { slugs: "niva", broad: true },
+  },
+  Maserati: {
+    222: { slugs: "biturbo", broad: true },
+    228: { slugs: "biturbo", broad: true },
+    418: { slugs: "biturbo", broad: true },
+    420: { slugs: "biturbo", broad: true },
+    422: { slugs: "biturbo", broad: true },
+    424: { slugs: "biturbo", broad: true },
+    430: { slugs: "biturbo", broad: true },
+    4200: { slugs: ["coupe", "spyder"], broad: true },
+  },
   Mazda: {
     "B series": "seria-b",
+    "CX-6e": [],
     "E series": "seria-e",
   },
   "Mercedes-Benz": {
+    190: "w201-190",
+    B: "klasa-b",
+    "B Electric Drive": { slugs: "klasa-b", broad: true },
+    CE: "klasa-e",
+    R: "klasa-r",
     "T-Class": "t-klasa",
     "X-Class": "x-klasa",
   },
+  MG: {
+    MG4: "4",
+    "MG4 EV Urban": { slugs: "4", broad: true },
+    MG5: "5",
+  },
+  Mini: { Clubvan: { slugs: "clubman", broad: true } },
+  Mitsubishi: {
+    Mirage: "space-star",
+    "Pick-up": { slugs: "l200", broad: true },
+  },
+  Morgan: { "3 Wheeler": { slugs: "super-3", broad: true } },
+  Nissan: { Evalia: { slugs: "nv200", broad: true } },
+  OMODA: { "5 EV": "e5" },
+  Opel: { "Pick Up Sportscap": "pick-up-sportcap" },
+  ORA: { "Funky Cat": "ora-03" },
+  Peugeot: { TePee: { slugs: "partner", broad: true } },
+  Renault: {
+    "Grand Kangoo E-TECH": { slugs: "kangoo", broad: true },
+    Rapid: { slugs: "express", broad: true },
+  },
+  Suzuki: { Cappuccino: "cappucino" },
   Tesla: { "Model Y": "y" },
   Toyota: { "Prius+": "prius_plus" },
   Volkswagen: {
@@ -631,6 +713,7 @@ const otomotoModelAliases = {
     "ID.7 Tourer": "id7-tourer",
     "up!": "up",
   },
+  Volvo: { EX40: { slugs: "xc-40", broad: true } },
 };
 
 const otomotoFuelValues = {
@@ -684,22 +767,6 @@ const otomotoAirConditioningValues = {
   automatic_4_zones: "4-or-more-zone-automatic-climate-control",
 };
 
-const otomotoCountryOriginValues = {
-  DE: "d",
-  BE: "b",
-  NL: "nl",
-  FR: "f",
-  AT: "a",
-  LU: "l",
-  SE: "s",
-  IT: "i",
-  DK: "dk",
-  CZ: "cz",
-  LT: "lt",
-  LV: "lv",
-  EE: "est",
-  SK: "sk",
-};
 
 const otomotoExteriorColorValues = {
   beige: "brown-beige",
@@ -2030,6 +2097,13 @@ function validatedOtomotoModel(makeSlug, requestedSlugs, broad = false) {
   return { slugs: validSlugs, broad, unsupported: Boolean(slugs.length && !validSlugs.length) };
 }
 
+function otomotoModelWords(value) {
+  return otomotoSlug(value).split("-").filter(Boolean);
+}
+
+// Mini trims that Otomoto lists next to the body models (Clubman, Countryman, ...).
+const otomotoMiniTrims = ["cooper", "cooper-s", "one", "john-cooper-works"];
+
 function matchedOtomotoModels(makeSlug, model) {
   const catalogModels = window.AUTOGOOD_OTOMOTO_CATALOG?.modelsByMake?.[makeSlug] || [];
   const requestedSlug = otomotoSlug(model);
@@ -2051,28 +2125,58 @@ function matchedOtomotoModels(makeSlug, model) {
     return { slugs: descendants.map((candidate) => candidate.id), broad: false };
   }
 
-  const ancestors = catalogModels
-    .filter((candidate) => {
-      if (candidate.id === "other") return false;
-      const idToken = otomotoModelToken(candidate.id);
-      const nameToken = otomotoModelToken(candidate.name);
-      return idToken.length >= 2 && (
-        requestedToken.startsWith(idToken)
-        || requestedToken.startsWith(nameToken)
-        || requestedToken.endsWith(idToken)
-        || requestedToken.endsWith(nameToken)
-      );
-    })
-    .sort((left, right) => otomotoModelToken(right.name).length - otomotoModelToken(left.name).length);
-  if (!ancestors.length) return { slugs: [], broad: false };
-  const bestLength = otomotoModelToken(ancestors[0].name).length;
-  return { slugs: ancestors
-    .filter((candidate) => otomotoModelToken(candidate.name).length === bestLength)
-    .map((candidate) => candidate.id), broad: true };
+  // Broader Otomoto model whose words open or close the requested name:
+  // "Cooper SE" -> cooper, "e-2008" -> 2008, "595 Competizione" -> 595 (not 595c).
+  const requestedWords = otomotoModelWords(model);
+  const wordScore = (candidate) => Math.max(...[candidate.id, candidate.name].map((value) => {
+    const words = otomotoModelWords(value);
+    if (!words.length || words.length >= requestedWords.length) return 0;
+    const opens = words.every((word, index) => requestedWords[index] === word);
+    const closes = words.every((word, index) => requestedWords[requestedWords.length - words.length + index] === word);
+    // The leading words name the model more often than trailing ones ("S6 e-tron" -> s6).
+    return (opens ? 100 : 0) + (opens || closes ? words.join("").length : 0);
+  }));
+  // A number or trim letter glued to the model: "EX35" -> ex, "XKR" -> xk, "500C" -> 500.
+  // Digits never extend a number: "H 100" is not h-1, "X55" is not x5.
+  const glueScore = (candidate) => Math.max(...[candidate.id, candidate.name].map((value) => {
+    const token = otomotoModelToken(value);
+    if (token.length < 2 || token.length >= requestedToken.length) return 0;
+    if (requestedToken.startsWith(token)) {
+      const rest = requestedToken.slice(token.length);
+      return /^[a-z]$/.test(rest) || (/^\d+$/.test(rest) && !/\d$/.test(token)) ? token.length : 0;
+    }
+    const lead = requestedToken.slice(0, -token.length);
+    // "C1500" -> 1500; "eVito" -> vito (electric twin).
+    return requestedToken.endsWith(token) && (lead === "e" || (/^[a-z]$/.test(lead) && /^\d/.test(token))) ? token.length : 0;
+  }));
+
+  for (const score of [wordScore, glueScore]) {
+    let ranked = catalogModels
+      .filter((candidate) => candidate.id !== "other")
+      .map((candidate) => ({ candidate, value: score(candidate) }))
+      .filter((entry) => entry.value > 0);
+    if (makeSlug === "mini" && ranked.some((entry) => !otomotoMiniTrims.includes(entry.candidate.id))) {
+      ranked = ranked.filter((entry) => !otomotoMiniTrims.includes(entry.candidate.id));
+    }
+    if (!ranked.length) continue;
+    const best = Math.max(...ranked.map((entry) => entry.value));
+    return {
+      slugs: ranked.filter((entry) => entry.value === best).map((entry) => entry.candidate.id),
+      broad: true,
+    };
+  }
+  // Electric twins Otomoto keeps under the base model: "ë-C4 X" -> c4x.
+  if (requestedWords[0] === "e" && requestedWords.length > 1) {
+    const base = matchedOtomotoModels(makeSlug, requestedWords.slice(1).join(" "));
+    return { slugs: base.slugs, broad: base.slugs.length > 0 };
+  }
+  return { slugs: [], broad: false };
 }
 
 function otomotoModelSelection(brand, model) {
-  const cleanModel = String(model || "").trim();
+  // Mini "SD" is the diesel Cooper S.
+  let cleanModel = String(model || "").trim();
+  if (brand === "Mini") cleanModel = cleanModel.replace(/\bCooper SD\b/i, "Cooper S");
   if (!cleanModel) return { slugs: [], broad: false, unsupported: false };
   const makeSlug = otomotoMakeSelection(brand).slug;
   if (!makeSlug) return { slugs: [], broad: false, unsupported: true };
@@ -2104,13 +2208,31 @@ function otomotoModelSelection(brand, model) {
   }
 
   const alias = otomotoModelAliases[brand]?.[cleanModel];
-  if (alias) return validatedOtomotoModel(makeSlug, alias);
+  if (alias !== undefined) {
+    const { slugs, broad = false } = typeof alias === "object" && !Array.isArray(alias) ? alias : { slugs: alias };
+    if (![slugs].flat().length) return { slugs: [], broad: false, unsupported: true };
+    return validatedOtomotoModel(makeSlug, slugs, broad);
+  }
+  if (otomotoMakeModels[brand]) return validatedOtomotoModel(makeSlug, otomotoMakeModels[brand], true);
   const matches = matchedOtomotoModels(makeSlug, cleanModel);
-  return validatedOtomotoModel(
-    makeSlug,
-    matches.slugs.length ? matches.slugs : otomotoSlug(cleanModel),
-    matches.broad,
-  );
+  if (matches.slugs.length) return validatedOtomotoModel(makeSlug, matches.slugs, matches.broad);
+  const fallback = otomotoModelFallback(brand, cleanModel);
+  if (fallback.length) return validatedOtomotoModel(makeSlug, fallback, true);
+  return validatedOtomotoModel(makeSlug, otomotoSlug(cleanModel));
+}
+
+// Model families Otomoto keeps under one name: generations, old numbering, T-series vans.
+function otomotoModelFallback(brand, model) {
+  if (brand === "Porsche" && /^9\d\d$/.test(model) && model !== "918") return ["911"];
+  const volvoSeries = brand === "Volvo" && model.match(/^([2-9])\d\d$/)?.[1];
+  if (volvoSeries) return [`seria-${volvoSeries}00`];
+  const renaultNumber = brand === "Renault" && model.match(/^R\s*(\d+)$/i)?.[1];
+  if (renaultNumber) return [renaultNumber];
+  if (brand === "Mercedes-Benz" && /^CE\s+\d/i.test(model)) return ["klasa-e"];
+  if (brand === "Mercedes-Benz" && /^(200|220|230|240|250|260|300)$/.test(model)) return ["w123", "w124-1984-1993"];
+  const vanSeries = brand === "Volkswagen" && model.match(/^T([1-7])\b/i)?.[1];
+  if (vanSeries) return Number(vanSeries) < 3 ? ["transporter"] : ["transporter", "multivan", "caravelle", "california"];
+  return [];
 }
 
 function appendOtomotoValues(params, filterId, values) {
@@ -2141,7 +2263,11 @@ function buildOtomotoSearchUrl(filters) {
   const pathParts = ["https://www.otomoto.pl/osobowe", makeSlug].filter(Boolean);
   const params = new URLSearchParams();
 
-  appendOtomotoValues(params, "filter_enum_model", modelSelection.slugs);
+  appendOtomotoValues(
+    params,
+    "filter_enum_model",
+    modelSelection.slugs.length || filters.model ? modelSelection.slugs : otomotoMakeModels[filters.brand],
+  );
   const body = otomotoBodyValues[filters.body];
   if (body) params.set("search[filter_enum_body_type]", body);
   appendOtomotoRange(params, "filter_float_price", filters.priceFrom, String(filters.priceTo || "").trim().endsWith("+") ? "" : filters.priceTo);
@@ -2165,11 +2291,8 @@ function buildOtomotoSearchUrl(filters) {
 
   const seller = otomotoSellerValues[filters.seller];
   if (seller) params.set("search[private_business]", seller);
-  appendOtomotoValues(
-    params,
-    "filter_enum_country_origin",
-    (filters.countries || []).map((country) => otomotoCountryOriginValues[country]),
-  );
+  // Mobile.de "cn" is where the car is offered. Otomoto listings are all in Poland, and its
+  // "Kraj pochodzenia" (import origin) is a different filter, so countries stay reported, not sent.
   appendOtomotoValues(
     params,
     "filter_enum_upholstery_type",

@@ -1,7 +1,7 @@
 /* Generated from Otomoto search filters. Do not hand-edit. */
 window.AUTOGOOD_OTOMOTO_CATALOG = {
   "generatedFrom": "https://www.otomoto.pl/osobowe",
-  "generatedAt": "2026-09-04T13:55:25.402Z",
+  "generatedAt": "2026-09-21T09:47:27.000Z",
   "modelsByMake": {
     "abarth": [
       {
@@ -7749,6 +7749,10 @@ window.AUTOGOOD_OTOMOTO_CATALOG = {
         "name": "Rekord"
       },
       {
+        "id": "rocks-e",
+        "name": "Rocks-e"
+      },
+      {
         "id": "senator",
         "name": "Senator"
       },
@@ -8255,6 +8259,10 @@ window.AUTOGOOD_OTOMOTO_CATALOG = {
       {
         "id": "cayenne",
         "name": "Cayenne"
+      },
+      {
+        "id": "cayenne-electric",
+        "name": "Cayenne Electric"
       },
       {
         "id": "cayman",

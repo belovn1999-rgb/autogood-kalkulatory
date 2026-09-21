@@ -68,6 +68,8 @@ function extractFunction(source, name) {
 
 const literalNames = [
   "otomotoMakeAliases",
+  "otomotoMakeModels",
+  "otomotoMiniTrims",
   "otomotoModelAliases",
   "otomotoFuelValues",
   "otomotoBodyValues",
@@ -76,7 +78,6 @@ const literalNames = [
   "otomotoSellerValues",
   "otomotoInteriorMaterialValues",
   "otomotoAirConditioningValues",
-  "otomotoCountryOriginValues",
   "otomotoExteriorColorValues",
   "otomotoFeatureFilters",
   "otomotoParkingFilters",
@@ -103,7 +104,9 @@ vm.createContext(context);
   "otomotoMakeSelection",
   "validatedOtomotoModel",
   "otomotoModelToken",
+  "otomotoModelWords",
   "matchedOtomotoModels",
+  "otomotoModelFallback",
   "otomotoModelSelection",
   "appendOtomotoValues",
   "appendOtomotoRange",
@@ -201,7 +204,6 @@ if (url.searchParams.get("search[filter_enum_model]") !== "x3") {
 const expectedMultiValues = {
   filter_enum_fuel_type: ["diesel", "hybrid", "plugin-hybrid"],
   filter_enum_transmission: ["all-wheel-auto", "all-wheel-lock", "all-wheel-permanent"],
-  filter_enum_country_origin: ["d", "b"],
   filter_enum_upholstery_type: ["alcantara-upholstery", "leather-upholstery"],
   filter_enum_cruisecontrol_type: ["adaptive-cruise-control", "adaptive-cruise-control-predictive"],
   filter_enum_color: ["black", "blue"],
@@ -214,6 +216,7 @@ Object.entries(expectedMultiValues).forEach(([filterId, values]) => {
   });
 });
 
+if (url.href.includes("country_origin")) throw new Error("Seller country must not become Otomoto's import origin.");
 for (const unsupported of ["ROOF_RAILS", "REAR_TRAFFIC_ALERT"]) {
   if (url.href.includes(unsupported)) throw new Error(`${unsupported} must not leak into the Otomoto URL.`);
 }
@@ -225,6 +228,37 @@ if (!context.buildOtomotoSearchUrl({ ...filters, brand: "Mercedes-Benz", model: 
 }
 if (context.otomotoModelSelection("Abarth", "595 Competizione").unsupported) {
   throw new Error("Abarth 595 Competizione must map to the broader Otomoto 595 model.");
+}
+const expectedModels = [
+  ["Abarth", "595 Competizione", "595"],
+  ["Mini", "Cooper SE", "cooper"],
+  ["Mini", "Cooper SD Cabrio", "cooper-s"],
+  ["Mini", "John Cooper Works Countryman", "countryman"],
+  ["BAIC", "X55", "senova-x55"],
+  ["Porsche", "992", "911"],
+  ["Volvo", "940", "seria-900"],
+  ["Mercedes-Benz", "B", "klasa-b"],
+  ["Mercedes-Benz", "eVito", "vito"],
+  ["Fiat", "500C", "500"],
+  ["Citroen", "ë-C4 X", "c4x"],
+  ["KGM", "Torres", "torres"],
+  ["Corvette", "C8", "corvette"],
+  ["MG", "MG4", "4"],
+];
+expectedModels.forEach(([brand, model, slug]) => {
+  const selection = context.otomotoModelSelection(brand, model);
+  if (selection.unsupported || selection.slugs.join("|") !== slug) {
+    throw new Error(`${brand} ${model}: expected Otomoto ${slug}, got ${selection.slugs.join("|") || "none"}.`);
+  }
+});
+for (const [brand, model] of [["Hyundai", "H 100"], ["Mazda", "CX-6e"]]) {
+  if (!context.otomotoModelSelection(brand, model).unsupported) {
+    throw new Error(`${brand} ${model} has no Otomoto twin and must be reported, not approximated.`);
+  }
+}
+const oraUrl = new URL(context.buildOtomotoSearchUrl({ ...filters, brand: "ORA", model: "" }));
+if (oraUrl.pathname !== "/osobowe/gwm" || oraUrl.searchParams.get("search[filter_enum_model][1]") !== "ora-07") {
+  throw new Error("ORA must open GWM limited to the Ora models.");
 }
 const audiA4 = context.otomotoModelSelection("Audi", "A4");
 if (audiA4.unsupported || !audiA4.slugs.includes("a4-avant") || !audiA4.slugs.includes("a4-limousine")) {
