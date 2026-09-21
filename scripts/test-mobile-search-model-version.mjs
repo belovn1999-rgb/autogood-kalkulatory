@@ -34,8 +34,11 @@ const context = {
   state: { lang: "pl" },
   compactNumber: (value) => String(value || "").replace(/\s+/g, "").match(/\d+/)?.[0] || "",
   normalizeToken: (value) => String(value || "").trim().toLowerCase(),
-  mobileDeMakeIds: { Mazda: "16800", Nissan: "18700" },
-  mobileDeModelIdsByBrand: { Mazda: {}, Nissan: { Skyline: "33" } },
+  mobileDeMakeIds: { Mazda: "16800", Nissan: "18700", BMW: "3500", "Mercedes-Benz": "17200" },
+  mobileDeModelIdsByBrand: { Mazda: { "6": "7" }, Nissan: { Skyline: "33" }, BMW: { "330": "15", "840": "42", "850": "43" }, "Mercedes-Benz": {} },
+  mobileDeGroupIdsByBrand: { BMW: { "3 Series": "21" }, "Mercedes-Benz": { "C-Class": "6" } },
+  mobileDeOptionParams: { BI_XENON_HEADLIGHTS: "hlt", REAR_TRAFFIC_ALERT: "fe" },
+  modelGroupsForBrand: (brand) => brand === "BMW" ? [{ group: "8 Series", models: ["8", "840", "850"] }] : [],
   generatedMobileModelCatalog: { makeKeys: {} },
   mobileDeBodyValues: { coupe: "SportsCar" },
   mobileDeFuelValues: { petrol: "PETROL", electric: "ELECTRICITY" },
@@ -50,6 +53,8 @@ vm.createContext(context);
 [
   "mobileDeNumber",
   "mobileDeModelId",
+  "mobileDeGroupId",
+  "mobileDeModelSelection",
   "appendMobileDeRange",
   "manualFuelValues",
   "buildMobileDeSearchUrl",
@@ -92,12 +97,37 @@ const baseFilters = {
 };
 
 const emptyVersionUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, version: "" }));
-assert.equal(emptyVersionUrl.pathname, "/auto/mazda-6.html", "selected model must use its Mobile.de model route");
-assert.equal(emptyVersionUrl.searchParams.get("ms"), null, "empty Version must not receive the selected model");
+assert.equal(emptyVersionUrl.pathname, "/fahrzeuge/search.html", "a model must never use the filter-dropping SEO route");
+assert.equal(emptyVersionUrl.searchParams.get("ms"), "16800;7;;", "selected model must use its numeric Mobile.de ID");
 
 const versionUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, version: "Kombi" }));
-assert.equal(versionUrl.pathname, "/auto/mazda-6.html", "selected model route must remain unchanged when Version is set");
-assert.equal(versionUrl.searchParams.get("ms"), ";;;Kombi", "only the Version value may occupy the Version segment");
+assert.equal(versionUrl.searchParams.get("ms"), "16800;7;;Kombi", "only the Version value may occupy the Version segment");
+
+const seriesUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "BMW", model: "3", yearFrom: "2019" }));
+assert.equal(seriesUrl.searchParams.get("ms"), "3500;;21;", "a series entry must select the Mobile.de model group");
+assert.equal(seriesUrl.searchParams.get("fr"), "2019:", "filters must survive a model group search");
+const classUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "Mercedes-Benz", model: "C" }));
+assert.equal(classUrl.searchParams.get("ms"), "17200;;6;", "Mercedes C must select the C-Class group");
+const exactBmwUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "BMW", model: "330" }));
+assert.equal(exactBmwUrl.searchParams.get("ms"), "3500;15;;", "an exact model must win over its group");
+
+const ownSeriesUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "BMW", model: "8" }));
+assert.deepEqual(ownSeriesUrl.searchParams.getAll("ms"), ["3500;42;;", "3500;43;;"], "a series without a Mobile.de group must select each of its models");
+
+const unknownModelUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, model: "Custom", version: "2.0" }));
+assert.equal(unknownModelUrl.pathname, "/fahrzeuge/search.html", "an unknown model must keep the search page");
+assert.equal(unknownModelUrl.searchParams.get("ms"), "16800;;;Custom 2.0", "an unknown model must fall back to a text search within the make");
+
+const optionUrl = new URL(context.buildMobileDeSearchUrl({
+  ...baseFilters,
+  fuels: ["petrol", "plugin"],
+  features: ["BI_XENON_HEADLIGHTS", "PANORAMIC_GLASS_ROOF"],
+  parkingSensors: ["REAR_TRAFFIC_ALERT", "REAR_VIEW_CAM"],
+}));
+assert.deepEqual(optionUrl.searchParams.getAll("ft"), ["PETROL"], "plug-in is not a Mobile.de fuel type");
+assert.deepEqual(optionUrl.searchParams.getAll("hlt"), ["BI_XENON_HEADLIGHTS"], "headlights must use Mobile.de's hlt parameter");
+assert.deepEqual(optionUrl.searchParams.getAll("fe"), ["PANORAMIC_GLASS_ROOF", "REAR_TRAFFIC_ALERT", "HYBRID_PLUGIN"], "plug-in and rear traffic alert are Mobile.de features");
+assert.deepEqual(optionUrl.searchParams.getAll("pa"), ["REAR_VIEW_CAM"], "parking assistants must use Mobile.de's pa parameter");
 
 const filterUrl = new URL(context.buildMobileDeSearchUrl({
   ...baseFilters,

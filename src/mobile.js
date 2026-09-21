@@ -501,7 +501,7 @@ const mobileDeMakeIds = {
   "Land Rover": "14800",
   Lancia: "14700",
   Lexus: "15200",
-  MAN: "186",
+  MAN: "16500",
   Mazda: "16800",
   "Mercedes-Benz": "17200",
   Mini: "17500",
@@ -578,6 +578,16 @@ const mobileDeTrailerCouplingValues = {
   all: "TRAILER_COUPLING_FIX",
   detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
   swiveling: "TRAILER_COUPLING_SWIVELING",
+};
+
+// Options Mobile.de files under their own query parameter (checked against the
+// filter contract embedded in suchen.mobile.de); anything under the wrong key is silently ignored.
+const mobileDeOptionParams = {
+  BI_XENON_HEADLIGHTS: "hlt",
+  LASER_HEADLIGHTS: "hlt",
+  ADAPTIVE_BENDING_LIGHTS: "blt",
+  LED_RUNNING_LIGHTS: "drl",
+  REAR_TRAFFIC_ALERT: "fe",
 };
 
 const otomotoMakeAliases = {
@@ -964,6 +974,10 @@ const mobileDeModelIdsByBrand = {
   Nissan: mobileDeNissanModelIds,
   ...(generatedMobileModelCatalog.modelIds || {}),
 };
+// Numeric make IDs straight from Mobile.de's search form (tools/generate-mobile-de-ids.py).
+// Only numeric IDs keep filters: the /auto/<make>-<model>.html SEO route redirects and drops them.
+Object.assign(mobileDeMakeIds, generatedMobileModelCatalog.mobileDeMakeIds || {});
+const mobileDeGroupIdsByBrand = generatedMobileModelCatalog.groupIds || {};
 
 const state = {
   lang: new URLSearchParams(window.location.search).get("lang") === "ru" ? "ru" : "pl",
@@ -1870,6 +1884,39 @@ function mobileDeModelId(brand, model) {
   return match?.[1] || "";
 }
 
+// A series entry ("3" in BMW 3 Series, "C" in Mercedes C-Class) or a group name
+// selects the whole Mobile.de model group, which lives in the third ms segment.
+function mobileDeGroupId(brand, model) {
+  const normalized = normalizeToken(model);
+  if (!normalized) return "";
+  const match = Object.entries(mobileDeGroupIdsByBrand[brand] || {}).find(([label]) => {
+    const group = label.replace(/\s*\(alle\)\s*$/i, "");
+    const series = group.replace(/(?:\s+|-)(?:class|klasse|series|serie|reihe)$/i, "");
+    return [label, group, series].some((value) => normalizeToken(value) === normalized);
+  });
+  return match?.[1] || "";
+}
+
+function mobileDeModelSelection(filters) {
+  const makeId = filters.brand ? mobileDeMakeIds[filters.brand] || "" : "";
+  const model = String(filters.model || "").trim();
+  const version = String(filters.version || "").trim();
+  if (!makeId) return "";
+  if (!model) return version ? `${makeId};;;${version}` : makeId;
+  const modelId = mobileDeModelId(filters.brand, model);
+  if (modelId) return `${makeId};${modelId};;${version}`;
+  const groupId = mobileDeGroupId(filters.brand, model);
+  if (groupId) return `${makeId};;${groupId};${version}`;
+  // A series we group ourselves (BMW 8 Series) has no Mobile.de group: select each of its models.
+  // withSeriesBaseModels puts that series entry first in its group.
+  const series = modelGroupsForBrand(filters.brand)
+    .find((group) => normalizeToken(group.models[0]) === normalizeToken(model));
+  const seriesIds = (series?.models.slice(1) || []).map((name) => mobileDeModelId(filters.brand, name)).filter(Boolean);
+  if (seriesIds.length) return seriesIds.map((id) => `${makeId};${id};;${version}`);
+  // Unknown model text: search it as a model description instead of losing the make and filters.
+  return `${makeId};;;${[model, version].filter(Boolean).join(" ")}`;
+}
+
 function appendMobileDeRange(params, key, fromValue, toValue, transform = (value) => value) {
   const from = mobileDeNumber(fromValue);
   const to = mobileDeNumber(toValue);
@@ -1890,43 +1937,9 @@ function buildMobileDeSearchUrl(filters) {
 
   if (filters.damagedVehicles !== "show") params.set("dam", "false");
 
-  const makeId = filters.brand ? mobileDeMakeIds[filters.brand] : "";
-  const makeKey = filters.brand ? generatedMobileModelCatalog.makeKeys?.[filters.brand] : "";
-  let searchBaseUrl = "https://suchen.mobile.de/fahrzeuge/search.html";
-  if (filters.brand && !makeId && !makeKey) throw new Error(c.marketSearchUnsupportedBrand);
-  if (filters.model && !makeId && !makeKey) throw new Error(c.marketSearchChooseBrand);
-  if (makeId) {
-    const exactModelId = mobileDeModelId(filters.brand, filters.model);
-    const version = String(filters.version || "").trim();
-    if (exactModelId) params.set("ms", `${makeId};${exactModelId};;${version}`);
-    else if (filters.model) {
-      const slug = [filters.brand, filters.model]
-        .filter(Boolean)
-        .join(" ")
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/&/g, " and ")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-      searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`;
-      if (version) params.set("ms", `;;;${version}`);
-    } else if (version) params.set("ms", `${makeId};;;${version}`);
-    else params.set("ms", makeId);
-  } else if (makeKey) {
-    const slug = [filters.brand, filters.model]
-      .filter(Boolean)
-      .join(" ")
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/&/g, " and ")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`;
-    const version = String(filters.version || "").trim();
-    if (version) params.set("ms", `;;;${version}`);
-  }
+  if (filters.brand && !mobileDeMakeIds[filters.brand]) throw new Error(c.marketSearchUnsupportedBrand);
+  if (filters.model && !filters.brand) throw new Error(c.marketSearchChooseBrand);
+  [mobileDeModelSelection(filters)].flat().filter(Boolean).forEach((selection) => params.append("ms", selection));
 
   const body = mobileDeBodyValues[filters.body];
   if (body) params.set("c", body);
@@ -1944,8 +1957,9 @@ function buildMobileDeSearchUrl(filters) {
   );
   appendMobileDeRange(params, "sc", filters.seatsFrom, filters.seatsTo);
 
-  manualFuelValues(filters)
-    .map((value) => value === "plugin" ? "HYBRID_PLUGIN" : mobileDeFuelValues[value])
+  const fuels = manualFuelValues(filters);
+  fuels
+    .map((value) => mobileDeFuelValues[value])
     .filter(Boolean)
     .forEach((fuel) => params.append("ft", fuel));
 
@@ -1968,8 +1982,8 @@ function buildMobileDeSearchUrl(filters) {
   if (airConditioning) params.set("clim", airConditioning);
   const trailerCoupling = mobileDeTrailerCouplingValues[filters.trailerCoupling];
   if (trailerCoupling) params.set("tct", trailerCoupling);
-  (filters.features || []).forEach((feature) => params.append("fe", feature));
-  (filters.parkingSensors || []).forEach((sensor) => params.append("pa", sensor));
+  (filters.features || []).forEach((feature) => params.append(mobileDeOptionParams[feature] || "fe", feature));
+  (filters.parkingSensors || []).forEach((sensor) => params.append(mobileDeOptionParams[sensor] || "pa", sensor));
   if (filters.cruiseControl && filters.cruiseControl !== "any") params.set("spc", filters.cruiseControl);
   filters.exteriorColors.forEach((color) => params.append("ecol", color.toUpperCase()));
   filters.interiorColors.forEach((color) => {
@@ -1978,11 +1992,13 @@ function buildMobileDeSearchUrl(filters) {
   if (filters.matte) params.append("fe", "MATTE_COLOR");
   if (filters.metallic) params.append("fe", "METALLIC");
   if (filters.nonSmoking) params.append("fe", "NONSMOKER_VEHICLE");
+  // Mobile.de treats plug-in hybrids as a feature (fe), not a fuel type: ft=HYBRID_PLUGIN is ignored.
+  if (fuels.includes("plugin")) params.append("fe", "HYBRID_PLUGIN");
   if (filters.roadworthy) params.set("rtd", "true");
 
   params.set("sb", "p");
   params.set("od", "up");
-  return `${searchBaseUrl}?${params.toString()}`;
+  return `https://suchen.mobile.de/fahrzeuge/search.html?${params.toString()}`;
 }
 
 function otomotoSlug(value) {

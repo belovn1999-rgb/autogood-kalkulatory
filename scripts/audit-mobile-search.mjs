@@ -92,7 +92,6 @@ const bmwGroups = extractLiteral(mobileSource, "modelGroupsByBrand").BMW;
 const bmwModelIds = extractLiteral(mobileSource, "mobileDeBmwModelIds");
 const groupsByBrand = { BMW: bmwGroups, ...generatedCatalog.groups };
 const modelIdsByBrand = { BMW: bmwModelIds, ...generatedCatalog.modelIds };
-const makeIds = extractLiteral(mobileSource, "mobileDeMakeIds");
 const makeKeys = generatedCatalog.makeKeys || {};
 
 equalObject(extractLiteral(mobileSource, "mobileDeFuelValues"), {
@@ -151,6 +150,13 @@ equalObject(extractLiteral(mobileSource, "mobileDeAirConditioningValues"), {
   automatic_3_zones: "AUTOMATIC_CLIMATISATION_3_ZONES",
   automatic_4_zones: "AUTOMATIC_CLIMATISATION_4_ZONES",
 }, "Klimatyzacja");
+equalObject(extractLiteral(mobileSource, "mobileDeOptionParams"), {
+  BI_XENON_HEADLIGHTS: "hlt",
+  LASER_HEADLIGHTS: "hlt",
+  ADAPTIVE_BENDING_LIGHTS: "blt",
+  LED_RUNNING_LIGHTS: "drl",
+  REAR_TRAFFIC_ALERT: "fe",
+}, "Parametry opcji");
 equalObject(extractLiteral(mobileSource, "mobileDeTrailerCouplingValues"), {
   all: "TRAILER_COUPLING_FIX",
   detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
@@ -163,8 +169,10 @@ const contractFragments = [
   ['params.set("s", "Car")', "klasa Car"],
   ['params.set("vc", "Car")', "typ Car"],
   ['params.set("dam", "false")', "pojazdy uszkodzone"],
-  ['params.set("ms", `${makeId};${exactModelId};;${version}`)', "marka/model/wersja"],
-  ['searchBaseUrl = `https://suchen.mobile.de/auto/${slug}.html`', "SEO fallback marki/modelu"],
+  ['return `${makeId};${modelId};;${version}`', "marka/model/wersja"],
+  ['return `${makeId};;${groupId};${version}`', "marka/grupa modeli/wersja"],
+  ['params.append("ms", selection)', "identyfikatory marki i modelu"],
+  ['return `https://suchen.mobile.de/fahrzeuge/search.html?${params.toString()}`', "wyszukiwarka bez przekierowania SEO"],
   ['params.set("c", body)', "nadwozie"],
   ['appendMobileDeRange(params, "p"', "cena"],
   ['appendMobileDeRange(params, "ml"', "przebieg"],
@@ -173,7 +181,7 @@ const contractFragments = [
   ['appendMobileDeRange(\n    params,\n    "pw"', "moc"],
   ['appendMobileDeRange(params, "sc"', "liczba miejsc"],
   ['manualFuelValues(filters)', "wielokrotny wybór paliwa"],
-  ['value === "plugin" ? "HYBRID_PLUGIN"', "Plug-in"],
+  ['params.append("fe", "HYBRID_PLUGIN")', "Plug-in"],
   ['params.append("ft", fuel)', "paliwo"],
   ['params.set("dt", drive)', "napęd"],
   ['params.set("tr", gearbox)', "skrzynia biegów"],
@@ -184,8 +192,8 @@ const contractFragments = [
   ['params.append("it", value)', "materiał wnętrza"],
   ['params.set("clim", airConditioning)', "klimatyzacja"],
   ['params.set("tct", trailerCoupling)', "hak holowniczy"],
-  ['params.append("fe", feature)', "wyposażenie"],
-  ['params.append("pa", sensor)', "asystenci parkowania"],
+  ['params.append(mobileDeOptionParams[feature] || "fe", feature)', "wyposażenie"],
+  ['params.append(mobileDeOptionParams[sensor] || "pa", sensor)', "asystenci parkowania"],
   ['params.set("spc", filters.cruiseControl)', "tempomat"],
   ['params.append("ecol", color.toUpperCase())', "kolor nadwozia"],
   ['params.append("icol"', "kolor wnętrza"],
@@ -208,13 +216,18 @@ requireSource('document.addEventListener("pointerdown", (event) => {', "wybór p
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {
-  if (!makeIds[brand] && !makeKeys[brand]) throw new Error(`${brand}: brak identyfikatora marki.`);
+  if (!/^\d+$/.test(generatedCatalog.mobileDeMakeIds?.[brand] || "")) {
+    throw new Error(`${brand}: brak numerycznego ID marki Mobile.de.`);
+  }
   const models = groups.flatMap((group) => group.models);
   const uniqueModels = new Set(models);
   if (uniqueModels.size !== models.length) throw new Error(`${brand}: duplikaty modeli.`);
   const modelIds = modelIdsByBrand[brand] || {};
   const extraIds = Object.keys(modelIds).filter((model) => !uniqueModels.has(model));
   if (extraIds.length) throw new Error(`${brand}: nadmiar ID [${extraIds.join(", ")}].`);
+  // Without a numeric model ID the search falls back to text and may miss listings.
+  const missingIds = [...uniqueModels].filter((model) => !modelIds[model]);
+  if (missingIds.length) throw new Error(`${brand}: brak ID Mobile.de [${missingIds.join(", ")}].`);
   modelCount += models.length;
 }
 const catalogBrandCount = Object.keys(makeKeys).length;
@@ -313,6 +326,6 @@ if (!process.argv.includes("--offline")) {
 }
 
 console.log(`OK: ${modelCount} modeli, ${Object.keys(groupsByBrand).length} marek z katalogiem.`);
-console.log("OK: zapisane web-ID są zgodne; pozostałe modele używają fallbacku tekstowego.");
+console.log("OK: każda marka i każdy model ma numeryczne ID Mobile.de.");
 console.log(`OK: ${contractFragments.length} kontrakty pól i parametrów wyszukiwania.`);
 if (brandResults.length) console.log(`OK refdata: ${brandResults.join("; ")}.`);
