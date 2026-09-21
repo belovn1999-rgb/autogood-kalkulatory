@@ -1984,9 +1984,26 @@ function mobileDeModelSelection(filters) {
   return `${makeId};;;${[model, version].filter(Boolean).join(" ")}`;
 }
 
+// Open-ended options: "< 5000" picked as the lower bound means "up to 5000",
+// "> 5000" picked as the upper bound means "over 5000" (no upper limit).
+function rangeBounds(fromValue, toValue) {
+  const rawFrom = String(fromValue || "").trim();
+  const rawTo = String(toValue || "").trim();
+  let from = mobileDeNumber(rawFrom);
+  let to = mobileDeNumber(rawTo);
+  if (/^</.test(rawFrom)) {
+    if (to === null) to = from;
+    from = null;
+  }
+  if (/^>/.test(rawTo)) {
+    if (from === null) from = to;
+    to = null;
+  }
+  return { from, to };
+}
+
 function appendMobileDeRange(params, key, fromValue, toValue, transform = (value) => value) {
-  const from = mobileDeNumber(fromValue);
-  const to = mobileDeNumber(toValue);
+  const { from, to } = rangeBounds(fromValue, toValue);
   if (from !== null && to !== null && from > to) {
     throw new Error(copy[state.lang].marketSearchInvalidRange);
   }
@@ -2246,8 +2263,7 @@ function appendOtomotoValues(params, filterId, values) {
 }
 
 function appendOtomotoRange(params, filterId, fromValue, toValue) {
-  const from = mobileDeNumber(fromValue);
-  const to = mobileDeNumber(toValue);
+  const { from, to } = rangeBounds(fromValue, toValue);
   if (from !== null && to !== null && from > to) {
     throw new Error(copy[state.lang].marketSearchInvalidRange);
   }

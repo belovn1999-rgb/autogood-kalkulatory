@@ -52,6 +52,7 @@ const context = {
 vm.createContext(context);
 [
   "mobileDeNumber",
+  "rangeBounds",
   "mobileDeModelId",
   "mobileDeGroupId",
   "mobileDeModelSelection",
@@ -110,6 +111,11 @@ const classUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand:
 assert.equal(classUrl.searchParams.get("ms"), "17200;;6;", "Mercedes C must select the C-Class group");
 const exactBmwUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "BMW", model: "330" }));
 assert.equal(exactBmwUrl.searchParams.get("ms"), "3500;15;;", "an exact model must win over its group");
+
+const openLowUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, displacementFrom: "< 5000" }));
+assert.equal(openLowUrl.searchParams.get("cc"), ":5000", "\"< 5000\" as the lower bound means up to 5000 ccm");
+const openHighUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, displacementFrom: "3000", displacementTo: "> 5000" }));
+assert.equal(openHighUrl.searchParams.get("cc"), "3000:", "\"> 5000\" as the upper bound removes the upper limit");
 
 const ownSeriesUrl = new URL(context.buildMobileDeSearchUrl({ ...baseFilters, brand: "BMW", model: "8" }));
 assert.deepEqual(ownSeriesUrl.searchParams.getAll("ms"), ["3500;42;;", "3500;43;;"], "a series without a Mobile.de group must select each of its models");

@@ -100,6 +100,7 @@ vm.createContext(context);
   "manualFuelValues",
   "compactNumber",
   "mobileDeNumber",
+  "rangeBounds",
   "otomotoSlug",
   "otomotoMakeSelection",
   "validatedOtomotoModel",
@@ -255,6 +256,15 @@ for (const [brand, model] of [["Hyundai", "H 100"], ["Mazda", "CX-6e"]]) {
   if (!context.otomotoModelSelection(brand, model).unsupported) {
     throw new Error(`${brand} ${model} has no Otomoto twin and must be reported, not approximated.`);
   }
+}
+const openLow = new URL(context.buildOtomotoSearchUrl({ ...filters, displacementFrom: "< 5000", displacementTo: "" }));
+if (openLow.searchParams.get("search[filter_float_engine_capacity:from]") !== null
+  || openLow.searchParams.get("search[filter_float_engine_capacity:to]") !== "5000") {
+  throw new Error('"< 5000" as the lower bound must mean up to 5000 ccm.');
+}
+const openHigh = new URL(context.buildOtomotoSearchUrl({ ...filters, displacementFrom: "3000", displacementTo: "> 5000" }));
+if (openHigh.searchParams.get("search[filter_float_engine_capacity:to]") !== null) {
+  throw new Error('"> 5000" as the upper bound must not cap the engine size.');
 }
 const oraUrl = new URL(context.buildOtomotoSearchUrl({ ...filters, brand: "ORA", model: "" }));
 if (oraUrl.pathname !== "/osobowe/gwm" || oraUrl.searchParams.get("search[filter_enum_model][1]") !== "ora-07") {
