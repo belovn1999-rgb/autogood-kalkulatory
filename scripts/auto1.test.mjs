@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tokenize, moveRecord, serialize } from '../src/auto1-engine.mjs';
-import { textRows, validateOutputText, makeCover, planPage } from '../src/auto1-rules.mjs';
+import { textRows, validateOutputText, makeCover, planPage, splitTitle, basicCover } from '../src/auto1-rules.mjs';
 
 test('operator-like text inside strings and arrays remains literal', () => {
   assert.deepEqual(tokenize('% comment\n[(q Q Do) 20 (nested \\(text\\)) <5144>] TJ /Image Do'),
@@ -110,4 +110,39 @@ test('an unfamiliar page in the report body keeps everything it has', () => {
   const plan = planPage(6, model(records), page, rebuiltCover, 4);
   assert.deepEqual(plan.records, records);
   assert.ok(plan.requiredRows.includes('SOMETHING AUTO1 HAS NEVER PRINTED BEFORE'), 'unknown text must be required to survive');
+});
+
+// Each glyph of an AUTO1 title is its own Tj, advanced by a horizontal Td.
+const titleRecord = (glyphs, x, y) => ({
+  kind: 'text', anchor: [x, y], matrix: [0.75, 0, 0, -0.75, 0, 0], clips: [], style: {}, textStyle: {},
+  body: ['/F1 22 Tf', '1 0 0 -1 100 22 Tm', ...glyphs.flatMap((g, i) => (i ? ['10 0 Td', `<0${g}> Tj`] : [`<0${g}> Tj`]))].join('\n'),
+});
+
+test('a long title is cut at the balancing space into two lines without touching a glyph', () => {
+  const row = textRows({ items: [word('AB CD', 75, 700, 37.5, 16.5)] });
+  const split = splitTitle(model([titleRecord([1, 2, 3, 4, 5], 75, 700)]), row, 20);
+  assert.equal(split.scale, 1);
+  assert.equal(split.parts[0].record.body, '/F1 22 Tf\n1 0 0 -1 100 22 Tm\n<01> Tj\n10 0 Td\n<02> Tj\n10 0 Td');
+  assert.equal(split.parts[1].record.body, '/F1 22 Tf\n1 0 0 -1 100 22 Tm\n30.000000 0 Td\n<04> Tj\n10 0 Td\n<05> Tj');
+  assert.deepEqual(split.parts.map((p) => p.width), [15, 15]);
+  assert.equal(split.parts[1].left, 97.5);
+});
+
+test('a title in any other shape is not split, so the caller can fall back safely', () => {
+  const row = textRows({ items: [word('AB CD', 75, 700, 37.5, 16.5)] });
+  const kerned = { ...titleRecord([1, 2, 3, 4, 5], 75, 700), body: '/F1 22 Tf\n1 0 0 -1 100 22 Tm\n[<0102> -20 <03040 5>] TJ' };
+  assert.equal(splitTitle(model([kerned]), row, 20), null);
+  assert.equal(splitTitle(model([titleRecord([1, 2, 3, 4, 5], 75, 700)]), row, 10), null, 'still too wide on two lines');
+});
+
+test('the fallback cover drops the whole offer paragraph and the stock number value', () => {
+  const rows = textRows({ items: [
+    word('AUTO1 Premium Return Right', 283, 724, 140), word('to return the car within 24 hours', 268, 671, 255),
+    word('Stock number :', 262.8, 593.7, 76), word('FU94669', 426, 593.7, 46),
+    word('Build year :', 262.8, 562.2, 58), word('2018', 426, 562.2, 26),
+  ] });
+  const records = rows.map((r) => ({ kind: 'text', anchor: [r.x, r.y], box: [r.x, r.y, r.right, r.y], style: {} }));
+  const cover = basicCover(model(records), rows);
+  assert.deepEqual(cover.requiredRows, ['Build year :', '2018']);
+  assert.deepEqual(cover.records.map((r) => r.anchor[1]), [562.2, 562.2]);
 });
