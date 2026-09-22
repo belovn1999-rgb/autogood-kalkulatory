@@ -1,4 +1,4 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260917-content-rules';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260922-two-line-title';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
@@ -46,6 +46,45 @@ function mediaRecords(m,rows,cover=false) {
   return m.records.filter(r=>realImage(r,m)&&(!cover||r.box[3]<m.height-65*m.height/BASE_HEIGHT));
 }
 function mergeResources(a,b) {for(const [cat,dict] of Object.entries(b))Object.assign(a[cat] ||= {},dict);}
+
+// AUTO1's title is one text object drawing each character with its own Tj and
+// a horizontal Td advance, so it can be cut at a space into two objects
+// without touching a glyph. Returns null for any other shape.
+const GLYPH=/^<[0-9A-Fa-f]+>\s*Tj$/;
+export function splitTitle(m,titleRows,maxWidth) {
+  if(titleRows.length!==1)return null;
+  const row=titleRows[0],texts=m.records.filter(r=>nearRow(r,row));
+  if(texts.length!==1)return null;
+  const record=texts[0],lines=record.body.split('\n');
+  const start=lines.findIndex(line=>GLYPH.test(line));
+  if(start<0||lines.slice(0,start).some(line=>/(?:T[jJ]|['"])$/.test(line)))return null;
+  const tm=lines.slice(0,start).map(line=>line.match(/^(\S+) (\S+) (\S+) (\S+) \S+ \S+ Tm$/)).find(Boolean);
+  if(!tm||Number(tm[2])!==0||Number(tm[3])!==0||record.matrix[1]!==0||record.matrix[2]!==0)return null;
+  const glyphLines=[start],before=[0];
+  let advance=0;
+  for(let i=start+1;i<lines.length;i++) {
+    if(GLYPH.test(lines[i])) {glyphLines.push(i);before.push(advance);continue;}
+    const td=lines[i].match(/^(\S+) (\S+) Td$/);
+    if(!td||Number(td[2])!==0||!Number.isFinite(Number(td[1])))return null;
+    advance+=Number(td[1]);
+  }
+  if(glyphLines.length!==row.text.length)return null;
+  const unit=record.matrix[0]*Number(tm[1]),total=row.right-row.x;
+  let best=null;
+  for(let k=1;k<row.text.length-1;k++) {
+    if(row.text[k]!==' ')continue;
+    const first=unit*before[k],secondStart=unit*before[k+1],widest=Math.max(first,total-secondStart);
+    if(!best||widest<best.widest)best={k,first,secondStart,widest};
+  }
+  if(!best)return null;
+  const scale=Math.min(1,maxWidth/best.widest);
+  if(scale<.85)return null;
+  const head=lines.slice(0,start);
+  const firstLine={...record,body:lines.slice(0,glyphLines[best.k]).join('\n')};
+  const secondLine={...record,anchor:[row.x+best.secondStart,row.y],
+    body:[...head,`${before[best.k+1].toFixed(6)} 0 Td`,...lines.slice(glyphLines[best.k+1])].join('\n')};
+  return {scale,parts:[{record:firstLine,left:row.x,width:best.first},{record:secondLine,left:row.x+best.secondStart,width:total-best.secondStart}]};
+}
 
 export function makeCover(models,data,titleHint) {
   const m=models[0],sx=m.width/BASE_WIDTH,sy=m.height/BASE_HEIGHT;
@@ -100,10 +139,19 @@ export function makeCover(models,data,titleHint) {
   const titleLeft=Math.min(...titleRows.map(r=>r.x)),titleRight=Math.max(...titleRows.map(r=>r.right));
   const titleTop=Math.max(...titleRows.map(r=>r.y));
   const titleScale=Math.min(1, (285*sx)/(titleRight-titleLeft));
-  if(titleScale<.7)throw new Error('Nazwa samochodu nie mieści się w nagłówku.');
-  const titleX=440*sx-(titleRight-titleLeft)*titleScale/2;
-  for(const r of m.records)if(titleRows.some(row=>nearRow(r,row)))records.push(moveRecord(r,titleX-titleLeft,m.height-87.25*sy-titleTop,titleScale,[titleLeft,titleTop]));
-  const titleBottom=m.height-87.25*sy-(titleTop-Math.min(...titleRows.map(r=>r.y)))*titleScale;
+  // Shrinking a long make/model/version makes it unreadable; two lines do not.
+  const split=titleScale<.85?splitTitle(m,titleRows,285*sx):null;
+  if(!split&&titleScale<.7)throw new Error('Nazwa samochodu nie mieści się w nagłówku.');
+  let titleBottom;
+  if(split) {
+    const gap=titleRows[0].height*1.2*split.scale;
+    split.parts.forEach((part,n)=>records.push(moveRecord(part.record,440*sx-part.width*split.scale/2-part.left,m.height-87.25*sy-n*gap-titleTop,split.scale,[part.left,titleTop])));
+    titleBottom=m.height-87.25*sy-gap;
+  } else {
+    const titleX=440*sx-(titleRight-titleLeft)*titleScale/2;
+    for(const r of m.records)if(titleRows.some(row=>nearRow(r,row)))records.push(moveRecord(r,titleX-titleLeft,m.height-87.25*sy-titleTop,titleScale,[titleLeft,titleTop]));
+    titleBottom=m.height-87.25*sy-(titleTop-Math.min(...titleRows.map(r=>r.y)))*titleScale;
+  }
   const buildTarget=Math.min(m.height-144*sy,titleBottom-45*sy);
   const fieldBottom=Math.min(...fields.map(f=>f.row.y+f.offset));
   const scale=Math.min(1,(buildTarget-(m.height-680*sy))/Math.max(1,build.y-fieldBottom));
@@ -133,10 +181,26 @@ function readModel(lib,source,page,index) {
   try {return readRecords(lib,source,page,index);}catch{return null;}
 }
 
-// Without the rebuilt layout the cover still loses its auction block.
-function basicCover(m,rows) {
-  const junk=rows.filter(junkRow);
-  return m.records.filter(r=>!rail(r,m)&&!frame(r,m)&&!junk.some(row=>nearRow(r,row)));
+// Without the rebuilt layout the cover still loses its whole auction block.
+export function basicCover(m,rows) {
+  const junk=new Set(rows.filter(junkRow));
+  // A junk label takes the value printed after it on its line (Stock number: FU94669).
+  for(const label of [...junk].filter(r=>r.text.endsWith(':')))
+    for(const row of rows)if(Math.abs(row.y-label.y)<1.2&&row.x>label.x)junk.add(row);
+  // The offer paragraph wraps differently every time; all of it down to the first field goes.
+  const offer=rows.filter(r=>/Premium Return Right/i.test(r.text)),first=rows.find(r=>/^(?:Stock number|Build year)\b/i.test(r.text));
+  const sy=m.height/BASE_HEIGHT;
+  let card=null;
+  if(offer.length&&first) {
+    const top=Math.max(...offer.map(r=>r.y)),left=Math.min(...offer.map(r=>r.x))-20;
+    for(const row of rows)if(row.y<=top+.8&&row.y>first.y+.8&&row.x>=left)junk.add(row);
+    // The offer card's icon, radio button, frame and underline.
+    card=r=>r.kind!=='text'&&r.kind!=='image'&&r.box[0]>=left-30&&r.box[1]>first.y+5*sy&&r.box[3]<=top+20*sy;
+  }
+  const records=m.records.filter(r=>!rail(r,m)&&!frame(r,m)&&![...junk].some(row=>nearRow(r,row))&&!card?.(r)
+    // Account and menu icons in the top-right corner of the auction page.
+    &&!(r.kind!=='text'&&r.box[1]>m.height-60*sy&&r.box[0]>m.width*.6));
+  return {records,requiredRows:rowText(rows.filter(r=>!junk.has(r)))};
 }
 
 function cleanContent(m,d,text) {
@@ -170,7 +234,7 @@ function cleanContent(m,d,text) {
 export function planPage(i,m,d,cover,firstSection) {
   const images=mediaRecords(m,d.rows),text=norm(d.text);
   if(i===0)return cover?{records:cover.records,reason:'cover',requiredRows:cover.requiredRows}
-    :{records:basicCover(m,d.rows),reason:'cover-basic',requiredRows:rowText(d.rows.filter(r=>!junkRow(r)))};
+    :{...basicCover(m,d.rows),reason:'cover-basic'};
   if(!images.length&&d.rows.length&&d.rows.every(r=>legalRow.test(r.text)))return {records:[],reason:'legal-only',requiredRows:[]};
   if(i<firstSection) {
     // Between the cover and the first section AUTO1 prints only its own
