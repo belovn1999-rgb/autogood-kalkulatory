@@ -1,4 +1,4 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260922-two-line-title';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260922-long-cover';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
@@ -92,11 +92,16 @@ export function makeCover(models,data,titleHint) {
   const build=rows.find(r=>/^Build year\s*:/i.test(r.text));
   if(!build)throw new Error('Nie rozpoznano pól pierwszej strony. Potrzebna jest kontrola pliku.');
   const rightX=build.x-3;
-  let locationPage=-1,locationEntries=[];
-  for(let i=0;i<Math.min(data.length,3);i++) {
+  // A long cover pushes the location past the gallery pages, so it is looked
+  // for everywhere before the report proper begins.
+  const sectionAt=data.findIndex((p,i)=>i>0&&section.test(p.text));
+  let locationPage=-1,locationEntries=[],inline=false;
+  for(let i=0;i<(sectionAt<0?Math.min(data.length,3):sectionAt);i++) {
     const ri=data[i].rows.findIndex(r=>/^Car location\b/i.test(r.text));
     if(ri>=0) {
       locationPage=i;const label=data[i].rows[ri];
+      // Under the gallery AUTO1 prints the label and value on one line.
+      if(/^Car location\s*:\s*\S/i.test(label.text)) {inline=true;locationEntries=[{row:label,pageIndex:i,offset:0}];break;}
       const sameRows=data[i].rows.filter(r=>r.y<=label.y+.8&&r.y>=label.y-40*sy&&r.x>=rightX-10&&!/\d+:\d+/.test(r.text));
       locationEntries=sameRows.map(row=>({row,pageIndex:i,offset:0}));
       // AUTO1 sometimes runs the "Car location" label to the very bottom of
@@ -115,7 +120,7 @@ export function makeCover(models,data,titleHint) {
     }
   }
   const locationRows=locationEntries.map(e=>e.row);
-  if(locationPage<0||locationRows.length<2)throw new Error('Nie znaleziono pełnej lokalizacji auta. Potrzebna jest kontrola pliku.');
+  if(locationPage<0||(!inline&&locationRows.length<2))throw new Error('Nie znaleziono pełnej lokalizacji auta. Potrzebna jest kontrola pliku.');
   // A long car name is centred and can start left of the value column even
   // though it still belongs to it; require it to reach the column instead.
   const titleCandidates=rows.filter(r=>r.y>build.y&&r.right>=rightX&&!promotion.test(r.text)&&!/^Build year/i.test(r.text));
@@ -125,9 +130,11 @@ export function makeCover(models,data,titleHint) {
   const fields=[];
   let previousBottom=null;
   for(let pageIndex=0;pageIndex<=locationPage;pageIndex++) {
-    const fieldRows=data[pageIndex].rows.filter(r=>r.x>=rightX&&(pageIndex!==0||r.y<=build.y+.8)&&(pageIndex!==locationPage||r.y>locationRows[0].y+1));
-    if(fieldRows.some(r=>promotion.test(r.text)||section.test(r.text)))throw new Error('Niejednoznaczny blok danych auta. Potrzebna jest kontrola pliku.');
-    if(!fieldRows.length)continue;
+    const fieldRows=data[pageIndex].rows.filter(r=>r.x>=rightX&&(pageIndex!==0||r.y<=build.y+.8)&&(pageIndex!==locationPage||r.y>locationRows[0].y+1)&&!junkRow(r));
+    if(fieldRows.some(r=>section.test(r.text)))throw new Error('Niejednoznaczny blok danych auta. Potrzebna jest kontrola pliku.');
+    // The field column is contiguous: once a page carries none of it, the
+    // pages that follow are gallery or logistics, not more fields.
+    if(!fieldRows.length) {if(pageIndex>0)break;continue;}
     const pageTop=Math.max(...fieldRows.map(r=>r.y));
     const offset=previousBottom===null?0:previousBottom-22*sy-pageTop;
     for(const row of fieldRows)fields.push({row,pageIndex,offset});
@@ -163,11 +170,20 @@ export function makeCover(models,data,titleHint) {
       if(match)records.push(moveRecord(r,0,buildTarget-build.y+match.offset*scale,scale,[build.x,build.y]));
     }
   }
-  const locationY=Math.min(m.height-722.5*sy,buildTarget-(build.y-fieldBottom)*scale-54*sy);
+  // A one-line location joins the field list as its next row; the heading
+  // form keeps its own block below the fields.
+  const locationY=inline?buildTarget-(build.y-fieldBottom)*scale-22*sy*scale
+    :Math.min(m.height-722.5*sy,buildTarget-(build.y-fieldBottom)*scale-54*sy);
   if(locationY<65*sy)throw new Error('Lokalizacja nie mieści się na pierwszej stronie.');
+  const valueColumn=rows.find(r=>Math.abs(r.y-build.y)<1.2&&r.x>build.right);
   for(const entry of locationEntries) {
     mergeResources(m.resources,models[entry.pageIndex].resources);
-    for(const r of models[entry.pageIndex].records)if(nearRow(r,entry.row))records.push(moveRecord(r,build.x-locationRows[0].x,locationY-locationRows[0].y+entry.offset));
+    const colon=inline?entry.row.items.findIndex(item=>item.text.includes(':')):-1;
+    const value=colon>=0?entry.row.items[colon+1]:null;
+    for(const r of models[entry.pageIndex].records)if(nearRow(r,entry.row)) {
+      const dx=value&&valueColumn&&r.anchor[0]>=value.x-1?valueColumn.x-value.x:build.x-locationRows[0].x;
+      records.push(moveRecord(r,dx,locationY-locationRows[0].y+entry.offset));
+    }
   }
   const locationContinuation=[...new Set(locationEntries.filter(e=>e.pageIndex!==locationPage).map(e=>e.pageIndex))]
     .map(pageIndex=>({pageIndex,rows:locationEntries.filter(e=>e.pageIndex===pageIndex).map(e=>e.row)}));
@@ -187,11 +203,17 @@ export function basicCover(m,rows) {
   // A junk label takes the value printed after it on its line (Stock number: FU94669).
   for(const label of [...junk].filter(r=>r.text.endsWith(':')))
     for(const row of rows)if(Math.abs(row.y-label.y)<1.2&&row.x>label.x)junk.add(row);
-  // The offer paragraph wraps differently every time; all of it down to the first field goes.
+  // Between the car's name and "Build year" AUTO1 prints only its bid, VAT,
+  // offer and stock blocks, in whatever order and wrapping; all of it goes.
   const offer=rows.filter(r=>/Premium Return Right/i.test(r.text)),first=rows.find(r=>/^(?:Stock number|Build year)\b/i.test(r.text));
+  const build=rows.find(r=>/^Build year\s*:/i.test(r.text));
   const sy=m.height/BASE_HEIGHT;
   let card=null;
-  if(offer.length&&first) {
+  const title=build&&rows.filter(r=>r.y>build.y&&r.height>=14*sy&&!promotion.test(r.text)).sort((a,b)=>b.y-a.y)[0];
+  if(build&&title) {
+    for(const row of rows)if(row.y>build.y+.8&&row.y<title.y-1&&row.right>=build.x)junk.add(row);
+    card=r=>r.kind!=='text'&&r.kind!=='image'&&r.box[0]>=build.x-40&&r.box[1]>build.y+5*sy&&r.box[3]<title.y-2*sy;
+  } else if(offer.length&&first) {
     const top=Math.max(...offer.map(r=>r.y)),left=Math.min(...offer.map(r=>r.x))-20;
     for(const row of rows)if(row.y<=top+.8&&row.y>first.y+.8&&row.x>=left)junk.add(row);
     // The offer card's icon, radio button, frame and underline.

@@ -146,3 +146,42 @@ test('the fallback cover drops the whole offer paragraph and the stock number va
   assert.deepEqual(cover.requiredRows, ['Build year :', '2018']);
   assert.deepEqual(cover.records.map((r) => r.anchor[1]), [562.2, 562.2]);
 });
+
+// Real layout of a report whose bid, VAT and offer blocks pushed the fields
+// onto page 2 and the one-line location under the gallery on page 5.
+test('a one-line location found under the gallery joins the fields as their next row', () => {
+  const W = 594.96, H = 841.92;
+  const page = (items, text = items.map((i) => i.str).join('\n')) => ({ rows: textRows({ items }), text });
+  const data = [
+    page([word('Citroen C4 Grand Spacetourer 2.0 Blue-HDi Shine', 181.4, 761.7, 388.6, 16.5), word('€12,160', 254.5, 730.2, 61, 16.5),
+      word('Stock number :', 262.8, 475.9, 76, 11.25), word('DN30005', 426, 475.9, 49, 11.6),
+      word('Build year :', 262.8, 444.4, 58, 11.25), word('2021', 426, 444.4, 26, 11.25),
+      word('Seats :', 262.8, 21.4, 32, 11.25), word('7', 426, 21.4, 6, 11.25)]),
+    page([word('CO2 Emissions :', 262.8, 747.4, 82, 11.25), word('151 g/km', 426, 747.4, 46, 11.25)]),
+    page([]), page([]),
+    page([word('Car location :', 48, 79.9, 62, 10.5), word('FR, Loyettes', 124, 79.9, 62, 10.5)]),
+    page([word('Delivery to my address', 48, 700, 120), word('€646', 300, 660, 30)]),
+    page([word('MAIN CAR DETAILS', 48, 800, 100)]),
+  ];
+  const text = (x, y) => ({ kind: 'text', anchor: [x, y], matrix: [1, 0, 0, 1, 0, 0], clips: [], style: {}, textStyle: {}, body: '' });
+  const models = data.map((d, i) => ({ records: i === 0 ? [{ kind: 'image', box: [10, 100, 240, 700], matrix: [1, 0, 0, 1, 0, 0], clips: [], style: {} }] : [], resources: {}, width: W, height: H }));
+  models[4].records.push(text(48, 79.9), text(124, 79.9));
+  const cover = makeCover(models, data, 'Citroen C4 Grand Spacetourer 2.0 Blue-HDi Shine');
+  assert.ok(cover.requiredRows.includes('FR, Loyettes'));
+  assert.ok(cover.requiredRows.includes('CO2 Emissions :'));
+  assert.ok(!cover.requiredRows.some((t) => /DN30005|€/.test(t)), 'nothing between the title and Build year survives');
+  const [label, value] = cover.records.filter((r) => r.kind === 'text').map((r) => [r.matrix[4] + r.anchor[0], r.matrix[5] + r.anchor[1]]);
+  assert.equal(label[0], 262.8, 'label aligns with the field labels');
+  assert.equal(value[0], 426, 'value aligns with the field values');
+  assert.equal(label[1], value[1]);
+});
+
+test('the fallback cover drops everything between the title and Build year', () => {
+  const rows = textRows({ items: [
+    word('Citroen C4 Grand Spacetourer 2.0 Blue-HDi Shine', 181.4, 761.7, 388.6, 16.5), word('€12,160', 254.5, 730.2, 61, 16.5),
+    word('Your bid includes 20 % VAT for the car.', 254.5, 709.2, 276, 9), word('VAT deductible ( 20 %)', 284.5, 538.9, 110, 11.25),
+    word('Build year :', 262.8, 444.4, 58, 11.25), word('2021', 426, 444.4, 26, 11.25),
+  ] });
+  const cover = basicCover(model(rows.map((r) => ({ kind: 'text', anchor: [r.x, r.y], box: [r.x, r.y, r.right, r.y], style: {} }))), rows);
+  assert.deepEqual(cover.requiredRows, ['Citroen C4 Grand Spacetourer 2.0 Blue-HDi Shine', 'Build year :', '2021']);
+});
