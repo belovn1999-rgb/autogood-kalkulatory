@@ -185,3 +185,11 @@ test('the fallback cover drops everything between the title and Build year', () 
   const cover = basicCover(model(rows.map((r) => ({ kind: 'text', anchor: [r.x, r.y], box: [r.x, r.y, r.right, r.y], style: {} }))), rows);
   assert.deepEqual(cover.requiredRows, ['Citroen C4 Grand Spacetourer 2.0 Blue-HDi Shine', 'Build year :', '2021']);
 });
+
+test('a table border stays while the browser card edge running into both margins goes', () => {
+  const line = (x0, x1, y) => ({ kind: 'path', box: [x0, y, x1, y + 0.75], style: { rg: '.8784 .8784 .8784 rg' }, body: '' });
+  const tableBottom = line(37.5, 558, 595.2), cardEdge = line(25.5, 570, 576.4);
+  const page = sheet([word('Brake disc condition', 48, 610, 110), word('>50%', 250, 610, 30)]);
+  const plan = planPage(12, model([tableBottom, cardEdge]), page, rebuiltCover, 4);
+  assert.deepEqual(plan.records, [tableBottom]);
+});

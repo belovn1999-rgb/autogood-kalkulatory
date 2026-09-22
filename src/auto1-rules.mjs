@@ -1,4 +1,4 @@
-import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260922-long-cover';
+import {readRecords, writeRecords, moveRecord, norm} from './auto1-engine.mjs?v=20260922-table-borders';
 
 const BASE_WIDTH=594.96, BASE_HEIGHT=841.92;
 const section=/MAIN CAR DETAILS|TEST DRIVE INFORMATION|VEHICLE CONDITION|DAMAGE SUMMARY|CAR EQUIPMENT|CAR SERVICE DETAILS|TECHNICAL INSPECTION|CAR DATA ACCORDING/i;
@@ -39,7 +39,9 @@ function rail(r,m) {const [x,y,x1,y1]=r.box,w=x1-x,h=y1-y;return r.kind!=='text'
 function frame(r,m) {
   if(r.kind!=='path'||!grey(r))return false;
   const [x,y,x1,y1]=r.box,w=x1-x,h=y1-y;
-  return (w<1.6&&h>30&&(x<m.width*.06||x>m.width*.945))||(h<1.6&&w>m.width*.85);
+  // Only the browser card's own edges, which run into both page margins; a
+  // table's border stops short of them and stays (the wheel table's bottom rule).
+  return (w<1.6&&h>30&&(x<m.width*.06||x>m.width*.945))||(h<1.6&&x<m.width*.06&&x1>m.width*.945);
 }
 function realImage(r,m) {return r.kind==='image'&&!rail(r,m)&&r.box[2]-r.box[0]>20&&r.box[3]-r.box[1]>18;}
 function mediaRecords(m,rows,cover=false) {
