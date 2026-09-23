@@ -852,23 +852,9 @@
   font-weight: 700;
 }
 
-/* Twice as many saved searches visible: two columns on a desktop screen. */
-@media (min-width: 900px) {
-  .mobileMarketHistoryList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--space-xl);
-    max-block-size: min(52vh, 560px);
-  }
-
-  .mobileMarketHistoryItem {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-sm);
-  }
-
-  .mobileMarketHistoryItem:nth-child(2) {
-    border-top: 0;
-  }
+/* One car per row, but a taller list so more of them fit without scrolling. */
+.mobileMarketHistoryList {
+  max-block-size: min(78vh, 900px);
 }
 
 /* The market analysis is the second strongest action after the Mobile.de search. */
@@ -882,4 +868,112 @@
     background: var(--color-brand);
     color: var(--color-accent-ink);
   }
+}
+
+/* What the numbers mean, and the offers the chart is built from. */
+.mobileMarketVerdict {
+  margin-top: var(--space-lg);
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-tint);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.mobileMarketVerdict strong {
+  display: block;
+  margin-bottom: var(--space-2xs);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mobileMarketVerdict ul {
+  display: grid;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.mobileMarketTableBlock {
+  margin-top: var(--space-lg);
+}
+
+.mobileMarketTableHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.mobileMarketTableHead h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-base);
+  font-weight: 800;
+}
+
+.mobileMarketTableHead span {
+  color: var(--color-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.mobileMarketTableScroll {
+  max-block-size: min(48vh, 460px);
+  overflow: auto;
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-card);
+}
+
+.mobileMarketTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileMarketTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  text-align: left;
+}
+
+.mobileMarketTable th button {
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-weight: 800;
+  padding: var(--space-xs) var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mobileMarketTable td {
+  border-top: var(--rule-thin) solid var(--color-rule-soft);
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.mobileMarketTable tr.isLow td:first-child {
+  color: var(--color-success);
+}
+
+.mobileMarketTable tr.isHigh td:first-child {
+  color: var(--color-error);
+}
+
+.mobileMarketTable a {
+  color: var(--color-brand-pressed);
+  font-weight: 800;
 }

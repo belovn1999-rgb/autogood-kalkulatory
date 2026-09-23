@@ -172,6 +172,7 @@ const copy = {
     vehicleConditionLabel: "Stan pojazdu",
     otomotoSearchButton: "Szukaj na otomoto.pl",
     otomotoSearchOpening: "Otwieram Otomoto: od najniższej ceny.",
+    otomotoPriceConverted: "Cena przeliczona na PLN po kursie {rate}.",
     otomotoSearchSkipped: "Otomoto nie ma dokładnego odpowiednika dla: {filters}. Pozostałe filtry zostały zastosowane.",
     marketSearchButton: "Szukaj na mobile.de",
     marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
@@ -378,6 +379,7 @@ const copy = {
     vehicleConditionLabel: "Состояние автомобиля",
     otomotoSearchButton: "Найти на otomoto.pl",
     otomotoSearchOpening: "Открываю Otomoto: сначала самые дешёвые.",
+    otomotoPriceConverted: "Цена пересчитана в PLN по курсу {rate}.",
     otomotoSearchSkipped: "В Otomoto нет точного аналога для: {filters}. Остальные фильтры применены.",
     marketSearchButton: "Найти на mobile.de",
     marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
@@ -2305,6 +2307,22 @@ function appendOtomotoValues(params, filterId, values) {
   uniqueValues.forEach((value, index) => params.set(`search[${filterId}][${index}]`, value));
 }
 
+// Otomoto prices are in PLN while the form asks for EUR, so the price range is
+// converted with the stored exchange rate (data/exchange-rates.json).
+const EUR_PLN_FALLBACK = 4.3;
+
+function eurPlnRate() {
+  const rate = Number(window.AUTOGOOD_EXCHANGE_RATES?.rates?.EUR_PLN?.value);
+  return Number.isFinite(rate) && rate > 0 ? rate : EUR_PLN_FALLBACK;
+}
+
+function appendOtomotoPriceRange(params, fromValue, toValue) {
+  const rate = eurPlnRate();
+  const { from, to } = rangeBounds(fromValue, toValue);
+  if (from !== null) params.set("search[filter_float_price:from]", String(Math.round(from * rate)));
+  if (to !== null) params.set("search[filter_float_price:to]", String(Math.round(to * rate)));
+}
+
 function appendOtomotoRange(params, filterId, fromValue, toValue) {
   const { from, to } = rangeBounds(fromValue, toValue);
   if (from !== null && to !== null && from > to) {
@@ -2329,7 +2347,7 @@ function buildOtomotoSearchUrl(filters) {
   );
   const body = otomotoBodyValues[filters.body];
   if (body) params.set("search[filter_enum_body_type]", body);
-  appendOtomotoRange(params, "filter_float_price", filters.priceFrom, String(filters.priceTo || "").trim().endsWith("+") ? "" : filters.priceTo);
+  appendOtomotoPriceRange(params, filters.priceFrom, String(filters.priceTo || "").trim().endsWith("+") ? "" : filters.priceTo);
   appendOtomotoRange(params, "filter_float_mileage", filters.mileageFrom, filters.mileageTo);
   appendOtomotoRange(params, "filter_float_year", filters.yearFrom, filters.yearTo);
   appendOtomotoRange(params, "filter_float_engine_capacity", filters.displacementFrom, filters.displacementTo);
@@ -2915,9 +2933,12 @@ els.otomotoSearches.forEach((link) => link.addEventListener("click", (event) => 
     const filters = readManualFields();
     link.href = buildOtomotoSearchUrl(filters);
     const skipped = otomotoSkippedFilterLabels(filters);
-    const message = skipped.length
+    const converted = (filters.priceFrom || filters.priceTo)
+      ? ` ${copy[state.lang].otomotoPriceConverted.replace("{rate}", `1 € = ${eurPlnRate().toFixed(2)} zł`)}`
+      : "";
+    const message = (skipped.length
       ? copy[state.lang].otomotoSearchSkipped.replace("{filters}", skipped.join(", "))
-      : copy[state.lang].otomotoSearchOpening;
+      : copy[state.lang].otomotoSearchOpening) + converted;
     setMarketSearchStatus(message);
   } catch (error) {
     event.preventDefault();
@@ -2955,6 +2976,15 @@ function handleBrandInput(event) {
 
 els.brand.addEventListener("input", handleBrandInput);
 els.brand.addEventListener("change", handleBrandInput);
+
+fetch("./data/exchange-rates.json")
+  .then((response) => (response.ok ? response.json() : null))
+  .then((rates) => {
+    if (rates) window.AUTOGOOD_EXCHANGE_RATES = rates;
+  })
+  .catch(() => {
+    // Without the file the fallback rate keeps the Otomoto price filter sane.
+  });
 
 const initialParams = new URLSearchParams(window.location.search);
 const initialUrl = initialParams.get("url");

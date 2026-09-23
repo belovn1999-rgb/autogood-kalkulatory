@@ -84,6 +84,7 @@ const literalNames = [
 ];
 const context = {
   URLSearchParams,
+  EUR_PLN_FALLBACK: 4.3,
   copy: { pl: { marketSearchInvalidRange: "invalid range", marketSearchChooseBrand: "choose brand" } },
   state: { lang: "pl" },
   window: {
@@ -109,6 +110,8 @@ vm.createContext(context);
   "matchedOtomotoModels",
   "otomotoModelFallback",
   "otomotoModelSelection",
+  "eurPlnRate",
+  "appendOtomotoPriceRange",
   "appendOtomotoValues",
   "appendOtomotoRange",
   "buildOtomotoSearchUrl",
@@ -167,8 +170,9 @@ if (url.origin !== "https://www.otomoto.pl" || url.pathname !== "/osobowe/bmw") 
 }
 const expectedScalars = {
   "search[filter_enum_body_type]": "suv",
-  "search[filter_float_price:from]": "15000",
-  "search[filter_float_price:to]": "30000",
+  // Otomoto lists in PLN: the EUR range is converted with the fallback rate.
+  "search[filter_float_price:from]": "64500",
+  "search[filter_float_price:to]": "129000",
   "search[filter_float_mileage:from]": "10000",
   "search[filter_float_mileage:to]": "100000",
   "search[filter_float_year:from]": "2020",

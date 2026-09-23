@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=ui-batch-20260923" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=ui-batch-20260923" />
+  <link rel="stylesheet" href="./src/mobile.css?v=analysis2-20260923" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=analysis2-20260923" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
   </head>
@@ -80,15 +80,7 @@
       <section class="mobileMethodView" data-mobile-method-view="manual">
         <article class="mobilePanel mobileManualPanel">
           <div class="mobilePanelHead">
-            <div class="mobileManualPanelHeadRow">
-              <p data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</p>
-              <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
-                <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
-              </button>
-              <button class="mobileManualIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
-                <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
-              </button>
-            </div>
+            <h2 class="mobileFilterCardTitle mobileManualPanelTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</span></h2>
             <div class="mobileSelectedFilters" data-mobile-selected-filters aria-live="polite"></div>
           </div>
           <div class="mobileManualForm">
@@ -130,6 +122,17 @@
                   <div class="mobileChoiceGroup mobileInlineChoiceGroup" data-mobile-body-choices></div>
                   <input data-mobile-body type="hidden" />
                 </fieldset>
+                <div class="mobileField mobileRangeField mobileSeatsField">
+                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#armchair"></use></svg><span data-i18n="seatsRangeLabel">Liczba miejsc</span></span>
+                  <div class="mobileRangePair">
+                    <div class="mobileComboControl" data-mobile-options="seats" data-mobile-options-target="data-mobile-seats-from">
+                      <input data-mobile-seats-from inputmode="numeric" autocomplete="off" />
+                    </div>
+                    <div class="mobileComboControl" data-mobile-options="seatsTo" data-mobile-options-target="data-mobile-seats-to">
+                      <input data-mobile-seats-to inputmode="numeric" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
             <section class="mobileFilterCard" aria-labelledby="mobile-filter-group-mileage">
@@ -300,17 +303,6 @@
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="swiveling" /> <span data-i18n="trailerCouplingSwiveling">Hak holowniczy odchylany</span></label>
                   </div>
                 </fieldset>
-                <div class="mobileField mobileRangeField">
-                  <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#armchair"></use></svg><span data-i18n="seatsRangeLabel">Liczba miejsc</span></span>
-                  <div class="mobileRangePair">
-                    <div class="mobileComboControl" data-mobile-options="seats" data-mobile-options-target="data-mobile-seats-from">
-                      <input data-mobile-seats-from inputmode="numeric" autocomplete="off" />
-                    </div>
-                    <div class="mobileComboControl" data-mobile-options="seatsTo" data-mobile-options-target="data-mobile-seats-to">
-                      <input data-mobile-seats-to inputmode="numeric" autocomplete="off" />
-                    </div>
-                  </div>
-                </div>
               </div>
             </section>
             <section class="mobileFilterCard mobileFeatureOptionsSection mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-options">
@@ -470,17 +462,19 @@
               <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
                 <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
               </button>
+              <div class="mobileSearchCountIcons">
+                <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
+                  <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
+                </button>
+                <button class="mobileManualIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
+                  <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
+                </button>
+              </div>
             </div>
           </aside>
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
             <div class="mobileManualSearchButtons">
-              <button class="mobileManualIconButton mobileManualBottomIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
-                <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
-              </button>
-              <button class="mobileManualIconButton mobileManualBottomIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
-                <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
-              </button>
               <button class="mobileMarketAnalysisButton" type="button" data-mobile-market-analysis-open>
                 <span data-market-i18n="analysisButton">Analiza rynku</span>
                 <i aria-hidden="true">&#8594;</i>
@@ -534,7 +528,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=ui-batch-20260923"></script>
-    <script src="./src/mobile-market-analysis.js?v=ui-batch-20260923"></script>
+    <script src="./src/mobile.js?v=analysis2-20260923"></script>
+    <script src="./src/mobile-market-analysis.js?v=analysis2-20260923"></script>
   </body>
 </html>

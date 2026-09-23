@@ -34,6 +34,21 @@
       otomotoFailed: "Nie udało się pobrać ofert z otomoto.pl.",
       otomotoLabel: "Dane: otomoto.pl",
       otomotoDescription: "Próbka aktualnych ofert otomoto.pl z całej listy wyników (ceny w PLN).",
+      outliersSkipped: "Pominięto {count} ofert odstających (cena poza zakresem 1/3–3× mediany).",
+      verdictHeading: "Co to znaczy",
+      verdictMedian: "Połowa ofert kosztuje poniżej {median}.",
+      verdictMiddle: "Środek rynku: {low} – {high} ({count} ofert).",
+      verdictDeals: "Poniżej {low} jest {count} ofert — to dół rynku.",
+      verdictBudget: "Twój budżet {budget} to {position} (kurs {rate}).",
+      positionLow: "dół rynku",
+      positionMiddle: "środek rynku",
+      positionHigh: "góra rynku",
+      tableHeading: "Oferty w analizie",
+      tablePrice: "Cena",
+      tableYear: "Rok",
+      tableMileage: "Przebieg",
+      tableOpen: "Otwórz",
+      tableSortHint: "Kliknij nagłówek, aby posortować.",
       axisMileage: "Oś pozioma: przebieg",
       axisYear: "Oś pozioma: rok",
       historyPin: "Zapisz na stałe",
@@ -119,6 +134,21 @@
       otomotoFailed: "Не удалось загрузить объявления с otomoto.pl.",
       otomotoLabel: "Данные: otomoto.pl",
       otomotoDescription: "Выборка актуальных объявлений otomoto.pl по всему списку (цены в PLN).",
+      outliersSkipped: "Пропущено объявлений с выбивающейся ценой: {count} (вне диапазона 1/3–3× медианы).",
+      verdictHeading: "Что это значит",
+      verdictMedian: "Половина объявлений дешевле {median}.",
+      verdictMiddle: "Середина рынка: {low} – {high} ({count} объявлений).",
+      verdictDeals: "Дешевле {low} — {count} объявлений, это низ рынка.",
+      verdictBudget: "Твой бюджет {budget} — это {position} (курс {rate}).",
+      positionLow: "низ рынка",
+      positionMiddle: "середина рынка",
+      positionHigh: "верх рынка",
+      tableHeading: "Объявления в анализе",
+      tablePrice: "Цена",
+      tableYear: "Год",
+      tableMileage: "Пробег",
+      tableOpen: "Открыть",
+      tableSortHint: "Нажми на заголовок, чтобы отсортировать.",
       axisMileage: "Горизонтальная ось: пробег",
       axisYear: "Горизонтальная ось: год",
       historyPin: "Сохранить навсегда",
@@ -202,6 +232,25 @@
 
   let activeAnalysis = null;
   let otomotoTotal = 0;
+  let tableSort = { key: "price", direction: "asc" };
+
+  // Damaged cars, parts and lease instalments are listed at a fraction of the
+  // real price; anything outside a third of the median to three times it is
+  // left out of the statistics.
+  function splitMarketOutliers(listings) {
+    const prices = listings.map((listing) => listing.price).sort((left, right) => left - right);
+    if (prices.length < 5) return { kept: listings, skipped: [] };
+    const median = percentile(prices, 0.5);
+    const kept = listings.filter((listing) => listing.price >= median / 3 && listing.price <= median * 3);
+    return kept.length >= 3
+      ? { kept, skipped: listings.filter((listing) => !kept.includes(listing)) }
+      : { kept: listings, skipped: [] };
+  }
+
+  function exchangeRate() {
+    const rate = Number(window.AUTOGOOD_EXCHANGE_RATES?.rates?.EUR_PLN?.value);
+    return Number.isFinite(rate) && rate > 0 ? rate : 0;
+  }
   let importedDataset = null;
   let marketHistory = [];
   let editingHistoryId = "";
@@ -914,6 +963,10 @@
     return activeAnalysis?.listings?.[0]?.currency === "PLN" ? "PLN" : "EUR";
   }
 
+  function numberFormat() {
+    return new Intl.NumberFormat(currentLanguage() === "ru" ? "ru-RU" : "pl-PL");
+  }
+
   function formatMarketPrice(value, currency = activeCurrency()) {
     return new Intl.NumberFormat(currentLanguage() === "ru" ? "ru-RU" : "pl-PL", {
       style: "currency",
@@ -957,7 +1010,8 @@
       // Otomoto has no twin for this vehicle; its link is simply left out.
     }
     const stored = providerId === "import" || providerId === "history";
-    const hasListings = listings.length >= 3;
+    const { kept: marketListings, skipped: outliers } = splitMarketOutliers(listings);
+    const hasListings = marketListings.length >= 3;
     const summary = filterSummary(filters);
     let marketContent = `
       <section class="mobileMarketEmpty">
@@ -966,7 +1020,7 @@
       </section>`;
 
     if (hasListings) {
-      const statistics = marketStatistics(listings);
+      const statistics = marketStatistics(marketListings);
       const domainMinimum = statistics.min;
       const domainMaximum = statistics.max;
       const middleHighPosition = verticalMarketPosition(statistics.middleHigh, domainMinimum, domainMaximum);
@@ -975,9 +1029,9 @@
       const scaleTicks = marketScaleTicks(domainMinimum, domainMaximum, statistics.step);
       // Horizontal position carries mileage (or the year), so no two offers
       // sit on top of each other and the spread itself is readable.
-      const axisValues = listings.map((listing) => listing.mileage).filter((value) => Number.isFinite(value) && value > 0);
-      const axisByMileage = axisValues.length >= Math.max(3, listings.length / 2);
-      const yearValues = listings.map((listing) => listing.year).filter((value) => Number.isFinite(value) && value > 0);
+      const axisValues = marketListings.map((listing) => listing.mileage).filter((value) => Number.isFinite(value) && value > 0);
+      const axisByMileage = axisValues.length >= Math.max(3, marketListings.length / 2);
+      const yearValues = marketListings.map((listing) => listing.year).filter((value) => Number.isFinite(value) && value > 0);
       const axisSource = axisByMileage ? axisValues : yearValues;
       const axisMin = axisSource.length ? Math.min(...axisSource) : 0;
       const axisMax = axisSource.length ? Math.max(...axisSource) : 0;
@@ -995,7 +1049,20 @@
           ? `${new Intl.NumberFormat(currentLanguage() === "ru" ? "ru-RU" : "pl-PL").format(Math.round(value))} km`
           : String(Math.round(value))))
         : [];
-      const points = [...listings]
+      const rate = exchangeRate();
+      const budgetEur = Number(String(filters.priceTo || filters.priceFrom || "").replace(/[^\d]/g, ""));
+      const budget = rate && budgetEur && activeCurrency() === "PLN" ? budgetEur * rate : 0;
+      const budgetVerdict = budget
+        ? c.verdictBudget
+          .replace("{budget}", `${formatMarketPrice(budget)}`)
+          .replace("{position}", budget < statistics.middleLow ? c.positionLow : budget > statistics.middleHigh ? c.positionHigh : c.positionMiddle)
+          .replace("{rate}", `1 € = ${rate.toFixed(2)} zł`)
+        : "";
+      const sortedListings = [...marketListings].sort((left, right) => {
+        const factor = tableSort.direction === "asc" ? 1 : -1;
+        return ((Number(left[tableSort.key]) || 0) - (Number(right[tableSort.key]) || 0)) * factor;
+      });
+      const points = [...marketListings]
         .sort((left, right) => right.price - left.price)
         .map((listing) => {
           const top = verticalMarketPosition(listing.price, domainMinimum, domainMaximum);
@@ -1063,6 +1130,51 @@
           <span>${escapeMarketHtml(axisByMileage ? c.axisMileage : c.axisYear)}</span>
           <span class="mobileMarketAxisTicks">${axisTicks.map((tick) => `<em>${escapeMarketHtml(tick)}</em>`).join("")}</span>
         </div>` : ""}
+
+        <section class="mobileMarketVerdict" aria-label="${escapeMarketHtml(c.verdictHeading)}">
+          <strong>${escapeMarketHtml(c.verdictHeading)}</strong>
+          <ul>
+            <li>${escapeMarketHtml(c.verdictMedian.replace("{median}", formatMarketPrice(statistics.median)))}</li>
+            <li>${escapeMarketHtml(c.verdictMiddle
+              .replace("{low}", formatMarketPrice(statistics.middleLow))
+              .replace("{high}", formatMarketPrice(statistics.middleHigh))
+              .replace("{count}", String(statistics.middleCount)))}</li>
+            <li>${escapeMarketHtml(c.verdictDeals
+              .replace("{low}", formatMarketPrice(statistics.middleLow))
+              .replace("{count}", String(statistics.lowCount)))}</li>
+            ${budgetVerdict ? `<li>${escapeMarketHtml(budgetVerdict)}</li>` : ""}
+            ${outliers.length ? `<li>${escapeMarketHtml(c.outliersSkipped.replace("{count}", String(outliers.length)))}</li>` : ""}
+          </ul>
+        </section>
+
+        <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}">
+          <div class="mobileMarketTableHead">
+            <h2>${escapeMarketHtml(c.tableHeading)} · ${marketListings.length}</h2>
+            <span>${escapeMarketHtml(c.tableSortHint)}</span>
+          </div>
+          <div class="mobileMarketTableScroll">
+            <table class="mobileMarketTable">
+              <thead>
+                <tr>
+                  ${[["price", c.tablePrice], ["year", c.tableYear], ["mileage", c.tableMileage]].map(([key, label]) => `
+                    <th scope="col">
+                      <button type="button" data-mobile-market-sort="${key}">${escapeMarketHtml(label)}${tableSort.key === key ? (tableSort.direction === "asc" ? " ↑" : " ↓") : ""}</button>
+                    </th>`).join("")}
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedListings.map((listing) => `
+                  <tr class="${marketClass(listing.price, statistics)}">
+                    <td>${escapeMarketHtml(formatMarketPrice(listing.price))}</td>
+                    <td>${escapeMarketHtml(listing.year ? String(listing.year) : "—")}</td>
+                    <td>${escapeMarketHtml(listing.mileage ? `${numberFormat().format(listing.mileage)} km` : "—")}</td>
+                    <td>${listing.url ? `<a href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener">${escapeMarketHtml(c.tableOpen)} ↗</a>` : ""}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <footer class="mobileMarketNotice">
           <p>${escapeMarketHtml(c.directNotice)}</p>
@@ -1235,6 +1347,15 @@
   }
 
   analysisContent.addEventListener("click", (event) => {
+    const sortButton = event.target.closest("[data-mobile-market-sort]");
+    if (sortButton) {
+      const key = sortButton.dataset.mobileMarketSort;
+      tableSort = tableSort.key === key
+        ? { key, direction: tableSort.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" };
+      renderAnalysis();
+      return;
+    }
     const refreshButton = event.target.closest("[data-mobile-market-refresh]");
     if (refreshButton) {
       refreshActiveAnalysis();
@@ -1285,6 +1406,15 @@
   // Used by the sticky panel to show how many offers the filters match.
   window.AUTOGOOD_MOBILE_OTOMOTO_COUNT = async (filters) => (await fetchOtomotoPage(buildOtomotoSearchUrl(filters), 1)).total;
   if (!window.AUTOGOOD_MOBILE_MARKET_PROVIDER) window.AUTOGOOD_MOBILE_MARKET_PROVIDER = otomotoProvider;
+
+  fetch("./data/exchange-rates.json")
+    .then((response) => (response.ok ? response.json() : null))
+    .then((rates) => {
+      if (rates) window.AUTOGOOD_EXCHANGE_RATES = rates;
+    })
+    .catch(() => {
+      // Without a rate the budget line is simply not shown.
+    });
 
   marketHistory = loadMarketHistory();
   renderMarketTranslations();

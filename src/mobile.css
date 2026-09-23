@@ -1879,3 +1879,30 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* A folded group must really collapse: the body is a grid, so [hidden] alone
+   would not hide it. */
+.mobileFilterCardBody[hidden] {
+  display: none;
+}
+
+.mobileSeatsField {
+  max-width: 260px;
+}
+
+/* The manual panel is titled like the link card above it. */
+.mobileManualPanelTitle {
+  margin-bottom: var(--space-sm);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mobileSearchCountIcons {
+  display: flex;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.mobileSearchCountIcons .mobileManualIconButton {
+  flex: 1 1 auto;
+}
