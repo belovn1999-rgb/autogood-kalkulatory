@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=history-pin-20260923" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history20-20260923" />
+  <link rel="stylesheet" href="./src/mobile.css?v=market-otomoto-20260923f" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-otomoto-20260923f" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
   </head>
@@ -446,10 +446,18 @@
               </div>
             </section>
           </div>
-          <aside class="mobileSearchCountPanel" aria-live="polite">
+          <aside class="mobileSearchCountPanel">
             <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
-            <strong data-mobile-search-count>—</strong>
+            <strong data-mobile-search-count aria-live="polite">—</strong>
             <span>mobile.de</span>
+            <div class="mobileSearchCountActions">
+              <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
+                mobile.de <i aria-hidden="true">&#8599;</i>
+              </a>
+              <a class="mobileSearchCountButton mobileSearchCountButtonSecondary" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search>
+                otomoto <i aria-hidden="true">&#8599;</i>
+              </a>
+            </div>
           </aside>
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
@@ -513,7 +521,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=history-pin-20260923"></script>
-    <script src="./src/mobile-market-analysis.js?v=history-pin-20260923"></script>
+    <script src="./src/mobile.js?v=market-otomoto-20260923f"></script>
+    <script src="./src/mobile-market-analysis.js?v=market-otomoto-20260923f"></script>
   </body>
 </html>

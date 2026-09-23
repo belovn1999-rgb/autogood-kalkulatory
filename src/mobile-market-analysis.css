@@ -814,3 +814,40 @@
   border-color: var(--color-brand);
   color: var(--color-brand-pressed);
 }
+
+/* Horizontal axis of the price chart (mileage, or the year as a fallback). */
+.mobileMarketScale::after {
+  content: attr(data-currency);
+}
+
+.mobileMarketAxisFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: space-between;
+  margin-top: var(--space-2xs);
+  padding: 0 var(--space-md) 0 86px;
+  color: var(--color-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.mobileMarketAxisTicks {
+  display: flex;
+  flex: 1 1 260px;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.mobileMarketAxisTicks em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileMarketPointTooltip em {
+  display: block;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-style: normal;
+  font-weight: 700;
+}

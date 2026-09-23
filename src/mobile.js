@@ -1124,8 +1124,8 @@ const els = {
   roadworthy: document.querySelector("[data-mobile-roadworthy]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
-  otomotoSearch: document.querySelector("[data-mobile-otomoto-search]"),
-  marketSearch: document.querySelector("[data-mobile-market-search]"),
+  otomotoSearches: Array.from(document.querySelectorAll("[data-mobile-otomoto-search]")),
+  marketSearches: Array.from(document.querySelectorAll("[data-mobile-market-search]")),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
   manualResets: Array.from(document.querySelectorAll("[data-mobile-manual-reset]")),
   selectedFilters: document.querySelector("[data-mobile-selected-filters]"),
@@ -2775,10 +2775,11 @@ document.querySelectorAll(".mobileManualIconButton").forEach((button) => {
   button.addEventListener("click", () => playManualIconFeedback(button));
 });
 
-els.otomotoSearch?.addEventListener("click", (event) => {
+// Both the sticky panel and the buttons under the form open the same searches.
+els.otomotoSearches.forEach((link) => link.addEventListener("click", (event) => {
   try {
     const filters = readManualFields();
-    els.otomotoSearch.href = buildOtomotoSearchUrl(filters);
+    link.href = buildOtomotoSearchUrl(filters);
     const skipped = otomotoSkippedFilterLabels(filters);
     const message = skipped.length
       ? copy[state.lang].otomotoSearchSkipped.replace("{filters}", skipped.join(", "))
@@ -2786,24 +2787,23 @@ els.otomotoSearch?.addEventListener("click", (event) => {
     setMarketSearchStatus(message);
   } catch (error) {
     event.preventDefault();
-    els.otomotoSearch.href = "#";
+    link.href = "#";
     setMarketSearchStatus(error.message || copy[state.lang].marketSearchInvalidRange, true);
   }
-});
+}));
 
-els.marketSearch?.addEventListener("click", (event) => {
+els.marketSearches.forEach((link) => link.addEventListener("click", (event) => {
   try {
-    const searchUrl = buildMobileDeSearchUrl(readManualFields());
-    els.marketSearch.href = searchUrl;
+    link.href = buildMobileDeSearchUrl(readManualFields());
     // Every Mobile.de check lands in the search history below the form.
     window.AUTOGOOD_MOBILE_LOG_SEARCH?.();
     setMarketSearchStatus(copy[state.lang].marketSearchOpening);
   } catch (error) {
     event.preventDefault();
-    els.marketSearch.href = "#";
+    link.href = "#";
     setMarketSearchStatus(error.message || copy[state.lang].marketSearchInvalidRange, true);
   }
-});
+}));
 
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();

@@ -1708,3 +1708,48 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Compact search links inside the sticky offers panel. */
+.mobileSearchCountActions {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-top: var(--space-xs);
+}
+
+.mobileSearchCountButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  border: var(--rule-thin) solid var(--color-brand);
+  border-radius: var(--radius-md);
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  padding: 0 var(--space-sm);
+  transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
+}
+
+.mobileSearchCountButton i {
+  font-style: normal;
+}
+
+.mobileSearchCountButtonSecondary {
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+}
+
+@media (hover: hover) {
+  .mobileSearchCountButton:hover {
+    background: var(--color-brand-pressed);
+    border-color: var(--color-brand-pressed);
+    color: var(--color-accent-ink);
+  }
+}
+
+.mobileSearchCountButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
