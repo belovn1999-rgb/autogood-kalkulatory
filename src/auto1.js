@@ -21,7 +21,13 @@ const HISTORY_LIMIT = 10;
 const HISTORY_ENTRY_STORE = "entries";
 const HISTORY_FILE_STORE = "files";
 
+const PDF_PICKER_TYPE = { description: "PDF", accept: { "application/pdf": [".pdf"] } };
+
 let selectedFile = null;
+// Set only when the browser gave us a handle to the chosen file, which is what
+// lets the cleaned report replace the original instead of landing beside it.
+let sourceHandle = null;
+let resultBlob = null;
 let resultUrl = null;
 let resultFileName = "";
 let pdfjsPromise = null;
@@ -199,6 +205,7 @@ async function saveHistoryFile(blob, name, pageCount) {
 function resetResult() {
   if (resultUrl) URL.revokeObjectURL(resultUrl);
   resultUrl = null;
+  resultBlob = null;
   resultFileName = "";
   downloadButton.removeAttribute("href");
   downloadButton.classList.add("isDisabled");
@@ -206,9 +213,14 @@ function resetResult() {
   resultMeta.textContent = t("auto1.previewEmpty");
 }
 
-function setFile(file) {
+function isPdf(file) {
+  return Boolean(file) && (file.type === "application/pdf" || /\.pdf$/i.test(file.name));
+}
+
+function setFile(file, handle = null) {
   if (!file || processing) return;
   resetResult();
+  sourceHandle = handle;
   selectedFile = file;
   dropTitle.textContent = file.name;
   const size = formatBytes(file.size);
@@ -277,6 +289,7 @@ async function processPdf() {
     // straight from the original and keep the rest of the cleaning.
     if (result.check.lost.length) result = await build(new Set(result.check.lost.map((page) => page - 1)));
     const outputBlob = new Blob([result.outputBytes], { type: "application/pdf" });
+    resultBlob = outputBlob;
     resultUrl = URL.createObjectURL(outputBlob);
     resultFileName = file.name;
     downloadButton.href = resultUrl;
@@ -308,26 +321,86 @@ async function processPdf() {
 }
 
 input.addEventListener("change", () => setFile(input.files?.[0]));
+// Picking through the handle API keeps a writable reference to the very file
+// the operator chose, so the result can take its place on disk.
+dropZone.addEventListener("click", async (event) => {
+  if (!window.showOpenFilePicker || processing) return;
+  event.preventDefault();
+  try {
+    const [handle] = await window.showOpenFilePicker({ multiple: false, types: [PDF_PICKER_TYPE] });
+    setFile(await handle.getFile(), handle);
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    console.warn("AUTO1 file picker unavailable", error);
+    input.click();
+  }
+});
 dropZone.addEventListener("dragover", (event) => {
   event.preventDefault();
   if (!processing) dropZone.classList.add("isDragging");
 });
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("isDragging"));
-dropZone.addEventListener("drop", (event) => {
+dropZone.addEventListener("drop", async (event) => {
   event.preventDefault();
   dropZone.classList.remove("isDragging");
-  setFile([...event.dataTransfer.files].find((file) => file.type === "application/pdf" || /\.pdf$/i.test(file.name)));
+  // dataTransfer is emptied once we await, so read both views up front.
+  const dropped = [...event.dataTransfer.files];
+  const item = [...(event.dataTransfer.items || [])].find((entry) => entry.kind === "file");
+  if (item?.getAsFileSystemHandle) {
+    try {
+      const handle = await item.getAsFileSystemHandle();
+      const file = handle?.kind === "file" ? await handle.getFile() : null;
+      if (isPdf(file)) {
+        setFile(file, handle);
+        return;
+      }
+    } catch (error) {
+      console.warn("AUTO1 dropped file handle unavailable", error);
+    }
+  }
+  setFile(dropped.find(isPdf));
 });
 processButton.addEventListener("click", processPdf);
-downloadButton.addEventListener("click", (event) => {
+
+async function writeTo(handle) {
+  const writable = await handle.createWritable();
+  await writable.write(resultBlob);
+  await writable.close();
+  setStatus(t("auto1.savedOver", { name: handle.name }), 100);
+}
+
+async function allowed(handle) {
+  const options = { mode: "readwrite" };
+  return (await handle.queryPermission(options)) === "granted" || (await handle.requestPermission(options)) === "granted";
+}
+
+downloadButton.addEventListener("click", async (event) => {
   event.preventDefault();
-  if (!resultUrl) return;
+  if (!resultBlob) return;
+  // Replace the report the operator started from, so one file is left behind.
+  if (sourceHandle?.createWritable) {
+    try {
+      if (await allowed(sourceHandle)) return await writeTo(sourceHandle);
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.warn("AUTO1 could not replace the original file", error);
+    }
+  }
+  if (window.showSaveFilePicker) {
+    try {
+      return await writeTo(await window.showSaveFilePicker({ suggestedName: resultFileName, types: [PDF_PICKER_TYPE] }));
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      console.warn("AUTO1 save dialog unavailable", error);
+    }
+  }
   const link = document.createElement("a");
   link.href = resultUrl;
   link.download = resultFileName;
   document.body.appendChild(link);
   link.click();
   link.remove();
+  setStatus(t("auto1.savedCopy"), 100);
 });
 
 window.addEventListener("auctionlanguagechange", renderHistory);
