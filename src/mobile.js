@@ -46,6 +46,15 @@ const copy = {
     gearboxAny: "Dowolny",
     bodyAny: "Dowolne",
     filterGroupVehicle: "Pojazd",
+    pageTitle: "Wyszukiwanie i analiza cen",
+    stepLink: "Link",
+    stepFilters: "Filtry",
+    stepAnalysis: "Analiza",
+    modelOutsideCatalog: "Model spoza katalogu — szukamy po nazwie",
+    recognitionUnavailable: "Serwis rozpoznawania jest niedostępny — wpisz dane ręcznie.",
+    offerCountLoading: "…",
+    showMoreFilters: "Pokaż",
+    hideMoreFilters: "Ukryj",
     filterGroupMileage: "Przebieg i rok",
     filterGroupPrice: "Cena",
     filterGroupEngine: "Silnik i napęd",
@@ -243,6 +252,15 @@ const copy = {
     gearboxAny: "Любая",
     bodyAny: "Любой",
     filterGroupVehicle: "Автомобиль",
+    pageTitle: "Поиск и анализ цен",
+    stepLink: "Ссылка",
+    stepFilters: "Фильтры",
+    stepAnalysis: "Анализ",
+    modelOutsideCatalog: "Модель вне каталога — ищем по названию",
+    recognitionUnavailable: "Сервис распознавания недоступен — введи данные вручную.",
+    offerCountLoading: "…",
+    showMoreFilters: "Показать",
+    hideMoreFilters: "Скрыть",
     filterGroupMileage: "Пробег и год",
     filterGroupPrice: "Цена",
     filterGroupEngine: "Двигатель и привод",
@@ -1124,6 +1142,8 @@ const els = {
   roadworthy: document.querySelector("[data-mobile-roadworthy]"),
   damagedVehicles: document.querySelector("[data-mobile-damaged-vehicles]"),
   damagedVehiclesLabel: document.querySelector("[data-mobile-damaged-label]"),
+  modelHint: document.querySelector("[data-mobile-model-hint]"),
+  searchCount: document.querySelector("[data-mobile-search-count]"),
   otomotoSearches: Array.from(document.querySelectorAll("[data-mobile-otomoto-search]")),
   marketSearches: Array.from(document.querySelectorAll("[data-mobile-market-search]")),
   marketSearchStatus: document.querySelector("[data-mobile-market-search-status]"),
@@ -1693,7 +1713,7 @@ function defaultManualFields() {
     interiorColors: [],
     matte: false,
     metallic: false,
-    nonSmoking: true,
+    nonSmoking: false,
     roadworthy: true,
     damagedVehicles: "hide",
   };
@@ -1760,6 +1780,11 @@ function renderManualOptions(keepValues = true) {
   updateFuelSummary();
   updateCountrySummary();
   updateSelectedFiltersSummary();
+  if (typeof updateModelHint === "function") updateModelHint();
+  if (typeof scheduleOfferCount === "function") scheduleOfferCount();
+  document.querySelectorAll("[data-mobile-collapsible]").forEach((card) => {
+    if (typeof updateCollapsibleCard === "function") updateCollapsibleCard(card);
+  });
 }
 
 function readManualFields() {
@@ -2602,10 +2627,11 @@ function renderData() {
   renderScenarios();
 }
 
-function setStatus(status, message = "") {
+function setStatus(status, message = "", replacesError = false) {
   const c = copy[state.lang];
   state.status = status;
   state.error = message;
+  state.errorIsFullText = replacesError;
   els.status.classList.toggle("isError", status === "error");
   els.status.classList.toggle("isSuccess", status === "ready");
   els.status.textContent = status === "loading"
@@ -2613,7 +2639,7 @@ function setStatus(status, message = "") {
     : status === "ready"
       ? c.ready
       : status === "error"
-        ? `${c.error}${message ? ` ${message}` : ""}`
+        ? (state.errorIsFullText ? message : `${c.error}${message ? ` ${message}` : ""}`)
         : c.helper;
   els.submit.disabled = status === "loading";
   renderI18n();
@@ -2635,7 +2661,9 @@ async function loadMobileDeData(sourceUrl) {
     applyRecognizedManualFields(state.data);
     renderData();
   } catch (error) {
-    setStatus("error", error.message || "");
+    // A dead import backend must not read as a broken link.
+    const unreachable = error instanceof TypeError || /failed to fetch|networkerror/i.test(error.message || "");
+    setStatus("error", unreachable ? copy[state.lang].recognitionUnavailable : (error.message || ""), unreachable);
     renderData();
   }
 }
@@ -2644,7 +2672,7 @@ document.querySelectorAll("[data-lang-button]").forEach((button) => {
   button.addEventListener("click", () => {
     state.lang = button.dataset.langButton === "ru" ? "ru" : "pl";
     renderI18n();
-    setStatus(state.status, state.error);
+    setStatus(state.status, state.error, state.errorIsFullText);
     renderData();
   });
 });
@@ -2753,8 +2781,114 @@ els.bodyChoices?.addEventListener("change", (event) => {
 els.countries.forEach((input) => input.addEventListener("change", updateCountrySummary));
 els.fuels.forEach((input) => input.addEventListener("change", updateFuelSummary));
 
+// Live Otomoto match count in the sticky panel: one request per settled
+// filter change, and the same filters are never asked twice.
+const offerCounts = new Map();
+let offerCountRequest = 0;
+let offerCountTimer = 0;
+
+function renderOfferCount(value) {
+  if (els.searchCount) els.searchCount.textContent = value;
+}
+
+async function refreshOfferCount() {
+  if (!els.searchCount || typeof window.AUTOGOOD_MOBILE_OTOMOTO_COUNT !== "function") return;
+  let filters;
+  try {
+    filters = readManualFields();
+  } catch {
+    return;
+  }
+  if (!filters.brand || !filters.model) {
+    renderOfferCount("—");
+    return;
+  }
+  let key;
+  try {
+    key = buildOtomotoSearchUrl(filters);
+  } catch {
+    renderOfferCount("—");
+    return;
+  }
+  if (offerCounts.has(key)) {
+    renderOfferCount(offerCounts.get(key));
+    return;
+  }
+  const request = ++offerCountRequest;
+  renderOfferCount(copy[state.lang].offerCountLoading);
+  try {
+    const total = await window.AUTOGOOD_MOBILE_OTOMOTO_COUNT(filters);
+    const label = new Intl.NumberFormat(state.lang === "ru" ? "ru-RU" : "pl-PL").format(total);
+    offerCounts.set(key, label);
+    if (request === offerCountRequest) renderOfferCount(label);
+  } catch {
+    if (request === offerCountRequest) renderOfferCount("—");
+  }
+}
+
+function scheduleOfferCount() {
+  window.clearTimeout(offerCountTimer);
+  offerCountTimer = window.setTimeout(refreshOfferCount, 1200);
+}
+
+// Rarely used filter groups stay folded; the title shows what is set inside.
+function updateCollapsibleCard(card) {
+  const body = card.querySelector(".mobileFilterCardBody");
+  const toggle = card.querySelector("[data-mobile-collapse-toggle]");
+  if (!body || !toggle) return;
+  const open = card.classList.contains("isOpen");
+  const selected = card.querySelectorAll("input:checked:not([value='any']):not([value=''])").length;
+  body.hidden = !open;
+  toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  toggle.querySelector("span").textContent = open
+    ? copy[state.lang].hideMoreFilters
+    : copy[state.lang].showMoreFilters;
+  const counter = card.querySelector("[data-mobile-collapse-count]");
+  counter.textContent = selected ? String(selected) : "";
+  counter.hidden = !selected;
+}
+
+document.querySelectorAll("[data-mobile-collapsible]").forEach((card) => {
+  const title = card.querySelector(".mobileFilterCardTitle");
+  if (!title) return;
+  const counter = document.createElement("em");
+  counter.dataset.mobileCollapseCount = "";
+  counter.className = "mobileFilterCardCount";
+  counter.hidden = true;
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.dataset.mobileCollapseToggle = "";
+  toggle.className = "mobileFilterCardToggle";
+  toggle.innerHTML = "<span></span>";
+  title.append(counter, toggle);
+  toggle.addEventListener("click", () => {
+    card.classList.toggle("isOpen");
+    updateCollapsibleCard(card);
+  });
+  updateCollapsibleCard(card);
+});
+
+function updateModelHint() {
+  if (!els.modelHint) return;
+  const brand = canonicalBrand(els.brand?.value) || "";
+  const model = String(els.model?.value || "").trim();
+  const known = !model || !brand || modelGroupsForBrand(brand)
+    .some((group) => group.models.some((name) => normalizeToken(name) === normalizeToken(model)));
+  els.modelHint.hidden = known;
+  els.model?.closest(".mobileComboControl")?.classList.toggle("isUnknownModel", !known);
+}
+
 document.querySelector(".mobileManualForm")?.addEventListener("input", updateSelectedFiltersSummary);
 document.querySelector(".mobileManualForm")?.addEventListener("change", updateSelectedFiltersSummary);
+document.querySelector(".mobileManualForm")?.addEventListener("input", () => {
+  updateModelHint();
+  scheduleOfferCount();
+});
+document.querySelector(".mobileManualForm")?.addEventListener("change", () => {
+  document.querySelectorAll("[data-mobile-collapsible]").forEach(updateCollapsibleCard);
+  updateModelHint();
+  scheduleOfferCount();
+});
 
 els.manualResets.forEach((button) => {
   button.addEventListener("click", () => {

@@ -1282,6 +1282,8 @@
   });
 
   window.AUTOGOOD_MOBILE_LOG_SEARCH = logSearchToHistory;
+  // Used by the sticky panel to show how many offers the filters match.
+  window.AUTOGOOD_MOBILE_OTOMOTO_COUNT = async (filters) => (await fetchOtomotoPage(buildOtomotoSearchUrl(filters), 1)).total;
   if (!window.AUTOGOOD_MOBILE_MARKET_PROVIDER) window.AUTOGOOD_MOBILE_MARKET_PROVIDER = otomotoProvider;
 
   marketHistory = loadMarketHistory();

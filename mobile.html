@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=market-otomoto-20260923f" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=market-otomoto-20260923f" />
+  <link rel="stylesheet" href="./src/mobile.css?v=ui-batch-20260923" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=ui-batch-20260923" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
   </head>
@@ -32,6 +32,15 @@
           </div>
         </div>
       </header>
+
+      <section class="mobilePageIntro">
+        <p class="mobilePageTitle" data-i18n="pageTitle">Wyszukiwanie i analiza cen</p>
+        <ol class="mobilePageSteps">
+          <li><b>1</b><span data-i18n="stepLink">Link</span></li>
+          <li><b>2</b><span data-i18n="stepFilters">Filtry</span></li>
+          <li><b>3</b><span data-i18n="stepAnalysis">Analiza</span></li>
+        </ol>
+      </section>
 
       <section class="mobileListingSearch">
         <section class="mobileFilterCard mobileListingLinkCard" aria-labelledby="mobile-listing-link-heading">
@@ -98,6 +107,7 @@
                     <div class="mobileComboControl mobileTextComboControl mobileModelCombo" data-mobile-options="model" data-mobile-options-target="data-mobile-model">
                       <input data-mobile-model type="text" autocomplete="off" />
                     </div>
+                    <small class="mobileFieldHint" data-mobile-model-hint hidden data-i18n="modelOutsideCatalog">Model spoza katalogu — szukamy po nazwie</small>
                   </label>
                   <label class="mobileField">
                     <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="versionLabel">Wersja</span></span>
@@ -124,7 +134,7 @@
             </section>
             <section class="mobileFilterCard" aria-labelledby="mobile-filter-group-mileage">
               <h2 id="mobile-filter-group-mileage" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="filterGroupMileage">Przebieg i rok</span></h2>
-              <div class="mobileFilterCardBody">
+              <div class="mobileFilterCardBody isTwoColumn">
                 <div class="mobileField mobileRangeField mobileWideField">
                   <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#gauge"></use></svg><span data-i18n="mileageRangeLabel">Przebieg</span></span>
                   <div class="mobileRangePair">
@@ -155,7 +165,7 @@
             </section>
             <section class="mobileFilterCard" aria-labelledby="mobile-filter-group-engine">
               <h2 id="mobile-filter-group-engine" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#zap"></use></svg><span data-i18n="filterGroupEngine">Silnik i napęd</span></h2>
-              <div class="mobileFilterCardBody">
+              <div class="mobileFilterCardBody isTwoColumn">
                 <div class="mobileField mobileRangeField mobileWideField">
                   <span class="mobileFieldLabel"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="displacementRangeLabel">Pojemność silnika</span></span>
                   <div class="mobileRangePair">
@@ -240,7 +250,7 @@
                 </div>
               </div>
             </section>
-            <section class="mobileFilterCard" aria-labelledby="mobile-filter-group-comfort">
+            <section class="mobileFilterCard mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-comfort">
               <h2 id="mobile-filter-group-comfort" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#armchair"></use></svg><span data-i18n="filterGroupComfort">Komfort</span></h2>
               <div class="mobileFilterCardBody">
                 <fieldset class="mobileField mobileChoiceField mobileWideField">
@@ -303,7 +313,7 @@
                 </div>
               </div>
             </section>
-            <section class="mobileFilterCard mobileFeatureOptionsSection" aria-labelledby="mobile-filter-group-options">
+            <section class="mobileFilterCard mobileFeatureOptionsSection mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-options">
               <h2 id="mobile-filter-group-options" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#settings"></use></svg><span data-i18n="featureOptionsLabel">Opcje</span></h2>
               <div class="mobileFilterCardBody">
                 <div class="mobileFeatureChoiceGroup">
@@ -341,7 +351,7 @@
                 </div>
               </div>
             </section>
-            <section class="mobileFilterCard" aria-labelledby="mobile-filter-group-colors">
+            <section class="mobileFilterCard mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-colors">
               <h2 id="mobile-filter-group-colors" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#palette"></use></svg><span data-i18n="filterGroupColors">Kolory</span></h2>
               <div class="mobileFilterCardBody">
                 <fieldset class="mobileField mobileChoiceField mobileWideField mobileColorField">
@@ -391,7 +401,7 @@
                   </label>
                   <div class="mobileVehicleChecks">
                     <label class="mobileCheckOption mobileNonSmokingField">
-                      <input data-mobile-non-smoking type="checkbox" checked />
+                      <input data-mobile-non-smoking type="checkbox" />
                       <svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#smoke-off"></use></svg><span data-i18n="nonSmokingLabel">Auto niepalącego</span>
                     </label>
                     <label class="mobileCheckOption mobileRoadworthyField">
@@ -449,7 +459,7 @@
           <aside class="mobileSearchCountPanel">
             <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
             <strong data-mobile-search-count aria-live="polite">—</strong>
-            <span>mobile.de</span>
+            <span>otomoto.pl</span>
             <div class="mobileSearchCountActions">
               <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
                 mobile.de <i aria-hidden="true">&#8599;</i>
@@ -457,6 +467,9 @@
               <a class="mobileSearchCountButton mobileSearchCountButtonSecondary" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search>
                 otomoto <i aria-hidden="true">&#8599;</i>
               </a>
+              <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
+                <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
+              </button>
             </div>
           </aside>
           <div class="mobileManualSearchActions">
@@ -521,7 +534,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=market-otomoto-20260923f"></script>
-    <script src="./src/mobile-market-analysis.js?v=market-otomoto-20260923f"></script>
+    <script src="./src/mobile.js?v=ui-batch-20260923"></script>
+    <script src="./src/mobile-market-analysis.js?v=ui-batch-20260923"></script>
   </body>
 </html>

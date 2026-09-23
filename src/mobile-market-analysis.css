@@ -851,3 +851,35 @@
   font-style: normal;
   font-weight: 700;
 }
+
+/* Twice as many saved searches visible: two columns on a desktop screen. */
+@media (min-width: 900px) {
+  .mobileMarketHistoryList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-xl);
+    max-block-size: min(52vh, 560px);
+  }
+
+  .mobileMarketHistoryItem {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-sm);
+  }
+
+  .mobileMarketHistoryItem:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+/* The market analysis is the second strongest action after the Mobile.de search. */
+.mobileMarketAnalysisButton {
+  border-width: 2px;
+  background: color-mix(in srgb, var(--color-brand) 9%, var(--color-surface));
+}
+
+@media (hover: hover) {
+  .mobileMarketAnalysisButton:hover {
+    background: var(--color-brand);
+    color: var(--color-accent-ink);
+  }
+}

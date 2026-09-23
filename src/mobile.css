@@ -356,7 +356,8 @@ button {
 
 .mobileSearchCountPanel {
   position: sticky;
-  top: calc(var(--space-sm) + 116px);
+  /* Clears the global navigation bar, so the panel follows the whole form. */
+  top: calc(58px + var(--space-sm));
   grid-column: 2;
   grid-row: 2;
   display: grid;
@@ -1752,4 +1753,129 @@ button {
 .mobileSearchCountButton:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* Page intro: what this page does and in which order. */
+.mobilePageIntro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-sm) var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.mobilePageTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.mobilePageSteps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mobilePageSteps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobilePageSteps li + li::before {
+  content: "→";
+  margin-right: var(--space-2xs);
+  color: var(--color-faint);
+}
+
+.mobilePageSteps b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-brand) 12%, var(--color-surface));
+  color: var(--color-brand-pressed);
+  font-size: var(--text-xs);
+}
+
+/* Folded filter groups. */
+.mobileFilterCardToggle {
+  margin-left: auto;
+  border: var(--rule-thin) solid var(--color-field);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  min-height: 32px;
+  padding: 0 var(--space-sm);
+}
+
+.mobileFilterCardCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+  font-size: var(--text-xs);
+  font-style: normal;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.mobileFilterCardCollapsible:not(.isOpen) .mobileFilterCardTitle {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Ranges side by side, each field still labelled on its own. */
+.mobileFilterCardBody.isTwoColumn {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--space-xl);
+}
+
+.mobileFilterCardBody.isTwoColumn > .mobileRangeField.mobileWideField {
+  grid-column: auto;
+  justify-self: stretch;
+}
+
+.mobileFilterCardBody.isTwoColumn > .mobileChoiceField {
+  grid-column: 1 / -1;
+}
+
+.mobileFieldHint {
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.mobileComboControl.isUnknownModel input {
+  border-color: var(--color-error);
+}
+
+.mobileSearchCountButtonAnalysis {
+  border-width: 2px;
+  background: var(--color-surface);
+  color: var(--color-brand-pressed);
+}
+
+@media (max-width: 720px) {
+  .mobileFilterCardBody.isTwoColumn {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
