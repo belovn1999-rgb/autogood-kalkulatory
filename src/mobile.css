@@ -821,10 +821,17 @@ button {
   line-height: 1.2;
 }
 
+.mobileComboMenu button.isKeyboardActive,
 .mobileComboMenu button:hover,
 .mobileComboMenu button:focus-visible {
   background: var(--color-surface-tint);
   outline: 0;
+}
+
+.mobileComboMenu button.isKeyboardActive {
+  box-shadow: inset 3px 0 0 var(--color-brand);
+  color: var(--color-brand-pressed);
+  font-weight: 700;
 }
 
 .mobileChoiceField {

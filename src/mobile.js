@@ -1366,7 +1366,7 @@ function comboOptionSets() {
   }));
   const currentModel = String(els.model?.value || "").trim();
   if (currentModel && !seenModels.has(normalizeToken(currentModel))) {
-    models.unshift({ value: currentModel, label: currentModel });
+    models.unshift({ value: currentModel, label: currentModel, isCurrentInput: true });
   }
   const valuesAfter = (values, fromValue, allowSame = false) => values
     .filter((value) => isAllowedRangeEndValue(value, fromValue, allowSame));
@@ -1459,9 +1459,13 @@ function renderComboMenus(filterControl = null) {
     const targetName = control.dataset.mobileOptionsTarget;
     const input = targetName ? control.querySelector(`[${targetName}]`) : null;
     const filter = control === filterControl ? normalizeToken(input?.value || "") : "";
-    const visibleOptions = filter
+    const matchingOptions = filter
       ? options.filter((option) => normalizeToken(`${option.label} ${option.value}`).includes(filter))
       : options;
+    const visibleOptions = filter && matchingOptions.some((option) => !option.isCurrentInput)
+      ? matchingOptions.filter((option) => !option.isCurrentInput)
+      : matchingOptions;
+    const keyboardActiveOption = filter && visibleOptions.length === 1 ? visibleOptions[0] : null;
     let menu = control.querySelector(".mobileComboMenu");
     if (!menu) {
       menu = document.createElement("div");
@@ -1482,8 +1486,12 @@ function renderComboMenus(filterControl = null) {
         if (groupLabel) items.push(`<div class="mobileComboMenuGroup">${escapeHtml(groupLabel)}</div>`);
         else if (previousGroup) items.push('<div class="mobileComboMenuDivider" aria-hidden="true"></div>');
       }
+      const optionClasses = [
+        option.isPopular ? "isPopular" : "",
+        option === keyboardActiveOption ? "isKeyboardActive" : "",
+      ].filter(Boolean).join(" ");
       items.push(`
-        <button class="${option.isPopular ? "isPopular" : ""}" type="button" data-mobile-option-value="${escapeHtml(option.value)}" data-mobile-option-label="${escapeHtml(option.label)}">
+        <button class="${optionClasses}" type="button" data-mobile-option-value="${escapeHtml(option.value)}" data-mobile-option-label="${escapeHtml(option.label)}">
           ${escapeHtml(option.label)}
         </button>
       `);
@@ -2702,6 +2710,16 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    const input = event.target.closest?.(".mobileComboControl[data-mobile-options] input:not([readonly])");
+    const control = input?.closest(".mobileComboControl[data-mobile-options]");
+    const activeOption = control?.querySelector(".mobileComboMenu button.isKeyboardActive");
+    if (control?.classList.contains("isOpen") && activeOption) {
+      event.preventDefault();
+      selectComboOption(activeOption);
+      return;
+    }
+  }
   if (event.key === "Escape") {
     closeComboMenus();
     closeMultiSelects();

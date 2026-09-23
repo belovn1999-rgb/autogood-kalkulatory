@@ -213,6 +213,10 @@ requireHtml('data-i18n="vehicleConditionLabel"', "sekcja stanu pojazdu");
 requireSource('damagedVehiclesShow: "Pokazuj"', "pokazanie uszkodzonych pojazdów");
 requireSource('function selectComboOption(optionButton)', "wybór pozycji z listy");
 requireSource('document.addEventListener("pointerdown", (event) => {', "wybór po pierwszym kliknięciu");
+requireSource('visibleOptions.length === 1 ? visibleOptions[0] : null', "automatyczne wyróżnienie jednego wyniku");
+requireSource('matchingOptions.some((option) => !option.isCurrentInput)', "pominięcie niepełnego tekstu przy rzeczywistym dopasowaniu");
+requireSource('event.key === "Enter"', "wybór klawiszem Enter");
+requireSource('selectComboOption(activeOption)', "zatwierdzenie wyróżnionej opcji");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {
