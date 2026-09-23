@@ -628,6 +628,7 @@ body.export-contract .brandTitle::after {
   gap: 8px;
   min-width: 0;
   max-width: 100%;
+  max-block-size: min(42vh, 400px);
   overflow: auto;
 }
 
@@ -717,6 +718,31 @@ body.export-contract .brandTitle::after {
 .history-delete:focus-visible {
   opacity: 1;
   background: #fff1f0;
+}
+
+.history-favorite {
+  position: absolute;
+  top: 5px;
+  right: 31px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: #8a6d00;
+  background: transparent;
+  font-size: 17px;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+.history-favorite:hover,
+.history-favorite:focus-visible,
+.history-favorite.is-pinned {
+  opacity: 1;
+  background: #fff8db;
 }
 
 .contract-grid {

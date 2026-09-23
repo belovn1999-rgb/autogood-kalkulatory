@@ -1315,6 +1315,8 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  max-block-size: min(42vh, 400px);
+  overflow: auto;
 }
 
 .historyEntry {
@@ -1405,8 +1407,51 @@ select {
   color: #fff;
 }
 
+.historyFavorite {
+  position: absolute;
+  top: -7px;
+  right: 14px;
+  z-index: 1;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #c4a000;
+  border-radius: 50%;
+  background: var(--ag-surface);
+  color: #8a6d00;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.82);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.historyEntry:hover .historyFavorite,
+.historyEntry:focus-within .historyFavorite,
+.historyFavorite.isPinned {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.historyFavorite:hover,
+.historyFavorite:focus-visible,
+.historyFavorite.isPinned {
+  background: #fff8db;
+}
+
 @media (hover: none) {
   .historyDelete {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+
+  .historyFavorite {
     opacity: 1;
     pointer-events: auto;
     transform: scale(1);

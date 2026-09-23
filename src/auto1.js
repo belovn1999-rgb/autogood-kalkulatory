@@ -17,7 +17,7 @@ const historyCount = document.querySelector("#historyCount");
 
 const HISTORY_DB_NAME = "autogood-auto1-results";
 const HISTORY_DB_VERSION = 1;
-const HISTORY_LIMIT = 10;
+const HISTORY_LIMIT = 20;
 const HISTORY_ENTRY_STORE = "entries";
 const HISTORY_FILE_STORE = "files";
 
@@ -84,12 +84,25 @@ function openHistoryDb() {
   return historyDbPromise;
 }
 
-async function readHistoryEntries() {
+async function readAllHistoryEntries() {
   const db = await openHistoryDb();
   const transaction = db.transaction(HISTORY_ENTRY_STORE, "readonly");
   const entries = await historyRequest(transaction.objectStore(HISTORY_ENTRY_STORE).getAll());
   await historyTransaction(transaction);
-  return entries.sort((left, right) => right.createdAt - left.createdAt).slice(0, HISTORY_LIMIT);
+  return entries;
+}
+
+function trimHistoryEntries(entries) {
+  const sorted = [...entries].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+    return right.createdAt - left.createdAt;
+  });
+  const pinned = sorted.filter((entry) => entry.pinned);
+  return [...pinned, ...sorted.filter((entry) => !entry.pinned).slice(0, HISTORY_LIMIT)];
+}
+
+async function readHistoryEntries() {
+  return trimHistoryEntries(await readAllHistoryEntries());
 }
 
 function historyDate(value) {
@@ -122,7 +135,9 @@ async function downloadHistoryFile(entry) {
 
 function renderHistoryEntries(entries) {
   historyList.replaceChildren();
-  historyCount.textContent = `${entries.length}/${HISTORY_LIMIT}`;
+  const pinnedCount = entries.filter((entry) => entry.pinned).length;
+  const recentCount = entries.length - pinnedCount;
+  historyCount.textContent = pinnedCount ? `★ ${pinnedCount} · ${recentCount}/${HISTORY_LIMIT}` : `${recentCount}/${HISTORY_LIMIT}`;
 
   if (!entries.length) {
     const empty = document.createElement("p");
@@ -149,6 +164,9 @@ function renderHistoryEntries(entries) {
     });
     info.append(name, meta);
 
+    const actions = document.createElement("div");
+    actions.className = "auto1HistoryActions";
+
     const download = document.createElement("button");
     download.className = "auto1HistoryDownload";
     download.type = "button";
@@ -165,9 +183,57 @@ function renderHistoryEntries(entries) {
       }
     });
 
-    item.append(info, download);
+    const favorite = document.createElement("button");
+    favorite.className = `auto1HistoryIconButton${entry.pinned ? " isPinned" : ""}`;
+    favorite.type = "button";
+    favorite.textContent = entry.pinned ? "★" : "☆";
+    favorite.title = t(entry.pinned ? "auto1.historyUnfavorite" : "auto1.historyFavorite");
+    favorite.setAttribute("aria-label", favorite.title);
+    favorite.addEventListener("click", async () => {
+      try {
+        await setHistoryFavorite(entry.id, !entry.pinned);
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : t("auto1.historyUnavailable"));
+      }
+    });
+
+    const remove = document.createElement("button");
+    remove.className = "auto1HistoryIconButton isDelete";
+    remove.type = "button";
+    remove.textContent = "×";
+    remove.title = t("auto1.historyDelete");
+    remove.setAttribute("aria-label", t("auto1.historyDelete"));
+    remove.addEventListener("click", async () => {
+      try {
+        await deleteHistoryEntry(entry.id);
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : t("auto1.historyUnavailable"));
+      }
+    });
+
+    actions.append(download, favorite, remove);
+    item.append(info, actions);
     historyList.appendChild(item);
   });
+}
+
+async function setHistoryFavorite(id, pinned) {
+  const db = await openHistoryDb();
+  const transaction = db.transaction(HISTORY_ENTRY_STORE, "readwrite");
+  const store = transaction.objectStore(HISTORY_ENTRY_STORE);
+  const entry = await historyRequest(store.get(id));
+  if (entry) store.put({ ...entry, pinned });
+  await historyTransaction(transaction);
+  await renderHistory();
+}
+
+async function deleteHistoryEntry(id) {
+  const db = await openHistoryDb();
+  const transaction = db.transaction([HISTORY_ENTRY_STORE, HISTORY_FILE_STORE], "readwrite");
+  transaction.objectStore(HISTORY_ENTRY_STORE).delete(id);
+  transaction.objectStore(HISTORY_FILE_STORE).delete(id);
+  await historyTransaction(transaction);
+  await renderHistory();
 }
 
 async function renderHistory() {
@@ -184,10 +250,12 @@ async function renderHistory() {
 
 async function saveHistoryFile(blob, name, pageCount) {
   const db = await openHistoryDb();
-  const existing = await readHistoryEntries();
+  const existing = await readAllHistoryEntries();
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const entry = { id, name, pageCount, size: blob.size, createdAt: Date.now() };
-  const removeEntries = existing.slice(HISTORY_LIMIT - 1);
+  const entry = { id, name, pageCount, size: blob.size, createdAt: Date.now(), pinned: false };
+  const keptEntries = trimHistoryEntries([entry, ...existing]);
+  const keptIds = new Set(keptEntries.map((item) => item.id));
+  const removeEntries = existing.filter((oldEntry) => !keptIds.has(oldEntry.id));
   const transaction = db.transaction([HISTORY_ENTRY_STORE, HISTORY_FILE_STORE], "readwrite");
   const entriesStore = transaction.objectStore(HISTORY_ENTRY_STORE);
   const filesStore = transaction.objectStore(HISTORY_FILE_STORE);

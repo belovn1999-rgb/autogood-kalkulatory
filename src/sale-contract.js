@@ -23,7 +23,7 @@ const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
 const W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const W14 = "http://schemas.microsoft.com/office/word/2010/wordml";
 const saleHistoryKey = "autogoodSaleContractHistory.v1";
-const saleHistoryLimit = 5;
+const saleHistoryLimit = 20;
 
 let saleTemplateBytesPromise = null;
 const activeGenerationOperations = new Set();
@@ -283,14 +283,23 @@ function applySaleContract(data) {
 function readSaleHistory() {
   try {
     const parsed = JSON.parse(localStorage.getItem(saleHistoryKey) || "[]");
-    return Array.isArray(parsed) ? parsed.slice(0, saleHistoryLimit) : [];
+    return Array.isArray(parsed) ? trimSaleHistory(parsed) : [];
   } catch {
     return [];
   }
 }
 
+function trimSaleHistory(entries) {
+  const sorted = [...entries].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+    return new Date(right.savedAt || 0) - new Date(left.savedAt || 0);
+  });
+  const pinned = sorted.filter((entry) => entry.pinned);
+  return [...pinned, ...sorted.filter((entry) => !entry.pinned).slice(0, saleHistoryLimit)];
+}
+
 function writeSaleHistory(items) {
-  localStorage.setItem(saleHistoryKey, JSON.stringify(items.slice(0, saleHistoryLimit)));
+  localStorage.setItem(saleHistoryKey, JSON.stringify(trimSaleHistory(items)));
 }
 
 function saleHistoryTitle(entry) {
@@ -340,6 +349,17 @@ function renderSaleHistory() {
       setStatus("Dane z historii wczytane.");
     });
 
+    const favorite = document.createElement("button");
+    favorite.type = "button";
+    favorite.className = `history-favorite${entry.pinned ? " is-pinned" : ""}`;
+    favorite.textContent = entry.pinned ? "★" : "☆";
+    favorite.title = entry.pinned ? "Usuń z ulubionych" : "Dodaj do ulubionych";
+    favorite.setAttribute("aria-label", favorite.title);
+    favorite.addEventListener("click", () => {
+      writeSaleHistory(history.map((candidate) => candidate.id === entry.id ? { ...candidate, pinned: !entry.pinned } : candidate));
+      renderSaleHistory();
+    });
+
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "history-delete";
@@ -352,7 +372,7 @@ function renderSaleHistory() {
       setStatus("Zapis usunięty z historii.");
     });
 
-    item.append(button, remove);
+    item.append(button, favorite, remove);
     saleHistoryList.append(item);
   });
 }
@@ -363,6 +383,7 @@ function saveSaleHistoryEntry(data) {
     id: `${Date.now()}`,
     savedAt: new Date().toISOString(),
     data,
+    pinned: false,
   });
   writeSaleHistory(history);
   renderSaleHistory();
@@ -1485,6 +1506,7 @@ async function generateDocxBlob() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
 
   const data = collectSaleContract();
+  saveSaleHistoryEntry(data);
   if (!saleTemplateBytesPromise) {
     saleTemplateBytesPromise = fetch(saleTemplateUrl).then(async (response) => {
       if (!response.ok) throw new Error("Nie można pobrać szablonu DOCX.");

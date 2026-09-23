@@ -21,7 +21,7 @@ const MOBILEDE_API_URL = readMobileDeApiUrl();
 const MOBILEDE_TABS = [0, 3, 4];
 const HISTORY_KEY = "autogood-calculation-history";
 const FINAL_HISTORY_KEY = "autogood-final-balance-history";
-const HISTORY_LIMIT = 8;
+const HISTORY_LIMIT = 20;
 const FINAL_TAB_ID = 5;
 const MARGIN_AUCTION_TAB_ID = 2;
 const SCREENSHOT_EDGE_PADDING = 2;
@@ -59,9 +59,11 @@ const copy = {
     totalJoin: "lub",
     rateLine: "Przeliczono po kursie",
     historyTitle: "Historia zmian",
-    historyEmpty: "Tutaj pojawi się 8 ostatnich kalkulacji.",
+    historyEmpty: "Tutaj pojawi się 20 ostatnich kalkulacji.",
     historyRestore: "Przywróć kalkulację",
     historyDelete: "Usuń z historii",
+    historyFavorite: "Dodaj do ulubionych",
+    historyUnfavorite: "Usuń z ulubionych",
     flexibleTitle: "Dostosuj kalkulację",
     flexibleAddTitle: "Dodaj pozycję",
     flexibleName: "Nazwa pozycji",
@@ -82,7 +84,7 @@ const copy = {
     breakdownTaxes: "Podatki",
     breakdownOther: "Pozostałe opłaty",
     breakdownCommission: "Prowizja AUTOGOOD",
-    finalHistoryEmpty: "Tutaj pojawi się 8 ostatnich rozliczeń.",
+    finalHistoryEmpty: "Tutaj pojawi się 20 ostatnich rozliczeń.",
     finalBalance: "Rozliczenie końcowe",
     finalCurrency: "Waluta rozliczenia",
     finalFixedCosts: "Aktywne pozycje",
@@ -154,9 +156,11 @@ const copy = {
     totalJoin: "или",
     rateLine: "Расчёт по курсу",
     historyTitle: "История изменений",
-    historyEmpty: "Здесь появятся 8 последних расчётов.",
+    historyEmpty: "Здесь появятся 20 последних расчётов.",
     historyRestore: "Вернуть расчёт",
     historyDelete: "Удалить из истории",
+    historyFavorite: "Добавить в избранное",
+    historyUnfavorite: "Убрать из избранного",
     flexibleTitle: "Настройка расчёта",
     flexibleAddTitle: "Добавить позицию",
     flexibleName: "Название позиции",
@@ -177,7 +181,7 @@ const copy = {
     breakdownTaxes: "Налоги",
     breakdownOther: "Другие обязательные оплаты",
     breakdownCommission: "Комиссия AUTOGOOD",
-    finalHistoryEmpty: "Здесь появятся 8 последних финальных расчётов.",
+    finalHistoryEmpty: "Здесь появятся 20 последних финальных расчётов.",
     finalBalance: "Финальный расчёт",
     finalCurrency: "Валюта расчёта",
     finalFixedCosts: "Активные позиции",
@@ -249,9 +253,11 @@ const copy = {
     totalJoin: "or",
     rateLine: "Calculated at the rate",
     historyTitle: "History",
-    historyEmpty: "Your last 8 calculations will appear here.",
+    historyEmpty: "Your last 20 calculations will appear here.",
     historyRestore: "Restore calculation",
     historyDelete: "Remove from history",
+    historyFavorite: "Add to favorites",
+    historyUnfavorite: "Remove from favorites",
     flexibleTitle: "Customize calculation",
     flexibleAddTitle: "Add a position",
     flexibleName: "Position name",
@@ -272,7 +278,7 @@ const copy = {
     breakdownTaxes: "Taxes",
     breakdownOther: "Other mandatory costs",
     breakdownCommission: "AUTOGOOD commission",
-    finalHistoryEmpty: "Your last 8 final settlements will appear here.",
+    finalHistoryEmpty: "Your last 20 final settlements will appear here.",
     finalBalance: "Final settlement",
     finalCurrency: "Settlement currency",
     finalFixedCosts: "Active items",
@@ -800,15 +806,24 @@ function readHistory(key = HISTORY_KEY) {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed.slice(0, HISTORY_LIMIT) : [];
+    return Array.isArray(parsed) ? trimHistory(parsed) : [];
   } catch (error) {
     return [];
   }
 }
 
+function trimHistory(items) {
+  const sorted = [...items].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+    return new Date(right.savedAt || 0) - new Date(left.savedAt || 0);
+  });
+  const pinned = sorted.filter((item) => item.pinned);
+  return [...pinned, ...sorted.filter((item) => !item.pinned).slice(0, HISTORY_LIMIT)];
+}
+
 function writeHistory(items, key = HISTORY_KEY) {
   try {
-    window.localStorage.setItem(key, JSON.stringify(items));
+    window.localStorage.setItem(key, JSON.stringify(trimHistory(items)));
   } catch (error) {
     // The calculator still works if the browser blocks local storage.
   }
@@ -1551,7 +1566,7 @@ function MarginAuctionWorkbench({ c, draft, onDraftChange, onAdd, removedRows, o
   );
 }
 
-function HistoryPanel({ c, history, lang, onRestore, onDelete, emptyText }) {
+function HistoryPanel({ c, history, lang, onRestore, onDelete, onToggleFavorite, emptyText }) {
   return (
     <aside className="card historyPanel">
       <h2>{c.historyTitle}</h2>
@@ -1581,6 +1596,15 @@ function HistoryPanel({ c, history, lang, onRestore, onDelete, emptyText }) {
                 onClick={() => onDelete(item)}
               >
                 ×
+              </button>
+              <button
+                className={`historyFavorite${item.pinned ? " isPinned" : ""}`}
+                type="button"
+                title={item.pinned ? c.historyUnfavorite : c.historyFavorite}
+                aria-label={item.pinned ? c.historyUnfavorite : c.historyFavorite}
+                onClick={() => onToggleFavorite(item)}
+              >
+                {item.pinned ? "★" : "☆"}
               </button>
             </div>
           ))}
@@ -2760,11 +2784,12 @@ function App() {
         finalVatRowIndex: Math.min(finalVatRowIndex, finalCalc.rows.length),
         total: finalCalc.total,
         title: c.finalBalance,
+        pinned: false,
       };
       const signature = finalHistorySignature(item);
 
       setFinalHistory((current) => {
-        const next = [item, ...current.filter((saved) => finalHistorySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
+        const next = trimHistory([item, ...current.filter((saved) => finalHistorySignature(saved) !== signature)]);
         writeHistory(next, FINAL_HISTORY_KEY);
         return next;
       });
@@ -2793,11 +2818,12 @@ function App() {
       processStepOverrides,
       total: displayedTotal,
       title: activeTabName,
+      pinned: false,
     };
     const signature = historySignature(item);
 
     setHistory((current) => {
-      const next = [item, ...current.filter((saved) => historySignature(saved) !== signature)].slice(0, HISTORY_LIMIT);
+      const next = trimHistory([item, ...current.filter((saved) => historySignature(saved) !== signature)]);
       writeHistory(next);
       return next;
     });
@@ -2871,6 +2897,23 @@ function App() {
 
     setHistory((current) => {
       const next = current.filter((saved) => saved.id !== item.id);
+      writeHistory(next);
+      return next;
+    });
+  };
+
+  const toggleHistoryFavorite = (item) => {
+    const update = (current) => current.map((saved) => saved.id === item.id ? { ...saved, pinned: !item.pinned } : saved);
+    if (item.type === "final") {
+      setFinalHistory((current) => {
+        const next = trimHistory(update(current));
+        writeHistory(next, FINAL_HISTORY_KEY);
+        return next;
+      });
+      return;
+    }
+    setHistory((current) => {
+      const next = trimHistory(update(current));
       writeHistory(next);
       return next;
     });
@@ -2955,6 +2998,7 @@ function App() {
   };
 
   const copyScreenshot = async () => {
+    saveCalculation();
     setScreenshotStatus("");
 
     try {
@@ -3008,8 +3052,9 @@ function App() {
           </div>
           <button
             className="printBtn"
-            onClick={() => (
-              isFinalBalance
+            onClick={() => {
+              saveCalculation();
+              return isFinalBalance
                 ? printFinalBalance({
                   lang: safeLang,
                   rows: finalCalc.rows,
@@ -3019,8 +3064,8 @@ function App() {
                   currency: finalCurrency,
                   rate: n(rate) || DEFAULT_RATE,
                 })
-                : printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: displayedTotal, rate: n(rate) || DEFAULT_RATE, financed, hasGermanCommission, dealerDirect: activeTab === 3 && dealerDirect, processStepHtml: processSteps.map((step) => step.html) })
-            )}
+                : printCalculation({ lang: safeLang, tab, title: activeTabName, rows: calc.rows, total: displayedTotal, rate: n(rate) || DEFAULT_RATE, financed, hasGermanCommission, dealerDirect: activeTab === 3 && dealerDirect, processStepHtml: processSteps.map((step) => step.html) });
+            }}
           >
             {c.print}
           </button>
@@ -3304,6 +3349,7 @@ function App() {
           lang={safeLang}
           onRestore={restoreHistoryItem}
           onDelete={deleteHistoryItem}
+          onToggleFavorite={toggleHistoryFavorite}
           emptyText={isFinalBalance ? c.finalHistoryEmpty : c.historyEmpty}
         />
       </section>

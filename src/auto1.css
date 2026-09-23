@@ -264,6 +264,8 @@
 .auto1HistoryList {
   display: grid;
   gap: 9px;
+  max-block-size: min(42vh, 420px);
+  overflow: auto;
 }
 
 .auto1HistoryEmpty {
@@ -335,6 +337,38 @@
 .auto1HistoryDownload:disabled {
   cursor: wait;
   opacity: 0.6;
+}
+
+.auto1HistoryActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auto1HistoryIconButton {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid #b8cbd9;
+  border-radius: 8px;
+  background: #fff;
+  color: #8a6d00;
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.auto1HistoryIconButton:hover,
+.auto1HistoryIconButton:focus-visible,
+.auto1HistoryIconButton.isPinned {
+  border-color: #c4a000;
+  background: #fff8db;
+}
+
+.auto1HistoryIconButton.isDelete {
+  color: #b42318;
 }
 
 .auto1Preview {

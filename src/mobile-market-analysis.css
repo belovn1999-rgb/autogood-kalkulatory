@@ -89,6 +89,8 @@
 
 .mobileMarketHistoryList {
   display: grid;
+  max-block-size: min(42vh, 420px);
+  overflow: auto;
 }
 
 .mobileMarketHistoryItem {

@@ -7,7 +7,7 @@ const pdfPreviewDownload = $("pdfPreviewDownload");
 const pdfPreviewPrint = $("pdfPreviewPrint");
 const templateUrl = "./contract-pdf-work/templates/Umowa_Zamowienia_Pojazdu_AG_template_signed.docx?v=20260909-1";
 const defaultPdfConverterUrl = "/api/convert-docx-to-pdf";
-const contractHistoryLimit = 5;
+const contractHistoryLimit = 20;
 const pdfConversionTimeoutMs = 120_000;
 
 let templateBytesPromise = null;
@@ -726,17 +726,26 @@ function configureContractVariant() {
 function readHistoryFromStorage(key) {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed.slice(0, contractHistoryLimit) : [];
+    return Array.isArray(parsed) ? trimContractHistory(parsed) : [];
   } catch {
     return [];
   }
+}
+
+function trimContractHistory(entries) {
+  const sorted = [...entries].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+    return new Date(right.savedAt || 0) - new Date(left.savedAt || 0);
+  });
+  const pinned = sorted.filter((entry) => entry.pinned);
+  return [...pinned, ...sorted.filter((entry) => !entry.pinned).slice(0, contractHistoryLimit)];
 }
 
 function prepareContractHistoryStorage() {
   const current = readHistoryFromStorage(contractHistoryKey);
   const previous = readHistoryFromStorage(previousVariantHistoryKey);
   if (!current.length && previous.length) {
-    localStorage.setItem(contractHistoryKey, JSON.stringify(previous.slice(0, contractHistoryLimit)));
+    localStorage.setItem(contractHistoryKey, JSON.stringify(trimContractHistory(previous)));
   }
   localStorage.removeItem(legacyContractHistoryKey);
   if (previousVariantHistoryKey !== contractHistoryKey) localStorage.removeItem(previousVariantHistoryKey);
@@ -747,7 +756,7 @@ function readContractHistory() {
 }
 
 function writeContractHistory(items) {
-  localStorage.setItem(contractHistoryKey, JSON.stringify(items.slice(0, contractHistoryLimit)));
+  localStorage.setItem(contractHistoryKey, JSON.stringify(trimContractHistory(items)));
 }
 
 function collectFormSnapshot() {
@@ -838,6 +847,17 @@ function renderContractHistory() {
       setStatus("Dane z historii wczytane.");
     });
 
+    const favorite = document.createElement("button");
+    favorite.type = "button";
+    favorite.className = `history-favorite${entry.pinned ? " is-pinned" : ""}`;
+    favorite.textContent = entry.pinned ? "★" : "☆";
+    favorite.title = entry.pinned ? "Usuń z ulubionych" : "Dodaj do ulubionych";
+    favorite.setAttribute("aria-label", favorite.title);
+    favorite.addEventListener("click", () => {
+      writeContractHistory(history.map((candidate) => candidate.id === entry.id ? { ...candidate, pinned: !entry.pinned } : candidate));
+      renderContractHistory();
+    });
+
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "history-delete";
@@ -850,7 +870,7 @@ function renderContractHistory() {
       setStatus("Zapis usunięty z historii.");
     });
 
-    item.append(button, remove);
+    item.append(button, favorite, remove);
     list.append(item);
   });
 }
@@ -864,6 +884,7 @@ function saveCurrentContractData() {
     savedAt: new Date().toISOString(),
     title,
     snapshot,
+    pinned: false,
   });
   writeContractHistory(history);
   renderContractHistory();
@@ -1418,6 +1439,7 @@ function applyExportContractLayout(rows, data) {
 
 async function generateDocx() {
   if (!window.JSZip) throw new Error("JSZip nie został załadowany.");
+  saveCurrentContractData();
   const data = collectData();
   const zip = await JSZip.loadAsync(await loadTemplateBytes());
   const xmlText = await zip.file("word/document.xml").async("text");

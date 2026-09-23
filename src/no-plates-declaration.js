@@ -15,7 +15,7 @@ const downloadButton = document.querySelector("#downloadDeclarationPdf");
 
 const historyKey = "autogood-no-plates-declaration-history:v1";
 const draftKey = "autogood-no-plates-declaration-draft:v1";
-const historyLimit = 5;
+const historyLimit = 20;
 const templateUrls = {
   autogood: "./assets/oswiadczenie-brak-tablic-autogood.pdf",
   man: "./assets/oswiadczenie-brak-tablic-klient-pan.pdf",
@@ -498,14 +498,23 @@ async function updatePreview() {
 function readHistory() {
   try {
     const entries = JSON.parse(storageGet(historyKey) || "[]");
-    return Array.isArray(entries) ? entries.slice(0, historyLimit) : [];
+    return Array.isArray(entries) ? trimHistory(entries) : [];
   } catch {
     return [];
   }
 }
 
+function trimHistory(entries) {
+  const sorted = [...entries].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+    return new Date(right.savedAt || 0) - new Date(left.savedAt || 0);
+  });
+  const pinned = sorted.filter((entry) => entry.pinned);
+  return [...pinned, ...sorted.filter((entry) => !entry.pinned).slice(0, historyLimit)];
+}
+
 function writeHistory(entries) {
-  return storageSet(historyKey, JSON.stringify(entries.slice(0, historyLimit)));
+  return storageSet(historyKey, JSON.stringify(trimHistory(entries)));
 }
 
 function historyTitle(entry) {
@@ -529,7 +538,7 @@ function renderHistory() {
   if (!entries.length) {
     const empty = document.createElement("div");
     empty.className = "history-empty";
-    empty.textContent = "Tutaj pojawi się 5 ostatnich zapisów.";
+    empty.textContent = "Tutaj pojawi się 20 ostatnich zapisów.";
     historyList.append(empty);
     return;
   }
@@ -552,6 +561,18 @@ function renderHistory() {
       setStatus("Dane z historii zostały wczytane.", "ok");
     });
 
+    const favorite = document.createElement("button");
+    favorite.type = "button";
+    favorite.className = `history-favorite${entry.pinned ? " is-pinned" : ""}`;
+    favorite.textContent = entry.pinned ? "★" : "☆";
+    favorite.title = entry.pinned ? "Usuń z ulubionych" : "Dodaj do ulubionych";
+    favorite.setAttribute("aria-label", favorite.title);
+    favorite.addEventListener("click", () => {
+      if (writeHistory(entries.map((candidate) => candidate.id === entry.id ? { ...candidate, pinned: !entry.pinned } : candidate))) {
+        renderHistory();
+      }
+    });
+
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "history-delete";
@@ -570,7 +591,7 @@ function renderHistory() {
       }
     });
 
-    item.append(button, remove);
+    item.append(button, favorite, remove);
     historyList.append(item);
   });
 }
@@ -581,7 +602,7 @@ const storageErrorMessage =
 function saveToHistory(data) {
   const signature = JSON.stringify(data);
   const entries = readHistory().filter((entry) => JSON.stringify(entry.data) !== signature);
-  entries.unshift({ id: String(Date.now()), savedAt: new Date().toISOString(), data });
+  entries.unshift({ id: String(Date.now()), savedAt: new Date().toISOString(), data, pinned: false });
   if (!writeHistory(entries)) return false;
   renderHistory();
   return true;
@@ -669,6 +690,7 @@ function requestReset() {
 async function downloadPdf() {
   const data = collectData();
   if (!ensureComplete(data)) return;
+  if (!saveToHistory(data)) return setStatus(storageErrorMessage, "error");
   setBusy(true);
   try {
     setStatus("Przygotowuję PDF...");
@@ -754,6 +776,7 @@ function printInHiddenFrame(url) {
 async function printPdf() {
   const data = collectData();
   if (!ensureComplete(data)) return;
+  if (!saveToHistory(data)) return setStatus(storageErrorMessage, "error");
   setBusy(true);
   try {
     setStatus("Przygotowuję PDF do druku...");
