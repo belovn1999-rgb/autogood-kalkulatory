@@ -787,3 +787,28 @@
     transition: none;
   }
 }
+
+/* Pinned searches (a client's car) stay on top and read a shade stronger. */
+.mobileMarketHistoryItem.isPinned {
+  border-radius: var(--radius-card);
+  background: var(--color-surface-tint);
+  box-shadow: inset 3px 0 0 var(--color-brand);
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+.mobileMarketHistoryItem.isPinned + .mobileMarketHistoryItem.isPinned {
+  border-top: 0;
+  margin-top: var(--space-xs);
+}
+
+.mobileMarketHistoryPinMark {
+  margin-right: 6px;
+  color: var(--color-brand);
+  font-style: normal;
+}
+
+.mobileMarketHistoryActions button.isPinned {
+  border-color: var(--color-brand);
+  color: var(--color-brand-pressed);
+}

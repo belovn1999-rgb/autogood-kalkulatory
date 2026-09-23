@@ -46,7 +46,8 @@ const copy = {
     gearboxAny: "Dowolny",
     bodyAny: "Dowolne",
     filterGroupVehicle: "Pojazd",
-    filterGroupPrice: "Cena i przebieg",
+    filterGroupMileage: "Przebieg i rok",
+    filterGroupPrice: "Cena",
     filterGroupEngine: "Silnik i napęd",
     filterGroupComfort: "Komfort",
     filterGroupColors: "Kolory",
@@ -242,7 +243,8 @@ const copy = {
     gearboxAny: "Любая",
     bodyAny: "Любой",
     filterGroupVehicle: "Автомобиль",
-    filterGroupPrice: "Цена и пробег",
+    filterGroupMileage: "Пробег и год",
+    filterGroupPrice: "Цена",
     filterGroupEngine: "Двигатель и привод",
     filterGroupComfort: "Комфорт",
     filterGroupColors: "Цвета",
@@ -2793,6 +2795,8 @@ els.marketSearch?.addEventListener("click", (event) => {
   try {
     const searchUrl = buildMobileDeSearchUrl(readManualFields());
     els.marketSearch.href = searchUrl;
+    // Every Mobile.de check lands in the search history below the form.
+    window.AUTOGOOD_MOBILE_LOG_SEARCH?.();
     setMarketSearchStatus(copy[state.lang].marketSearchOpening);
   } catch (error) {
     event.preventDefault();

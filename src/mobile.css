@@ -1649,27 +1649,15 @@ button {
   }
 }
 
-/* Listing link frame: same look as the manual panel. Only the link card is
-   permanent; listing data and purchase paths appear after "Rozpoznaj". */
-.mobilePanel.mobileListingFrame {
+/* Listing search: the link card is permanent, listing data and purchase
+   paths appear under it after "Rozpoznaj". No outer frame around them. */
+.mobileListingSearch {
+  display: grid;
+  gap: var(--space-lg);
   margin-bottom: var(--space-xl);
-  background: var(--color-paper);
+  min-width: 0;
 }
 
-.mobileListingFrameHead {
-  min-height: 0;
-  margin-bottom: var(--space-lg);
-}
-
-.mobileListingFrameLead {
-  display: block;
-  max-width: 72ch;
-  color: var(--color-muted);
-  font-size: var(--text-sm);
-  line-height: 1.5;
-}
-
-.mobileListingFrameBody,
 .mobileListingResult {
   display: grid;
   gap: var(--space-lg);

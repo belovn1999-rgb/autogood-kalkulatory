@@ -4,7 +4,7 @@
   const analysisView = document.querySelector("[data-mobile-market-analysis-view]");
   const analysisContent = document.querySelector("[data-mobile-market-analysis-content]");
   const manualView = document.querySelector('[data-mobile-method-view="manual"]');
-  const listingFrame = document.querySelector(".mobileListingFrame");
+  const listingFrame = document.querySelector(".mobileListingSearch");
   // The market analysis replaces the whole search area: link frame and manual form.
   const setManualViewHidden = (hidden) => {
     manualView.hidden = hidden;
@@ -29,6 +29,11 @@
       historyEdit: "Edytuj dane",
       historyEditReady: "Dane przeniesiono do formularza. Zapisz, aby zaktualizować ten wpis.",
       historyDelete: "Usuń",
+      historyPin: "Zapisz na stałe",
+      historyPinned: "Zapisane na stałe",
+      historyPinnedBadge: "Zapisane",
+      historyUnpin: "Usuń z zapisanych",
+      historySaveHint: "{count} / {limit} ostatnich sprawdzeń",
       historyDeleteConfirm: "Usunąć ten zapis historii?",
       historyDeleteSuccess: "Wpis został usunięty z historii.",
       historyReady: "{count} ofert · wykres gotowy",
@@ -100,6 +105,11 @@
       historyEdit: "Изменить данные",
       historyEditReady: "Данные перенесены в форму. Сохраните, чтобы обновить эту запись.",
       historyDelete: "Удалить",
+      historyPin: "Сохранить навсегда",
+      historyPinned: "Сохранено навсегда",
+      historyPinnedBadge: "Сохранено",
+      historyUnpin: "Убрать из сохранённых",
+      historySaveHint: "{count} / {limit} последних проверок",
       historyDeleteConfirm: "Удалить эту запись из истории?",
       historyDeleteSuccess: "Запись удалена из истории.",
       historyReady: "Объявлений: {count} · график готов",
@@ -163,7 +173,9 @@
 
   const HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v2";
   const LEGACY_HISTORY_STORAGE_KEY = "autogood.mobile.marketHistory.v1";
-  const HISTORY_LIMIT = 15;
+  // Every Mobile.de search is logged automatically; only the last 20 unpinned
+  // checks are kept, while pinned ones (e.g. a client's car) stay on top.
+  const HISTORY_LIMIT = 20;
 
   let activeAnalysis = null;
   let importedDataset = null;
@@ -288,19 +300,32 @@
           listings: normalizeListings(entry.listings),
           sourceFileName: String(entry.sourceFileName || ""),
           searchUrl: String(entry.searchUrl || ""),
+          pinned: Boolean(entry.pinned),
           createdAt: String(entry.createdAt || entry.updatedAt || new Date().toISOString()),
           updatedAt: String(entry.updatedAt || entry.createdAt || new Date().toISOString()),
-        }))
-        .slice(0, HISTORY_LIMIT);
+        }));
+      return trimHistory(parsed);
     } catch {
       return [];
     }
   }
 
+  // Pinned entries first, then the newest checks; unpinned ones are capped.
+  function trimHistory(entries) {
+    const sorted = [...entries].sort((left, right) => {
+      if (Boolean(left.pinned) !== Boolean(right.pinned)) return left.pinned ? -1 : 1;
+      return String(right.updatedAt).localeCompare(String(left.updatedAt));
+    });
+    const pinned = sorted.filter((entry) => entry.pinned);
+    const recent = sorted.filter((entry) => !entry.pinned).slice(0, HISTORY_LIMIT);
+    return [...pinned, ...recent];
+  }
+
   function storeMarketHistory(entries) {
     try {
-      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(entries.slice(0, HISTORY_LIMIT)));
-      marketHistory = entries.slice(0, HISTORY_LIMIT);
+      const trimmed = trimHistory(entries);
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(trimmed));
+      marketHistory = trimmed;
       return true;
     } catch {
       setAnalysisStatus(copy().historyStorageError, true);
@@ -313,7 +338,7 @@
     return marketHistory.find((entry) => entry.signature === signature) || null;
   }
 
-  function createMarketSnapshot(filters, listings, sourceFileName = "", searchUrl = "") {
+  function createMarketSnapshot(filters, listings, sourceFileName = "", searchUrl = "", pinned = false) {
     const now = new Date().toISOString();
     const entry = {
       id: `${Date.now()}-${seededNumber(`${filterSignature(filters)}|${now}`).toString(16)}`,
@@ -322,6 +347,7 @@
       listings: normalizeListings(listings),
       sourceFileName,
       searchUrl: searchUrl || buildMobileDeSearchUrl(filters),
+      pinned,
       createdAt: now,
       updatedAt: now,
     };
@@ -330,7 +356,7 @@
     return entry;
   }
 
-  function updateMarketSnapshot(historyId, filters, listings, sourceFileName = "", searchUrl = "") {
+  function updateMarketSnapshot(historyId, filters, listings, sourceFileName = "", searchUrl = "", pinned = null) {
     const index = marketHistory.findIndex((entry) => entry.id === historyId);
     if (index < 0) return null;
     const existing = marketHistory[index];
@@ -341,6 +367,7 @@
       listings: normalizeListings(listings),
       sourceFileName,
       searchUrl: searchUrl || buildMobileDeSearchUrl(filters),
+      pinned: pinned === null ? Boolean(existing.pinned) : pinned,
       updatedAt: new Date().toISOString(),
     };
     const updatedHistory = [...marketHistory];
@@ -397,7 +424,11 @@
 
   function renderHistory() {
     const c = copy();
-    historyCount.textContent = `${marketHistory.length} / ${HISTORY_LIMIT}`;
+    const pinnedCount = marketHistory.filter((entry) => entry.pinned).length;
+    const recentCount = marketHistory.length - pinnedCount;
+    historyCount.textContent = pinnedCount
+      ? `★ ${pinnedCount} · ${recentCount} / ${HISTORY_LIMIT}`
+      : `${recentCount} / ${HISTORY_LIMIT}`;
     if (!marketHistory.length) {
       historyList.innerHTML = `<p class="mobileMarketHistoryEmpty">${escapeMarketHtml(c.historyEmpty)}</p>`;
       return;
@@ -412,10 +443,10 @@
         ? c.historyReady.replace("{count}", String(entry.listings.length))
         : c.historyWaiting;
       return `
-        <article class="mobileMarketHistoryItem${ready ? " isReady" : ""}">
+        <article class="mobileMarketHistoryItem${ready ? " isReady" : ""}${entry.pinned ? " isPinned" : ""}">
           <div class="mobileMarketHistoryMain">
             <div class="mobileMarketHistoryTitleRow">
-              <strong>${escapeMarketHtml(title)}</strong>
+              <strong>${entry.pinned ? '<i class="mobileMarketHistoryPinMark" aria-hidden="true">★</i>' : ""}${escapeMarketHtml(title)}</strong>
               <time datetime="${escapeMarketHtml(entry.updatedAt)}">${escapeMarketHtml(formatHistoryDate(entry.updatedAt))}</time>
             </div>
             ${meta.length ? `<div class="mobileMarketHistoryMeta">${meta.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}</div>` : ""}
@@ -425,6 +456,7 @@
             <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
             ${searchUrl ? `<a href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.historyOpenList)} <i aria-hidden="true">↗</i></a>` : ""}
             <button type="button" data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyEdit)}</button>
+            <button class="${entry.pinned ? "isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}">${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
         </article>`;
@@ -514,12 +546,43 @@
       const listings = matchingImport?.listings || (matchingFilters ? existing?.listings || [] : []);
       const sourceFileName = matchingImport?.fileName || (matchingFilters ? existing?.sourceFileName || "" : "");
       const snapshot = editedEntry
-        ? updateMarketSnapshot(editedEntry.id, filters, listings, sourceFileName, searchUrl)
-        : createMarketSnapshot(filters, listings, sourceFileName, searchUrl);
+        ? updateMarketSnapshot(editedEntry.id, filters, listings, sourceFileName, searchUrl, true)
+        : createMarketSnapshot(filters, listings, sourceFileName, searchUrl, true);
       if (snapshot) setAnalysisStatus(editedEntry ? c.historyUpdateSuccess : c.saveSuccess);
     } catch (error) {
       setAnalysisStatus(error.message || c.missingVehicle, true);
     }
+  }
+
+  // Called when the user opens a Mobile.de search: log it, or refresh the
+  // timestamp of the same search so it moves back to the top of the list.
+  function logSearchToHistory() {
+    let filters;
+    try {
+      filters = readManualFields();
+    } catch {
+      return;
+    }
+    if (!filters.brand || !filters.model) return;
+    const existing = historyEntryForFilters(filters);
+    let searchUrl = "";
+    try {
+      searchUrl = buildMobileDeSearchUrl(filters);
+    } catch {
+      return;
+    }
+    if (existing) updateMarketSnapshot(existing.id, filters, existing.listings, existing.sourceFileName, searchUrl);
+    else createMarketSnapshot(filters, [], "", searchUrl);
+  }
+
+  function setHistoryPinned(historyId, pinned) {
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry) return;
+    if (!storeMarketHistory(marketHistory.map((item) => (
+      item.id === historyId ? { ...item, pinned } : item
+    )))) return;
+    renderHistory();
+    setAnalysisStatus(pinned ? copy().historyPinned : copy().historyUnpin);
   }
 
   function deleteHistoryEntry(historyId) {
@@ -1016,6 +1079,11 @@
       editHistoryEntry(editButton.dataset.mobileMarketHistoryEdit);
       return;
     }
+    const pinButton = event.target.closest("[data-mobile-market-history-pin]");
+    if (pinButton) {
+      setHistoryPinned(pinButton.dataset.mobileMarketHistoryPin, pinButton.dataset.mobileMarketHistoryPinned !== "true");
+      return;
+    }
     const button = event.target.closest("[data-mobile-market-history-analysis]");
     if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
   });
@@ -1024,6 +1092,8 @@
   document.querySelectorAll("[data-lang-button]").forEach((button) => {
     button.addEventListener("click", () => requestAnimationFrame(renderMarketTranslations));
   });
+
+  window.AUTOGOOD_MOBILE_LOG_SEARCH = logSearchToHistory;
 
   marketHistory = loadMarketHistory();
   renderMarketTranslations();
