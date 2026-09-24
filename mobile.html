@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=sticky-history-20260924" />
+  <link rel="stylesheet" href="./src/mobile.css?v=sticky-range-20260924" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-favorite-20260924" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
@@ -80,7 +80,12 @@
       <section class="mobileMethodView" data-mobile-method-view="manual">
         <article class="mobilePanel mobileManualPanel">
           <div class="mobilePanelHead">
-            <h2 class="mobileFilterCardTitle mobileManualPanelTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</span></h2>
+            <div class="mobileManualPanelHeadRow">
+              <h2 class="mobileFilterCardTitle mobileManualPanelTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#list"></use></svg><span data-i18n="manualEyebrow">WPISZ DANE RĘCZNIE</span></h2>
+              <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
+                <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
+              </button>
+            </div>
             <div class="mobileSelectedFilters" data-mobile-selected-filters aria-live="polite"></div>
           </div>
           <div class="mobileManualForm">
@@ -451,7 +456,10 @@
           </div>
           <div class="mobileSearchCountColumn">
             <aside class="mobileSearchCountPanel">
-              <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
+              <div class="mobileSearchCountHeader">
+                <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
+                <button class="mobileSearchCountSaveButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">★</button>
+              </div>
               <div class="mobileSearchCountMarkets">
                 <div class="mobileSearchCountMarket">
                   <span>mobile.de</span>
@@ -472,14 +480,6 @@
                 <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
                   <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
                 </button>
-                <div class="mobileSearchCountIcons">
-                  <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
-                    <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
-                  </button>
-                  <button class="mobileManualIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
-                    <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
-                  </button>
-                </div>
               </div>
             </aside>
           </div>

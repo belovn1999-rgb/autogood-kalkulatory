@@ -354,7 +354,7 @@ button {
   grid-column: 1;
 }
 
-/* The desktop count panel is fixed; this column preserves the form layout. */
+/* This column bounds the sticky panel to the manual-search range. */
 .mobileSearchCountColumn {
   grid-column: 2;
   grid-row: 2;
@@ -363,16 +363,15 @@ button {
 }
 
 .mobileSearchCountPanel {
-  position: fixed;
+  position: sticky;
   /* Clears the global navigation bar, whose height is measured at runtime. */
   top: calc(var(--ag-nav-height, 59px) + var(--space-sm));
-  right: max(24px, calc((100vw - 1200px) / 2 + 24px));
-  z-index: 4;
+  z-index: 2;
   display: grid;
   gap: var(--space-xs);
   box-sizing: border-box;
-  width: 196px;
-  min-height: 132px;
+  width: 100%;
+  min-height: 0;
   padding: var(--space-md);
   border: var(--rule-thin) solid var(--color-field);
   border-radius: var(--radius-card);
@@ -392,7 +391,7 @@ button {
 
 .mobileSearchCountPanel strong {
   color: var(--color-brand-pressed);
-  font-size: 34px;
+  font-size: 26px;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
   line-height: 1;
@@ -411,18 +410,53 @@ button {
 }
 
 .mobileSearchCountMarket strong {
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .mobileManualPanelHeadRow {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: var(--space-sm);
 }
 
 .mobileManualPanelHeadRow p {
   margin: 0;
+}
+
+.mobileManualPanelHeadRow .mobileManualPanelTitle {
+  min-width: 0;
+}
+
+.mobileSearchCountHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.mobileSearchCountSaveButton {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b88900;
+  cursor: pointer;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.mobileSearchCountSaveButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.mobileSearchCountSaveButton.isAcknowledged {
+  animation: mobileManualSavePop 360ms var(--ease-out);
 }
 
 .mobileManualIconButton {
@@ -1459,7 +1493,6 @@ button {
 
   .mobileSearchCountPanel {
     position: static;
-    right: auto;
     width: auto;
   }
 
@@ -1928,14 +1961,4 @@ button {
   margin-bottom: var(--space-sm);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-}
-
-.mobileSearchCountIcons {
-  display: flex;
-  gap: var(--space-2xs);
-  margin-top: var(--space-2xs);
-}
-
-.mobileSearchCountIcons .mobileManualIconButton {
-  flex: 1 1 auto;
 }

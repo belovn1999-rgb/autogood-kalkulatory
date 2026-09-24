@@ -218,6 +218,8 @@ requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "el
 requireHtml('data-mobile-options="price"', "cena od");
 requireHtml('data-mobile-options="priceTo"', "cena do");
 requireHtml("data-mobile-search-count-mobilede", "miejsce na liczbę ofert Mobile.de");
+requireHtml('class="mobileSearchCountSaveButton"', "gwiazdka zapisania przy liczbie ofert");
+requireHtml('class="mobileManualPanelHeadRow"', "reset filtrów przy nagłówku ręcznego wpisywania");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
 requireHtml('data-mobile-feature type="checkbox" value="HEAD_UP_DISPLAY"', "wyświetlacz Head-up w opcjach");
 requireSource('featureHeadUpDisplay: "Wyświetlacz Head-up (HUD)"', "polska etykieta HUD");
