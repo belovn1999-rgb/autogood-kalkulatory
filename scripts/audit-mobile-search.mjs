@@ -238,6 +238,8 @@ requireMarketAnalysisSource('data-mobile-market-history-pin="${escapeMarketHtml(
 requireMarketAnalysisSource('data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}"', "usunięcie wpisu");
 forbidMarketAnalysisSource('data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}"', "analiza rynku w wierszu historii");
 forbidMarketAnalysisSource('<a href="${escapeMarketHtml(searchUrl)}" target="_blank"', "otwieranie listy w wierszu historii");
+forbidMarketAnalysisSource("window.confirm(c.historyDeleteConfirm)", "potwierdzenie usunięcia wpisu");
+forbidMarketAnalysisSource("setAnalysisStatus(c.historyDeleteSuccess)", "komunikat po usunięciu wpisu");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {

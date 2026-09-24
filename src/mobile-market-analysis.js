@@ -75,8 +75,6 @@
       historyPinnedBadge: "Zapisane",
       historyUnpin: "Usuń z zapisanych",
       historySaveHint: "{count} / {limit} ostatnich sprawdzeń",
-      historyDeleteConfirm: "Usunąć ten zapis historii?",
-      historyDeleteSuccess: "Wpis został usunięty z historii.",
       historyReady: "{count} ofert · wykres gotowy",
       historyWaiting: "Brak danych rynku",
       historyStorageError: "Nie udało się zapisać historii w tej przeglądarce.",
@@ -194,8 +192,6 @@
       historyPinnedBadge: "Сохранено",
       historyUnpin: "Убрать из сохранённых",
       historySaveHint: "{count} / {limit} последних проверок",
-      historyDeleteConfirm: "Удалить эту запись из истории?",
-      historyDeleteSuccess: "Запись удалена из истории.",
       historyReady: "Объявлений: {count} · график готов",
       historyWaiting: "Нет данных рынка",
       historyStorageError: "Не удалось сохранить историю в этом браузере.",
@@ -853,14 +849,12 @@
   }
 
   function deleteHistoryEntry(historyId) {
-    const c = copy();
     const entry = marketHistory.find((item) => item.id === historyId);
-    if (!entry || !window.confirm(c.historyDeleteConfirm)) return;
+    if (!entry) return;
     if (!storeMarketHistory(marketHistory.filter((item) => item.id !== historyId))) return;
     if (activeAnalysis?.historyId === historyId) activeAnalysis.historyId = "";
     if (editingHistoryId === historyId) editingHistoryId = "";
     renderHistory();
-    setAnalysisStatus(c.historyDeleteSuccess);
   }
 
   function editHistoryEntry(historyId) {
