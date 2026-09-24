@@ -52,6 +52,11 @@ const copy = {
     stepAnalysis: "Analiza",
     modelOutsideCatalog: "Model spoza katalogu — szukamy po nazwie",
     recognitionUnavailable: "Serwis rozpoznawania jest niedostępny — wpisz dane ręcznie.",
+    recognitionViaBookmarklet: "Ogłoszenie otwarte w nowej karcie — kliknij tam zakładkę „AUTOGOOD”, a dane wpiszą się same.",
+    recognitionFromBookmarklet: "Dane pobrane z mobile.de przez zakładkę AUTOGOOD.",
+    bookmarkletHint: "Przeciągnij ten przycisk na pasek zakładek. Potem klikaj go na stronie ogłoszenia albo listy wyników mobile.de.",
+    bookmarkletLabel: "AUTOGOOD ↦ mobile.de",
+    bookmarkletInstall: "Zakładka do mobile.de:",
     offerCountLoading: "…",
     showMoreFilters: "Pokaż",
     hideMoreFilters: "Ukryj",
@@ -260,6 +265,11 @@ const copy = {
     stepAnalysis: "Анализ",
     modelOutsideCatalog: "Модель вне каталога — ищем по названию",
     recognitionUnavailable: "Сервис распознавания недоступен — введи данные вручную.",
+    recognitionViaBookmarklet: "Объявление открыто в новой вкладке — нажми там закладку «AUTOGOOD», и данные заполнятся сами.",
+    recognitionFromBookmarklet: "Данные получены с mobile.de через закладку AUTOGOOD.",
+    bookmarkletHint: "Перетащи эту кнопку на панель закладок. Потом нажимай её на странице объявления или списка mobile.de.",
+    bookmarkletLabel: "AUTOGOOD ↦ mobile.de",
+    bookmarkletInstall: "Закладка для mobile.de:",
     offerCountLoading: "…",
     showMoreFilters: "Показать",
     hideMoreFilters: "Скрыть",
@@ -2483,19 +2493,30 @@ function extractModel(title, brandMatch) {
   model = model.replace(/\s{2,}/g, " ");
   // Listing titles carry engine and trim after the model ("i40 1.7 CRDi Kombi Style").
   // Keep the longest catalog model the title opens with, so searches use its ID.
-  const lowerTitle = model.toLowerCase();
-  const catalogModel = modelGroupsForBrand(brandMatch.value)
+  const catalogModel = catalogModelAtStart(brandMatch.value, model);
+  return catalogModel || model.split(" ")[0] || model;
+}
+
+// Mobile.de names some models twice ("cee'd / Ceed", "pro cee'd / ProCeed"):
+// either half counts, and apostrophes are ignored.
+function catalogModelAtStart(brand, text) {
+  const plain = (value) => String(value || "").toLowerCase().replace(/['’`]/g, "").replace(/\s{2,}/g, " ").trim();
+  const lowerTitle = plain(text);
+  if (!lowerTitle) return "";
+  return modelGroupsForBrand(brand)
     .flatMap((group) => group.models)
     .filter((candidate) => candidate && candidate !== "Other")
-    .filter((candidate) => {
-      const lowerCandidate = candidate.toLowerCase();
-      if (!lowerTitle.startsWith(lowerCandidate)) return false;
-      const next = lowerTitle.charAt(lowerCandidate.length);
-      // "320d", "220i": a trim letter may follow a numeric model directly.
-      return !next || !/[a-z0-9]/.test(next) || (/\d$/.test(lowerCandidate) && /^[a-z]\b/.test(lowerTitle.slice(lowerCandidate.length)));
+    .map((candidate) => {
+      const length = [candidate, ...candidate.split(" / ")].map(plain).filter((lowerCandidate) => {
+        if (!lowerCandidate || !lowerTitle.startsWith(lowerCandidate)) return false;
+        const next = lowerTitle.charAt(lowerCandidate.length);
+        // "320d", "220i": a trim letter may follow a numeric model directly.
+        return !next || !/[a-z0-9]/.test(next) || (/\d$/.test(lowerCandidate) && /^[a-z]\b/.test(lowerTitle.slice(lowerCandidate.length)));
+      }).reduce((longest, lowerCandidate) => Math.max(longest, lowerCandidate.length), 0);
+      return { candidate, length };
     })
-    .sort((left, right) => right.length - left.length)[0];
-  return catalogModel || model.split(" ")[0] || model;
+    .filter((item) => item.length)
+    .sort((left, right) => right.length - left.length)[0]?.candidate || "";
 }
 
 function normalizeFuel(value, title = "") {
@@ -2531,7 +2552,8 @@ function normalizeBody(value) {
 function applyRecognizedManualFields(data) {
   const title = data?.title || "";
   const brandMatch = matchBrand(title);
-  const model = extractModel(title, brandMatch);
+  // The ad's own model field (bookmarklet) names the model exactly as the catalog does.
+  const model = (brandMatch && catalogModelAtStart(brandMatch.value, data?.model)) || extractModel(title, brandMatch);
   const registrationYear = extractYear(data?.firstRegistration);
   const displacementCcm = compactNumber(data?.displacementCcm);
   const powerHp = compactNumber(data?.powerHp ?? data?.horsepower ?? data?.powerPs);
@@ -2543,17 +2565,21 @@ function applyRecognizedManualFields(data) {
       normalizePlugin(data?.fuel, title) === "yes" ? "plugin" : "",
     ].filter(Boolean),
     body: normalizeBody(data?.bodyType),
-    mileageFrom: mileageBucket(data?.mileageKm, "from"),
-    mileageTo: mileageBucket(data?.mileageKm, "to"),
-    yearFrom: registrationYear,
-    yearTo: registrationYear,
-    displacementFrom: displacementCcm,
-    displacementTo: displacementCcm,
-    powerFrom: powerHp,
-    powerTo: powerHp,
+    // Comparable cars, not this exact car: the same engine is listed as 1591
+    // or 1598 ccm, and mileage is what the analysis chart spreads offers by.
+    mileageFrom: "",
+    mileageTo: "",
+    yearFrom: registrationYear ? String(Number(registrationYear) - 1) : "",
+    yearTo: registrationYear ? String(Number(registrationYear) + 1) : "",
+    displacementFrom: displacementCcm ? String(Math.max(0, Number(displacementCcm) - 100)) : "",
+    displacementTo: displacementCcm ? String(Number(displacementCcm) + 100) : "",
+    powerFrom: powerHp ? String(Math.floor(Number(powerHp) * 0.9)) : "",
+    powerTo: powerHp ? String(Math.ceil(Number(powerHp) * 1.1)) : "",
     gearbox: normalizeGearboxChoice(data?.gearbox),
   };
 
+  // Lets the market analysis tell whether it shows this very car's market.
+  if (data && typeof data === "object") data.matchedFilters = { brand: next.brand, model: next.model };
   els.brand.value = next.brand;
   els.model.value = next.model;
   setCheckedValues(els.fuels, next.fuels);
@@ -2658,13 +2684,119 @@ function setStatus(status, message = "", replacesError = false) {
   els.status.textContent = status === "loading"
     ? c.loading
     : status === "ready"
-      ? c.ready
-      : status === "error"
+      ? (state.errorIsFullText && message ? message : c.ready)
+      : status === "error" || status === "waiting"
         ? (state.errorIsFullText ? message : `${c.error}${message ? ` ${message}` : ""}`)
         : c.helper;
   els.submit.disabled = status === "loading";
   renderI18n();
 }
+
+// ---- Data from the AUTOGOOD bookmarklet -----------------------------------
+// Same delivery/inspection tariffs and excise class as server/mobilede-import.mjs,
+// so an ad read in the browser gives the calculator the same numbers.
+function tariffText(value) {
+  return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function tariffCountry(location) {
+  const raw = tariffText(location?.country);
+  const byCode = { de: "DE", deu: "DE", be: "BE", bel: "BE", fr: "FR", fra: "FR", it: "IT", ita: "IT", es: "ES", esp: "ES", nl: "NL", nld: "NL", se: "SE", swe: "SE", lt: "BALTICS", lv: "BALTICS", ee: "BALTICS" };
+  if (byCode[raw]) return byCode[raw];
+  const text = tariffText(`${location?.country || ""} ${location?.address || ""} ${location?.city || ""}`);
+  if (/\b(germany|deutschland|niemcy)\b/.test(text)) return "DE";
+  if (/\b(belgium|belgie|belgia|belgique)\b/.test(text)) return "BE";
+  if (/\b(france|frankreich|francja)\b/.test(text)) return "FR";
+  if (/\b(italy|italien|wlochy|italia)\b/.test(text)) return "IT";
+  if (/\b(netherlands|niederlande|holandia|nederland)\b/.test(text)) return "NL";
+  if (/^\d{5}$/.test(String(location?.postalCode || ""))) return "DE";
+  return "";
+}
+
+function estimateDeliveryInspection(bodyType, location) {
+  const country = tariffCountry(location);
+  const postalCode = String(location?.postalCode || "");
+  const city = tariffText(location?.city);
+  let tariff = { transport: 5000, inspection: 2500, rule: "other_europe" };
+  if (country === "BE") tariff = { transport: 2500, inspection: 1500, rule: "belgium" };
+  if (country === "NL") tariff = { transport: 2500, inspection: 1500, rule: "netherlands" };
+  if (country === "ES") tariff = { transport: 4500, inspection: 2000, rule: "spain" };
+  if (country === "BALTICS") tariff = { transport: 2000, inspection: 1500, rule: "baltics" };
+  if (country === "DE") {
+    const south = /^[6789]/.test(postalCode)
+      || /\b(bayern|bavaria|baden|wurttemberg|munich|munchen|muenchen|stuttgart|nurnberg|nuernberg|augsburg|ulm|freiburg|konstanz)\b/.test(city);
+    tariff = south
+      ? { transport: 2700, inspection: 1500, rule: "germany_south" }
+      : { transport: 2500, inspection: 1300, rule: "germany_north_middle_east_west" };
+  }
+  if (country === "FR") {
+    const parisOrEast = /^(75|77|78|91|92|93|94|95|02|08|10|21|25|39|51|52|54|55|57|58|67|68|70|71|88|89|90)/.test(postalCode);
+    tariff = parisOrEast
+      ? { transport: 2750, inspection: 1800, rule: "france_paris_border_east" }
+      : { transport: 3000, inspection: 2200, rule: "france_other" };
+  }
+  const body = String(bodyType || "").toLowerCase();
+  const surcharge = /camper|camping|motorhome|wohnmobil|bus|buss|autobus/.test(body) ? 400
+    : /suv|off-road|offroad|gel[aä]nde|terenowy|minibus|van|mpv|minivan/.test(body) ? 200 : 0;
+  return { transport: tariff.transport + surcharge, inspection: tariff.inspection, currency: "PLN", netto: true, rule: tariff.rule, surcharge };
+}
+
+function classifyEngineType(fuel, displacementCcm) {
+  const normalized = String(fuel || "").toLowerCase();
+  const isOver2000 = (Number(displacementCcm) || 0) > 2000;
+  const isPlugIn = /plug|phev/.test(normalized);
+  const isElectric = /elect|elektro|elektry|bev/.test(normalized);
+  const isHybrid = /hybrid|hybryd|hev/.test(normalized);
+  if (isElectric && !isHybrid) return 0;
+  if (isPlugIn) return isOver2000 ? 1 : 0;
+  if (isHybrid) return isOver2000 ? 1 : 2;
+  return isOver2000 ? 4 : 3;
+}
+
+const ENGINE_TYPE_LABELS = [
+  "EL / PHEV <=2000cm³",
+  "PHEV / HEV >2000cm³",
+  "HEV <=2000cm³",
+  "Spalinowy <=2000cm³",
+  "Spalinowy >2000cm³",
+];
+
+// An ad read on mobile.de by the bookmarklet: same shape as the import backend's answer.
+function applyMobileAd(ad) {
+  const estimate = estimateDeliveryInspection(ad.bodyType || ad.category, ad.location);
+  const engineTypeIndex = classifyEngineType(`${ad.fuel} ${ad.title}`, ad.displacementCcm);
+  const title = ad.title || [ad.brand, ad.model].filter(Boolean).join(" ");
+  state.data = {
+    sourceUrl: ad.sourceUrl,
+    adId: ad.adId,
+    importMode: "bookmarklet",
+    carBruttoEur: ad.carBruttoEur,
+    purchaseType: ad.vatReclaimable ? "VAT" : "Marża",
+    title,
+    bodyType: ad.bodyType || ad.category,
+    fuel: ad.fuel,
+    displacementCcm: ad.displacementCcm,
+    powerHp: ad.powerHp,
+    gearbox: ad.gearbox,
+    mileageKm: ad.mileageKm,
+    firstRegistration: ad.firstRegistration,
+    location: ad.location,
+    transportNettoPln: estimate.transport,
+    inspectionNettoPln: estimate.inspection,
+    transportEstimate: estimate,
+    deliveryInspectionEstimate: estimate,
+    engineTypeIndex,
+    engineTypeLabel: ENGINE_TYPE_LABELS[engineTypeIndex],
+  };
+  if (ad.sourceUrl) els.url.value = ad.sourceUrl;
+  setStatus("ready", copy[state.lang].recognitionFromBookmarklet, true);
+  applyRecognizedManualFields(state.data);
+  renderData();
+  document.querySelector("[data-mobile-listing-result]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+window.AUTOGOOD_APPLY_MOBILE_AD = applyMobileAd;
+window.AUTOGOOD_BRIDGE_HINT = () => setMarketSearchStatus(copy[state.lang].bookmarkletHint);
 
 async function loadMobileDeData(sourceUrl) {
   setStatus("loading");
@@ -2684,7 +2816,14 @@ async function loadMobileDeData(sourceUrl) {
   } catch (error) {
     // A dead import backend must not read as a broken link.
     const unreachable = error instanceof TypeError || /failed to fetch|networkerror/i.test(error.message || "");
-    setStatus("error", unreachable ? copy[state.lang].recognitionUnavailable : (error.message || ""), unreachable);
+    if (state.data) return;
+    const viaBookmarklet = unreachable && /^https:\/\/(suchen|www|m)\.mobile\.de\//.test(sourceUrl);
+    // Waiting for the bookmark is a next step, not an error.
+    setStatus(
+      viaBookmarklet ? "waiting" : "error",
+      viaBookmarklet ? copy[state.lang].recognitionViaBookmarklet : unreachable ? copy[state.lang].recognitionUnavailable : (error.message || ""),
+      unreachable,
+    );
     renderData();
   }
 }
@@ -2969,6 +3108,9 @@ els.form.addEventListener("submit", (event) => {
   event.preventDefault();
   const sourceUrl = els.url.value.trim();
   if (!sourceUrl) return;
+  // The ad opens in a tab this page keeps a handle on: the AUTOGOOD bookmark
+  // clicked there sends the data straight back, with or without the backend.
+  if (/^https:\/\/(suchen|www|m)\.mobile\.de\//.test(sourceUrl)) window.open(sourceUrl, "_blank");
   loadMobileDeData(sourceUrl);
 });
 

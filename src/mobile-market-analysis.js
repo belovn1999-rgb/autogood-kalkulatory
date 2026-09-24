@@ -67,6 +67,19 @@
       hiddenNoAxis: "{count} ofert bez tej wartości nie ma na wykresie.",
       tableSource: "Źródło",
       sourceEmpty: "brak danych",
+      fetchMobile: "Pobierz z mobile.de ↗",
+      fetchMobileHint: "Lista mobile.de otwarta w nowej karcie — kliknij tam zakładkę „AUTOGOOD”. Oferty trafią na wykres.",
+      mobileAdded: "Dodano {count} ofert mobile.de (z {total}).",
+      mobilePending: "Oferty mobile.de ({count}) czekają — otwórz Analizę rynku dla tego auta.",
+      bookmarkletInstall: "Zakładka do mobile.de:",
+      bookmarkletInstallHint: "przeciągnij na pasek zakładek",
+      yourCar: "To auto",
+      yourCarVerdict: "To auto: {price} — taniej niż {share}% ofert, {diff} mediany.",
+      belowMedian: "{pct}% poniżej",
+      aboveMedian: "{pct}% powyżej",
+      atMedian: "na poziomie",
+      yourCarMileageVerdict: "Przy takim przebiegu mediana to około {reference} — cena tego auta jest {diff} mediany.",
+      yourCarYearVerdict: "Dla tego rocznika mediana to około {reference} — cena tego auta jest {diff} mediany.",
       axisYear: "Oś pozioma: rok",
       historyPin: "Zapisz na stałe",
       historyPinned: "Zapisane na stałe",
@@ -110,7 +123,7 @@
       refreshInvalid: "Źródło nie zwróciło co najmniej 3 cen ofert.",
       snapshotSaved: "Zapisano nowy snapshot cen.",
       emptyHeading: "Brak realnych ofert do analizy",
-      emptyDescription: "Zaimportuj JSON lub CSV. Wykres nie pokazuje punktów testowych ani linków do ogólnego wyszukiwania.",
+      emptyDescription: "Pobierz oferty z mobile.de zakładką AUTOGOOD albo zaimportuj JSON lub CSV. Wykres nie pokazuje punktów testowych.",
       missingVehicle: "Wybierz markę i model przed uruchomieniem analizy rynku.",
       invalidData: "Źródło nie zwróciło co najmniej 3 poprawnych ogłoszeń mobile.de.",
       preparing: "Przygotowuję analizę rynku…",
@@ -182,6 +195,19 @@
       hiddenNoAxis: "Объявлений без этого значения нет на графике: {count}.",
       tableSource: "Источник",
       sourceEmpty: "нет данных",
+      fetchMobile: "Загрузить с mobile.de ↗",
+      fetchMobileHint: "Список mobile.de открыт в новой вкладке — нажми там закладку «AUTOGOOD». Объявления появятся на графике.",
+      mobileAdded: "Добавлено объявлений mobile.de: {count} (из {total}).",
+      mobilePending: "Объявления mobile.de ({count}) ждут — открой анализ рынка для этого авто.",
+      bookmarkletInstall: "Закладка для mobile.de:",
+      bookmarkletInstallHint: "перетащи на панель закладок",
+      yourCar: "Это авто",
+      yourCarVerdict: "Это авто: {price} — дешевле {share}% объявлений, {diff} медианы.",
+      belowMedian: "на {pct}% ниже",
+      aboveMedian: "на {pct}% выше",
+      atMedian: "на уровне",
+      yourCarMileageVerdict: "При таком пробеге медиана около {reference} — цена этого авто {diff} медианы.",
+      yourCarYearVerdict: "Для этого года медиана около {reference} — цена этого авто {diff} медианы.",
       axisYear: "Горизонтальная ось: год",
       historyPin: "Сохранить навсегда",
       historyPinned: "Сохранено навсегда",
@@ -225,7 +251,7 @@
       refreshInvalid: "Источник не вернул минимум 3 цен объявлений.",
       snapshotSaved: "Новый снимок цен сохранён.",
       emptyHeading: "Нет реальных объявлений для анализа",
-      emptyDescription: "Импортируйте JSON или CSV либо подключите источник данных для текущих фильтров.",
+      emptyDescription: "Загрузите объявления с mobile.de закладкой AUTOGOOD или импортируйте JSON либо CSV. На графике нет тестовых точек.",
       missingVehicle: "Выберите марку и модель перед запуском анализа рынка.",
       invalidData: "Источник не вернул минимум 3 корректных объявления mobile.de.",
       preparing: "Подготавливаю анализ рынка…",
@@ -270,6 +296,8 @@
   let chartSources = { otomoto: true, mobile: true };
   let chartAxis = "rank";
   let displayCurrency = "EUR";
+  // Mobile.de offers that arrived before the analysis was opened.
+  let pendingMobile = null;
 
   // Damaged cars, parts and lease instalments are listed at a fraction of the
   // real price; anything outside a third of the median to three times it is
@@ -1137,6 +1165,7 @@
       <section class="mobileMarketEmpty">
         <strong>${escapeMarketHtml(c.emptyHeading)}</strong>
         <p>${escapeMarketHtml(c.emptyDescription)}</p>
+        <button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><i aria-hidden="true"></i>${escapeMarketHtml(c.fetchMobile)}</button>
       </section>`;
 
     if (hasListings) {
@@ -1220,6 +1249,7 @@
       // Median price along mileage or year: offers under the line are cheap
       // for what they are, not only cheap overall.
       let trendLine = "";
+      let trendMedians = [];
       if (chartAxis === "rank" && plotted.length >= 3) {
         const curves = shownSources.map((source) => {
           const curve = plotted.filter((point) => point.listing.source === source).sort((left, right) => left.x - right.x);
@@ -1243,11 +1273,16 @@
           .map(([, points]) => {
             const prices = points.map((point) => point.listing.price).sort((left, right) => left - right);
             const xs = points.map((point) => axisValueOf(point.listing)).sort((left, right) => left - right);
+            const value = percentile(xs, 0.5);
+            const price = percentile(prices, 0.5);
             return {
-              x: ((percentile(xs, 0.5) - axisMin) / axisSpan) * 100,
-              y: verticalMarketPosition(percentile(prices, 0.5), domainMinimum, domainMaximum),
+              value,
+              price,
+              x: ((value - axisMin) / axisSpan) * 100,
+              y: verticalMarketPosition(price, domainMinimum, domainMaximum),
             };
           });
+        trendMedians = trendPoints;
         if (trendPoints.length >= 2) {
           trendLine = `
             <svg class="mobileMarketTrend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -1295,6 +1330,57 @@
         })
         .join("");
 
+      // The car recognised from a link, placed among the offers.
+      const recognised = typeof state !== "undefined" ? state.data : null;
+      const sameCar = recognised?.carBruttoEur
+        && normalizeToken(recognised.matchedFilters?.brand || "") === normalizeToken(filters.brand || "")
+        && normalizeToken(recognised.matchedFilters?.model || "") === normalizeToken(filters.model || "");
+      let carMarker = "";
+      let carVerdict = "";
+      let carLocalVerdict = "";
+      if (sameCar) {
+        const carPrice = displayCurrency === "PLN" ? recognised.carBruttoEur * rate : recognised.carBruttoEur;
+        const carYear = Number((String(recognised.firstRegistration || "").match(/(?:19|20)\d{2}/) || [])[0]) || null;
+        const carMileage = Number(recognised.mileageKm) || null;
+        const cheaperThan = marketListings.filter((listing) => listing.price > carPrice).length;
+        const share = Math.round((cheaperThan / marketListings.length) * 100);
+        const cheaperShare = marketListings.filter((listing) => listing.price < carPrice).length / marketListings.length;
+        let carX = null;
+        if (chartAxis === "rank") carX = cheaperShare;
+        else if (chartAxis === "mileage" && carMileage && axisSpan) carX = (carMileage - axisMin) / axisSpan;
+        else if (chartAxis === "year" && carYear && axisSpan) carX = (carYear - axisMin) / axisSpan;
+        const clampedY = verticalMarketPosition(Math.min(Math.max(carPrice, domainMinimum), domainMaximum), domainMinimum, domainMaximum);
+        if (carX !== null) {
+          carMarker = `<span class="mobileMarketCar" style="--x:${Math.min(1, Math.max(0, carX)).toFixed(4)};top:${clampedY}%" role="img" aria-label="${escapeMarketHtml(`${c.yourCar}: ${formatMarketPrice(carPrice)}`)}"><i aria-hidden="true"></i><b>${escapeMarketHtml(c.yourCar)} · ${escapeMarketHtml(formatMarketPrice(carPrice))}</b></span>`;
+        }
+        const diffPct = Math.round(((carPrice - statistics.median) / statistics.median) * 100);
+        const diff = Math.abs(diffPct) < 1 ? c.atMedian
+          : (diffPct < 0 ? c.belowMedian : c.aboveMedian).replace("{pct}", String(Math.abs(diffPct)));
+        const priceLabel = displayCurrency === "PLN"
+          ? `${formatMarketPrice(carPrice)} (${formatMarketPrice(recognised.carBruttoEur, "EUR")})`
+          : formatMarketPrice(carPrice);
+        carVerdict = c.yourCarVerdict.replace("{price}", priceLabel).replace("{share}", String(share)).replace("{diff}", diff);
+        // Against offers like it: the median price at its own mileage or year.
+        const carValue = chartAxis === "mileage" ? carMileage : chartAxis === "year" ? carYear : null;
+        if (carValue && trendMedians.length >= 2) {
+          const sortedTrend = [...trendMedians].sort((left, right) => left.value - right.value);
+          let reference = null;
+          if (carValue <= sortedTrend[0].value) reference = sortedTrend[0].price;
+          else if (carValue >= sortedTrend[sortedTrend.length - 1].value) reference = sortedTrend[sortedTrend.length - 1].price;
+          else {
+            const upper = sortedTrend.findIndex((point) => point.value >= carValue);
+            const low = sortedTrend[upper - 1];
+            const high = sortedTrend[upper];
+            reference = low.price + ((carValue - low.value) / ((high.value - low.value) || 1)) * (high.price - low.price);
+          }
+          const localPct = Math.round(((carPrice - reference) / reference) * 100);
+          const localDiff = Math.abs(localPct) < 1 ? c.atMedian
+            : (localPct < 0 ? c.belowMedian : c.aboveMedian).replace("{pct}", String(Math.abs(localPct)));
+          carLocalVerdict = (chartAxis === "mileage" ? c.yourCarMileageVerdict : c.yourCarYearVerdict)
+            .replace("{reference}", formatMarketPrice(reference))
+            .replace("{diff}", localDiff);
+        }
+      }
       const sourceCount = (source) => cleaned[source].length;
       const axisCaption = chartAxis === "mileage" ? c.axisMileageCaption : chartAxis === "year" ? c.axisYearCaption : c.axisRankCaption;
 
@@ -1315,6 +1401,9 @@
               ${MARKET_SOURCES.map((source) => {
                 const count = sourceCount(source);
                 const pressed = count > 0 && shownSources.includes(source);
+                if (!count && source === "mobile") {
+                  return `<button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><i aria-hidden="true"></i>${escapeMarketHtml(c.fetchMobile)}</button>`;
+                }
                 return `<button class="mobileMarketSourceButton is${source === "otomoto" ? "Otomoto" : "Mobile"}" type="button" data-mobile-market-source="${source}" aria-pressed="${pressed ? "true" : "false"}"${count ? "" : " disabled"}><i aria-hidden="true"></i>${escapeMarketHtml(sourceName(source))} · ${count || escapeMarketHtml(c.sourceEmpty)}</button>`;
               }).join("")}
             </div>
@@ -1327,6 +1416,7 @@
 
         <div class="mobileMarketLegend">
           ${shownSources.map((source) => `<span class="is${source === "otomoto" ? "Otomoto" : "Mobile"}"><i></i>${escapeMarketHtml(sourceName(source))}</span>`).join("")}
+          ${carMarker ? `<span class="isCar"><i></i>${escapeMarketHtml(c.yourCar)}</span>` : ""}
           ${trendLine ? `<span class="isTrend"><i></i>${escapeMarketHtml(chartAxis === "rank" ? c.curveLegend : c.trendLegend)}</span>` : ""}
           <span class="isBandLow"><i></i>${escapeMarketHtml(c.lowMarket)} · ${statistics.lowCount}</span>
           <span class="isBandMiddle"><i></i>${escapeMarketHtml(c.middleMarket)} · ${statistics.middleCount}</span>
@@ -1351,6 +1441,7 @@
           ${xTicks.map((tick) => `<div class="mobileMarketGridColumn" style="--x:${tick.x.toFixed(4)}"></div>`).join("")}
           <div class="mobileMarketPlot">${trendLine}</div>
           ${points}
+          ${carMarker}
           <span class="mobileMarketTick isLimit" style="top:5%">${escapeMarketHtml(formatMarketPrice(domainMaximum))}</span>
           <span class="mobileMarketTick isLimit" style="top:95%">${escapeMarketHtml(formatMarketPrice(domainMinimum))}</span>
         </div>
@@ -1364,6 +1455,8 @@
         <section class="mobileMarketVerdict" aria-label="${escapeMarketHtml(c.verdictHeading)}">
           <strong>${escapeMarketHtml(c.verdictHeading)}</strong>
           <ul>
+            ${carVerdict ? `<li class="isCar">${escapeMarketHtml(carVerdict)}</li>` : ""}
+            ${carLocalVerdict ? `<li class="isCar">${escapeMarketHtml(carLocalVerdict)}</li>` : ""}
             <li>${escapeMarketHtml(c.verdictMedian.replace("{median}", formatMarketPrice(statistics.median)))}</li>
             <li>${escapeMarketHtml(c.verdictMiddle
               .replace("{low}", formatMarketPrice(statistics.middleLow))
@@ -1433,6 +1526,9 @@
           <div class="mobileMarketImportCopy">
             <strong>${escapeMarketHtml(c.importHeading)}</strong>
             <span>${escapeMarketHtml(c.importDescription)}</span>
+            <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
+              <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
+              <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
             ${stored ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName || "—"))}</small>` : ""}
           </div>
           <div class="mobileMarketImportActions">
@@ -1445,12 +1541,25 @@
           </div>
         </section>
 
+        ${analysisStatusHtml()}
+
         ${marketContent}
       </article>`;
+    window.AUTOGOOD_PREPARE_BOOKMARKLETS?.();
+  }
+
+  // The filters' status line is hidden while the analysis is open, so the
+  // analysis repeats the latest message in its own line.
+  let analysisMessage = { text: "", isError: false };
+  function analysisStatusHtml() {
+    return `<p class="mobileMarketAnalysisStatus${analysisMessage.isError ? " isError" : ""}" aria-live="polite" data-mobile-market-analysis-status${analysisMessage.text ? "" : " hidden"}>${escapeMarketHtml(analysisMessage.text)}</p>`;
   }
 
   function setAnalysisStatus(message, isError = false) {
     if (typeof setMarketSearchStatus === "function") setMarketSearchStatus(message, isError);
+    analysisMessage = { text: message || "", isError: Boolean(message) && isError };
+    const line = analysisContent.querySelector("[data-mobile-market-analysis-status]");
+    if (line) line.outerHTML = analysisStatusHtml();
   }
 
   async function openAnalysis() {
@@ -1470,9 +1579,23 @@
       setAnalysisStatus(c.preparing);
       analysisOpen.disabled = true;
       const provider = importedDataset || savedListings ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
-      const rawListings = importedDataset?.listings || savedListings || (provider ? await provider.getListings({ filters, searchUrl }) : []);
+      // Otomoto being unreachable (or empty) still opens the analysis, so the
+      // Mobile.de offers can be added to it.
+      let providerError = "";
+      let rawListings = importedDataset?.listings || savedListings || [];
+      if (provider) {
+        try {
+          rawListings = await provider.getListings({ filters, searchUrl });
+        } catch (error) {
+          providerError = error.message || c.invalidData;
+        }
+      }
       const normalizedListings = normalizeListings(rawListings);
-      const listings = normalizedListings;
+      let listings = normalizedListings;
+      if (pendingMobile?.listings?.length) {
+        listings = mergeBySource(listings, pendingMobile.listings);
+        pendingMobile = null;
+      }
       const fetchedFromProvider = Boolean(provider) && listings.length >= 3;
       // A fetched price sample belongs to the saved search, so the history row
       // shows how many offers it is based on.
@@ -1489,10 +1612,11 @@
         sourceFileName: importedDataset?.fileName || snapshot?.sourceFileName || savedEntry?.sourceFileName || "",
         historyId: snapshot?.id || savedEntry?.id || "",
       };
+      analysisMessage = { text: providerError, isError: Boolean(providerError) };
       renderAnalysis();
       setManualViewHidden(true);
       analysisView.hidden = false;
-      setAnalysisStatus("");
+      setAnalysisStatus(providerError, Boolean(providerError));
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       setAnalysisStatus(error.message || c.invalidData, true);
@@ -1591,7 +1715,42 @@
     }
   }
 
+  // Mobile.de offers read by the bookmarklet on the result list.
+  window.AUTOGOOD_ADD_MOBILE_LISTINGS = (rows, meta = {}) => {
+    const c = copy();
+    const listings = normalizeListings(rows).map((listing) => ({ ...listing, source: "mobile" }));
+    if (!listings.length) return;
+    const message = c.mobileAdded.replace("{count}", String(listings.length)).replace("{total}", String(meta.total || listings.length));
+    if (!activeAnalysis || analysisView.hidden) {
+      pendingMobile = { listings };
+      setAnalysisStatus(c.mobilePending.replace("{count}", String(listings.length)));
+      return;
+    }
+    const merged = mergeBySource(activeAnalysis.listings, listings);
+    const snapshot = activeAnalysis.historyId
+      ? updateMarketSnapshot(activeAnalysis.historyId, activeAnalysis.filters, merged, "mobile.de", activeAnalysis.searchUrl)
+      : createMarketSnapshot(activeAnalysis.filters, merged, "mobile.de", activeAnalysis.searchUrl);
+    activeAnalysis = { ...activeAnalysis, listings: merged, historyId: snapshot?.id || activeAnalysis.historyId };
+    chartSources = { ...chartSources, mobile: true };
+    renderAnalysis();
+    setAnalysisStatus(message);
+    window.focus();
+  };
+
   analysisContent.addEventListener("click", (event) => {
+    const fetchMobile = event.target.closest("[data-mobile-market-fetch-mobile]");
+    if (fetchMobile && activeAnalysis) {
+      // A tab this page keeps a handle on: the bookmark there answers it directly.
+      window.open(buildMobileDeSearchUrl(activeAnalysis.filters), "_blank");
+      setAnalysisStatus(copy().fetchMobileHint);
+      return;
+    }
+    const bookmarklet = event.target.closest("[data-autogood-bookmarklet]");
+    if (bookmarklet) {
+      event.preventDefault();
+      window.AUTOGOOD_BRIDGE_HINT?.();
+      return;
+    }
     const sourceButton = event.target.closest("[data-mobile-market-source]");
     if (sourceButton && !sourceButton.disabled) {
       const source = sourceButton.dataset.mobileMarketSource;

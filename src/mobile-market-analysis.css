@@ -653,6 +653,29 @@
   line-height: 1.5;
 }
 
+.mobileMarketEmpty .mobileMarketSourceButton {
+  justify-self: center;
+  margin-top: var(--space-sm);
+}
+
+.mobileMarketAnalysisStatus {
+  margin: var(--space-lg) 0 0;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-tint);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-success);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.mobileMarketAnalysisStatus.isError {
+  color: var(--color-error);
+}
+
+.mobileMarketAnalysisStatus[hidden] {
+  display: none;
+}
+
 .mobileMarketNotice {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1294,4 +1317,63 @@
 
 .mobileMarketTrend.isCurve polyline.isMobile {
   stroke: var(--market-mobile);
+}
+
+.mobileMarketImportCopy .mobileBookmarkletRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--space-sm);
+  margin-top: var(--space-2xs);
+}
+
+.mobileMarketSourceButton.isFetch {
+  color: #b34d00;
+}
+
+/* The car recognised from the link, among the offers (п.10). */
+.mobileMarketCar {
+  position: absolute;
+  z-index: 7;
+  left: calc(var(--plot-left) + (100% - var(--plot-left) - var(--plot-right)) * var(--x, 0.5));
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.mobileMarketCar i {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--color-surface);
+  background: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-ink);
+  transform: rotate(45deg);
+}
+
+.mobileMarketCar b {
+  position: absolute;
+  left: 14px;
+  top: -30px;
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.mobileMarketLegend .isCar i {
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--color-ink);
+  transform: rotate(45deg);
+}
+
+.mobileMarketVerdict li.isCar {
+  font-weight: 800;
 }
