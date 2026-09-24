@@ -863,6 +863,8 @@ button {
 }
 
 /* One-click chip rows (Paliwo, Nadwozie): one line when it fits, wrapping otherwise. */
+/* Chips are as wide as their label: they fill one row when they fit and wrap
+   left-aligned when they do not — a lone chip never stretches across a row. */
 .mobileInlineChoiceGroup {
   display: flex;
   flex-wrap: wrap;
@@ -870,8 +872,8 @@ button {
 }
 
 .mobileInlineChoiceGroup .mobileChoiceOption {
-  flex: 1 0 auto;
-  grid-template-columns: 16px auto;
+  flex: 0 1 auto;
+  grid-template-columns: 16px minmax(0, auto);
   gap: 6px;
   padding: 0 8px;
 }
