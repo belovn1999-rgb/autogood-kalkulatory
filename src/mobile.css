@@ -366,7 +366,8 @@ button {
   position: sticky;
   /* Clears the global navigation bar, whose height is measured at runtime. */
   top: calc(var(--ag-nav-height, 59px) + var(--space-sm));
-  z-index: 2;
+  /* Stay above the sticky manual-search heading, below global navigation. */
+  z-index: 4;
   display: grid;
   gap: var(--space-xs);
   box-sizing: border-box;
