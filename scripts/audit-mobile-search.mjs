@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mobileSource = await fs.readFile(path.join(repoRoot, "src/mobile.js"), "utf8");
+const marketAnalysisSource = await fs.readFile(path.join(repoRoot, "src/mobile-market-analysis.js"), "utf8");
 const mobileHtml = await fs.readFile(path.join(repoRoot, "mobile.html"), "utf8");
 const generatedSource = await fs.readFile(
   path.join(repoRoot, "src/mobile-model-catalog.generated.js"),
@@ -57,6 +58,10 @@ function requireHtml(fragment, label) {
 
 function requireSource(fragment, label) {
   if (!mobileSource.includes(fragment)) throw new Error(`Brak mapowania: ${label}.`);
+}
+
+function requireMarketAnalysisSource(fragment, label) {
+  if (!marketAnalysisSource.includes(fragment)) throw new Error(`Brak historii wyszukiwania: ${label}.`);
 }
 
 function extractFunction(source, name) {
@@ -220,6 +225,10 @@ requireSource('visibleOptions.length === 1 ? visibleOptions[0] : null', "automat
 requireSource('matchingOptions.some((option) => !option.isCurrentInput)', "pominięcie niepełnego tekstu przy rzeczywistym dopasowaniu");
 requireSource('event.key === "Enter"', "wybór klawiszem Enter");
 requireSource('selectComboOption(activeOption)', "zatwierdzenie wyróżnionej opcji");
+requireSource('const searchUrl = buildOtomotoSearchUrl(filters);', "adres wyszukiwania Otomoto");
+requireSource('window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);', "zapis wyszukiwania rynku w historii");
+requireMarketAnalysisSource('function logSearchToHistory(searchUrl = "")', "przekazanie adresu wybranego rynku");
+requireMarketAnalysisSource('if (entry.searchUrl) return entry.searchUrl;', "otwieranie zapisanego rynku");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {

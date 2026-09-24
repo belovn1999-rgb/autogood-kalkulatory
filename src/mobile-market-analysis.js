@@ -591,10 +591,11 @@
   }
 
   function historySearchUrl(entry) {
+    if (entry.searchUrl) return entry.searchUrl;
     try {
       return buildMobileDeSearchUrl(entry.filters);
     } catch {
-      return entry.searchUrl;
+      return "";
     }
   }
 
@@ -730,9 +731,9 @@
     }
   }
 
-  // Called when the user opens a Mobile.de search: log it, or refresh the
+  // Called when the user opens a marketplace search: log it, or refresh the
   // timestamp of the same search so it moves back to the top of the list.
-  function logSearchToHistory() {
+  function logSearchToHistory(searchUrl = "") {
     let filters;
     try {
       filters = readManualFields();
@@ -741,14 +742,16 @@
     }
     if (!filters.brand || !filters.model) return;
     const existing = historyEntryForFilters(filters);
-    let searchUrl = "";
-    try {
-      searchUrl = buildMobileDeSearchUrl(filters);
-    } catch {
-      return;
+    let resolvedSearchUrl = String(searchUrl || "");
+    if (!resolvedSearchUrl) {
+      try {
+        resolvedSearchUrl = buildMobileDeSearchUrl(filters);
+      } catch {
+        return;
+      }
     }
-    if (existing) updateMarketSnapshot(existing.id, filters, existing.listings, existing.sourceFileName, searchUrl);
-    else createMarketSnapshot(filters, [], "", searchUrl);
+    if (existing) updateMarketSnapshot(existing.id, filters, existing.listings, existing.sourceFileName, resolvedSearchUrl);
+    else createMarketSnapshot(filters, [], "", resolvedSearchUrl);
   }
 
   function setHistoryPinned(historyId, pinned) {

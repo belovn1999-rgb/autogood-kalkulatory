@@ -2934,7 +2934,9 @@ document.querySelectorAll(".mobileManualIconButton").forEach((button) => {
 els.otomotoSearches.forEach((link) => link.addEventListener("click", (event) => {
   try {
     const filters = readManualFields();
-    link.href = buildOtomotoSearchUrl(filters);
+    const searchUrl = buildOtomotoSearchUrl(filters);
+    link.href = searchUrl;
+    window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);
     const skipped = otomotoSkippedFilterLabels(filters);
     const converted = (filters.priceFrom || filters.priceTo)
       ? ` ${copy[state.lang].otomotoPriceConverted.replace("{rate}", `1 € = ${eurPlnRate().toFixed(2)} zł`)}`
@@ -2952,9 +2954,9 @@ els.otomotoSearches.forEach((link) => link.addEventListener("click", (event) => 
 
 els.marketSearches.forEach((link) => link.addEventListener("click", (event) => {
   try {
-    link.href = buildMobileDeSearchUrl(readManualFields());
-    // Every Mobile.de check lands in the search history below the form.
-    window.AUTOGOOD_MOBILE_LOG_SEARCH?.();
+    const searchUrl = buildMobileDeSearchUrl(readManualFields());
+    link.href = searchUrl;
+    window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);
     setMarketSearchStatus(copy[state.lang].marketSearchOpening);
   } catch (error) {
     event.preventDefault();
