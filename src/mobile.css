@@ -333,7 +333,7 @@ button {
 .mobileManualPanel .mobilePanelHead {
   min-height: 0;
   position: sticky;
-  top: var(--space-sm);
+  top: calc(var(--ag-nav-height, 59px) + var(--space-2xs));
   z-index: 3;
   background: var(--color-surface);
 }
@@ -354,12 +354,19 @@ button {
   grid-column: 1;
 }
 
-.mobileSearchCountPanel {
-  position: sticky;
-  /* Clears the global navigation bar, so the panel follows the whole form. */
-  top: calc(58px + var(--space-sm));
+/* The column ends with the form, so the panel inside it can never slide over
+   the buttons underneath. */
+.mobileSearchCountColumn {
   grid-column: 2;
   grid-row: 2;
+  height: 100%;
+  min-width: 0;
+}
+
+.mobileSearchCountPanel {
+  position: sticky;
+  /* Clears the global navigation bar, whose height is measured at runtime. */
+  top: calc(var(--ag-nav-height, 59px) + var(--space-sm));
   display: grid;
   gap: var(--space-xs);
   min-height: 132px;
@@ -1425,8 +1432,18 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* One column: a pinned panel would sit on top of the buttons and history. */
+  .mobileSearchCountColumn {
+    grid-row: auto;
+    height: auto;
+  }
+
+  .mobileSearchCountPanel {
+    position: static;
+  }
+
   .mobileManualPanel > .mobileManualForm,
-.mobileSearchCountPanel {
+.mobileSearchCountColumn {
     grid-column: 1;
   }
 

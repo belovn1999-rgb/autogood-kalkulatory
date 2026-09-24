@@ -2991,6 +2991,18 @@ fetch("./data/exchange-rates.json")
     // Without the file the fallback rate keeps the Otomoto price filter sane.
   });
 
+// The sticky panels start below the global navigation, which can wrap to two
+// rows on a narrow window, so its height is measured instead of guessed.
+function syncNavigationHeight() {
+  const nav = document.querySelector(".agGlobalNav");
+  const height = nav ? Math.round(nav.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty("--ag-nav-height", `${height || 59}px`);
+}
+
+syncNavigationHeight();
+window.addEventListener("resize", syncNavigationHeight);
+window.addEventListener("load", syncNavigationHeight);
+
 const initialParams = new URLSearchParams(window.location.search);
 const initialUrl = initialParams.get("url");
 if (initialUrl) els.url.value = initialUrl;

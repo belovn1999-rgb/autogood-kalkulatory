@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=layout-fix3-20260924" />
+  <link rel="stylesheet" href="./src/mobile.css?v=sticky-fix-20260924" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-actions-20260924" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
@@ -449,30 +449,32 @@
               </div>
             </section>
           </div>
-          <aside class="mobileSearchCountPanel">
-            <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
-            <strong data-mobile-search-count aria-live="polite">—</strong>
-            <span>otomoto.pl</span>
-            <div class="mobileSearchCountActions">
-              <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
-                mobile.de <i aria-hidden="true">&#8599;</i>
-              </a>
-              <a class="mobileSearchCountButton mobileSearchCountButtonSecondary" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search>
-                otomoto <i aria-hidden="true">&#8599;</i>
-              </a>
-              <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
-                <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
-              </button>
-              <div class="mobileSearchCountIcons">
-                <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
-                  <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
+          <div class="mobileSearchCountColumn">
+            <aside class="mobileSearchCountPanel">
+              <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
+              <strong data-mobile-search-count aria-live="polite">—</strong>
+              <span>otomoto.pl</span>
+              <div class="mobileSearchCountActions">
+                <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
+                  mobile.de <i aria-hidden="true">&#8599;</i>
+                </a>
+                <a class="mobileSearchCountButton mobileSearchCountButtonSecondary" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search>
+                  otomoto <i aria-hidden="true">&#8599;</i>
+                </a>
+                <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
+                  <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
                 </button>
-                <button class="mobileManualIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
-                  <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
-                </button>
+                <div class="mobileSearchCountIcons">
+                  <button class="mobileManualIconButton" type="button" data-mobile-manual-reset aria-label="Wyczyść filtry" title="Wyczyść filtry">
+                    <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#rotate-ccw"></use></svg>
+                  </button>
+                  <button class="mobileManualIconButton" type="button" data-mobile-market-history-save data-market-icon-label="saveButton" aria-label="Zapisz dane" title="Zapisz dane">
+                    <svg aria-hidden="true"><use href="./src/mobile-icons.svg?v=manual-filter-navigation-20260831#bookmark"></use></svg>
+                  </button>
+                </div>
               </div>
-            </div>
-          </aside>
+            </aside>
+          </div>
           <div class="mobileManualSearchActions">
             <p class="mobileMarketSearchStatus" aria-live="polite" data-mobile-market-search-status></p>
             <div class="mobileManualSearchButtons">
@@ -529,7 +531,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=otomoto-history-20260924"></script>
+    <script src="./src/mobile.js?v=sticky-fix-20260924"></script>
     <script src="./src/mobile-market-analysis.js?v=history-actions-20260924"></script>
   </body>
 </html>
