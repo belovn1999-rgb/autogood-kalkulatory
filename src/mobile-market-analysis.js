@@ -282,11 +282,13 @@
   // Damaged cars, parts and lease instalments are listed at a fraction of the
   // real price; anything outside a third of the median to three times it is
   // left out of the statistics.
-  function splitMarketOutliers(listings) {
-    const prices = listings.map((listing) => listing.price).sort((left, right) => left - right);
+  // Prices are compared in one currency: an Otomoto ad listed in EUR must not
+  // slip through next to PLN prices.
+  function splitMarketOutliers(listings, valueOf = (listing) => listing.price) {
+    const prices = listings.map(valueOf).sort((left, right) => left - right);
     if (prices.length < 5) return { kept: listings, skipped: [] };
     const median = percentile(prices, 0.5);
-    const kept = listings.filter((listing) => listing.price >= median / 3 && listing.price <= median * 3);
+    const kept = listings.filter((listing) => valueOf(listing) >= median / 3 && valueOf(listing) <= median * 3);
     return kept.length >= 3
       ? { kept, skipped: listings.filter((listing) => !kept.includes(listing)) }
       : { kept: listings, skipped: [] };
@@ -1104,8 +1106,10 @@
     listings.forEach((listing) => bySource[listingSource(listing)].push(listing));
     const cleaned = {};
     const outliers = [];
+    const plnRate = exchangeRate() || EUR_PLN_FALLBACK_RATE;
+    const inPln = (listing) => (listing.currency === "PLN" ? listing.price : listing.price * plnRate);
     MARKET_SOURCES.forEach((source) => {
-      const split = splitMarketOutliers(bySource[source]);
+      const split = splitMarketOutliers(bySource[source], inPln);
       cleaned[source] = split.kept;
       outliers.push(...split.skipped);
     });
