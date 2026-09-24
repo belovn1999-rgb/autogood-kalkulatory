@@ -154,7 +154,7 @@
 .mobileMarketHistoryActions {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
 }
 
 .mobileMarketHistoryItem button,
@@ -163,12 +163,12 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  min-height: 40px;
-  border: var(--rule-thin) solid var(--color-brand);
+  min-height: 46px;
+  border: 2px solid var(--color-brand);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-brand-pressed);
-  padding: 0 var(--space-md);
+  padding: 0 var(--space-lg);
   font: inherit;
   font-size: var(--text-sm);
   font-weight: 800;
@@ -184,7 +184,7 @@
 }
 
 .mobileMarketHistoryItem button.mobileMarketHistoryIconButton {
-  width: 40px;
+  width: 46px;
   padding: 0;
   font-size: var(--text-xl);
   line-height: 1;
@@ -707,7 +707,7 @@
 
   .mobileMarketHistoryActions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) 46px;
   }
 
   .mobileMarketHistoryItem button,
@@ -716,6 +716,10 @@
   }
 
   .mobileMarketHistoryItem button.isDelete {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: stretch;
+    width: 46px;
     margin-left: 0;
   }
 

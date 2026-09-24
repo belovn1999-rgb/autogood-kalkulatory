@@ -64,6 +64,10 @@ function requireMarketAnalysisSource(fragment, label) {
   if (!marketAnalysisSource.includes(fragment)) throw new Error(`Brak historii wyszukiwania: ${label}.`);
 }
 
+function forbidMarketAnalysisSource(fragment, label) {
+  if (marketAnalysisSource.includes(fragment)) throw new Error(`Nadmiarowa akcja historii: ${label}.`);
+}
+
 function extractFunction(source, name) {
   const declaration = source.indexOf(`function ${name}(`);
   if (declaration < 0) throw new Error(`Nie znaleziono funkcji ${name}.`);
@@ -229,6 +233,11 @@ requireSource('const searchUrl = buildOtomotoSearchUrl(filters);', "adres wyszuk
 requireSource('window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);', "zapis wyszukiwania rynku w historii");
 requireMarketAnalysisSource('function logSearchToHistory(searchUrl = "")', "przekazanie adresu wybranego rynku");
 requireMarketAnalysisSource('if (entry.searchUrl) return entry.searchUrl;', "otwieranie zapisanego rynku");
+requireMarketAnalysisSource('data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}"', "edycja danych");
+requireMarketAnalysisSource('data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}"', "usunięcie z zapisanych");
+requireMarketAnalysisSource('data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}"', "usunięcie wpisu");
+forbidMarketAnalysisSource('data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}"', "analiza rynku w wierszu historii");
+forbidMarketAnalysisSource('<a href="${escapeMarketHtml(searchUrl)}" target="_blank"', "otwieranie listy w wierszu historii");
 
 let modelCount = 0;
 for (const [brand, groups] of Object.entries(groupsByBrand)) {

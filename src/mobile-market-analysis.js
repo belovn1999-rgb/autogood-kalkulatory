@@ -615,7 +615,6 @@
       const title = [entry.filters.brand, entry.filters.model, entry.filters.version].filter(Boolean).join(" ");
       const meta = historyMeta(entry.filters);
       const ready = entry.listings.length >= 3;
-      const searchUrl = historySearchUrl(entry);
       const status = ready
         ? c.historyReady.replace("{count}", String(entry.listings.length))
         : c.historyWaiting;
@@ -630,8 +629,6 @@
             <span class="mobileMarketHistoryStatus">${escapeMarketHtml(status)}</span>
           </div>
           <div class="mobileMarketHistoryActions">
-            <button type="button" data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyAnalysis)} <i aria-hidden="true">→</i></button>
-            ${searchUrl ? `<a href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.historyOpenList)} <i aria-hidden="true">↗</i></a>` : ""}
             <button type="button" data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyEdit)}</button>
             <button class="${entry.pinned ? "isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}">${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
