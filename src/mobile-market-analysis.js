@@ -715,7 +715,7 @@
             </span>
           </label>
           <div class="mobileMarketHistoryActions">
-            <button class="${entry.pinned ? "isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}">${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}</button>
+            <button class="mobileMarketHistoryIconButton mobileMarketHistoryFavoriteButton${entry.pinned ? " isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}" aria-pressed="${entry.pinned ? "true" : "false"}" aria-label="${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}" title="${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}">★</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
         </article>`;
@@ -863,6 +863,12 @@
     analysisView.hidden = true;
     setManualViewHidden(false);
     setAnalysisStatus("");
+    renderHistory();
+  }
+
+  function clearHistorySelection() {
+    editingHistoryId = "";
+    document.querySelector("[data-mobile-manual-reset]")?.click();
     renderHistory();
   }
 
@@ -1665,12 +1671,15 @@
       setHistoryPinned(pinButton.dataset.mobileMarketHistoryPin, pinButton.dataset.mobileMarketHistoryPinned !== "true");
       return;
     }
+    const selection = event.target.closest("[data-mobile-market-history-select]");
+    if (selection) {
+      event.preventDefault();
+      if (editingHistoryId === selection.value) clearHistorySelection();
+      else selectHistoryEntry(selection.value);
+      return;
+    }
     const button = event.target.closest("[data-mobile-market-history-analysis]");
     if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
-  });
-  historyList.addEventListener("change", (event) => {
-    const selection = event.target.closest("[data-mobile-market-history-select]");
-    if (selection) selectHistoryEntry(selection.value);
   });
   analysisOpen.addEventListener("click", openAnalysis);
   analysisBack.addEventListener("click", closeAnalysis);

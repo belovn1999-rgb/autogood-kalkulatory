@@ -179,6 +179,7 @@
 .mobileMarketHistoryActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-sm);
 }
 
@@ -213,6 +214,19 @@
   padding: 0;
   font-size: var(--text-xl);
   line-height: 1;
+}
+
+.mobileMarketHistoryFavoriteButton {
+  border-color: color-mix(in srgb, #b88900 55%, var(--color-rule));
+  color: #b88900;
+  font-size: 24px !important;
+  opacity: 0.45;
+}
+
+.mobileMarketHistoryFavoriteButton.isPinned {
+  border-color: color-mix(in srgb, #b88900 70%, var(--color-rule));
+  background: color-mix(in srgb, #f6c343 18%, var(--color-surface));
+  opacity: 1;
 }
 
 .mobileMarketHistoryItem button i {
@@ -731,19 +745,15 @@
   }
 
   .mobileMarketHistoryActions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 46px;
+    display: flex;
   }
 
   .mobileMarketHistoryItem button,
 .mobileMarketHistoryItem a {
-    width: 100%;
+    width: auto;
   }
 
   .mobileMarketHistoryItem button.isDelete {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: stretch;
     width: 46px;
     margin-left: 0;
   }

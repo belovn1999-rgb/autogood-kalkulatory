@@ -217,6 +217,7 @@ contractFragments.forEach(([fragment, label]) => requireSource(fragment, label))
 requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "elektryczna klapa bagażnika w opcjach");
 requireHtml('data-mobile-options="price"', "cena od");
 requireHtml('data-mobile-options="priceTo"', "cena do");
+requireHtml("data-mobile-search-count-mobilede", "miejsce na liczbę ofert Mobile.de");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
 requireHtml('data-mobile-feature type="checkbox" value="HEAD_UP_DISPLAY"', "wyświetlacz Head-up w opcjach");
 requireSource('featureHeadUpDisplay: "Wyświetlacz Head-up (HUD)"', "polska etykieta HUD");
@@ -235,7 +236,9 @@ requireMarketAnalysisSource('function logSearchToHistory(searchUrl = "")', "prze
 requireMarketAnalysisSource('if (entry.searchUrl) return entry.searchUrl;', "otwieranie zapisanego rynku");
 requireMarketAnalysisSource("data-mobile-market-history-select", "wybór wpisu historii");
 requireMarketAnalysisSource("function selectHistoryEntry(historyId)", "wczytanie filtrów wybranego wpisu");
+requireMarketAnalysisSource("function clearHistorySelection()", "wyczyszczenie filtrów po odznaczeniu wpisu");
 requireMarketAnalysisSource('data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}"', "usunięcie z zapisanych");
+requireMarketAnalysisSource('aria-pressed="${entry.pinned ? "true" : "false"}"', "stan ikony zapisania");
 requireMarketAnalysisSource('data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}"', "usunięcie wpisu");
 forbidMarketAnalysisSource('data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}"', "osobna akcja edycji wpisu");
 forbidMarketAnalysisSource('data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}"', "analiza rynku w wierszu historii");

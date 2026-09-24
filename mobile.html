@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=sticky-fix-20260924" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=select-history-20260924" />
+  <link rel="stylesheet" href="./src/mobile.css?v=sticky-history-20260924" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-favorite-20260924" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
   </head>
@@ -452,8 +452,16 @@
           <div class="mobileSearchCountColumn">
             <aside class="mobileSearchCountPanel">
               <p data-i18n="offerCountLabel">AKTUALNE OFERTY</p>
-              <strong data-mobile-search-count aria-live="polite">—</strong>
-              <span>otomoto.pl</span>
+              <div class="mobileSearchCountMarkets">
+                <div class="mobileSearchCountMarket">
+                  <span>mobile.de</span>
+                  <strong data-mobile-search-count-mobilede aria-live="polite">—</strong>
+                </div>
+                <div class="mobileSearchCountMarket">
+                  <span>otomoto.pl</span>
+                  <strong data-mobile-search-count aria-live="polite">—</strong>
+                </div>
+              </div>
               <div class="mobileSearchCountActions">
                 <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
                   mobile.de <i aria-hidden="true">&#8599;</i>
@@ -532,6 +540,6 @@
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
     <script src="./src/mobile.js?v=sticky-fix-20260924"></script>
-    <script src="./src/mobile-market-analysis.js?v=select-history-20260924"></script>
+    <script src="./src/mobile-market-analysis.js?v=history-favorite-20260924"></script>
   </body>
 </html>
