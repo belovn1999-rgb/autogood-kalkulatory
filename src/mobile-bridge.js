@@ -16,10 +16,11 @@
     if (!links.length) return;
     try {
       if (!bookmarkletHref) {
-        const response = await fetch("./src/autogood-bookmarklet.js?v=bridge-20260924");
+        const response = await fetch("./src/autogood-bookmarklet.js?v=bridge6-20260924");
         if (!response.ok) return;
         const appUrl = `${location.origin}${location.pathname}`;
-        const code = (await response.text()).replace("__AUTOGOOD_APP__", appUrl);
+        // Only the quoted constant: the file's comments mention the placeholder too.
+        const code = (await response.text()).replace('"__AUTOGOOD_APP__"', JSON.stringify(appUrl));
         bookmarkletHref = `javascript:${encodeURIComponent(code)}`;
       }
       links.forEach((link) => {
