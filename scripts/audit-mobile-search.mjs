@@ -233,9 +233,11 @@ requireSource('const searchUrl = buildOtomotoSearchUrl(filters);', "adres wyszuk
 requireSource('window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);', "zapis wyszukiwania rynku w historii");
 requireMarketAnalysisSource('function logSearchToHistory(searchUrl = "")', "przekazanie adresu wybranego rynku");
 requireMarketAnalysisSource('if (entry.searchUrl) return entry.searchUrl;', "otwieranie zapisanego rynku");
-requireMarketAnalysisSource('data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}"', "edycja danych");
+requireMarketAnalysisSource("data-mobile-market-history-select", "wybór wpisu historii");
+requireMarketAnalysisSource("function selectHistoryEntry(historyId)", "wczytanie filtrów wybranego wpisu");
 requireMarketAnalysisSource('data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}"', "usunięcie z zapisanych");
 requireMarketAnalysisSource('data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}"', "usunięcie wpisu");
+forbidMarketAnalysisSource('data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}"', "osobna akcja edycji wpisu");
 forbidMarketAnalysisSource('data-mobile-market-history-analysis="${escapeMarketHtml(entry.id)}"', "analiza rynku w wierszu historii");
 forbidMarketAnalysisSource('<a href="${escapeMarketHtml(searchUrl)}" target="_blank"', "otwieranie listy w wierszu historii");
 forbidMarketAnalysisSource("window.confirm(c.historyDeleteConfirm)", "potwierdzenie usunięcia wpisu");

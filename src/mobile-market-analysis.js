@@ -26,8 +26,6 @@
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
       historyOpenList: "Otwórz listę",
-      historyEdit: "Edytuj dane",
-      historyEditReady: "Dane przeniesiono do formularza. Zapisz, aby zaktualizować ten wpis.",
       historyDelete: "Usuń",
       otomotoFetching: "Pobieram oferty z otomoto.pl…",
       otomotoFetched: "Wczytano {count} z {total} ofert otomoto.pl.",
@@ -143,8 +141,6 @@
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
       historyOpenList: "Открыть список",
-      historyEdit: "Изменить данные",
-      historyEditReady: "Данные перенесены в форму. Сохраните, чтобы обновить эту запись.",
       historyDelete: "Удалить",
       otomotoFetching: "Загружаю объявления с otomoto.pl…",
       otomotoFetched: "Загружено {count} из {total} объявлений otomoto.pl.",
@@ -706,17 +702,19 @@
         ? c.historyReady.replace("{count}", String(entry.listings.length))
         : c.historyWaiting;
       return `
-        <article class="mobileMarketHistoryItem${ready ? " isReady" : ""}${entry.pinned ? " isPinned" : ""}">
-          <div class="mobileMarketHistoryMain">
-            <div class="mobileMarketHistoryTitleRow">
-              <strong>${entry.pinned ? '<i class="mobileMarketHistoryPinMark" aria-hidden="true">★</i>' : ""}${escapeMarketHtml(title)}</strong>
-              <time datetime="${escapeMarketHtml(entry.updatedAt)}">${escapeMarketHtml(formatHistoryDate(entry.updatedAt))}</time>
-            </div>
-            ${meta.length ? `<div class="mobileMarketHistoryMeta">${meta.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}</div>` : ""}
-            <span class="mobileMarketHistoryStatus">${escapeMarketHtml(status)}</span>
-          </div>
+        <article class="mobileMarketHistoryItem${ready ? " isReady" : ""}${entry.pinned ? " isPinned" : ""}${editingHistoryId === entry.id ? " isSelected" : ""}">
+          <label class="mobileMarketHistorySelect">
+            <input type="radio" name="mobile-market-history-selection" value="${escapeMarketHtml(entry.id)}" data-mobile-market-history-select${editingHistoryId === entry.id ? " checked" : ""} />
+            <span class="mobileMarketHistoryMain">
+              <span class="mobileMarketHistoryTitleRow">
+                <strong>${entry.pinned ? '<i class="mobileMarketHistoryPinMark" aria-hidden="true">★</i>' : ""}${escapeMarketHtml(title)}</strong>
+                <time datetime="${escapeMarketHtml(entry.updatedAt)}">${escapeMarketHtml(formatHistoryDate(entry.updatedAt))}</time>
+              </span>
+              ${meta.length ? `<span class="mobileMarketHistoryMeta">${meta.map((item) => `<span>${escapeMarketHtml(item)}</span>`).join("")}</span>` : ""}
+              <span class="mobileMarketHistoryStatus">${escapeMarketHtml(status)}</span>
+            </span>
+          </label>
           <div class="mobileMarketHistoryActions">
-            <button type="button" data-mobile-market-history-edit="${escapeMarketHtml(entry.id)}">${escapeMarketHtml(c.historyEdit)}</button>
             <button class="${entry.pinned ? "isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}">${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
@@ -857,16 +855,15 @@
     renderHistory();
   }
 
-  function editHistoryEntry(historyId) {
+  function selectHistoryEntry(historyId) {
     const entry = marketHistory.find((item) => item.id === historyId);
     if (!entry) return;
     restoreManualFilters(entry.filters);
     editingHistoryId = entry.id;
     analysisView.hidden = true;
     setManualViewHidden(false);
-    setAnalysisStatus(copy().historyEditReady);
-    manualView.scrollIntoView({ behavior: "smooth", block: "start" });
-    document.querySelector("[data-mobile-brand]")?.focus({ preventScroll: true });
+    setAnalysisStatus("");
+    renderHistory();
   }
 
   function openHistoryAnalysis(historyId) {
@@ -1663,11 +1660,6 @@
       deleteHistoryEntry(deleteButton.dataset.mobileMarketHistoryDelete);
       return;
     }
-    const editButton = event.target.closest("[data-mobile-market-history-edit]");
-    if (editButton) {
-      editHistoryEntry(editButton.dataset.mobileMarketHistoryEdit);
-      return;
-    }
     const pinButton = event.target.closest("[data-mobile-market-history-pin]");
     if (pinButton) {
       setHistoryPinned(pinButton.dataset.mobileMarketHistoryPin, pinButton.dataset.mobileMarketHistoryPinned !== "true");
@@ -1675,6 +1667,10 @@
     }
     const button = event.target.closest("[data-mobile-market-history-analysis]");
     if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
+  });
+  historyList.addEventListener("change", (event) => {
+    const selection = event.target.closest("[data-mobile-market-history-select]");
+    if (selection) selectHistoryEntry(selection.value);
   });
   analysisOpen.addEventListener("click", openAnalysis);
   analysisBack.addEventListener("click", closeAnalysis);

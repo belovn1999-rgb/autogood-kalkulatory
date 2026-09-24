@@ -101,6 +101,15 @@
   padding: var(--space-lg) 0;
 }
 
+.mobileMarketHistoryItem.isSelected {
+  border-radius: var(--radius-card);
+  outline: 2px solid var(--color-brand);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--color-brand) 7%, var(--color-surface));
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
 .mobileMarketHistoryItem + .mobileMarketHistoryItem {
   border-top: var(--rule-thin) solid var(--color-rule-soft);
 }
@@ -109,6 +118,22 @@
   display: grid;
   gap: var(--space-xs);
   min-width: 0;
+}
+
+.mobileMarketHistorySelect {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: center;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.mobileMarketHistorySelect input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-brand);
 }
 
 .mobileMarketHistoryTitleRow {
@@ -717,7 +742,7 @@
 
   .mobileMarketHistoryItem button.isDelete {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     align-self: stretch;
     width: 46px;
     margin-left: 0;
