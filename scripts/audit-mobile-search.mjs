@@ -209,6 +209,9 @@ requireHtml('data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE"', "el
 requireHtml('data-mobile-options="price"', "cena od");
 requireHtml('data-mobile-options="priceTo"', "cena do");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
+requireHtml('data-mobile-feature type="checkbox" value="HEAD_UP_DISPLAY"', "wyświetlacz Head-up w opcjach");
+requireSource('featureHeadUpDisplay: "Wyświetlacz Head-up (HUD)"', "polska etykieta HUD");
+requireSource('featureHeadUpDisplay: "Проекционный дисплей (HUD)"', "rosyjska etykieta HUD");
 requireHtml('data-i18n="vehicleConditionLabel"', "sekcja stanu pojazdu");
 requireSource('damagedVehiclesShow: "Pokazuj"', "pokazanie uszkodzonych pojazdów");
 requireSource('function selectComboOption(optionButton)', "wybór pozycji z listy");
