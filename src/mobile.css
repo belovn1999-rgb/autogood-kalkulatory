@@ -216,6 +216,7 @@ button {
 }
 
 .mobileSearch {
+  width: calc(100% - 240px);
   border: var(--rule-thin) solid var(--color-rule);
   border-radius: var(--radius-card);
   background: var(--color-surface);
@@ -1468,6 +1469,10 @@ button {
 }
 
 @media (max-width: 60rem) {
+  .mobileSearch {
+    width: 100%;
+  }
+
   .mobileIntro,
 .mobileWorkbench,
 .mobileActionsHead {
