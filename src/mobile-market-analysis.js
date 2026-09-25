@@ -1,5 +1,7 @@
 (() => {
-  const analysisOpen = document.querySelector("[data-mobile-market-analysis-open]");
+  // The same button sits in the offer panel and under the form.
+  const analysisOpens = Array.from(document.querySelectorAll("[data-mobile-market-analysis-open]"));
+  const analysisOpen = analysisOpens[0];
   const analysisBack = document.querySelector("[data-mobile-market-analysis-back]");
   const analysisView = document.querySelector("[data-mobile-market-analysis-view]");
   const analysisContent = document.querySelector("[data-mobile-market-analysis-content]");
@@ -1577,7 +1579,7 @@
         .every((listing) => listingSource(listing) !== "otomoto" || listing.rank);
       const savedListings = savedUsable ? savedEntry.listings : null;
       setAnalysisStatus(c.preparing);
-      analysisOpen.disabled = true;
+      analysisOpens.forEach((button) => { button.disabled = true; });
       const provider = importedDataset || savedListings ? null : window.AUTOGOOD_MOBILE_MARKET_PROVIDER;
       // Otomoto being unreachable (or empty) still opens the analysis, so the
       // Mobile.de offers can be added to it.
@@ -1621,7 +1623,7 @@
     } catch (error) {
       setAnalysisStatus(error.message || c.invalidData, true);
     } finally {
-      analysisOpen.disabled = false;
+      analysisOpens.forEach((button) => { button.disabled = false; });
     }
   }
 
@@ -1840,7 +1842,7 @@
     const button = event.target.closest("[data-mobile-market-history-analysis]");
     if (button) openHistoryAnalysis(button.dataset.mobileMarketHistoryAnalysis);
   });
-  analysisOpen.addEventListener("click", openAnalysis);
+  analysisOpens.forEach((button) => button.addEventListener("click", openAnalysis));
   analysisBack.addEventListener("click", closeAnalysis);
   document.querySelectorAll("[data-lang-button]").forEach((button) => {
     button.addEventListener("click", () => requestAnimationFrame(renderMarketTranslations));
