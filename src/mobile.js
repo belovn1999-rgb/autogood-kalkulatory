@@ -14,7 +14,7 @@ const copy = {
     loadingButton: "Pobieram",
     helper: "",
     loading: "Pobieram dane z mobile.de. To może chwilę potrwać.",
-    ready: "Dane gotowe. Wybierz ścieżkę zakupu poniżej.",
+    ready: "Dane gotowe. Filtry analizy zostały uzupełnione.",
     error: "Nie udało się rozpoznać ogłoszenia. Sprawdź link albo backend.",
     listingEyebrow: "DANE Z OGŁOSZENIA",
     manualEyebrow: "WPISZ DANE RĘCZNIE",
@@ -227,7 +227,7 @@ const copy = {
     loadingButton: "Загружаю",
     helper: "",
     loading: "Загружаю данные с mobile.de. Это может занять время.",
-    ready: "Данные готовы. Выбери путь покупки ниже.",
+    ready: "Данные готовы. Фильтры анализа заполнены.",
     error: "Не удалось распознать объявление. Проверь ссылку или backend.",
     listingEyebrow: "ДАННЫЕ ИЗ ОБЪЯВЛЕНИЯ",
     manualEyebrow: "ВВЕСТИ ДАННЫЕ ВРУЧНУЮ",
@@ -2617,6 +2617,7 @@ function calculatorUrl(scenario) {
 }
 
 function renderScenarios() {
+  if (!els.scenarios) return;
   const c = copy[state.lang];
   els.scenarios.innerHTML = c.scenarios.map((scenario) => {
     const disabled = !state.data;
@@ -2636,8 +2637,6 @@ function renderScenarios() {
 function renderData() {
   const c = copy[state.lang];
   const data = state.data || {};
-  const location = data.location || {};
-  const estimate = data.deliveryInspectionEstimate || data.transportEstimate || {};
   const title = text(data.title);
   const powerValue = data.powerHp ?? data.horsepower ?? data.powerPs;
 
@@ -2646,30 +2645,14 @@ function renderData() {
   if (els.listingResult) els.listingResult.hidden = !state.data;
   const listingRows = [
     detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
-    detailRow(c.purchaseType, purchaseTypeLabel(data)),
-    detailRow(c.fuel, text(data.fuel)),
-    detailRow(c.body, listingBodyLabel(data.bodyType)),
-    detailRow(c.mileage, formatNumberWithUnit(data.mileageKm, "km")),
     detailRow(c.registration, listingRegistration(data.firstRegistration)),
+    detailRow(c.mileage, formatNumberWithUnit(data.mileageKm, "km")),
+    detailRow(c.fuel, text(data.fuel)),
     detailRow(c.displacement, formatNumberWithUnit(data.displacementCcm, "ccm")),
     detailRow(c.power, formatNumberWithUnit(powerValue, "KM")),
     detailRow(c.gearbox, listingGearboxLabel(data.gearbox)),
   ].join("");
-  const calculatorRows = [
-    detailRow(c.engine, text(data.engineTypeLabel)),
-    detailRow(c.delivery, formatAmount(data.transportNettoPln ?? estimate.transport, "PLN")),
-    detailRow(c.inspection, formatAmount(data.inspectionNettoPln ?? estimate.inspection, "PLN")),
-    detailRow(c.tariff, text(estimate.rule)),
-    detailRow(c.location, text(location.address || location.city)),
-    detailRow(c.seller, text(location.sellerName)),
-  ].join("");
-  els.listingDetails.innerHTML = `
-    <dl class="mobileDataGrid">${listingRows}</dl>
-    <section class="mobileCalculatorDataBlock">
-      <p>${escapeHtml(c.calculatorDataEyebrow)}</p>
-      <dl class="mobileDataGrid">${calculatorRows}</dl>
-    </section>
-  `;
+  els.listingDetails.innerHTML = `<dl class="mobileListingBriefGrid">${listingRows}</dl>`;
 
   renderScenarios();
 }
@@ -2792,7 +2775,6 @@ function applyMobileAd(ad) {
   setStatus("ready", copy[state.lang].recognitionFromBookmarklet, true);
   applyRecognizedManualFields(state.data);
   renderData();
-  document.querySelector("[data-mobile-listing-result]")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 window.AUTOGOOD_APPLY_MOBILE_AD = applyMobileAd;

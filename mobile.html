@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=head-column-20260925" />
+  <link rel="stylesheet" href="./src/mobile.css?v=listing-brief-head-column-20260925" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=history-confirm2-20260925" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
@@ -63,19 +63,13 @@
               </button>
             </div>
             <p id="mobile-helper" class="mobileHelper" data-mobile-status></p>
+            <div class="mobileListingBrief" data-mobile-listing-result aria-live="polite" hidden>
+              <h3 class="mobileListingBriefTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-mobile-title>—</span></h3>
+              <div class="mobileListingDetails" data-mobile-listing-details></div>
+            </div>
             <p class="mobileBookmarkletRow"><span data-i18n="bookmarkletInstall">Zakładka do mobile.de:</span> <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a> <em data-i18n="bookmarkletHint">Przeciągnij ten przycisk na pasek zakładek. Potem klikaj go na stronie ogłoszenia albo listy wyników mobile.de.</em></p>
           </form>
         </section>
-        <div class="mobileListingResult" data-mobile-listing-result aria-live="polite" hidden>
-          <section class="mobileFilterCard mobileListingPanel" aria-labelledby="mobile-listing-title">
-            <h2 id="mobile-listing-title" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-mobile-title>—</span></h2>
-            <div class="mobileListingDetails" data-mobile-listing-details></div>
-          </section>
-          <section class="mobileFilterCard mobileActions" aria-labelledby="mobile-actions-heading">
-            <h2 id="mobile-actions-heading" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="actionsTitle">Wybierz ścieżkę zakupu</span></h2>
-            <div class="mobileScenarioGrid" data-mobile-scenarios></div>
-          </section>
-        </div>
       </section>
 
       <section class="mobileMethodView" data-mobile-method-view="manual">
