@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=steps-20260925" />
+  <link rel="stylesheet" href="./src/mobile.css?v=otomoto-link2-20260925" />
     <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=cards2-20260925" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
@@ -44,7 +44,13 @@
 
       <section class="mobileListingSearch">
         <section class="mobileFilterCard mobileListingLinkCard" aria-labelledby="mobile-listing-link-heading">
-          <h2 id="mobile-listing-link-heading" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=listing-frame-20260921#link"></use></svg><span data-i18n="inputLabel">Link ogłoszenia</span></h2>
+          <div class="mobileListingLinkHead">
+            <h2 id="mobile-listing-link-heading" class="mobileFilterCardTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg?v=listing-frame-20260921#link"></use></svg><span data-i18n="inputLabel">Link ogłoszenia</span></h2>
+            <div class="mobileLinkSource" role="radiogroup" aria-label="Portal">
+              <label class="isMobile"><input type="radio" name="mobile-link-source" value="mobile" data-mobile-link-source checked /><span>mobile.de</span></label>
+              <label class="isOtomoto"><input type="radio" name="mobile-link-source" value="otomoto" data-mobile-link-source /><span>otomoto.pl</span></label>
+            </div>
+          </div>
           <form class="mobileSearch" data-mobile-form>
             <label class="srOnly" for="mobile-url" data-i18n="inputLabel">Link ogłoszenia</label>
             <div class="mobileSearchControl">
@@ -67,7 +73,7 @@
               <h3 class="mobileListingBriefTitle"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-mobile-title>—</span></h3>
               <div class="mobileListingDetails" data-mobile-listing-details></div>
             </div>
-            <p class="mobileBookmarkletRow"><span data-i18n="bookmarkletInstall">Zakładka do mobile.de:</span> <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a> <em data-i18n="bookmarkletHint">Przeciągnij ten przycisk na pasek zakładek. Potem klikaj go na stronie ogłoszenia albo listy wyników mobile.de.</em></p>
+            <p class="mobileBookmarkletRow" data-mobile-bookmarklet-row><span data-i18n="bookmarkletInstall">Zakładka do mobile.de:</span> <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a> <em data-i18n="bookmarkletHint">Przeciągnij ten przycisk na pasek zakładek. Potem klikaj go na stronie ogłoszenia albo listy wyników mobile.de.</em></p>
           </form>
         </section>
       </section>
@@ -534,7 +540,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=listing-brief-tunnel-20260925"></script>
+    <script src="./src/mobile.js?v=otomoto-link2-20260925"></script>
     <script src="./src/mobile-market-analysis.js?v=cards2-20260925"></script>
     <script src="./src/mobile-bridge.js?v=titles-20260925"></script>
   </body>

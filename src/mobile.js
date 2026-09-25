@@ -54,6 +54,9 @@ const copy = {
     recognitionUnavailable: "Serwis rozpoznawania jest niedostępny — wpisz dane ręcznie.",
     recognitionViaBookmarklet: "Ogłoszenie otwarte w nowej karcie — kliknij tam zakładkę „AUTOGOOD”, a dane wpiszą się same.",
     recognitionFromBookmarklet: "Dane pobrane z mobile.de przez zakładkę AUTOGOOD.",
+    recognitionFromOtomoto: "Dane pobrane z ogłoszenia otomoto.pl.",
+    otomotoAdFailed: "Nie udało się odczytać ogłoszenia otomoto.pl. Sprawdź link i spróbuj ponownie.",
+    otomotoLinkExpected: "To nie jest link do ogłoszenia otomoto.pl.",
     bookmarkletHint: "Przeciągnij ten przycisk na pasek zakładek. Potem klikaj go na stronie ogłoszenia albo listy wyników mobile.de.",
     bookmarkletLabel: "AUTOGOOD ↦ mobile.de",
     bookmarkletInstall: "Zakładka do mobile.de:",
@@ -267,6 +270,9 @@ const copy = {
     recognitionUnavailable: "Сервис распознавания недоступен — введи данные вручную.",
     recognitionViaBookmarklet: "Объявление открыто в новой вкладке — нажми там закладку «AUTOGOOD», и данные заполнятся сами.",
     recognitionFromBookmarklet: "Данные получены с mobile.de через закладку AUTOGOOD.",
+    recognitionFromOtomoto: "Данные получены из объявления otomoto.pl.",
+    otomotoAdFailed: "Не удалось прочитать объявление otomoto.pl. Проверь ссылку и попробуй ещё раз.",
+    otomotoLinkExpected: "Это не ссылка на объявление otomoto.pl.",
     bookmarkletHint: "Перетащи эту кнопку на панель закладок. Потом нажимай её на странице объявления или списка mobile.de.",
     bookmarkletLabel: "AUTOGOOD ↦ mobile.de",
     bookmarkletInstall: "Закладка для mobile.de:",
@@ -2644,7 +2650,9 @@ function renderData() {
   // Listing data and purchase paths appear only once a link has been recognised.
   if (els.listingResult) els.listingResult.hidden = !state.data;
   const listingRows = [
-    detailRow(c.price, formatAmount(data.carBruttoEur, "EUR")),
+    detailRow(c.price, data.pricePln
+      ? `${formatAmount(data.pricePln, "PLN")} (≈ ${formatAmount(data.carBruttoEur, "EUR")})`
+      : formatAmount(data.carBruttoEur, "EUR")),
     detailRow(c.registration, listingRegistration(data.firstRegistration)),
     detailRow(c.mileage, formatNumberWithUnit(data.mileageKm, "km")),
     detailRow(c.fuel, text(data.fuel)),
@@ -3086,10 +3094,139 @@ els.marketSearches.forEach((link) => link.addEventListener("click", (event) => {
   }
 }));
 
+// ---- Otomoto ad links ------------------------------------------------------
+// Otomoto ads are read through the same reader proxy as the market analysis
+// (Otomoto blocks cross-origin reads); the page's __NEXT_DATA__ carries the
+// ad with machine-readable parameters.
+const OTOMOTO_BODY_TYPES = {
+  combi: "estate",
+  compact: "hatchback",
+  "city-car": "small car",
+  sedan: "sedan",
+  suv: "suv",
+  minivan: "van",
+  coupe: "coupe",
+  cabrio: "cabrio",
+};
+
+// Otomoto fuel codes in the words the form's fuel reader understands.
+const OTOMOTO_FUELS = {
+  petrol: "petrol",
+  diesel: "diesel",
+  hybrid: "hybrid petrol",
+  "plugin-hybrid": "plug-in hybrid petrol",
+  electric: "electric",
+  "petrol-lpg": "petrol",
+  "petrol-cng": "petrol",
+};
+
+function isOtomotoUrl(value) {
+  return /^https:\/\/(www\.|m\.)?otomoto\.pl\//.test(String(value || "").trim());
+}
+
+function linkSource() {
+  return document.querySelector("[data-mobile-link-source]:checked")?.value || "mobile";
+}
+
+function setLinkSource(source) {
+  document.querySelectorAll("[data-mobile-link-source]").forEach((input) => {
+    input.checked = input.value === source;
+  });
+  els.url.placeholder = source === "otomoto" ? "https://www.otomoto.pl/osobowe/oferta/..." : "https://suchen.mobile.de/...";
+  // The bookmark only works on mobile.de.
+  const bookmarkletRow = document.querySelector("[data-mobile-bookmarklet-row]");
+  if (bookmarkletRow) bookmarkletRow.hidden = source === "otomoto";
+}
+
+document.querySelectorAll("[data-mobile-link-source]").forEach((input) => {
+  input.addEventListener("change", () => setLinkSource(linkSource()));
+});
+// A pasted link picks its portal by itself.
+els.url.addEventListener("input", () => {
+  const value = els.url.value.trim();
+  if (isOtomotoUrl(value)) setLinkSource("otomoto");
+  else if (/^https:\/\/(suchen|www|m)\.mobile\.de\//.test(value)) setLinkSource("mobile");
+});
+
+async function loadOtomotoAd(sourceUrl) {
+  const c = copy[state.lang];
+  setStatus("loading");
+  state.data = null;
+  renderData();
+  try {
+    const proxy = window.AUTOGOOD_MARKET_PROXY || "https://r.jina.ai/";
+    const response = await fetch(`${proxy}${sourceUrl}`, { headers: { "x-respond-with": "html" } });
+    if (!response.ok) throw new Error(String(response.status));
+    const html = await response.text();
+    const raw = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    const advert = raw ? JSON.parse(raw[1])?.props?.pageProps?.advert : null;
+    if (!advert?.price?.value) throw new Error(c.otomotoAdFailed);
+    const param = (key) => advert.parametersDict?.[key]?.values?.[0] || {};
+    const pricePln = Number(advert.price.value) || 0;
+    const currency = String(advert.price.currency || "PLN").toUpperCase();
+    const rate = eurPlnRate();
+    const priceEur = currency === "EUR" ? pricePln : pricePln / rate;
+    const powerHp = Number(param("engine_power").value) || null;
+    const displacementCcm = Number(param("engine_capacity").value) || null;
+    const fuel = param("fuel_type").label || "";
+    const title = String(advert.title || [param("make").label, param("model").label, param("version").label].filter(Boolean).join(" "));
+    const location = advert.seller?.location || {};
+    const engineTypeIndex = classifyEngineType(`${fuel} ${param("fuel_type").value || ""} ${title}`, displacementCcm);
+    state.data = {
+      sourceUrl,
+      adId: String(advert.id || ""),
+      importMode: "otomoto",
+      carBruttoEur: Math.round(priceEur),
+      pricePln: currency === "PLN" ? pricePln : Math.round(pricePln * rate),
+      purchaseType: "Marża",
+      title,
+      model: param("model").label || "",
+      // English words the form's normalisers already understand.
+      bodyType: OTOMOTO_BODY_TYPES[param("body_type").value] || param("body_type").label || "",
+      fuel,
+      displacementCcm,
+      powerHp,
+      gearbox: param("gearbox").value || param("gearbox").label || "",
+      mileageKm: Number(param("mileage").value) || null,
+      firstRegistration: String(param("year").value || ""),
+      location: {
+        address: location.address || location.shortAddress || "",
+        city: location.city || "",
+        postalCode: location.postalCode || "",
+        country: "PL",
+        sellerName: advert.seller?.name || "",
+      },
+      // The car is already in Poland: no transport from Germany.
+      transportNettoPln: 0,
+      inspectionNettoPln: 0,
+      engineTypeIndex,
+      engineTypeLabel: ENGINE_TYPE_LABELS[engineTypeIndex],
+    };
+    setStatus("ready", c.recognitionFromOtomoto, true);
+    const forForm = { ...state.data, fuel: OTOMOTO_FUELS[param("fuel_type").value] || fuel };
+    applyRecognizedManualFields(forForm);
+    state.data.matchedFilters = forForm.matchedFilters;
+    renderData();
+  } catch (error) {
+    state.data = null;
+    setStatus("error", error.message && !/^\d+$/.test(error.message) ? error.message : c.otomotoAdFailed, true);
+    renderData();
+  }
+}
+
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
   const sourceUrl = els.url.value.trim();
   if (!sourceUrl) return;
+  if (isOtomotoUrl(sourceUrl)) {
+    setLinkSource("otomoto");
+    loadOtomotoAd(sourceUrl);
+    return;
+  }
+  if (linkSource() === "otomoto") {
+    setStatus("error", copy[state.lang].otomotoLinkExpected, true);
+    return;
+  }
   // The ad opens in a tab this page keeps a handle on: the AUTOGOOD bookmark
   // clicked there sends the data straight back, with or without the backend.
   if (/^https:\/\/(suchen|www|m)\.mobile\.de\//.test(sourceUrl)) window.open(sourceUrl, "_blank");
