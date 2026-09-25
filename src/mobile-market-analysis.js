@@ -134,6 +134,10 @@
       summaryParameters: "Parametry",
       summaryEquipment: "Wyposażenie",
       priceHistorySource: "Źródło",
+      searchHeading: "Parametry poszukiwania",
+      analysisCardHeading: "Analiza i rozkład cen",
+      openSearches: "Otwórz wyszukiwania",
+      checkedAt: "stan na {date}",
       priceHistoryOffers: "Oferty",
       countries: "Kraj",
       refresh: "Odśwież dane",
@@ -279,6 +283,10 @@
       summaryParameters: "Параметры",
       summaryEquipment: "Оснащение",
       priceHistorySource: "Источник",
+      searchHeading: "Параметры поиска",
+      analysisCardHeading: "Анализ и распределение цен",
+      openSearches: "Открыть поиск",
+      checkedAt: "данные на {date}",
       priceHistoryOffers: "Объявл.",
       countries: "Страна",
       refresh: "Обновить данные",
@@ -672,7 +680,8 @@
       // Every offer counts, as on the chart.
       const kept = listings.filter((listing) => listingSource(listing) === source);
       if (kept.length < 3) return;
-      const prices = kept.map(inCurrency).sort((left, right) => left - right);
+      const byPrice = [...kept].sort((left, right) => inCurrency(left) - inCurrency(right));
+      const prices = byPrice.map(inCurrency);
       point[source] = {
         currency,
         count: prices.length,
@@ -681,6 +690,8 @@
         p75: Math.round(percentile(prices, 0.75)),
         min: Math.round(prices[0]),
         max: Math.round(prices[prices.length - 1]),
+        minUrl: byPrice[0].url || "",
+        maxUrl: byPrice[byPrice.length - 1].url || "",
       };
     });
     return MARKET_SOURCES.some((source) => point[source]) ? point : null;
@@ -1323,7 +1334,13 @@
         const current = point[source];
         if (!current) return;
         const previous = log.slice(0, index).reverse().find((item) => item[source])?.[source];
-        const cell = (key) => `<td>${price(current[key], current.currency)} ${previous ? change(current[key], previous[key]) : ""}</td>`;
+        const cell = (key) => {
+          const url = current[`${key}Url`];
+          const value = url
+            ? `<a href="${escapeMarketHtml(url)}" target="_blank" rel="noopener">${price(current[key], current.currency)} ↗</a>`
+            : price(current[key], current.currency);
+          return `<td>${value} ${previous ? change(current[key], previous[key]) : ""}</td>`;
+        };
         rows.push(`
           <tr>
             <td>${escapeMarketHtml(formatHistoryDate(point.at))}</td>
@@ -1335,8 +1352,7 @@
     });
     return `
       <section class="mobileMarketCard mobileMarketPriceHistory" aria-label="${escapeMarketHtml(c.priceHistoryHeading)}">
-        <h2>${escapeMarketHtml(c.priceHistoryHeading)}</h2>
-        ${log.length === 1 ? `<p>${escapeMarketHtml(c.priceHistoryFirst)}</p>` : ""}
+        <h2 class="mobileMarketCardTitle">${escapeMarketHtml(c.priceHistoryHeading)}</h2>
         <div class="mobileMarketTableScroll">
           <table class="mobileMarketTable">
             <thead><tr>
@@ -1654,8 +1670,7 @@
       const axisCaption = chartAxis === "mileage" ? c.axisMileageCaption : chartAxis === "year" ? c.axisYearCaption : c.axisRankCaption;
 
       marketContent = `
-        <section class="mobileMarketCard mobileMarketStatsCard" aria-label="${escapeMarketHtml(c.chartTitle)}">
-        ${statistics.count < 20 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.limitedSample)}</p>` : ""}
+        <div class="mobileMarketStatsBody">
         ${filters.priceFrom || filters.priceTo ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.priceFilterWarning)}</p>` : ""}
         ${statistics.min < statistics.median / 3 || statistics.max > statistics.median * 3 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.wideRangeWarning)}</p>` : ""}
         <dl class="mobileMarketStats">
@@ -1668,21 +1683,11 @@
         </dl>
 
 
-          <div class="mobileMarketCompareRow">
-        <label class="mobileMarketCompare">
-          <span>${escapeMarketHtml(c.comparePrice)}</span>
-          <input type="text" inputmode="numeric" autocomplete="off" data-mobile-market-compare-price placeholder="${escapeMarketHtml(c.comparePlaceholder)}" value="${escapeMarketHtml(activeAnalysis.comparePrice || "")}" />
-          <small>${escapeMarketHtml(c.compareHint)}</small>
-        </label>
-
-            ${carVerdict || carLocalVerdict ? `<ul class="mobileMarketCarVerdict">
-              ${carVerdict ? `<li>${escapeMarketHtml(carVerdict)}</li>` : ""}
-              ${carLocalVerdict ? `<li>${escapeMarketHtml(carLocalVerdict)}</li>` : ""}
-            </ul>` : ""}
-          </div>
-
         <div class="mobileMarketChartHead">
-          <h2>${escapeMarketHtml(c.chartTitle)}</h2>
+          <label class="mobileMarketCompare">
+            <span>${escapeMarketHtml(c.comparePrice)}</span>
+            <input type="text" inputmode="numeric" autocomplete="off" data-mobile-market-compare-price placeholder="${escapeMarketHtml(c.comparePlaceholder)}" value="${escapeMarketHtml(activeAnalysis.comparePrice || "")}" />
+          </label>
           <div class="mobileMarketControls">
             <div class="mobileMarketToggle" role="group" aria-label="${escapeMarketHtml(c.sourcesLabel)}">
               ${MARKET_SOURCES.map((source) => {
@@ -1700,6 +1705,11 @@
             </div>
           </div>
         </div>
+
+        ${carVerdict || carLocalVerdict ? `<ul class="mobileMarketCarVerdict">
+          ${carVerdict ? `<li>${escapeMarketHtml(carVerdict)}</li>` : ""}
+          ${carLocalVerdict ? `<li>${escapeMarketHtml(carLocalVerdict)}</li>` : ""}
+        </ul>` : ""}
 
         <div class="mobileMarketLegend">
           ${shownSources.map((source) => `<span class="is${source === "otomoto" ? "Otomoto" : "Mobile"}"><i></i>${escapeMarketHtml(sourceName(source))}</span>`).join("")}
@@ -1775,7 +1785,7 @@
           </div>
         </section>
 
-        </section>`;
+        </div>`;
     }
 
     const dataDate = historyEntry?.dataAt || activeAnalysis.fetchedAt || "";
@@ -1785,10 +1795,11 @@
         ${favoritesHtml(historyEntry?.pinned ? historyEntry.id : "")}
         <header class="mobileMarketAnalysisHead">
           <div class="mobileMarketHeadTop">
-            <h1>${escapeMarketHtml(c.heading)}</h1>
+            <h1 class="mobileMarketCardTitle">${escapeMarketHtml(c.searchHeading)}</h1>
             <div class="mobileMarketHeadLinks">
-              <a class="mobileMarketSearchLink" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.openSearch)}</a>
-              ${otomotoUrl ? `<a class="mobileMarketSearchLink" href="${escapeMarketHtml(otomotoUrl)}" target="_blank" rel="noopener">${escapeMarketHtml(c.openOtomoto)}</a>` : ""}
+              <span>${escapeMarketHtml(c.openSearches)}</span>
+              <a class="mobileMarketSearchArrow isMobile" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener" title="${escapeMarketHtml(c.openSearch)}" aria-label="${escapeMarketHtml(c.openSearch)}">↗</a>
+              ${otomotoUrl ? `<a class="mobileMarketSearchArrow isOtomoto" href="${escapeMarketHtml(otomotoUrl)}" target="_blank" rel="noopener" title="${escapeMarketHtml(c.openOtomoto)}" aria-label="${escapeMarketHtml(c.openOtomoto)}">↗</a>` : ""}
             </div>
             <span class="mobileMarketTestLabel${hasListings ? " isImported" : ""}">${escapeMarketHtml(hasListings ? (onlyOtomoto ? c.otomotoLabel : mixedSources ? c.mixedLabel : c.importedLabel) : c.waitingLabel)}</span>
           </div>
@@ -1801,27 +1812,30 @@
           </div>
         </header>
 
-        <section class="mobileMarketCard mobileMarketDataBar" aria-label="${escapeMarketHtml(c.importHeading)}">
-          <div class="mobileMarketDataBarCopy">
-            ${dataDate && hasListings ? `<strong>${escapeMarketHtml(c.sampleDate.replace("{date}", formatHistoryDate(dataDate)))}</strong>` : `<strong>${escapeMarketHtml(c.waitingDescription)}</strong>`}
-            <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
-              <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
-              <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
-            ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</small>` : ""}
+        <section class="mobileMarketCard mobileMarketAnalysisCard" aria-label="${escapeMarketHtml(c.analysisCardHeading)}">
+          <div class="mobileMarketDataBar">
+            <div class="mobileMarketDataBarCopy">
+              <h2 class="mobileMarketCardTitle">${escapeMarketHtml(c.analysisCardHeading)}${dataDate && hasListings ? ` <small>${escapeMarketHtml(c.checkedAt.replace("{date}", formatHistoryDate(dataDate)))}</small>` : ""}</h2>
+              ${hasListings ? "" : `<strong>${escapeMarketHtml(c.waitingDescription)}</strong>`}
+              <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
+                <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
+                <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
+              ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</small>` : ""}
+            </div>
+            <div class="mobileMarketImportActions">
+              <label class="mobileMarketImportButton">
+                <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
+                <span>${escapeMarketHtml(c.importButton)}</span>
+              </label>
+              <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
+              ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
+            </div>
           </div>
-          <div class="mobileMarketImportActions">
-            <label class="mobileMarketImportButton">
-              <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
-              <span>${escapeMarketHtml(c.importButton)}</span>
-            </label>
-            <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
-            ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
-          </div>
+
+          ${analysisStatusHtml()}
+
+          ${marketContent}
         </section>
-
-        ${analysisStatusHtml()}
-
-        ${marketContent}
 
         ${priceHistoryHtml(historyEntry)}
       </article>`;
@@ -2153,6 +2167,31 @@
   document.querySelectorAll("[data-lang-button]").forEach((button) => {
     button.addEventListener("click", () => requestAnimationFrame(renderMarketTranslations));
   });
+
+  // The steps under the page title jump to the link card, the vehicle
+  // filters or the market analysis (the favourites when no car is chosen).
+  document.querySelectorAll("[data-mobile-step]").forEach((button) => button.addEventListener("click", () => {
+    const step = button.dataset.mobileStep;
+    if (step === "analysis") {
+      let filters = {};
+      try {
+        filters = readManualFields();
+      } catch {
+        filters = {};
+      }
+      if (filters.brand && filters.model) openAnalysis();
+      else {
+        setAnalysisStatus("");
+        renderFavoritesPage();
+      }
+      return;
+    }
+    if (!analysisView.hidden) closeAnalysis();
+    const target = step === "link"
+      ? document.querySelector(".mobileListingLinkCard")
+      : document.getElementById("mobile-filter-group-vehicle")?.closest(".mobileFilterCard");
+    requestAnimationFrame(() => target?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }));
 
   window.AUTOGOOD_MOBILE_LOG_SEARCH = logSearchToHistory;
   // Used by the sticky panel to show how many offers the filters match.
