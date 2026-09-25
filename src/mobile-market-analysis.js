@@ -37,15 +37,10 @@
       mixedLabel: "Dane: otomoto.pl + mobile.de",
       mixedDescription: "Oferty otomoto.pl (PLN) i mobile.de (EUR przeliczone na PLN) na jednym wykresie.",
       otomotoDescription: "Próbka aktualnych ofert otomoto.pl z całej listy wyników (ceny w PLN).",
-      outliersSkipped: "Pominięto {count} ofert odstających (cena poza zakresem 1/3–3× mediany).",
       verdictHeading: "Co to znaczy",
-      verdictMedian: "Połowa ofert kosztuje poniżej {median}.",
-      verdictMiddle: "Środek rynku: {low} – {high} ({count} ofert).",
+      verdictMedian: "Mediana ceny ofert: {median}.",
+      verdictMiddle: "Typowy zakres: {low} – {high} ({count} ofert).",
       verdictDeals: "Poniżej {low} jest {count} ofert — to dół rynku.",
-      verdictBudget: "Twój budżet {budget} to {position} (kurs {rate}).",
-      positionLow: "dół rynku",
-      positionMiddle: "środek rynku",
-      positionHigh: "góra rynku",
       tableHeading: "Oferty w analizie",
       tablePrice: "Cena",
       tableYear: "Rok",
@@ -107,18 +102,22 @@
       importReadError: "Nie udało się odczytać pliku JSON / CSV.",
       chartTitle: "Rozkład cen ofert",
       lowMarket: "Dół rynku",
-      middleMarket: "Środek rynku",
+      middleMarket: "Typowy zakres",
       highMarket: "Góra rynku",
       count: "Liczba ofert",
       minimum: "Minimum",
       median: "Mediana",
-      middleRange: "Środek rynku",
-      middleOffers: "Oferty w środku",
+      middleRange: "Typowy zakres (P25–P75)",
+      middleOffers: "Oferty w zakresie",
+      sampleDate: "Ceny ofert · stan na {date}",
+      limitedSample: "Mała próba: typowa cena może być niestabilna. Do oceny auta potrzeba co najmniej 8 ofert.",
+      priceFilterWarning: "Filtr ceny ogranicza porównanie. Usuń go, aby ocenić cały rynek.",
+      wideRangeWarning: "Skrajne ceny mocno rozciągają skalę. Wszystkie oferty pozostają na wykresie.",
       maximum: "Maksimum",
       openSearch: "Otwórz wyszukiwanie mobile.de ↗",
       openOtomoto: "Otwórz listę otomoto.pl ↗",
-      pointHint: "Kliknij, aby otworzyć ogłoszenie",
-      directNotice: "Każda kropka to jedna oferta — kliknij, aby otworzyć ogłoszenie.",
+      pointHint: "Punkt pokazuje cenę jednej oferty",
+      directNotice: "Każda kropka to jedna oferta. Punkty nie prowadzą do ogłoszeń.",
       countries: "Kraj",
       refresh: "Odśwież dane",
       refreshing: "Odświeżam dane rynku…",
@@ -166,15 +165,10 @@
       mixedLabel: "Данные: otomoto.pl + mobile.de",
       mixedDescription: "Объявления otomoto.pl (PLN) и mobile.de (EUR, пересчитано в PLN) на одном графике.",
       otomotoDescription: "Выборка актуальных объявлений otomoto.pl по всему списку (цены в PLN).",
-      outliersSkipped: "Пропущено объявлений с выбивающейся ценой: {count} (вне диапазона 1/3–3× медианы).",
       verdictHeading: "Что это значит",
-      verdictMedian: "Половина объявлений дешевле {median}.",
-      verdictMiddle: "Середина рынка: {low} – {high} ({count} объявлений).",
+      verdictMedian: "Медиана цен объявлений: {median}.",
+      verdictMiddle: "Типичный диапазон: {low} – {high} ({count} объявлений).",
       verdictDeals: "Дешевле {low} — {count} объявлений, это низ рынка.",
-      verdictBudget: "Твой бюджет {budget} — это {position} (курс {rate}).",
-      positionLow: "низ рынка",
-      positionMiddle: "середина рынка",
-      positionHigh: "верх рынка",
       tableHeading: "Объявления в анализе",
       tablePrice: "Цена",
       tableYear: "Год",
@@ -236,18 +230,22 @@
       importReadError: "Не удалось прочитать файл JSON / CSV.",
       chartTitle: "Распределение цен объявлений",
       lowMarket: "Низ рынка",
-      middleMarket: "Середина рынка",
+      middleMarket: "Типичный диапазон",
       highMarket: "Верх рынка",
       count: "Объявлений",
       minimum: "Минимум",
       median: "Медиана",
-      middleRange: "Середина рынка",
-      middleOffers: "В середине рынка",
+      middleRange: "Типичный диапазон (P25–P75)",
+      middleOffers: "В диапазоне",
+      sampleDate: "Цены объявлений · данные на {date}",
+      limitedSample: "Маленькая выборка: типичная цена может быть нестабильной. Для оценки автомобиля нужно минимум 8 объявлений.",
+      priceFilterWarning: "Фильтр цены ограничивает сравнение. Уберите его, чтобы оценить весь рынок.",
+      wideRangeWarning: "Крайние цены сильно растягивают шкалу. Все объявления остаются на графике.",
       maximum: "Максимум",
       openSearch: "Открыть поиск mobile.de ↗",
       openOtomoto: "Открыть список otomoto.pl ↗",
-      pointHint: "Нажми, чтобы открыть объявление",
-      directNotice: "Каждая точка — одно объявление, нажми, чтобы открыть его.",
+      pointHint: "Точка показывает цену одного объявления",
+      directNotice: "Каждая точка — одно объявление. Точки не ведут к объявлениям.",
       countries: "Страна",
       refresh: "Обновить данные",
       refreshing: "Обновляю рыночные данные…",
@@ -302,21 +300,6 @@
   let displayCurrency = "EUR";
   // Mobile.de offers that arrived before the analysis was opened.
   let pendingMobile = null;
-
-  // Damaged cars, parts and lease instalments are listed at a fraction of the
-  // real price; anything outside a third of the median to three times it is
-  // left out of the statistics.
-  // Prices are compared in one currency: an Otomoto ad listed in EUR must not
-  // slip through next to PLN prices.
-  function splitMarketOutliers(listings, valueOf = (listing) => listing.price) {
-    const prices = listings.map(valueOf).sort((left, right) => left - right);
-    if (prices.length < 5) return { kept: listings, skipped: [] };
-    const median = percentile(prices, 0.5);
-    const kept = listings.filter((listing) => valueOf(listing) >= median / 3 && valueOf(listing) <= median * 3);
-    return kept.length >= 3
-      ? { kept, skipped: listings.filter((listing) => !kept.includes(listing)) }
-      : { kept: listings, skipped: [] };
-  }
 
   function exchangeRate() {
     const rate = Number(window.AUTOGOOD_EXCHANGE_RATES?.rates?.EUR_PLN?.value);
@@ -1087,19 +1070,10 @@
     return sortedValues[lowerIndex] + ((sortedValues[upperIndex] - sortedValues[lowerIndex]) * weight);
   }
 
-  // About seven price lines, whatever the price range is: 1/2/5 × 10^n.
-  function marketPriceStep(range) {
-    const rough = Math.max(1, range) / 7;
-    const magnitude = 10 ** Math.floor(Math.log10(rough));
-    const normalized = rough / magnitude;
-    const factor = normalized > 5 ? 10 : normalized > 2 ? 5 : normalized > 1 ? 2 : 1;
-    return factor * magnitude;
-  }
-
   function marketStatistics(listings) {
     const prices = listings.map((listing) => listing.price).sort((left, right) => left - right);
-    const lowEnd = percentile(prices, 1 / 3);
-    const highStart = percentile(prices, 2 / 3);
+    const lowEnd = percentile(prices, 0.25);
+    const highStart = percentile(prices, 0.75);
     return {
       count: prices.length,
       min: prices[0],
@@ -1110,7 +1084,7 @@
       middleCount: prices.filter((price) => price >= lowEnd && price <= highStart).length,
       lowCount: prices.filter((price) => price < lowEnd).length,
       highCount: prices.filter((price) => price > highStart).length,
-      step: marketPriceStep(prices[prices.length - 1] - prices[0]),
+      step: displayCurrency === "PLN" ? 5000 : 1000,
     };
   }
 
@@ -1144,6 +1118,10 @@
     return ticks;
   }
 
+  function marketTickLabelStep(minimum, maximum, step) {
+    return step * Math.max(1, Math.ceil((maximum - minimum) / (8 * step)));
+  }
+
   function marketClass(price, statistics) {
     if (price < statistics.middleLow) return "isLow";
     if (price > statistics.middleHigh) return "isHigh";
@@ -1165,18 +1143,10 @@
       // Otomoto has no twin for this vehicle; its link is simply left out.
     }
     const stored = providerId === "import" || providerId === "history";
-    // Each marketplace keeps its own price level, so outliers are judged per source.
+    // Every valid offer remains in the sample, including unusually priced ones.
     const bySource = { otomoto: [], mobile: [] };
     listings.forEach((listing) => bySource[listingSource(listing)].push(listing));
-    const cleaned = {};
-    const outliers = [];
-    const plnRate = exchangeRate() || EUR_PLN_FALLBACK_RATE;
-    const inPln = (listing) => (listing.currency === "PLN" ? listing.price : listing.price * plnRate);
-    MARKET_SOURCES.forEach((source) => {
-      const split = splitMarketOutliers(bySource[source], inPln);
-      cleaned[source] = split.kept;
-      outliers.push(...split.skipped);
-    });
+    const cleaned = bySource;
     const availableSources = MARKET_SOURCES.filter((source) => cleaned[source].length);
     const pickedSources = availableSources.filter((source) => chartSources[source]);
     const shownSources = pickedSources.length ? pickedSources : availableSources;
@@ -1215,6 +1185,8 @@
       const middleLowPosition = verticalMarketPosition(statistics.middleLow, domainMinimum, domainMaximum);
       const medianPosition = verticalMarketPosition(statistics.median, domainMinimum, domainMaximum);
       const scaleTicks = marketScaleTicks(domainMinimum, domainMaximum, statistics.step);
+      const labelStep = marketTickLabelStep(domainMinimum, domainMaximum, statistics.step);
+      const canJudge = statistics.count >= 8 && !filters.priceFrom && !filters.priceTo;
       const numbers = numberFormat();
 
       // Horizontal axis: rank in the price-sorted list (the offers laid out the
@@ -1330,14 +1302,6 @@
         }
       }
 
-      const budgetEur = Number(String(filters.priceTo || filters.priceFrom || "").replace(/[^\d]/g, ""));
-      const budget = budgetEur ? (displayCurrency === "PLN" ? budgetEur * rate : budgetEur) : 0;
-      const budgetVerdict = budget
-        ? c.verdictBudget
-          .replace("{budget}", `${formatMarketPrice(budget)}`)
-          .replace("{position}", budget < statistics.middleLow ? c.positionLow : budget > statistics.middleHigh ? c.positionHigh : c.positionMiddle)
-          .replace("{rate}", `1 € = ${rate.toFixed(2)} zł`)
-        : "";
       const sortedListings = [...marketListings].sort((left, right) => {
         const factor = tableSort.direction === "asc" ? 1 : -1;
         return ((Number(left[tableSort.key]) || 0) - (Number(right[tableSort.key]) || 0)) * factor;
@@ -1363,9 +1327,7 @@
                 <b class="is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}">${escapeMarketHtml(sourceName(listing.source))}</b>
               </span>`;
           const attributes = `class="mobileMarketPoint is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}${tooltipClass}" data-market-key="${escapeMarketHtml(listingKey(listing))}" aria-label="${escapeMarketHtml(label)}" style="--x:${x.toFixed(4)};top:${y}%"`;
-          return listing.url
-            ? `<a ${attributes} href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener">${tooltip}</a>`
-            : `<span ${attributes} role="img">${tooltip}</span>`;
+          return `<span ${attributes} role="img">${tooltip}</span>`;
         })
         .join("");
 
@@ -1398,7 +1360,7 @@
         const priceLabel = displayCurrency === "PLN"
           ? `${formatMarketPrice(carPrice)} (${formatMarketPrice(recognised.carBruttoEur, "EUR")})`
           : formatMarketPrice(carPrice);
-        carVerdict = c.yourCarVerdict.replace("{price}", priceLabel).replace("{share}", String(share)).replace("{diff}", diff);
+        if (canJudge) carVerdict = c.yourCarVerdict.replace("{price}", priceLabel).replace("{share}", String(share)).replace("{diff}", diff);
         // Against offers like it: the median price at its own mileage or year.
         const carValue = chartAxis === "mileage" ? carMileage : chartAxis === "year" ? carYear : null;
         if (carValue && trendMedians.length >= 2) {
@@ -1415,15 +1377,20 @@
           const localPct = Math.round(((carPrice - reference) / reference) * 100);
           const localDiff = Math.abs(localPct) < 1 ? c.atMedian
             : (localPct < 0 ? c.belowMedian : c.aboveMedian).replace("{pct}", String(Math.abs(localPct)));
-          carLocalVerdict = (chartAxis === "mileage" ? c.yourCarMileageVerdict : c.yourCarYearVerdict)
+          if (canJudge) carLocalVerdict = (chartAxis === "mileage" ? c.yourCarMileageVerdict : c.yourCarYearVerdict)
             .replace("{reference}", formatMarketPrice(reference))
             .replace("{diff}", localDiff);
         }
       }
       const sourceCount = (source) => cleaned[source].length;
       const axisCaption = chartAxis === "mileage" ? c.axisMileageCaption : chartAxis === "year" ? c.axisYearCaption : c.axisRankCaption;
+      const observedAt = marketHistory.find((entry) => entry.id === activeAnalysis.historyId)?.updatedAt || new Date().toISOString();
 
       marketContent = `
+        <p class="mobileMarketSampleMeta">${escapeMarketHtml(c.sampleDate.replace("{date}", formatHistoryDate(observedAt)))} · ${escapeMarketHtml(c.count)}: ${statistics.count}</p>
+        ${statistics.count < 20 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.limitedSample)}</p>` : ""}
+        ${filters.priceFrom || filters.priceTo ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.priceFilterWarning)}</p>` : ""}
+        ${statistics.min < statistics.median / 3 || statistics.max > statistics.median * 3 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.wideRangeWarning)}</p>` : ""}
         <dl class="mobileMarketStats">
           ${statHtml(c.count, String(statistics.count))}
           ${statHtml(c.minimum, formatMarketPrice(statistics.min))}
@@ -1471,16 +1438,19 @@
         >
           <div class="mobileMarketAxis"></div>
           <div class="mobileMarketBoundary" style="top:${middleHighPosition}%"></div>
-          <div class="mobileMarketMedian" style="top:${medianPosition}%"></div>
+          <div class="mobileMarketMedian" style="top:${medianPosition}%" aria-hidden="true"></div>
           <div class="mobileMarketBoundary" style="top:${middleLowPosition}%"></div>
           ${scaleTicks.map((price) => {
             const position = verticalMarketPosition(price, domainMinimum, domainMaximum);
-            return `<div class="mobileMarketGridLine" style="top:${position}%"></div><span class="mobileMarketTick isGrid" style="top:${position}%">${escapeMarketHtml(formatMarketPrice(price))}</span>`;
+            return `<div class="mobileMarketGridLine" style="top:${position}%"></div>${price % labelStep === 0 ? `<span class="mobileMarketTick isGrid" style="top:${position}%">${escapeMarketHtml(formatMarketPrice(price))}</span>` : ""}`;
           }).join("")}
           ${xTicks.map((tick) => `<div class="mobileMarketGridColumn" style="--x:${tick.x.toFixed(4)}"></div>`).join("")}
           <div class="mobileMarketPlot">${trendLine}</div>
           ${points}
           ${carMarker}
+          ${Math.abs(middleHighPosition - medianPosition) >= 4 ? `<span class="mobileMarketKeyTick" style="top:${middleHighPosition}%">P75 · ${escapeMarketHtml(formatMarketPrice(statistics.middleHigh))}</span>` : ""}
+          <span class="mobileMarketKeyTick isMedian" style="top:${medianPosition}%">${escapeMarketHtml(c.median)} · ${escapeMarketHtml(formatMarketPrice(statistics.median))}</span>
+          ${Math.abs(middleLowPosition - medianPosition) >= 4 ? `<span class="mobileMarketKeyTick" style="top:${middleLowPosition}%">P25 · ${escapeMarketHtml(formatMarketPrice(statistics.middleLow))}</span>` : ""}
           <span class="mobileMarketTick isLimit" style="top:5%">${escapeMarketHtml(formatMarketPrice(domainMaximum))}</span>
           <span class="mobileMarketTick isLimit" style="top:95%">${escapeMarketHtml(formatMarketPrice(domainMinimum))}</span>
         </div>
@@ -1504,8 +1474,6 @@
             <li>${escapeMarketHtml(c.verdictDeals
               .replace("{low}", formatMarketPrice(statistics.middleLow))
               .replace("{count}", String(statistics.lowCount)))}</li>
-            ${budgetVerdict ? `<li>${escapeMarketHtml(budgetVerdict)}</li>` : ""}
-            ${outliers.length ? `<li>${escapeMarketHtml(c.outliersSkipped.replace("{count}", String(outliers.length)))}</li>` : ""}
             ${hiddenByAxis ? `<li>${escapeMarketHtml(c.hiddenNoAxis.replace("{count}", String(hiddenByAxis)))}</li>` : ""}
           </ul>
         </section>

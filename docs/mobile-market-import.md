@@ -45,12 +45,19 @@ aktualnych filtrów lub zapisane w konkretnym snapshocie.
 
 ## Podział rynku
 
-Cena rośnie od dołu do góry wykresu: minimum jest podpisane przy dolnej granicy, a
-maksimum przy górnej. Pomiędzy nimi widoczne są poziome kreski co €1 000. Zielone tło
-i punkty oznaczają dół rynku, niebieskie środek, a czerwone górę. Środek rynku nie jest stałym kwartylem: aplikacja
-szuka przedziału o największym skupieniu ofert. Szerokość badanego przedziału skaluje
-się z medianą ceny i liczbą ofert, a jego granice są zaokrąglane do czytelnego kroku
-cenowego. Statystyka „Środek rynku” pokazuje obie granice tego przedziału.
+Cena rośnie od dołu do góry wykresu: najtańsza oferta jest podpisana przy dolnej
+granicy, a najdroższa przy górnej. Wszystkie poprawne oferty, również nietypowo
+drogie i tanie, pozostają punktami na wysokości swojej ceny. Punkty nie są linkami;
+odnośniki do ogłoszeń są dostępne osobno w tabeli. Poziome kreski są co €1 000 dla
+Mobile.de lub co 5 000 zł, gdy na wykresie jest Otomoto. Dla czytelności podpisana
+jest tylko część kresek. Typowy zakres wyznaczają P25 i P75, a mediana ma osobną
+linię. Przy jednakowych cenach zakres może obejmować więcej niż połowę ofert.
+Przy mniej niż 20 ofertach pojawia się ostrzeżenie o małej próbie. Przy mniej niż
+8 ofertach lub aktywnym filtrze ceny aplikacja nie wydaje oceny konkretnego auta.
+Są to ceny ofertowe, a nie transakcyjne; stan i wyposażenie auta mogą uzasadniać
+odchylenie od mediany.
+Skrajnie niska lub wysoka cena nie jest usuwana, lecz może rozciągnąć skalę;
+aplikacja wyświetla wtedy ostrzeżenie.
 
 ## Historia wyszukiwania
 
