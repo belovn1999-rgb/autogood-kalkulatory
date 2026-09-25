@@ -2110,3 +2110,26 @@ button {
 .mobileBookmarkletRow[hidden] {
   display: none;
 }
+
+/* Fields with a list (year, mileage, engine…): one frame only, the one of
+   the control; the input inside draws no border of its own. */
+.mobileField .mobileComboControl input:not([type="checkbox"]):not([type="radio"]),
+.mobileField .mobileComboControl input:not([type="checkbox"]):not([type="radio"]):hover,
+.mobileField .mobileComboControl input:not([type="checkbox"]):not([type="radio"]):focus-visible {
+  min-height: 40px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.mobileComboControl:focus-within {
+  border-color: var(--color-primary-rule);
+  box-shadow: 0 0 0 1px var(--color-primary-rule);
+}
+
+/* Fuel options fill the row, like the body options. */
+.mobileFuelChoiceGroup .mobileChoiceOption {
+  flex: 1 1 auto;
+}
