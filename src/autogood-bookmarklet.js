@@ -160,7 +160,25 @@
     };
     // Ads (top of page, top in category) sit outside the price order.
     const ordered = (results) => (results?.listings || []).filter((item) => item.type === "regular" || item.type === "eyecatcher");
-    const load = async (page, order) => searchResults(await (await fetch(pageUrl(page, order), { credentials: "include" })).text());
+    // Full titles ("Kia cee'd / Ceed 1.0 T-GDI Vision") are only in the
+    // rendered cards, not in the list data.
+    const titles = new Map();
+    const readTitles = (html) => {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      doc.querySelectorAll('a[data-testid^="base-result-listing-"][href*="id="]').forEach((link) => {
+        const heading = link.querySelector("h2");
+        const id = new URL(link.getAttribute("href"), location.href).searchParams.get("id");
+        if (!heading || !id) return;
+        const text = [...heading.childNodes].map((node) => node.textContent.trim()).filter(Boolean).join(" ")
+          .replace(/\s+/g, " ").replace(/\.{3}$/, "…").trim();
+        if (text) titles.set(id, text.slice(0, 160));
+      });
+    };
+    const load = async (page, order) => {
+      const html = await (await fetch(pageUrl(page, order), { credentials: "include" })).text();
+      readTitles(html);
+      return searchResults(html);
+    };
 
     say("pobieram 1. stronę listy…");
     const first = await load(1, "up");
@@ -190,7 +208,9 @@
       offers.push({
         id: String(item.id),
         url: `https://suchen.mobile.de/fahrzeuge/details.html?id=${item.id}`,
-        title: [item.make?.localized, item.model?.localized].filter(Boolean).join(" "),
+        title: titles.get(String(item.id)) || [item.make?.localized, item.model?.localized].filter(Boolean).join(" "),
+        power: item.attr?.pw || "",
+        fuel: item.attr?.ft || "",
         price,
         currency: "EUR",
         year: yearOf(item.attr?.fr),

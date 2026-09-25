@@ -16,7 +16,7 @@
     if (!links.length) return;
     try {
       if (!bookmarkletHref) {
-        const response = await fetch("./src/autogood-bookmarklet.js?v=bridge6-20260924");
+        const response = await fetch("./src/autogood-bookmarklet.js?v=titles-20260925");
         if (!response.ok) return;
         const appUrl = `${location.origin}${location.pathname}`;
         // Only the quoted constant: the file's comments mention the placeholder too.
@@ -89,7 +89,9 @@
       return {
         id: textValue(item.id, 40),
         url,
-        title: textValue(item.title, 120),
+        title: textValue(item.title, 160),
+        power: textValue(item.power, 40),
+        fuel: textValue(item.fuel, 40),
         price,
         currency: "EUR",
         year: number(item.year),
