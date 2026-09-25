@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://dual-combines-syndrome-existed.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://discipline-enforcement-legitimate-locate.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
