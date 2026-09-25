@@ -229,6 +229,17 @@
   opacity: 1;
 }
 
+.mobileMarketHistoryItem button.mobileMarketHistoryConfirmButton {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
+  color: var(--color-success);
+  font-weight: 800;
+}
+
+.mobileMarketHistoryItem button[hidden] {
+  display: none;
+}
+
 .mobileMarketHistoryItem button i {
   font-style: normal;
 }

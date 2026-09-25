@@ -24,6 +24,7 @@
       saveButton: "Zapisz dane",
       saveSuccess: "Dane zapisane w historii.",
       historyUpdateSuccess: "Dane wpisu zostały zaktualizowane.",
+      historyConfirm: "Zapisz zmiany w tym wpisie",
       historyHeading: "Historia wyszukiwania",
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
@@ -152,6 +153,7 @@
       saveButton: "Сохрани данные",
       saveSuccess: "Данные сохранены в истории.",
       historyUpdateSuccess: "Данные записи обновлены.",
+      historyConfirm: "Сохранить изменения в этой записи",
       historyHeading: "История поиска",
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
@@ -745,11 +747,46 @@
             </span>
           </label>
           <div class="mobileMarketHistoryActions">
+            ${editingHistoryId === entry.id ? `<button class="mobileMarketHistoryIconButton mobileMarketHistoryConfirmButton" type="button" data-mobile-market-history-confirm="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyConfirm)}" title="${escapeMarketHtml(c.historyConfirm)}" hidden>✓</button>` : ""}
             <button class="mobileMarketHistoryIconButton mobileMarketHistoryFavoriteButton${entry.pinned ? " isPinned" : ""}" type="button" data-mobile-market-history-pin="${escapeMarketHtml(entry.id)}" data-mobile-market-history-pinned="${entry.pinned ? "true" : "false"}" aria-pressed="${entry.pinned ? "true" : "false"}" aria-label="${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}" title="${escapeMarketHtml(entry.pinned ? c.historyUnpin : c.historyPin)}">★</button>
             <button class="isDelete mobileMarketHistoryIconButton" type="button" data-mobile-market-history-delete="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(c.historyDelete)}" title="${escapeMarketHtml(c.historyDelete)}">×</button>
           </div>
         </article>`;
     }).join("");
+    updateHistoryConfirm();
+  }
+
+  // The ✓ appears on the selected entry once the form no longer matches it.
+  function updateHistoryConfirm() {
+    const button = historyList.querySelector("[data-mobile-market-history-confirm]");
+    if (!button) return;
+    const entry = marketHistory.find((item) => item.id === editingHistoryId);
+    let changed = false;
+    try {
+      changed = Boolean(entry) && filterSignature(readManualFields()) !== filterSignature(entry.filters);
+    } catch {
+      changed = false;
+    }
+    button.hidden = !changed;
+  }
+
+  function confirmHistoryChanges(historyId) {
+    const c = copy();
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry) return;
+    try {
+      const filters = readManualFields();
+      if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
+      // Prices collected for the old filters no longer describe the new ones.
+      const same = filterSignature(filters) === filterSignature(entry.filters);
+      const snapshot = updateMarketSnapshot(entry.id, filters, same ? entry.listings : [], same ? entry.sourceFileName : "", buildMobileDeSearchUrl(filters));
+      if (!snapshot) return;
+      editingHistoryId = snapshot.id;
+      renderHistory();
+      setAnalysisStatus(c.historyUpdateSuccess);
+    } catch (error) {
+      setAnalysisStatus(error.message || c.missingVehicle, true);
+    }
   }
 
   function setElementValue(selector, value) {
@@ -1821,7 +1858,15 @@
   document.querySelectorAll("[data-mobile-manual-reset]").forEach((button) => button.addEventListener("click", () => {
     editingHistoryId = "";
   }));
+  const manualForm = document.querySelector(".mobileManualForm");
+  manualForm?.addEventListener("input", () => setTimeout(updateHistoryConfirm));
+  manualForm?.addEventListener("change", () => setTimeout(updateHistoryConfirm));
   historyList.addEventListener("click", (event) => {
+    const confirmButton = event.target.closest("[data-mobile-market-history-confirm]");
+    if (confirmButton) {
+      confirmHistoryChanges(confirmButton.dataset.mobileMarketHistoryConfirm);
+      return;
+    }
     const deleteButton = event.target.closest("[data-mobile-market-history-delete]");
     if (deleteButton) {
       deleteHistoryEntry(deleteButton.dataset.mobileMarketHistoryDelete);
