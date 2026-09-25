@@ -25,6 +25,19 @@
       saveSuccess: "Dane zapisane w historii.",
       historyUpdateSuccess: "Dane wpisu zostały zaktualizowane.",
       historyConfirm: "Zapisz zmiany w tym wpisie",
+      favoritesHeading: "Ulubione auta",
+      favoritesEmpty: "Oznacz wpis w historii gwiazdką ★ — pojawi się tutaj.",
+      favoritesPick: "Wybierz auto z ulubionych albo wpisz markę i model w formularzu.",
+      favoritesNoData: "brak cen",
+      dataAtHint: "„Odśwież dane” zapisze nowy pomiar do historii cen.",
+      priceHistoryHeading: "Historia cen",
+      priceHistoryFirst: "Pierwszy pomiar. Każde odświeżenie danych doda kolejny — zobaczysz, jak zmienia się mediana.",
+      priceHistoryDate: "Data",
+      priceHistoryCount: "ofert",
+      comparePrice: "Porównaj cenę (EUR)",
+      comparePlaceholder: "np. 25 000",
+      compareHint: "Wpisz cenę auta, a pokażemy je na wykresie.",
+      comparedCar: "Porównywana cena",
       historyHeading: "Historia wyszukiwania",
       historyEmpty: "Nie masz jeszcze zapisanych wyszukiwań.",
       historyAnalysis: "Analiza rynku",
@@ -153,6 +166,19 @@
       saveSuccess: "Данные сохранены в истории.",
       historyUpdateSuccess: "Данные записи обновлены.",
       historyConfirm: "Сохранить изменения в этой записи",
+      favoritesHeading: "Избранные авто",
+      favoritesEmpty: "Отметьте запись в истории звёздочкой ★ — она появится здесь.",
+      favoritesPick: "Выберите авто из избранного или укажите марку и модель в форме.",
+      favoritesNoData: "нет цен",
+      dataAtHint: "«Обновить данные» сохранит новый замер в историю цен.",
+      priceHistoryHeading: "История цен",
+      priceHistoryFirst: "Первый замер. Каждое обновление данных добавит следующий — будет видно, как меняется медиана.",
+      priceHistoryDate: "Дата",
+      priceHistoryCount: "объявл.",
+      comparePrice: "Сравнить цену (EUR)",
+      comparePlaceholder: "напр. 25 000",
+      compareHint: "Введите цену авто — покажем его на графике.",
+      comparedCar: "Сравниваемая цена",
       historyHeading: "История поиска",
       historyEmpty: "Сохранённых поисков пока нет.",
       historyAnalysis: "Анализ рынка",
@@ -282,6 +308,8 @@
   // Every Mobile.de search is logged automatically; only the last 20 unpinned
   // checks are kept, while pinned ones (e.g. a client's car) stay on top.
   const HISTORY_LIMIT = 20;
+  const PRICE_LOG_LIMIT = 120;
+  const PRICE_POINT_MERGE_MS = 2 * 60 * 60 * 1000;
 
   // Otomoto blocks cross-origin reads, so its result pages come through a
   // reader proxy. Point AUTOGOOD_MARKET_PROXY at your own one to replace it.
@@ -575,6 +603,9 @@
           sourceFileName: String(entry.sourceFileName || ""),
           searchUrl: String(entry.searchUrl || ""),
           pinned: Boolean(entry.pinned),
+          // Entries saved before prices were dated count from their last update.
+          dataAt: String(entry.dataAt || (entry.listings?.length >= 3 ? entry.updatedAt || entry.createdAt || "" : "")),
+          priceLog: Array.isArray(entry.priceLog) ? entry.priceLog.filter((point) => point && point.at).slice(-PRICE_LOG_LIMIT) : [],
           createdAt: String(entry.createdAt || entry.updatedAt || new Date().toISOString()),
           updatedAt: String(entry.updatedAt || entry.createdAt || new Date().toISOString()),
         }));
@@ -612,6 +643,52 @@
     return marketHistory.find((entry) => entry.signature === signature) || null;
   }
 
+  // Price history: every time an entry gets new prices, the typical price of
+  // each marketplace is written down with the date, so price changes of a
+  // tracked car can be followed over weeks. Otomoto in PLN, Mobile.de in EUR,
+  // so the exchange rate does not move the history.
+  function marketPricePoint(listings, at) {
+    const rate = exchangeRate() || EUR_PLN_FALLBACK_RATE;
+    const point = { at };
+    MARKET_SOURCES.forEach((source) => {
+      const currency = source === "otomoto" ? "PLN" : "EUR";
+      const inCurrency = (listing) => {
+        if ((listing.currency || "EUR") === currency) return listing.price;
+        return currency === "PLN" ? listing.price * rate : listing.price / rate;
+      };
+      // Every offer counts, as on the chart.
+      const kept = listings.filter((listing) => listingSource(listing) === source);
+      if (kept.length < 3) return;
+      const prices = kept.map(inCurrency).sort((left, right) => left - right);
+      point[source] = {
+        currency,
+        count: prices.length,
+        median: Math.round(percentile(prices, 0.5)),
+        p25: Math.round(percentile(prices, 0.25)),
+        p75: Math.round(percentile(prices, 0.75)),
+      };
+    });
+    return MARKET_SOURCES.some((source) => point[source]) ? point : null;
+  }
+
+  function withPriceLog(entry, previous) {
+    const sameMarket = !previous || previous.signature === entry.signature;
+    const log = sameMarket ? [...(previous?.priceLog || [])] : [];
+    const dataAt = sameMarket ? previous?.dataAt || "" : "";
+    const now = new Date().toISOString();
+    const point = entry.listings.length >= 3 ? marketPricePoint(entry.listings, now) : null;
+    if (!point) return { ...entry, priceLog: log, dataAt: entry.listings.length >= 3 ? dataAt : "" };
+    const last = log[log.length - 1];
+    const sameAsLast = last && MARKET_SOURCES.every((source) => (
+      (last[source]?.count || 0) === (point[source]?.count || 0) && (last[source]?.median || 0) === (point[source]?.median || 0)
+    ));
+    if (sameAsLast) return { ...entry, priceLog: log, dataAt: dataAt || now };
+    // Otomoto and Mobile.de fetched minutes apart are one measurement.
+    if (last && Date.parse(now) - Date.parse(last.at) < PRICE_POINT_MERGE_MS) log[log.length - 1] = point;
+    else log.push(point);
+    return { ...entry, priceLog: log.slice(-PRICE_LOG_LIMIT), dataAt: now };
+  }
+
   function createMarketSnapshot(filters, listings, sourceFileName = "", searchUrl = "", pinned = false) {
     const now = new Date().toISOString();
     const entry = {
@@ -625,9 +702,10 @@
       createdAt: now,
       updatedAt: now,
     };
-    if (!storeMarketHistory([entry, ...marketHistory])) return null;
+    const dated = withPriceLog(entry, null);
+    if (!storeMarketHistory([dated, ...marketHistory])) return null;
     renderHistory();
-    return entry;
+    return dated;
   }
 
   function updateMarketSnapshot(historyId, filters, listings, sourceFileName = "", searchUrl = "", pinned = null) {
@@ -645,10 +723,10 @@
       updatedAt: new Date().toISOString(),
     };
     const updatedHistory = [...marketHistory];
-    updatedHistory[index] = entry;
+    updatedHistory[index] = withPriceLog(entry, existing);
     if (!storeMarketHistory(updatedHistory)) return null;
     renderHistory();
-    return entry;
+    return updatedHistory[index];
   }
 
   function formatHistoryDate(value) {
@@ -1072,6 +1150,7 @@
 
   function marketStatistics(listings) {
     const prices = listings.map((listing) => listing.price).sort((left, right) => left - right);
+    // Typical range: the middle half of the offers (P25–P75).
     const lowEnd = percentile(prices, 0.25);
     const highStart = percentile(prices, 0.75);
     return {
@@ -1132,10 +1211,109 @@
     return `<div class="mobileMarketStat${modifier ? ` ${modifier}` : ""}"><dt>${escapeMarketHtml(label)}</dt><dd>${escapeMarketHtml(value)}</dd></div>`;
   }
 
+  function formatPlainPrice(value, currency) {
+    return formatMarketPrice(value, currency);
+  }
+
+  // Latest typical price of an entry, in the marketplace's own currency.
+  function latestPriceLabel(entry) {
+    const last = entry.priceLog?.[entry.priceLog.length - 1];
+    if (!last) return "";
+    return MARKET_SOURCES.filter((source) => last[source])
+      .map((source) => `${source === "otomoto" ? "otomoto" : "mobile.de"} ${formatPlainPrice(last[source].median, last[source].currency)}`)
+      .join(" · ");
+  }
+
+  function favoritesHtml(activeId = "") {
+    const c = copy();
+    const favorites = marketHistory.filter((entry) => entry.pinned);
+    return `
+      <section class="mobileMarketFavorites" aria-label="${escapeMarketHtml(c.favoritesHeading)}">
+        <strong class="mobileMarketFavoritesTitle"><i aria-hidden="true">★</i>${escapeMarketHtml(c.favoritesHeading)}</strong>
+        ${favorites.length ? `<div class="mobileMarketFavoritesList">
+          ${favorites.map((entry) => {
+            const title = [entry.filters.brand, entry.filters.model, entry.filters.version].filter(Boolean).join(" ");
+            const meta = historyMeta(entry.filters).slice(0, 2).join(" · ");
+            const price = latestPriceLabel(entry);
+            const date = entry.dataAt ? formatHistoryDate(entry.dataAt) : "";
+            return `<button class="mobileMarketFavorite${entry.id === activeId ? " isActive" : ""}" type="button" data-mobile-market-favorite="${escapeMarketHtml(entry.id)}"${entry.id === activeId ? ' aria-current="true"' : ""}>
+              <b>${escapeMarketHtml(title)}</b>
+              ${meta ? `<small>${escapeMarketHtml(meta)}</small>` : ""}
+              <span>${escapeMarketHtml(price || c.favoritesNoData)}${date ? ` · ${escapeMarketHtml(date)}` : ""}</span>
+            </button>`;
+          }).join("")}
+        </div>` : `<p>${escapeMarketHtml(c.favoritesEmpty)}</p>`}
+      </section>`;
+  }
+
+  function priceHistoryHtml(entry) {
+    const c = copy();
+    const log = entry?.priceLog || [];
+    if (!log.length) return "";
+    const numbers = numberFormat();
+    const change = (current, previous) => {
+      if (!current || !previous?.median) return "";
+      const pct = ((current.median - previous.median) / previous.median) * 100;
+      if (Math.abs(pct) < 0.5) return `<em class="isFlat">±0%</em>`;
+      return `<em class="${pct < 0 ? "isDown" : "isUp"}">${pct > 0 ? "▲ +" : "▼ "}${escapeMarketHtml(numbers.format(Math.round(pct * 10) / 10))}%</em>`;
+    };
+    const cell = (point, previous, source) => (point[source]
+      ? `<td>${escapeMarketHtml(formatPlainPrice(point[source].median, point[source].currency))} ${change(point[source], previous?.[source])}<small>${point[source].count} ${escapeMarketHtml(c.priceHistoryCount)}</small></td>`
+      : "<td>—</td>");
+    const rows = log.map((point, index) => ({ point, previous: log[index - 1] })).reverse();
+    return `
+      <section class="mobileMarketPriceHistory" aria-label="${escapeMarketHtml(c.priceHistoryHeading)}">
+        <h2>${escapeMarketHtml(c.priceHistoryHeading)}</h2>
+        ${log.length === 1 ? `<p>${escapeMarketHtml(c.priceHistoryFirst)}</p>` : ""}
+        <div class="mobileMarketTableScroll">
+          <table class="mobileMarketTable">
+            <thead><tr><th scope="col">${escapeMarketHtml(c.priceHistoryDate)}</th><th scope="col">otomoto.pl · ${escapeMarketHtml(c.median)}</th><th scope="col">mobile.de · ${escapeMarketHtml(c.median)}</th></tr></thead>
+            <tbody>
+              ${rows.map(({ point, previous }) => `<tr><td>${escapeMarketHtml(formatHistoryDate(point.at))}</td>${cell(point, previous, "otomoto")}${cell(point, previous, "mobile")}</tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>`;
+  }
+
+  // "Analiza rynku" without a car chosen: the favourites to pick from.
+  function renderFavoritesPage() {
+    const c = copy();
+    activeAnalysis = null;
+    analysisContent.innerHTML = `
+      <article class="mobileMarketAnalysisPanel">
+        ${favoritesHtml()}
+        <header class="mobileMarketAnalysisHead">
+          <div>
+            <h1>${escapeMarketHtml(c.heading)}</h1>
+            <p>${escapeMarketHtml(c.favoritesPick)}</p>
+          </div>
+        </header>
+      </article>`;
+    setManualViewHidden(true);
+    analysisView.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openFavorite(historyId) {
+    const entry = marketHistory.find((item) => item.id === historyId);
+    if (!entry) return;
+    chartSources = { otomoto: true, mobile: true };
+    if (entry.listings.length >= 3) {
+      openHistoryAnalysis(historyId);
+      return;
+    }
+    // No prices saved yet: fetch them for this car's filters.
+    restoreManualFilters(entry.filters);
+    openAnalysis();
+  }
+
   function renderAnalysis() {
     if (!activeAnalysis) return;
     const c = copy();
     const { filters, listings, searchUrl, providerId, sourceFileName } = activeAnalysis;
+    const historyEntry = marketHistory.find((entry) => entry.id === activeAnalysis.historyId) || null;
+    const comparePriceEur = Number(String(activeAnalysis.comparePrice || "").replace(/[^\d]/g, "")) || 0;
     let otomotoUrl = "";
     try {
       otomotoUrl = buildOtomotoSearchUrl(filters);
@@ -1332,7 +1510,10 @@
         .join("");
 
       // The car recognised from a link, placed among the offers.
-      const recognised = typeof state !== "undefined" ? state.data : null;
+      const recognised = comparePriceEur
+        ? { carBruttoEur: comparePriceEur, matchedFilters: { brand: filters.brand, model: filters.model }, isComparison: true }
+        : (typeof state !== "undefined" ? state.data : null);
+      const carLabel = recognised?.isComparison ? c.comparedCar : c.yourCar;
       const sameCar = recognised?.carBruttoEur
         && normalizeToken(recognised.matchedFilters?.brand || "") === normalizeToken(filters.brand || "")
         && normalizeToken(recognised.matchedFilters?.model || "") === normalizeToken(filters.model || "");
@@ -1352,7 +1533,7 @@
         else if (chartAxis === "year" && carYear && axisSpan) carX = (carYear - axisMin) / axisSpan;
         const clampedY = verticalMarketPosition(Math.min(Math.max(carPrice, domainMinimum), domainMaximum), domainMinimum, domainMaximum);
         if (carX !== null) {
-          carMarker = `<span class="mobileMarketCar" style="--x:${Math.min(1, Math.max(0, carX)).toFixed(4)};top:${clampedY}%" role="img" aria-label="${escapeMarketHtml(`${c.yourCar}: ${formatMarketPrice(carPrice)}`)}"><i aria-hidden="true"></i><b>${escapeMarketHtml(c.yourCar)} · ${escapeMarketHtml(formatMarketPrice(carPrice))}</b></span>`;
+          carMarker = `<span class="mobileMarketCar" style="--x:${Math.min(1, Math.max(0, carX)).toFixed(4)};top:${clampedY}%" role="img" aria-label="${escapeMarketHtml(`${carLabel}: ${formatMarketPrice(carPrice)}`)}"><i aria-hidden="true"></i><b>${escapeMarketHtml(carLabel)} · ${escapeMarketHtml(formatMarketPrice(carPrice))}</b></span>`;
         }
         const diffPct = Math.round(((carPrice - statistics.median) / statistics.median) * 100);
         const diff = Math.abs(diffPct) < 1 ? c.atMedian
@@ -1360,7 +1541,7 @@
         const priceLabel = displayCurrency === "PLN"
           ? `${formatMarketPrice(carPrice)} (${formatMarketPrice(recognised.carBruttoEur, "EUR")})`
           : formatMarketPrice(carPrice);
-        if (canJudge) carVerdict = c.yourCarVerdict.replace("{price}", priceLabel).replace("{share}", String(share)).replace("{diff}", diff);
+        if (canJudge) carVerdict = c.yourCarVerdict.replace(c.yourCar, carLabel).replace("{price}", priceLabel).replace("{share}", String(share)).replace("{diff}", diff);
         // Against offers like it: the median price at its own mileage or year.
         const carValue = chartAxis === "mileage" ? carMileage : chartAxis === "year" ? carYear : null;
         if (carValue && trendMedians.length >= 2) {
@@ -1384,10 +1565,10 @@
       }
       const sourceCount = (source) => cleaned[source].length;
       const axisCaption = chartAxis === "mileage" ? c.axisMileageCaption : chartAxis === "year" ? c.axisYearCaption : c.axisRankCaption;
-      const observedAt = marketHistory.find((entry) => entry.id === activeAnalysis.historyId)?.updatedAt || new Date().toISOString();
 
+      const dataDate = historyEntry?.dataAt || activeAnalysis.fetchedAt || "";
       marketContent = `
-        <p class="mobileMarketSampleMeta">${escapeMarketHtml(c.sampleDate.replace("{date}", formatHistoryDate(observedAt)))} · ${escapeMarketHtml(c.count)}: ${statistics.count}</p>
+        ${dataDate ? `<p class="mobileMarketSampleMeta"><strong>${escapeMarketHtml(c.sampleDate.replace("{date}", formatHistoryDate(dataDate)))}</strong> · ${escapeMarketHtml(c.count)}: ${statistics.count} · ${escapeMarketHtml(c.dataAtHint)}</p>` : ""}
         ${statistics.count < 20 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.limitedSample)}</p>` : ""}
         ${filters.priceFrom || filters.priceTo ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.priceFilterWarning)}</p>` : ""}
         ${statistics.min < statistics.median / 3 || statistics.max > statistics.median * 3 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.wideRangeWarning)}</p>` : ""}
@@ -1399,6 +1580,12 @@
           ${statHtml(c.middleOffers, String(statistics.middleCount))}
           ${statHtml(c.maximum, formatMarketPrice(statistics.max))}
         </dl>
+
+        <label class="mobileMarketCompare">
+          <span>${escapeMarketHtml(c.comparePrice)}</span>
+          <input type="text" inputmode="numeric" autocomplete="off" data-mobile-market-compare-price placeholder="${escapeMarketHtml(c.comparePlaceholder)}" value="${escapeMarketHtml(activeAnalysis.comparePrice || "")}" />
+          <small>${escapeMarketHtml(c.compareHint)}</small>
+        </label>
 
         <div class="mobileMarketChartHead">
           <h2>${escapeMarketHtml(c.chartTitle)}</h2>
@@ -1478,6 +1665,8 @@
           </ul>
         </section>
 
+        ${priceHistoryHtml(historyEntry)}
+
         <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}">
           <div class="mobileMarketTableHead">
             <h2>${escapeMarketHtml(c.tableHeading)} · ${marketListings.length}</h2>
@@ -1518,6 +1707,7 @@
 
     analysisContent.innerHTML = `
       <article class="mobileMarketAnalysisPanel">
+        ${favoritesHtml(historyEntry?.pinned ? historyEntry.id : "")}
         <header class="mobileMarketAnalysisHead">
           <div>
             <h1>${escapeMarketHtml(c.heading)}</h1>
@@ -1573,6 +1763,11 @@
     const c = copy();
     try {
       const filters = readManualFields();
+      if ((!filters.brand || !filters.model) && marketHistory.some((entry) => entry.pinned)) {
+        setAnalysisStatus("");
+        renderFavoritesPage();
+        return;
+      }
       if (!filters.brand || !filters.model) throw new Error(c.missingVehicle);
       const searchUrl = buildMobileDeSearchUrl(filters);
       const vehicleKey = vehicleDataKey(filters);
@@ -1618,6 +1813,7 @@
         providerId: importedDataset ? "import" : (savedListings ? "history" : (provider?.id || "empty")),
         sourceFileName: importedDataset?.fileName || snapshot?.sourceFileName || savedEntry?.sourceFileName || "",
         historyId: snapshot?.id || savedEntry?.id || "",
+        fetchedAt: provider && listings.length ? new Date().toISOString() : "",
       };
       analysisMessage = { text: providerError, isError: Boolean(providerError) };
       renderAnalysis();
@@ -1744,7 +1940,21 @@
     window.focus();
   };
 
+  // The comparison price is applied when the field is left or Enter is
+  // pressed; re-drawing on every key would take the cursor out of the field.
+  analysisContent.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-mobile-market-compare-price]");
+    if (!input || !activeAnalysis) return;
+    activeAnalysis.comparePrice = input.value.replace(/[^\d\s]/g, "").trim();
+    renderAnalysis();
+  });
+
   analysisContent.addEventListener("click", (event) => {
+    const favorite = event.target.closest("[data-mobile-market-favorite]");
+    if (favorite) {
+      openFavorite(favorite.dataset.mobileMarketFavorite);
+      return;
+    }
     const fetchMobile = event.target.closest("[data-mobile-market-fetch-mobile]");
     if (fetchMobile && activeAnalysis) {
       // A tab this page keeps a handle on: the bookmark there answers it directly.
