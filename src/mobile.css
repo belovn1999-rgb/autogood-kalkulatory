@@ -216,7 +216,6 @@ button {
 }
 
 .mobileSearch {
-  width: calc(100% - 240px);
   border: var(--rule-thin) solid var(--color-rule);
   border-radius: var(--radius-card);
   background: var(--color-surface);
@@ -1469,10 +1468,6 @@ button {
 }
 
 @media (max-width: 60rem) {
-  .mobileSearch {
-    width: 100%;
-  }
-
   .mobileIntro,
 .mobileWorkbench,
 .mobileActionsHead {
@@ -1726,9 +1721,16 @@ button {
    paths appear under it after "Rozpoznaj". No outer frame around them. */
 .mobileListingSearch {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) 196px;
+  column-gap: var(--space-lg);
   gap: var(--space-lg);
+  padding: 0 var(--space-xl);
   margin-bottom: var(--space-xl);
   min-width: 0;
+}
+
+.mobileListingLinkCard {
+  grid-column: 1;
 }
 
 .mobileListingResult {
@@ -1762,6 +1764,11 @@ button {
 }
 
 @media (max-width: 720px) {
+  .mobileListingSearch {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
+  }
+
   .mobileFilterCard .mobileScenarioGrid {
     grid-template-columns: minmax(0, 1fr);
   }
