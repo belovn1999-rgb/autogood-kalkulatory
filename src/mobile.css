@@ -345,7 +345,12 @@ button {
   align-items: start;
 }
 
-.mobileManualPanel > .mobilePanelHead,
+/* The head (title, reset, filter summary) keeps to the cards' column, so the
+   pinned offer panel never covers the reset button. */
+.mobileManualPanel > .mobilePanelHead {
+  grid-column: 1;
+}
+
 .mobileManualPanel > .mobileManualSearchActions {
   grid-column: 1 / -1;
 }
