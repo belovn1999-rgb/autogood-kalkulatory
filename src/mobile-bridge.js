@@ -16,7 +16,7 @@
     if (!links.length) return;
     try {
       if (!bookmarkletHref) {
-        const response = await fetch("./src/autogood-bookmarklet.js?v=spec-20260926");
+        const response = await fetch("./src/autogood-bookmarklet.js?v=turnkey-20260926");
         if (!response.ok) return;
         const appUrl = `${location.origin}${location.pathname}`;
         // Only the quoted constant: the file's comments mention the placeholder too.
@@ -95,6 +95,11 @@
         title: textValue(item.title, 160),
         power: textValue(item.power, 40),
         fuel: textValue(item.fuel, 40),
+        country: textValue(item.country, 4),
+        postalCode: textValue(item.postalCode, 12),
+        city: textValue(item.city, 80),
+        bodyType: textValue(item.bodyType, 40),
+        displacementCcm: number(item.displacementCcm),
         price,
         currency: "EUR",
         year: number(item.year),

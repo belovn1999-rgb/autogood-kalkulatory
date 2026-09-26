@@ -3602,7 +3602,8 @@ els.brand.addEventListener("change", handleBrandInput);
 fetch("./data/exchange-rates.json")
   .then((response) => (response.ok ? response.json() : null))
   .then((rates) => {
-    if (rates) window.AUTOGOOD_EXCHANGE_RATES = rates;
+    // The calculator's live rate (turnkey-estimate.js) wins over the file.
+      if (rates && !window.AUTOGOOD_EXCHANGE_RATES?.live) window.AUTOGOOD_EXCHANGE_RATES = rates;
   })
   .catch(() => {
     // Without the file the fallback rate keeps the Otomoto price filter sane.

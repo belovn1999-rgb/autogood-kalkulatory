@@ -2421,3 +2421,10 @@
 .isReportPdf .mobileMarketTable thead th {
   position: static !important;
 }
+
+/* Offers left out of the statistics: hollow grey dots. */
+.mobileMarketPoint.isSuspect::before {
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1.5px var(--color-soft);
+  opacity: 0.8;
+}

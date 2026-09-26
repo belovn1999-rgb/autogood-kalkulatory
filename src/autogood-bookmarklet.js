@@ -215,6 +215,13 @@
         title: titles.get(String(item.id)) || [item.make?.localized, item.model?.localized].filter(Boolean).join(" "),
         power: item.attr?.pw || "",
         fuel: item.attr?.ft || "",
+        // Where the car stands and what it is: transport, inspection and
+        // excise for the turnkey price in Poland.
+        country: item.attr?.cn || "",
+        postalCode: item.attr?.z || "",
+        city: item.attr?.loc || "",
+        bodyType: item.attr?.c || item.category || "",
+        displacementCcm: digits(item.attr?.cc),
         price,
         currency: "EUR",
         year: yearOf(item.attr?.fr),

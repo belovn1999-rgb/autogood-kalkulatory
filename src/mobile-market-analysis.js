@@ -164,7 +164,9 @@
       refreshing: "Odświeżam dane rynku…",
       refreshUnavailable: "Źródło danych nie jest jeszcze podłączone.",
       refreshInvalid: "Źródło nie zwróciło co najmniej 3 cen ofert.",
-      snapshotSaved: "Zapisano nowy snapshot cen.",
+      snapshotSaved: "Nowa kontrola zapisana w historii cen ({date}).",
+      suspectsSkipped: "Poza statystyką: {count} ofert (uszkodzone, na części, cesja / leasing albo cena poza 1/3–3× mediany) — szare kółka na wykresie.",
+      suspectTag: "poza statystyką",
       emptyHeading: "Brak realnych ofert do analizy",
       emptyDescription: "Pobierz oferty z mobile.de zakładką AUTOGOOD albo zaimportuj JSON lub CSV. Wykres nie pokazuje punktów testowych.",
       missingVehicle: "Wybierz markę i model przed uruchomieniem analizy rynku.",
@@ -333,7 +335,9 @@
       refreshing: "Обновляю рыночные данные…",
       refreshUnavailable: "Источник данных ещё не подключён.",
       refreshInvalid: "Источник не вернул минимум 3 цен объявлений.",
-      snapshotSaved: "Новый снимок цен сохранён.",
+      snapshotSaved: "Новая проверка сохранена в истории цен ({date}).",
+      suspectsSkipped: "Вне статистики: {count} объявл. (повреждённые, на запчасти, цессия / лизинг или цена вне 1/3–3× медианы) — серые кружки на графике.",
+      suspectTag: "вне статистики",
       emptyHeading: "Нет реальных объявлений для анализа",
       emptyDescription: "Загрузите объявления с mobile.de закладкой AUTOGOOD или импортируйте JSON либо CSV. На графике нет тестовых точек.",
       missingVehicle: "Выберите марку и модель перед запуском анализа рынка.",
@@ -491,6 +495,13 @@
       url: url.toString(),
       power: String(listingValue(row, ["power", "moc"]) || "").slice(0, 40),
       subtitle: String(listingValue(row, ["subtitle"]) || "").slice(0, 160),
+      // Seller location and car class, for the turnkey price (Mobile.de).
+      fuel: String(listingValue(row, ["fuel"]) || "").slice(0, 40),
+      country: String(listingValue(row, ["country"]) || "").slice(0, 4),
+      postalCode: String(listingValue(row, ["postalcode"]) || "").slice(0, 12),
+      city: String(listingValue(row, ["city"]) || "").slice(0, 80),
+      bodyType: String(listingValue(row, ["bodytype"]) || "").slice(0, 40),
+      displacementCcm: parseMarketNumber(listingValue(row, ["displacementccm"])) || null,
     };
     listing.source = listingSource({ ...listing, source: listingValue(row, ["source", "zrodlo"]) });
     // Position in the marketplace's own price-sorted result list, when known.
@@ -717,8 +728,10 @@
         if ((listing.currency || "EUR") === currency) return listing.price;
         return currency === "PLN" ? listing.price * rate : listing.price / rate;
       };
-      // Every offer counts, as on the chart.
-      const kept = listings.filter((listing) => listingSource(listing) === source);
+      // The same offers as the statistics: suspect ones left out.
+      const own = listings.filter((listing) => listingSource(listing) === source);
+      const flagged = suspectOffers(own, (listing) => (listing.currency === "PLN" ? listing.price : listing.price * rate));
+      const kept = own.filter((listing) => !flagged.has(listing));
       if (kept.length < 3) return;
       const byPrice = [...kept].sort((left, right) => inCurrency(left) - inCurrency(right));
       const prices = byPrice.map(inCurrency);
@@ -738,21 +751,32 @@
     return MARKET_SOURCES.some((source) => point[source]) ? point : null;
   }
 
+  // What the next saved snapshot measured: which marketplaces were fetched
+  // just now, and whether it is a check of its own (Odśwież dane / opening a
+  // search) or offers joining the latest check (Mobile.de bookmark, a file).
+  let nextMeasurement = null;
+  function measureNextSnapshot(sources, isNewCheck) {
+    nextMeasurement = { sources, isNewCheck };
+  }
+
   function withPriceLog(entry, previous) {
+    const measurement = nextMeasurement;
+    nextMeasurement = null;
     const sameMarket = !previous || previous.signature === entry.signature;
     const log = sameMarket ? [...(previous?.priceLog || [])] : [];
     const dataAt = sameMarket ? previous?.dataAt || "" : "";
     const now = new Date().toISOString();
-    const point = entry.listings.length >= 3 ? marketPricePoint(entry.listings, now) : null;
-    if (!point) return { ...entry, priceLog: log, dataAt: entry.listings.length >= 3 ? dataAt : "" };
+    const point = measurement && entry.listings.length >= 3 ? marketPricePoint(entry.listings, now) : null;
+    const fresh = point ? Object.fromEntries(measurement.sources.filter((source) => point[source]).map((source) => [source, point[source]])) : {};
+    if (!Object.keys(fresh).length) return { ...entry, priceLog: log, dataAt: entry.listings.length >= 3 ? dataAt : "" };
     const last = log[log.length - 1];
-    const sameAsLast = last && MARKET_SOURCES.every((source) => (
-      (last[source]?.count || 0) === (point[source]?.count || 0) && (last[source]?.median || 0) === (point[source]?.median || 0)
-    ));
-    if (sameAsLast) return { ...entry, priceLog: log, dataAt: dataAt || now };
-    // Otomoto and Mobile.de fetched minutes apart are one measurement.
-    if (last && Date.parse(now) - Date.parse(last.at) < PRICE_POINT_MERGE_MS) log[log.length - 1] = point;
-    else log.push(point);
+    if (measurement.isNewCheck || !last || Date.parse(now) - Date.parse(last.at) >= PRICE_POINT_MERGE_MS) {
+      // Every check is its own row, stamped with its time.
+      log.push({ at: now, ...fresh });
+    } else {
+      // Offers of another marketplace fetched soon after belong to that check.
+      log[log.length - 1] = { ...last, ...fresh };
+    }
     return { ...entry, priceLog: log.slice(-PRICE_LOG_LIMIT), dataAt: now };
   }
 
@@ -1529,6 +1553,39 @@
     ];
   }
 
+  // Offers that are not a price for a working car: damaged or for parts,
+  // leasing take-overs and instalments, or priced far off the rest. They stay
+  // on the chart but not in the statistics. Words like "bezwypadkowy",
+  // "unfallfrei" or "możliwy leasing" (financing offered) do not count.
+  const SUSPECT_WORDS = new RegExp([
+    "(?<!nie)uszkodz", "na cz[eę][sś]ci", "do naprawy", "(?<!bez)wypadk", "powypadk", "rozbit", "zatart", "zalan", "spalon",
+    "bez silnika", "silnik do (?:remontu|wymiany|naprawy)", "skrzynia do", "cesj", "odst[eę]pne", "przej[eę]cie (?:leasingu|najmu|umowy)", "wynajem d[lł]ugoterminowy", "abonament",
+    "motorschaden", "getriebeschaden", "unfall(?!frei)", "defekt", "bastler", "ersatzteil", "teiletr[aä]ger", "leasing[uü]bernahme",
+    "damaged", "for parts", "engine failure",
+  ].join("|"), "i");
+
+  function suspectOffers(listings, valueOf) {
+    const medianOf = (items) => (items.length >= 5 ? percentile(items.map(valueOf).sort((left, right) => left - right), 0.5) : 0);
+    const overall = medianOf(listings);
+    // A price is judged against cars of about the same age: a 2008 car at
+    // a third of a 2020 car's price is a real price, not a mistake.
+    const medianByYear = new Map();
+    const peerMedian = (year) => {
+      if (!year) return overall;
+      if (!medianByYear.has(year)) {
+        const peers = listings.filter((item) => item.year && Math.abs(item.year - year) <= 1);
+        medianByYear.set(year, peers.length >= 5 ? medianOf(peers) : overall);
+      }
+      return medianByYear.get(year);
+    };
+    return new Set(listings.filter((listing) => {
+      if (SUSPECT_WORDS.test(`${listing.title || ""} ${listing.subtitle || ""}`)) return true;
+      const price = valueOf(listing);
+      const median = peerMedian(Number(listing.year) || 0);
+      return median > 0 && (price < median / 3 || price > median * 3);
+    }));
+  }
+
   function renderAnalysis() {
     if (!activeAnalysis) return;
     const c = copy();
@@ -1545,7 +1602,15 @@
     // Every valid offer remains in the sample, including unusually priced ones.
     const bySource = { otomoto: [], mobile: [] };
     listings.forEach((listing) => bySource[listingSource(listing)].push(listing));
-    const cleaned = bySource;
+    const plnRateForChecks = exchangeRate() || EUR_PLN_FALLBACK_RATE;
+    const inPlnForChecks = (listing) => (listing.currency === "PLN" ? listing.price : listing.price * plnRateForChecks);
+    const cleaned = {};
+    const suspects = {};
+    MARKET_SOURCES.forEach((source) => {
+      const flagged = suspectOffers(bySource[source], inPlnForChecks);
+      cleaned[source] = bySource[source].filter((listing) => !flagged.has(listing));
+      suspects[source] = bySource[source].filter((listing) => flagged.has(listing));
+    });
     const availableSources = MARKET_SOURCES.filter((source) => cleaned[source].length);
     const pickedSources = availableSources.filter((source) => chartSources[source]);
     const shownSources = pickedSources.length ? pickedSources : availableSources;
@@ -1562,6 +1627,14 @@
       originalPrice: listing.price,
       originalCurrency: listing.currency,
       price: Math.round(inDisplayCurrency(listing)),
+    }));
+    const suspectListings = shownSources.flatMap((source) => suspects[source]).map((listing) => ({
+      ...listing,
+      source: listingSource(listing),
+      originalPrice: listing.price,
+      originalCurrency: listing.currency,
+      price: Math.round(inDisplayCurrency(listing)),
+      suspect: true,
     }));
     const hasListings = marketListings.length >= 3;
     const onlyOtomoto = shownSources.length === 1 && shownSources[0] === "otomoto";
@@ -1715,9 +1788,7 @@
       ].filter(Boolean).join(" · ");
       // Placeholder names ("otomoto.pl", "mobile.de · 03") say nothing.
       const fullTitle = (listing) => (/^(otomoto\.pl|mobile\.de · \d+)$/.test(listing.title || "") ? "" : listing.title || "");
-      const points = [...plotted]
-        .sort((left, right) => right.listing.price - left.listing.price)
-        .map(({ listing, x, y }) => {
+      const renderPoint = ({ listing, x, y }) => {
           const tooltipClass = x > 0.72 ? " isTooltipLeft" : "";
           const details = describe(listing);
           const original = listing.originalCurrency !== displayCurrency
@@ -1731,13 +1802,27 @@
                 ${listing.subtitle ? `<i class="mobileMarketPointSubtitle">${escapeMarketHtml(listing.subtitle)}</i>` : ""}
                 <strong>${escapeMarketHtml(formatMarketPrice(listing.price))}${original ? ` <small>(${escapeMarketHtml(original)})</small>` : ""}</strong>
                 ${details ? `<em>${escapeMarketHtml(details)}</em>` : ""}
-                <b class="is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}">${escapeMarketHtml(sourceName(listing.source))}</b>
+                <b class="is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}">${escapeMarketHtml(sourceName(listing.source))}${listing.suspect ? ` · ${escapeMarketHtml(c.suspectTag)}` : ""}</b>
               </span>`;
-          const attributes = `class="mobileMarketPoint is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}${tooltipClass}" data-market-key="${escapeMarketHtml(listingKey(listing))}" aria-label="${escapeMarketHtml(label)}" style="--x:${x.toFixed(4)};top:${y}%"`;
+          const attributes = `class="mobileMarketPoint is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}${listing.suspect ? " isSuspect" : ""}${tooltipClass}" data-market-key="${escapeMarketHtml(listingKey(listing))}" aria-label="${escapeMarketHtml(label)}" style="--x:${x.toFixed(4)};top:${y}%"`;
           return listing.url
             ? `<a ${attributes} href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener">${tooltip}</a>`
             : `<span ${attributes} role="img">${tooltip}</span>`;
-        })
+      };
+      // Offers left out of the statistics: at their place in the list (or
+      // their mileage / year), pinned to the chart's edge when far off.
+      const suspectPlotted = suspectListings.map((listing) => {
+        let x = null;
+        if (chartAxis === "rank") x = listing.rank && listing.marketTotal > 1 ? (listing.rank - 1) / (listing.marketTotal - 1) : null;
+        else {
+          const value = chartAxis === "mileage" ? listing.mileage : listing.year;
+          x = Number.isFinite(value) && value > 0 && axisSpan ? Math.min(1, Math.max(0, (value - axisMin) / axisSpan)) : null;
+        }
+        const y = verticalMarketPosition(Math.min(Math.max(listing.price, domainMinimum), domainMaximum), domainMinimum, domainMaximum);
+        return { listing, x, y };
+      }).filter((point) => point.x !== null);
+      const points = [...suspectPlotted, ...[...plotted].sort((left, right) => right.listing.price - left.listing.price)]
+        .map(renderPoint)
         .join("");
 
       // The car recognised from a link, placed among the offers.
@@ -1901,6 +1986,7 @@
           <span class="mobileMarketXCaption">${escapeMarketHtml(axisCaption)}</span>
         </div>
 
+          ${suspectListings.length ? `<p class="mobileMarketAxisNote">${escapeMarketHtml(c.suspectsSkipped.replace("{count}", String(suspectListings.length)))}</p>` : ""}
           ${hiddenByAxis ? `<p class="mobileMarketAxisNote">${escapeMarketHtml(c.hiddenNoAxis.replace("{count}", String(hiddenByAxis)))}</p>` : ""}
 
         <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}" data-report-hide-copy>
@@ -2264,6 +2350,7 @@
       const fetchedFromProvider = Boolean(provider) && listings.length >= 3;
       // A fetched price sample belongs to the saved search, so the history row
       // shows how many offers it is based on.
+      if (fetchedFromProvider) measureNextSnapshot(["otomoto"], true);
       const snapshot = fetchedFromProvider
         ? (savedEntry
           ? updateMarketSnapshot(savedEntry.id, filters, listings, provider.id, searchUrl)
@@ -2333,6 +2420,7 @@
         providerId: "import",
         sourceFileName: input.files[0].name,
       };
+      measureNextSnapshot(["mobile"], false);
       const snapshot = activeAnalysis.historyId
         ? updateMarketSnapshot(activeAnalysis.historyId, activeAnalysis.filters, listings, input.files[0].name, activeAnalysis.searchUrl)
         : createMarketSnapshot(activeAnalysis.filters, listings, input.files[0].name, activeAnalysis.searchUrl);
@@ -2362,6 +2450,7 @@
       if (fetched.length < 3) throw new Error(c.refreshInvalid);
       // Refreshing Otomoto keeps any Mobile.de offers already in the analysis.
       const listings = mergeBySource(activeAnalysis.listings, fetched);
+      measureNextSnapshot(["otomoto"], true);
       const snapshot = activeAnalysis.historyId
         ? updateMarketSnapshot(activeAnalysis.historyId, activeAnalysis.filters, listings, "API", activeAnalysis.searchUrl)
         : createMarketSnapshot(activeAnalysis.filters, listings, "API", activeAnalysis.searchUrl);
@@ -2375,7 +2464,7 @@
         historyId: snapshot.id,
       };
       renderAnalysis();
-      setAnalysisStatus(c.snapshotSaved);
+      setAnalysisStatus(c.snapshotSaved.replace("{date}", formatHistoryDate(new Date().toISOString())));
     } catch (error) {
       setAnalysisStatus(error.message || c.refreshInvalid, true);
     }
@@ -2393,6 +2482,7 @@
       return;
     }
     const merged = mergeBySource(activeAnalysis.listings, listings);
+    measureNextSnapshot(["mobile"], false);
     const snapshot = activeAnalysis.historyId
       ? updateMarketSnapshot(activeAnalysis.historyId, activeAnalysis.filters, merged, "mobile.de", activeAnalysis.searchUrl)
       : createMarketSnapshot(activeAnalysis.filters, merged, "mobile.de", activeAnalysis.searchUrl);
@@ -2584,7 +2674,8 @@
   fetch("./data/exchange-rates.json")
     .then((response) => (response.ok ? response.json() : null))
     .then((rates) => {
-      if (rates) window.AUTOGOOD_EXCHANGE_RATES = rates;
+      // The calculator's live rate (turnkey-estimate.js) wins over the file.
+      if (rates && !window.AUTOGOOD_EXCHANGE_RATES?.live) window.AUTOGOOD_EXCHANGE_RATES = rates;
     })
     .catch(() => {
       // Without a rate the budget line is simply not shown.
