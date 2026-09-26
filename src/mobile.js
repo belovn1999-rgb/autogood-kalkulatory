@@ -2690,7 +2690,7 @@ function recognizedEquipmentFilters(data) {
   if (has(/automatyczn.*parkowan|samopark|selbstpark|self parking|automatic parking/)) parkingSensors.push("AUTOMATIC_PARKING");
 
   let cruiseControl = "any";
-  if (has(/adaptacyjn.*tempomat|aktywn.*tempomat|abstandsregeltempomat|adaptive cruise|acc tempomat/)) cruiseControl = "ADAPTIVE_CRUISE_CONTROL";
+  if (has(/adaptacyjn.*tempomat|aktywn.*tempomat|abstandstempomat|abstandsregeltempomat|adaptive cruise|acc tempomat/)) cruiseControl = "ADAPTIVE_CRUISE_CONTROL";
   else if (has(/tempomat|geschwindigkeitsregelanlage|cruise control/)) cruiseControl = "CRUISE_CONTROL";
 
   let airConditioning = "";
@@ -2701,8 +2701,8 @@ function recognizedEquipmentFilters(data) {
   else if (has(/klimatyzacj.*manual|manuelle klimaanlage|manual air conditioning/)) airConditioning = "manual";
 
   let trailerCoupling = "any";
-  if (has(/odchylan.*hak|schwenkbar.*anhangerkupplung|swiveling tow/)) trailerCoupling = "swiveling";
-  else if (has(/odlacz.*hak|odpinan.*hak|abnehmbar.*anhangerkupplung|detachable tow/)) trailerCoupling = "detachable_or_swiveling";
+  if (has(/odchylan.*hak|(?:schwenkbar.*anhangerkupplung|anhangerkupplung.*schwenkbar)|swiveling tow/)) trailerCoupling = "swiveling";
+  else if (has(/odlacz.*hak|odpinan.*hak|(?:abnehmbar.*anhangerkupplung|anhangerkupplung.*abnehmbar)|detachable tow/)) trailerCoupling = "detachable_or_swiveling";
   else if (has(/hak holowniczy|anhangerkupplung|tow ?bar|trailer hitch/)) trailerCoupling = "all";
 
   const featurePatterns = {
@@ -2725,12 +2725,12 @@ function recognizedEquipmentFilters(data) {
     SPORT_SEATS: /sportow.*(?:fotel|siedzen)|sportsitze|sport seats/,
     MASSAGE_SEATS: /masaz.*(?:fotel|siedzen)|massagesitze|massage seats/,
     NIGHT_VISION_ASSIST: /asystent noktowizyjny|night vision|nachtsicht/,
-    ALLOY_WHEELS: /felgi aluminiowe|alufelgen|alloy wheels/,
+    ALLOY_WHEELS: /felgi aluminiowe|alufelgen|leichtmetallfelgen|alloy wheels/,
     TRAFFIC_SIGN_RECOGNITION: /rozpoznawanie znakow drogowych|verkehrszeichenerkennung|traffic sign recognition/,
     CARPLAY: /apple carplay|\bcarplay\b/,
     ANDROID_AUTO: /android auto/,
     AMBIENT_LIGHTING: /oswietlenie ambientowe|ambientebeleuchtung|ambient lighting/,
-    DIGITAL_COCKPIT: /cyfrow.*(?:kokpit|zestaw wskaznikow)|digitales cockpit|digital cockpit/,
+    DIGITAL_COCKPIT: /cyfrow.*(?:kokpit|zestaw wskaznikow)|digitales cockpit|volldigitales kombiinstrument|digital cockpit/,
     HEAD_UP_DISPLAY: /head up display|wyswietlacz head up/,
     ELECTRIC_ADJUSTABLE_SEATS: /elektryczn.*regulacj.*(?:fotel|siedzen)|elektrisch.*sitzverstellung|electric seat adjustment/,
     MEMORY_SEATS: /(?:fotel|siedzen).*pamiec|sitz.*memory|memory seats/,
