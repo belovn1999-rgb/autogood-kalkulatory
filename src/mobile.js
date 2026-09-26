@@ -100,6 +100,10 @@ const copy = {
     materialPartLeather: "Skóra częściowa",
     materialFullLeather: "Skóra",
     featureOptionsLabel: "Opcje",
+    heatingVentilationLabel: "Podgrzewanie i wentylacja",
+    electricControlsLabel: "Elektryka",
+    seatOptionsLabel: "Fotele",
+    lightingOptionsLabel: "Reflektory",
     airConditioningLabel: "Klimatyzacja",
     airConditioningAutomatic: "Automatyczna",
     airConditioningAutomatic2Zones: "Automatyczna, 2 strefy",
@@ -117,6 +121,10 @@ const copy = {
     featureRoofRails: "Relingi dachowe",
     featureAirSuspension: "Zawieszenie pneumatyczne",
     featureSportsSuspension: "Sportowe zawieszenie",
+    featureLedHeadlights: "LED",
+    featureXenonHeadlights: "Ksenon",
+    featureHalogenHeadlights: "Halogen",
+    featureMatrixHeadlights: "Światła bezodblaskowe (np. Matrix LED)",
     featureLaserHeadlights: "Reflektory laserowe",
     featureLedRunningLights: "Światła do jazdy dziennej LED",
     featureBiXenonHeadlights: "Reflektory biksenonowe",
@@ -124,13 +132,15 @@ const copy = {
     featureBlindSpotAssist: "Asystent martwego pola",
     featureSportsPackage: "Pakiet sportowy",
     featureKeylessCentralLocking: "Bezkluczykowy centralny zamek",
-    featureHeatedSeats: "Podgrzewane fotele",
+    featureHeatedSeats: "Podgrzewane przednie fotele",
     featureHeatedWindshield: "Podgrzewana przednia szyba",
     featureHeatedSteeringWheel: "Podgrzewana kierownica",
     featureHeatedRearSeats: "Podgrzewane tylne fotele",
     featureSeatVentilation: "Wentylowane fotele",
     featureSportSeats: "Fotele sportowe",
+    featureComfortSeats: "Fotele komfortowe",
     featureMassageSeats: "Fotele z masażem",
+    featureLumbarSupport: "Podparcie lędźwiowe",
     featureNightVisionAssist: "Asystent noktowizyjny",
     featureAlloyWheels: "Felgi aluminiowe",
     featureTrafficSignRecognition: "Rozpoznawanie znaków drogowych",
@@ -139,14 +149,18 @@ const copy = {
     featureAmbientLighting: "Oświetlenie ambientowe",
     featureDigitalCockpit: "Cyfrowy kokpit",
     featureHeadUpDisplay: "Wyświetlacz Head-up (HUD)",
-    featureElectricSeatAdjustment: "Elektryczna regulacja foteli",
-    featureMemorySeats: "Elektryczna regulacja foteli z pamięcią",
+    featureElectricSeatAdjustment: "Elektryczna regulacja fotela kierowcy",
+    featureElectricFrontSeats: "Elektryczna regulacja obu przednich foteli",
+    featureMemorySeats: "Pamięć ustawień foteli",
+    featureNavigationSystem: "Nawigacja fabryczna",
+    featureSoundSystem: "Ulepszony system audio",
     featureWirelessCharging: "Ładowanie indukcyjne smartfona",
     featureWinterTyres: "Opony zimowe",
     featureSummerTyres: "Opony letnie",
     parkingSensorsLabel: "Asystenci parkowania",
-    parkingCamera360: "Kamera 360°",
-    parkingCamera: "Kamera",
+    parkingCamera360: "Kamera 360",
+    parkingCamera: "Kamera tylna",
+    parkingFrontRear: "Asystenci przód + tył",
     parkingFront: "Przód",
     parkingRear: "Tył",
     parkingRearTrafficAlert: "Asystent ruchu poprzecznego z tyłu",
@@ -183,6 +197,7 @@ const copy = {
     otomotoSearchOpening: "Otwieram Otomoto: od najniższej ceny.",
     otomotoPriceConverted: "Cena przeliczona na PLN po kursie {rate}.",
     otomotoSearchSkipped: "Otomoto nie ma dokładnego odpowiednika dla: {filters}. Pozostałe filtry zostały zastosowane.",
+    mobileSearchSkipped: "Mobile.de nie ma dokładnego odpowiednika dla: {filters}. Pozostałe filtry zostały zastosowane.",
     marketSearchButton: "Szukaj na mobile.de",
     marketSearchOpening: "Otwieram wyniki od najniższej ceny.",
     marketSearchChooseBrand: "Wybierz markę przed wpisaniem modelu.",
@@ -346,6 +361,10 @@ const copy = {
     materialPartLeather: "Комбинированная кожа",
     materialFullLeather: "Кожа",
     featureOptionsLabel: "Опции",
+    heatingVentilationLabel: "Подогрев и вентиляция",
+    electricControlsLabel: "Электроприводы",
+    seatOptionsLabel: "Сиденья",
+    lightingOptionsLabel: "Фары",
     airConditioningLabel: "Климат-контроль",
     airConditioningAutomatic: "Автоматический",
     airConditioningAutomatic2Zones: "Автоматический, 2 зоны",
@@ -363,6 +382,10 @@ const copy = {
     featureRoofRails: "Рейлинги на крыше",
     featureAirSuspension: "Пневмоподвеска",
     featureSportsSuspension: "Спортивная подвеска",
+    featureLedHeadlights: "LED",
+    featureXenonHeadlights: "Ксенон",
+    featureHalogenHeadlights: "Галоген",
+    featureMatrixHeadlights: "Безбликовый свет (например, Matrix LED)",
     featureLaserHeadlights: "Лазерные фары",
     featureLedRunningLights: "Дневные ходовые огни LED",
     featureBiXenonHeadlights: "Биксеноновые фары",
@@ -370,13 +393,15 @@ const copy = {
     featureBlindSpotAssist: "Контроль слепых зон",
     featureSportsPackage: "Спортивный пакет",
     featureKeylessCentralLocking: "Бесключевой центральный замок",
-    featureHeatedSeats: "Подогрев сидений",
+    featureHeatedSeats: "Подогрев передних сидений",
     featureHeatedWindshield: "Подогрев лобового стекла",
     featureHeatedSteeringWheel: "Подогрев руля",
     featureHeatedRearSeats: "Подогрев задних сидений",
     featureSeatVentilation: "Вентиляция сидений",
     featureSportSeats: "Спортивные сиденья",
+    featureComfortSeats: "Комфортные сиденья",
     featureMassageSeats: "Сиденья с массажем",
+    featureLumbarSupport: "Поясничная поддержка",
     featureNightVisionAssist: "Система ночного видения",
     featureAlloyWheels: "Легкосплавные диски",
     featureTrafficSignRecognition: "Распознавание дорожных знаков",
@@ -385,14 +410,18 @@ const copy = {
     featureAmbientLighting: "Атмосферная подсветка",
     featureDigitalCockpit: "Цифровая приборная панель",
     featureHeadUpDisplay: "Проекционный дисплей (HUD)",
-    featureElectricSeatAdjustment: "Электрорегулировка сидений",
-    featureMemorySeats: "Электрорегулировка сидений с памятью",
+    featureElectricSeatAdjustment: "Электрорегулировка сиденья водителя",
+    featureElectricFrontSeats: "Электрорегулировка обоих передних сидений",
+    featureMemorySeats: "Память настроек сидений",
+    featureNavigationSystem: "Заводская навигация",
+    featureSoundSystem: "Улучшенная аудиосистема",
     featureWirelessCharging: "Беспроводная зарядка смартфона",
     featureWinterTyres: "Зимние шины",
     featureSummerTyres: "Летние шины",
     parkingSensorsLabel: "Парковочные ассистенты",
-    parkingCamera360: "Камера 360°",
-    parkingCamera: "Камера",
+    parkingCamera360: "Камера 360",
+    parkingCamera: "Камера заднего вида",
+    parkingFrontRear: "Парктроники спереди и сзади",
     parkingFront: "Передние",
     parkingRear: "Задние",
     parkingRearTrafficAlert: "Контроль поперечного движения сзади",
@@ -429,6 +458,7 @@ const copy = {
     otomotoSearchOpening: "Открываю Otomoto: сначала самые дешёвые.",
     otomotoPriceConverted: "Цена пересчитана в PLN по курсу {rate}.",
     otomotoSearchSkipped: "В Otomoto нет точного аналога для: {filters}. Остальные фильтры применены.",
+    mobileSearchSkipped: "В Mobile.de нет точного аналога для: {filters}. Остальные фильтры применены.",
     marketSearchButton: "Найти на mobile.de",
     marketSearchOpening: "Открываю результаты: сначала самые дешёвые.",
     marketSearchChooseBrand: "Сначала выбери марку, затем введи модель.",
@@ -695,12 +725,17 @@ const mobileDeTrailerCouplingValues = {
 // Options Mobile.de files under their own query parameter (checked against the
 // filter contract embedded in suchen.mobile.de); anything under the wrong key is silently ignored.
 const mobileDeOptionParams = {
+  LED_HEADLIGHTS: "hlt",
+  XENON_HEADLIGHTS: "hlt",
   BI_XENON_HEADLIGHTS: "hlt",
   LASER_HEADLIGHTS: "hlt",
   ADAPTIVE_BENDING_LIGHTS: "blt",
   LED_RUNNING_LIGHTS: "drl",
   REAR_TRAFFIC_ALERT: "fe",
 };
+
+const mobileDeUnsupportedFeatures = new Set(["HALOGEN_HEADLIGHTS", "COMFORT_SEATS", "ELECTRIC_FRONT_SEATS"]);
+const mobileDeApproximateFeatures = new Set(["ELECTRIC_ADJUSTABLE_SEATS"]);
 
 const otomotoMakeAliases = {
   "Asia Motors": "asia",
@@ -901,6 +936,8 @@ const otomotoFeatureFilters = {
   AIR_SUSPENSION: [["filter_enum_air_suspension", "1"]],
   PERFORMANCE_HANDLING_SYSTEM: [["filter_enum_sport_suspension", "1"]],
   LASER_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "laser-head-lamps"]],
+  LED_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "led-front-dim-light"]],
+  XENON_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "xenon-light"]],
   BI_XENON_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "bi-xenon-head-lamps"]],
   ADAPTIVE_BENDING_LIGHTS: [["filter_enum_dynamic_directional_lights", "1"]],
   BLIND_SPOT_MONITOR: [["filter_enum_blind_spot_warning", "1"]],
@@ -911,6 +948,7 @@ const otomotoFeatureFilters = {
   ],
   HEATED_WINDSHIELD: [["filter_enum_windscreen_heating", "1"]],
   VENTILATED_SEATS: [["filter_enum_ventilated_front_seat", "1"]],
+  NAVIGATION_SYSTEM: [["filter_enum_navigation_system", "1"]],
   CARPLAY: [["filter_enum_apple_carplay", "1"]],
   ANDROID_AUTO: [["filter_enum_android_auto", "1"]],
   HEAD_UP_DISPLAY: [["filter_enum_head_up_display", "1"]],
@@ -943,6 +981,12 @@ const otomotoUnsupportedFeatures = new Set([
   "WINTER_TIRES",
   "SUMMER_TIRES",
   "ELECTRIC_TAILGATE",
+  "HALOGEN_HEADLIGHTS",
+  "GLARE_FREE_HIGH_BEAM",
+  "COMFORT_SEATS",
+  "LUMBAR_SUPPORT",
+  "ELECTRIC_FRONT_SEATS",
+  "SOUND_SYSTEM",
 ]);
 
 const displacementOptions = ["1000", "1200", "1400", "1600", "1800", "2000", "2600", "3000", "> 5000", "< 5000"];
@@ -2240,8 +2284,17 @@ function buildMobileDeSearchUrl(filters) {
   if (airConditioning) params.set("clim", airConditioning);
   const trailerCoupling = mobileDeTrailerCouplingValues[filters.trailerCoupling];
   if (trailerCoupling) params.set("tct", trailerCoupling);
-  (filters.features || []).forEach((feature) => params.append(mobileDeOptionParams[feature] || "fe", feature));
-  (filters.parkingSensors || []).forEach((sensor) => params.append(mobileDeOptionParams[sensor] || "pa", sensor));
+  const features = new Set(filters.features || []);
+  if (features.has("ELECTRIC_FRONT_SEATS")) features.add("ELECTRIC_ADJUSTABLE_SEATS");
+  Array.from(features)
+    .filter((feature) => !mobileDeUnsupportedFeatures.has(feature))
+    .forEach((feature) => params.append(mobileDeOptionParams[feature] || "fe", feature));
+  const parkingSensors = new Set(filters.parkingSensors || []);
+  if (parkingSensors.delete("FRONT_REAR_SENSORS")) {
+    parkingSensors.add("FRONT_SENSORS");
+    parkingSensors.add("REAR_SENSORS");
+  }
+  parkingSensors.forEach((sensor) => params.append(mobileDeOptionParams[sensor] || "pa", sensor));
   if (filters.cruiseControl && filters.cruiseControl !== "any") params.set("spc", filters.cruiseControl);
   filters.exteriorColors.forEach((color) => params.append("ecol", color.toUpperCase()));
   filters.interiorColors.forEach((color) => {
@@ -2513,10 +2566,17 @@ function buildOtomotoSearchUrl(filters) {
 
   const equipment = new Map();
   const addEquipment = (entries) => (entries || []).forEach(([filterId, value]) => {
-    equipment.set(filterId, [...(equipment.get(filterId) || []), value]);
+    equipment.set(filterId, [...new Set([...(equipment.get(filterId) || []), value])]);
   });
-  (filters.features || []).forEach((feature) => addEquipment(otomotoFeatureFilters[feature]));
-  (filters.parkingSensors || []).forEach((sensor) => addEquipment(otomotoParkingFilters[sensor]));
+  const features = new Set(filters.features || []);
+  if (features.has("ELECTRIC_FRONT_SEATS")) features.add("ELECTRIC_ADJUSTABLE_SEATS");
+  features.forEach((feature) => addEquipment(otomotoFeatureFilters[feature]));
+  const parkingSensors = new Set(filters.parkingSensors || []);
+  if (parkingSensors.delete("FRONT_REAR_SENSORS")) {
+    parkingSensors.add("FRONT_SENSORS");
+    parkingSensors.add("REAR_SENSORS");
+  }
+  parkingSensors.forEach((sensor) => addEquipment(otomotoParkingFilters[sensor]));
   if (filters.cruiseControl === "CRUISE_CONTROL") {
     addEquipment([["filter_enum_cruisecontrol_type", "cruise-control"]]);
   }
@@ -2572,6 +2632,14 @@ function otomotoSkippedFilterLabels(filters) {
   if (filters.nonSmoking) add(c.nonSmokingLabel);
   if (filters.roadworthy) add(c.roadworthyLabel);
   return labels;
+}
+
+function mobileDeSkippedFilterLabels(filters) {
+  return (filters.features || [])
+    .filter((feature) => mobileDeUnsupportedFeatures.has(feature) || mobileDeApproximateFeatures.has(feature))
+    .map((feature) => els.features.find((input) => input.value === feature))
+    .filter(Boolean)
+    .map(optionLabelText);
 }
 
 function setMarketSearchStatus(message, isError = false) {
@@ -2686,6 +2754,15 @@ function recognizedEquipmentFilters(data) {
     || (!camera360 && has(/\bkamera\b|\bcamera\b/))) parkingSensors.push("REAR_VIEW_CAM");
   if (has(/czujnik.*parkowania.*przod|parksensor.*vorn|front parking sensor|front park assist/)) parkingSensors.push("FRONT_SENSORS");
   if (has(/czujnik.*parkowania.*tyl|parksensor.*hinten|rear parking sensor|rear park assist/)) parkingSensors.push("REAR_SENSORS");
+  if (has(/czujnik.*parkowania.*przod.*tyl|parksensor.*vorn.*hinten|front and rear parking sensor|pdc vorn.*hinten/)) {
+    if (!parkingSensors.includes("FRONT_SENSORS")) parkingSensors.push("FRONT_SENSORS");
+    if (!parkingSensors.includes("REAR_SENSORS")) parkingSensors.push("REAR_SENSORS");
+  }
+  if (parkingSensors.includes("FRONT_SENSORS") && parkingSensors.includes("REAR_SENSORS")) {
+    parkingSensors.splice(parkingSensors.indexOf("FRONT_SENSORS"), 1);
+    parkingSensors.splice(parkingSensors.indexOf("REAR_SENSORS"), 1);
+    parkingSensors.push("FRONT_REAR_SENSORS");
+  }
   if (has(/ruchu poprzecznego.*tyl|querverkehr.*hinten|rear cross traffic/)) parkingSensors.push("REAR_TRAFFIC_ALERT");
   if (has(/automatyczn.*parkowan|samopark|selbstpark|self parking|automatic parking/)) parkingSensors.push("AUTOMATIC_PARKING");
 
@@ -2710,20 +2787,26 @@ function recognizedEquipmentFilters(data) {
     ROOF_RAILS: /relingi dachowe|dachreling|roof rail/,
     AIR_SUSPENSION: /zawieszenie pneumatyczne|luftfederung|air suspension/,
     PERFORMANCE_HANDLING_SYSTEM: /sportowe zawieszenie|sportfahrwerk|sport suspension/,
+    LED_HEADLIGHTS: /lampy (?:przednie )?led|reflektor.*led|led scheinwerfer|led headlights|full led/,
+    XENON_HEADLIGHTS: /lampy ksenonowe|reflektor.*ksenon|xenon scheinwerfer|xenon headlights/,
     LASER_HEADLIGHTS: /reflektor.*laser|laserscheinwerfer|laser headlight/,
+    HALOGEN_HEADLIGHTS: /lampy halogenowe|reflektor.*halogen|halogen scheinwerfer|halogen headlights/,
+    GLARE_FREE_HIGH_BEAM: /matrix led|matrycowe led|matrix scheinwerfer|multibeam led|glare.free high beam/,
     LED_RUNNING_LIGHTS: /swiatla do jazdy dziennej led|led tagfahrlicht|led daytime running/,
     BI_XENON_HEADLIGHTS: /reflektor.*biksenon|bi xenon|bi xenon scheinwerfer/,
     ADAPTIVE_BENDING_LIGHTS: /adaptacyjn.*swiatl|swiatla doswietlajace zakret|kurvenlicht|adaptive headlight/,
     BLIND_SPOT_MONITOR: /asystent martwego pola|totwinkel|blind spot/,
     SPORT_PACKAGE: /pakiet sportowy|sportpaket|sport package/,
     KEYLESS_ENTRY: /zamek bezkluczykowy|bezkluczykowy centralny|schlussellos|keyless entry/,
-    ELECTRIC_HEATED_SEATS: /podgrzewan.*(?:fotel|siedzen)|sitzheizung|heated seats/,
+    ELECTRIC_HEATED_SEATS: /podgrzewan.*(?:fotel|siedzen)|sitzheizung|heated seats|heated front seats/,
     HEATED_WINDSHIELD: /podgrzewan.*przedni.*szyb|beheizbare frontscheibe|heated windshield/,
     HEATED_STEERING_WHEEL: /podgrzewan.*kierownic|lenkradheizung|heated steering wheel/,
     ELECTRIC_HEATED_REAR_SEATS: /podgrzewan.*tyln.*(?:fotel|siedzen)|sitzheizung hinten|heated rear seats/,
     VENTILATED_SEATS: /wentylowan.*(?:fotel|siedzen)|sitzbeluftung|ventilated seats/,
     SPORT_SEATS: /sportow.*(?:fotel|siedzen)|sportsitze|sport seats/,
+    COMFORT_SEATS: /komfortow.*(?:fotel|siedzen)|komfortsitze|comfort seats/,
     MASSAGE_SEATS: /masaz.*(?:fotel|siedzen)|massagesitze|massage seats/,
+    LUMBAR_SUPPORT: /podparcie ledzwiowe|regulacj.*ledzwiow|lordosenstutze|lumbar support/,
     NIGHT_VISION_ASSIST: /asystent noktowizyjny|night vision|nachtsicht/,
     ALLOY_WHEELS: /felgi aluminiowe|alufelgen|leichtmetallfelgen|alloy wheels/,
     TRAFFIC_SIGN_RECOGNITION: /rozpoznawanie znakow drogowych|verkehrszeichenerkennung|traffic sign recognition/,
@@ -2733,13 +2816,25 @@ function recognizedEquipmentFilters(data) {
     DIGITAL_COCKPIT: /cyfrow.*(?:kokpit|zestaw wskaznikow)|digitales cockpit|volldigitales kombiinstrument|digital cockpit/,
     HEAD_UP_DISPLAY: /head up display|wyswietlacz head up/,
     ELECTRIC_ADJUSTABLE_SEATS: /elektryczn.*regulacj.*(?:fotel|siedzen)|elektrisch.*sitzverstellung|electric seat adjustment/,
+    ELECTRIC_FRONT_SEATS: /elektryczn.*(?:oba|dwa|przedn).*fotel|elektryczn.*(?:kierowcy.*pasazera|pasazera.*kierowcy)|elektrisch.*fahrersitz.*beifahrersitz|electric.*(?:driver and passenger|both front).*seats/,
     MEMORY_SEATS: /(?:fotel|siedzen).*pamiec|sitz.*memory|memory seats/,
+    NAVIGATION_SYSTEM: /\bnavi\b|\bnawigacja\b|nawigacj.*(?:fabryczn|satelitarn)|system nawigacj|navigationssystem|built.in navigation|satellite navigation/,
+    SOUND_SYSTEM: /ulepszon.*(?:audio|naglosnien)|system audio premium|harman kardon|bowers.*wilkins|bang.*olufsen|burmester|mark levinson|meridian sound|bose sound|premium sound system/,
     WIRELESS_CHARGING: /ladowanie indukcyjne|induktives laden|wireless charging/,
     WINTER_TIRES: /opony zimowe|winterreifen|winter tires/,
     SUMMER_TIRES: /opony letnie|sommerreifen|summer tires/,
     ELECTRIC_TAILGATE: /elektryczn.*klapa bagaznika|elektrische heckklappe|electric tailgate/,
   };
   const features = Object.entries(featurePatterns).filter(([, pattern]) => has(pattern)).map(([key]) => key);
+  if (features.includes("ELECTRIC_HEATED_SEATS")
+    && has(/podgrzewan.*tyln.*(?:fotel|siedzen)|sitzheizung hinten|heated rear seats/)
+    && !has(/podgrzewan.*przedn.*(?:fotel|siedzen)|sitzheizung vorn|front heated seats|heated front seats/)) {
+    features.splice(features.indexOf("ELECTRIC_HEATED_SEATS"), 1);
+  }
+  if (features.includes("BI_XENON_HEADLIGHTS")) {
+    const xenonIndex = features.indexOf("XENON_HEADLIGHTS");
+    if (xenonIndex >= 0) features.splice(xenonIndex, 1);
+  }
   return { interiorMaterials, parkingSensors, cruiseControl, airConditioning, trailerCoupling, features };
 }
 
@@ -3311,10 +3406,14 @@ els.otomotoSearches.forEach((link) => link.addEventListener("click", (event) => 
 
 els.marketSearches.forEach((link) => link.addEventListener("click", (event) => {
   try {
-    const searchUrl = buildMobileDeSearchUrl(readManualFields());
+    const filters = readManualFields();
+    const searchUrl = buildMobileDeSearchUrl(filters);
     link.href = searchUrl;
     window.AUTOGOOD_MOBILE_LOG_SEARCH?.(searchUrl);
-    setMarketSearchStatus(copy[state.lang].marketSearchOpening);
+    const skipped = mobileDeSkippedFilterLabels(filters);
+    setMarketSearchStatus(skipped.length
+      ? copy[state.lang].mobileSearchSkipped.replace("{filters}", skipped.join(", "))
+      : copy[state.lang].marketSearchOpening);
   } catch (error) {
     event.preventDefault();
     link.href = "#";

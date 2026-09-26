@@ -37,7 +37,8 @@ const context = {
   mobileDeMakeIds: { Mazda: "16800", Nissan: "18700", BMW: "3500", "Mercedes-Benz": "17200" },
   mobileDeModelIdsByBrand: { Mazda: { "6": "7" }, Nissan: { Skyline: "33" }, BMW: { "330": "15", "840": "42", "850": "43" }, "Mercedes-Benz": {} },
   mobileDeGroupIdsByBrand: { BMW: { "3 Series": "21" }, "Mercedes-Benz": { "C-Class": "6" } },
-  mobileDeOptionParams: { BI_XENON_HEADLIGHTS: "hlt", REAR_TRAFFIC_ALERT: "fe" },
+  mobileDeOptionParams: { LED_HEADLIGHTS: "hlt", XENON_HEADLIGHTS: "hlt", BI_XENON_HEADLIGHTS: "hlt", REAR_TRAFFIC_ALERT: "fe" },
+  mobileDeUnsupportedFeatures: new Set(["HALOGEN_HEADLIGHTS", "COMFORT_SEATS", "ELECTRIC_FRONT_SEATS"]),
   modelGroupsForBrand: (brand) => brand === "BMW" ? [{ group: "8 Series", models: ["8", "840", "850"] }] : [],
   generatedMobileModelCatalog: { makeKeys: {} },
   mobileDeBodyValues: { coupe: "SportsCar" },
@@ -152,6 +153,27 @@ assert.deepEqual(filterUrl.searchParams.getAll("pa"), ["REAR_VIEW_CAM", "FRONT_S
 assert.equal(filterUrl.searchParams.get("spc"), "ADAPTIVE_CRUISE_CONTROL", "cruise control must use Mobile.de's spc parameter");
 assert.equal(filterUrl.searchParams.get("rtd"), "true", "roadworthy must use Mobile.de's rtd parameter");
 assert.equal(filterUrl.searchParams.get("rd"), null, "roadworthy must not set Mobile.de's location radius");
+
+const comfortUrl = new URL(context.buildMobileDeSearchUrl({
+  ...baseFilters,
+  features: ["LED_HEADLIGHTS", "NAVIGATION_SYSTEM", "SOUND_SYSTEM", "HALOGEN_HEADLIGHTS", "COMFORT_SEATS", "ELECTRIC_FRONT_SEATS"],
+  parkingSensors: ["FRONT_REAR_SENSORS", "FRONT_SENSORS"],
+}));
+assert.deepEqual(comfortUrl.searchParams.getAll("hlt"), ["LED_HEADLIGHTS"], "LED headlights use the headlight parameter");
+assert.deepEqual(comfortUrl.searchParams.getAll("fe"), ["NAVIGATION_SYSTEM", "SOUND_SYSTEM", "ELECTRIC_ADJUSTABLE_SEATS"], "confirmed equipment and the broad electric-seat fallback use Mobile.de features");
+assert.deepEqual(comfortUrl.searchParams.getAll("pa"), ["FRONT_SENSORS", "REAR_SENSORS"], "the combined parking choice expands without duplicates");
+
+vm.runInContext(functionSource("recognizedEquipmentFilters"), context);
+const recognized = context.recognizedEquipmentFilters({ equipment: [
+  "Front and rear parking sensors", "LED headlights", "Heated rear seats", "Lumbar support", "Harman Kardon",
+] });
+assert.deepEqual(Array.from(recognized.parkingSensors), ["FRONT_REAR_SENSORS"], "a stated front and rear assistant becomes the combined choice");
+assert.equal(recognized.features.includes("ELECTRIC_HEATED_REAR_SEATS"), true, "rear heating is recognized");
+assert.equal(recognized.features.includes("ELECTRIC_HEATED_SEATS"), false, "rear heating alone does not imply front heating");
+assert.equal(recognized.features.includes("MASSAGE_SEATS"), false, "an unmentioned massage feature remains unknown");
+assert.equal(recognized.features.includes("HALOGEN_HEADLIGHTS"), false, "an unmentioned halogen feature remains unknown");
+assert.equal(recognized.features.includes("LED_HEADLIGHTS"), true, "LED headlamps are recognized");
+assert.equal(recognized.features.includes("SOUND_SYSTEM"), true, "branded premium audio is recognized");
 
 const skylineUrl = new URL(context.buildMobileDeSearchUrl({
   ...baseFilters,

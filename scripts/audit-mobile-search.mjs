@@ -160,12 +160,24 @@ equalObject(extractLiteral(mobileSource, "mobileDeAirConditioningValues"), {
   automatic_4_zones: "AUTOMATIC_CLIMATISATION_4_ZONES",
 }, "Klimatyzacja");
 equalObject(extractLiteral(mobileSource, "mobileDeOptionParams"), {
+  LED_HEADLIGHTS: "hlt",
+  XENON_HEADLIGHTS: "hlt",
   BI_XENON_HEADLIGHTS: "hlt",
   LASER_HEADLIGHTS: "hlt",
   ADAPTIVE_BENDING_LIGHTS: "blt",
   LED_RUNNING_LIGHTS: "drl",
   REAR_TRAFFIC_ALERT: "fe",
 }, "Parametry opcji");
+const otomotoComfort = extractLiteral(mobileSource, "otomotoFeatureFilters");
+equalObject({
+  LED_HEADLIGHTS: otomotoComfort.LED_HEADLIGHTS,
+  XENON_HEADLIGHTS: otomotoComfort.XENON_HEADLIGHTS,
+  NAVIGATION_SYSTEM: otomotoComfort.NAVIGATION_SYSTEM,
+}, {
+  LED_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "led-front-dim-light"]],
+  XENON_HEADLIGHTS: [["filter_enum_headlight_lamp_type", "xenon-light"]],
+  NAVIGATION_SYSTEM: [["filter_enum_navigation_system", "1"]],
+}, "Nowe filtry Otomoto");
 equalObject(extractLiteral(mobileSource, "mobileDeTrailerCouplingValues"), {
   all: "TRAILER_COUPLING_FIX",
   detachable_or_swiveling: "TRAILER_COUPLING_DETACHABLE",
@@ -222,6 +234,12 @@ requireHtml('class="mobileSearchCountSaveButton"', "gwiazdka zapisania przy licz
 requireHtml('class="mobileManualPanelHeadRow"', "reset filtrów przy nagłówku ręcznego wpisywania");
 requireHtml('data-mobile-feature type="checkbox" value="ROOF_RAILS"', "relingi dachowe w opcjach");
 requireHtml('data-mobile-feature type="checkbox" value="HEAD_UP_DISPLAY"', "wyświetlacz Head-up w opcjach");
+requireHtml('data-mobile-parking-sensor type="checkbox" value="FRONT_REAR_SENSORS"', "asystenci przod i tyl");
+requireHtml('data-mobile-feature type="checkbox" value="NAVIGATION_SYSTEM"', "nawigacja");
+requireHtml('data-mobile-feature type="checkbox" value="SOUND_SYSTEM"', "ulepszony system audio");
+const parkingHtml = mobileHtml.slice(mobileHtml.indexOf('data-i18n="parkingSensorsLabel"'), mobileHtml.indexOf('data-i18n="cruiseControlLabel"'));
+const parkingOrder = [...parkingHtml.matchAll(/data-mobile-(?:parking-sensor|feature) type="checkbox" value="([A-Z0-9_]+)"/g)].map((match) => match[1]);
+equalObject(parkingOrder, ["REAR_VIEW_CAM", "CAM_360_DEGREES", "FRONT_REAR_SENSORS", "FRONT_SENSORS", "REAR_SENSORS", "BLIND_SPOT_MONITOR"], "Kolejnosc asystentow parkowania");
 requireSource('featureHeadUpDisplay: "Wyświetlacz Head-up (HUD)"', "polska etykieta HUD");
 requireSource('featureHeadUpDisplay: "Проекционный дисплей (HUD)"', "rosyjska etykieta HUD");
 requireHtml('data-i18n="vehicleConditionLabel"', "sekcja stanu pojazdu");

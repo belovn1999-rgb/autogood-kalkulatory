@@ -274,12 +274,12 @@
                 <fieldset class="mobileField mobileChoiceField">
                   <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#car"></use></svg><span data-i18n="parkingSensorsLabel">Asystenci parkowania</span></legend>
                   <div class="mobileOpenChoiceRow">
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="CAM_360_DEGREES" /> <span data-i18n="parkingCamera360">Kamera 360°</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_VIEW_CAM" /> <span data-i18n="parkingCamera">Kamera</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_VIEW_CAM" /> <span data-i18n="parkingCamera">Kamera tylna</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="CAM_360_DEGREES" /> <span data-i18n="parkingCamera360">Kamera 360</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="FRONT_REAR_SENSORS" /> <span data-i18n="parkingFrontRear">Asystenci przód + tył</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="FRONT_SENSORS" /> <span data-i18n="parkingFront">Przód</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_SENSORS" /> <span data-i18n="parkingRear">Tył</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_TRAFFIC_ALERT" /> <span data-i18n="parkingRearTrafficAlert">Asystent ruchu poprzecznego z tyłu</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="AUTOMATIC_PARKING" /> <span data-i18n="parkingSelfSteering">Systemy samoparkowania</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="BLIND_SPOT_MONITOR" /> <span data-i18n="featureBlindSpotAssist">Asystent martwego pola</span></label>
                   </div>
                 </fieldset>
                 <fieldset class="mobileField mobileChoiceField">
@@ -288,6 +288,45 @@
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="any" checked /> <span data-i18n="cruiseControlAny">Dowolny</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="CRUISE_CONTROL" /> <span data-i18n="cruiseControlStandard">Tempomat</span></label>
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-cruise-control name="mobile-cruise-control" type="radio" value="ADAPTIVE_CRUISE_CONTROL" /> <span data-i18n="cruiseControlAdaptive">Adaptacyjny tempomat</span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><span data-i18n="heatingVentilationLabel">Podgrzewanie i wentylacja</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_HEATED_SEATS" /> <span data-i18n="featureHeatedSeats">Podgrzewane przednie fotele</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HEATED_STEERING_WHEEL" /> <span data-i18n="featureHeatedSteeringWheel">Podgrzewana kierownica</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_HEATED_REAR_SEATS" /> <span data-i18n="featureHeatedRearSeats">Podgrzewane tylne fotele</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HEATED_WINDSHIELD" /> <span data-i18n="featureHeatedWindshield">Podgrzewana przednia szyba</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="VENTILATED_SEATS" /> <span data-i18n="featureSeatVentilation">Wentylowane fotele</span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><span data-i18n="electricControlsLabel">Elektryka</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_ADJUSTABLE_SEATS" /> <span data-i18n="featureElectricSeatAdjustment">Elektryczna regulacja fotela kierowcy</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_FRONT_SEATS" /> <span data-i18n="featureElectricFrontSeats">Elektryczna regulacja obu przednich foteli</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE" /> <span data-i18n="electricTailgate">Elektryczna klapa bagażnika</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="MEMORY_SEATS" /> <span data-i18n="featureMemorySeats">Pamięć ustawień foteli</span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><span data-i18n="seatOptionsLabel">Fotele</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SPORT_SEATS" /> <span data-i18n="featureSportSeats">Fotele sportowe</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="COMFORT_SEATS" /> <span data-i18n="featureComfortSeats">Fotele komfortowe</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="MASSAGE_SEATS" /> <span data-i18n="featureMassageSeats">Fotele z masażem</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="LUMBAR_SUPPORT" /> <span data-i18n="featureLumbarSupport">Podparcie lędźwiowe</span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><span data-i18n="lightingOptionsLabel">Reflektory</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="LED_HEADLIGHTS" /> <span data-i18n="featureLedHeadlights">LED</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="XENON_HEADLIGHTS" /> <span data-i18n="featureXenonHeadlights">Ksenon</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="BI_XENON_HEADLIGHTS" /> <span data-i18n="featureBiXenonHeadlights">Bi-ksenon</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HALOGEN_HEADLIGHTS" /> <span data-i18n="featureHalogenHeadlights">Halogen</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="LASER_HEADLIGHTS" /> <span data-i18n="featureLaserHeadlights">Reflektory laserowe</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="GLARE_FREE_HIGH_BEAM" /> <span data-i18n="featureMatrixHeadlights">Światła bezodblaskowe (np. Matrix LED)</span></label>
                   </div>
                 </fieldset>
                 <fieldset class="mobileField mobileChoiceField">
@@ -300,15 +339,6 @@
                     <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-air-conditioning name="mobile-air-conditioning" type="radio" value="manual" /> <span data-i18n="airConditioningManual">Manualna</span></label>
                   </div>
                 </fieldset>
-                <fieldset class="mobileField mobileChoiceField">
-                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="trailerCouplingLabel">Hak holowniczy</span></legend>
-                  <div class="mobileOpenChoiceRow">
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="any" checked /> <span data-i18n="trailerCouplingAny">Dowolny</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="all" /> <span data-i18n="trailerCouplingAll">Stały, odpinany lub odchylany</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="detachable_or_swiveling" /> <span data-i18n="trailerCouplingDetachableOrSwiveling">Odpinany lub odchylany</span></label>
-                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="swiveling" /> <span data-i18n="trailerCouplingSwiveling">Hak holowniczy odchylany</span></label>
-                  </div>
-                </fieldset>
               </div>
             </section>
             <section class="mobileFilterCard mobileFeatureOptionsSection mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-options">
@@ -319,20 +349,10 @@
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ROOF_RAILS" /> <span data-i18n="featureRoofRails">Relingi dachowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="AIR_SUSPENSION" /> <span data-i18n="featureAirSuspension">Zawieszenie pneumatyczne</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="PERFORMANCE_HANDLING_SYSTEM" /> <span data-i18n="featureSportsSuspension">Sportowe zawieszenie</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="LASER_HEADLIGHTS" /> <span data-i18n="featureLaserHeadlights">Reflektory laserowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="LED_RUNNING_LIGHTS" /> <span data-i18n="featureLedRunningLights">Światła do jazdy dziennej LED</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="BI_XENON_HEADLIGHTS" /> <span data-i18n="featureBiXenonHeadlights">Reflektory biksenonowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ADAPTIVE_BENDING_LIGHTS" /> <span data-i18n="featureAdaptiveLighting">Adaptacyjne światła</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="BLIND_SPOT_MONITOR" /> <span data-i18n="featureBlindSpotAssist">Asystent martwego pola</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SPORT_PACKAGE" /> <span data-i18n="featureSportsPackage">Pakiet sportowy</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="KEYLESS_ENTRY" /> <span data-i18n="featureKeylessCentralLocking">Bezkluczykowy centralny zamek</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_HEATED_SEATS" /> <span data-i18n="featureHeatedSeats">Podgrzewane fotele</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HEATED_WINDSHIELD" /> <span data-i18n="featureHeatedWindshield">Podgrzewana przednia szyba</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HEATED_STEERING_WHEEL" /> <span data-i18n="featureHeatedSteeringWheel">Podgrzewana kierownica</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_HEATED_REAR_SEATS" /> <span data-i18n="featureHeatedRearSeats">Podgrzewane tylne fotele</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="VENTILATED_SEATS" /> <span data-i18n="featureSeatVentilation">Wentylowane fotele</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SPORT_SEATS" /> <span data-i18n="featureSportSeats">Fotele sportowe</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="MASSAGE_SEATS" /> <span data-i18n="featureMassageSeats">Fotele z masażem</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="NIGHT_VISION_ASSIST" /> <span data-i18n="featureNightVisionAssist">Asystent noktowizyjny</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ALLOY_WHEELS" /> <span data-i18n="featureAlloyWheels">Felgi aluminiowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="TRAFFIC_SIGN_RECOGNITION" /> <span data-i18n="featureTrafficSignRecognition">Rozpoznawanie znaków drogowych</span></label>
@@ -341,13 +361,23 @@
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="AMBIENT_LIGHTING" /> <span data-i18n="featureAmbientLighting">Oświetlenie ambientowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="DIGITAL_COCKPIT" /> <span data-i18n="featureDigitalCockpit">Cyfrowy kokpit</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="HEAD_UP_DISPLAY" /> <span data-i18n="featureHeadUpDisplay">Wyświetlacz Head-up (HUD)</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_ADJUSTABLE_SEATS" /> <span data-i18n="featureElectricSeatAdjustment">Elektryczna regulacja foteli</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="MEMORY_SEATS" /> <span data-i18n="featureMemorySeats">Elektryczna regulacja foteli z pamięcią</span></label>
+                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="NAVIGATION_SYSTEM" /> <span data-i18n="featureNavigationSystem">Nawigacja fabryczna</span></label>
+                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SOUND_SYSTEM" /> <span data-i18n="featureSoundSystem">Ulepszony system audio</span></label>
+                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="REAR_TRAFFIC_ALERT" /> <span data-i18n="parkingRearTrafficAlert">Asystent ruchu poprzecznego z tyłu</span></label>
+                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-parking-sensor type="checkbox" value="AUTOMATIC_PARKING" /> <span data-i18n="parkingSelfSteering">Systemy samoparkowania</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WIRELESS_CHARGING" /> <span data-i18n="featureWirelessCharging">Ładowanie indukcyjne smartfona</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="WINTER_TIRES" /> <span data-i18n="featureWinterTyres">Opony zimowe</span></label>
                 <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="SUMMER_TIRES" /> <span data-i18n="featureSummerTyres">Opony letnie</span></label>
-                <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-feature type="checkbox" value="ELECTRIC_TAILGATE" /> <span data-i18n="electricTailgate">Elektryczna klapa bagażnika</span></label>
                 </div>
+                <fieldset class="mobileField mobileChoiceField">
+                  <legend class="mobileFieldLegend"><svg class="mobileFieldIcon" aria-hidden="true"><use href="./src/mobile-icons.svg#route"></use></svg><span data-i18n="trailerCouplingLabel">Hak holowniczy</span></legend>
+                  <div class="mobileOpenChoiceRow">
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="any" checked /> <span data-i18n="trailerCouplingAny">Dowolny</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="all" /> <span data-i18n="trailerCouplingAll">Stały, odpinany lub odchylany</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="detachable_or_swiveling" /> <span data-i18n="trailerCouplingDetachableOrSwiveling">Odpinany lub odchylany</span></label>
+                    <label class="mobileChoiceOption mobileFeatureOption"><input data-mobile-trailer-coupling name="mobile-trailer-coupling" type="radio" value="swiveling" /> <span data-i18n="trailerCouplingSwiveling">Hak holowniczy odchylany</span></label>
+                  </div>
+                </fieldset>
               </div>
             </section>
             <section class="mobileFilterCard mobileFilterCardCollapsible" data-mobile-collapsible aria-labelledby="mobile-filter-group-colors">
@@ -542,7 +572,7 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=report-20260926"></script>
+    <script src="./src/mobile.js?v=comfort-20260926"></script>
     <script src="./src/mobile-market-analysis.js?v=report-20260926"></script>
     <script src="./src/mobile-bridge.js?v=spec5-20260926"></script>
   </body>
