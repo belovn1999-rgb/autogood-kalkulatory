@@ -66,6 +66,7 @@
       historyDelete: "Usuń",
       otomotoFetching: "Pobieram oferty z otomoto.pl…",
       otomotoFetched: "Wczytano {count} z {total} ofert otomoto.pl.",
+      mobileFetched: "Wczytano {count} z {total} ofert mobile.de.",
       otomotoFailed: "Nie udało się pobrać ofert z otomoto.pl.",
       otomotoLabel: "Dane: otomoto.pl",
       mixedLabel: "Dane: otomoto.pl + mobile.de",
@@ -239,6 +240,7 @@
       historyDelete: "Удалить",
       otomotoFetching: "Загружаю объявления с otomoto.pl…",
       otomotoFetched: "Загружено {count} из {total} объявлений otomoto.pl.",
+      mobileFetched: "Загружено {count} из {total} объявлений mobile.de.",
       otomotoFailed: "Не удалось загрузить объявления с otomoto.pl.",
       otomotoLabel: "Данные: otomoto.pl",
       mixedLabel: "Данные: otomoto.pl + mobile.de",
@@ -650,18 +652,43 @@
     return { listings, total: first.total };
   }
 
+  // Mobile.de through the local importer (the user's own Chrome), when it
+  // is reachable; otherwise the analysis simply goes on without it.
+  async function fetchMobileDeSample(filters) {
+    if (typeof window.AUTOGOOD_MOBILEDE_SEARCH !== "function") return null;
+    const result = await window.AUTOGOOD_MOBILEDE_SEARCH(buildMobileDeSearchUrl(filters));
+    return result?.listings?.length ? result : null;
+  }
+
+  // Both marketplaces at once: Otomoto through the reader proxy, Mobile.de
+  // through the importer. Either one may fail without stopping the other.
   const otomotoProvider = {
     id: "otomoto",
+    lastSources: ["otomoto"],
     async getListings({ filters }) {
       const c = copy();
       setAnalysisStatus(c.otomotoFetching);
-      const { listings, total } = await fetchOtomotoListings(filters, (page, pages) => {
-        setAnalysisStatus(`${c.otomotoFetching} ${page}/${pages}`);
-      });
-      if (!listings.length) throw new Error(c.otomotoFailed);
-      otomotoTotal = total;
-      setAnalysisStatus(c.otomotoFetched.replace("{count}", String(listings.length)).replace("{total}", String(total)));
-      return listings;
+      const [otomoto, mobile] = await Promise.allSettled([
+        fetchOtomotoListings(filters, (page, pages) => {
+          setAnalysisStatus(`${c.otomotoFetching} ${page}/${pages}`);
+        }),
+        fetchMobileDeSample(filters),
+      ]);
+      const otomotoListings = otomoto.status === "fulfilled" ? otomoto.value.listings : [];
+      const mobileResult = mobile.status === "fulfilled" ? mobile.value : null;
+      const mobileListings = (mobileResult?.listings || []).map((listing) => ({ ...listing, source: "mobile", markettotal: listing.marketTotal }));
+      if (!otomotoListings.length && !mobileListings.length) throw new Error(c.otomotoFailed);
+      this.lastSources = [otomotoListings.length ? "otomoto" : "", mobileListings.length ? "mobile" : ""].filter(Boolean);
+      const messages = [];
+      if (otomotoListings.length) {
+        otomotoTotal = otomoto.value.total;
+        messages.push(c.otomotoFetched.replace("{count}", String(otomotoListings.length)).replace("{total}", String(otomotoTotal)));
+      }
+      if (mobileListings.length) {
+        messages.push(c.mobileFetched.replace("{count}", String(mobileListings.length)).replace("{total}", String(mobileResult.total || mobileListings.length)));
+      }
+      setAnalysisStatus(messages.join(" "));
+      return [...otomotoListings, ...mobileListings];
     },
   };
 
@@ -2385,7 +2412,7 @@
       const fetchedFromProvider = Boolean(provider) && listings.length >= 3;
       // A fetched price sample belongs to the saved search, so the history row
       // shows how many offers it is based on.
-      if (fetchedFromProvider) measureNextSnapshot(["otomoto"], true);
+      if (fetchedFromProvider) measureNextSnapshot(provider.lastSources || ["otomoto"], true);
       const snapshot = fetchedFromProvider
         ? (savedEntry
           ? updateMarketSnapshot(savedEntry.id, filters, listings, provider.id, searchUrl)
@@ -2485,7 +2512,7 @@
       if (fetched.length < 3) throw new Error(c.refreshInvalid);
       // Refreshing Otomoto keeps any Mobile.de offers already in the analysis.
       const listings = mergeBySource(activeAnalysis.listings, fetched);
-      measureNextSnapshot(["otomoto"], true);
+      measureNextSnapshot(provider.lastSources || ["otomoto"], true);
       const snapshot = activeAnalysis.historyId
         ? updateMarketSnapshot(activeAnalysis.historyId, activeAnalysis.filters, listings, "API", activeAnalysis.searchUrl)
         : createMarketSnapshot(activeAnalysis.filters, listings, "API", activeAnalysis.searchUrl);

@@ -2818,7 +2818,9 @@ function recognizedEquipmentFilters(data) {
     GLARE_FREE_HIGH_BEAM: /matrix led|matrycowe led|matrix scheinwerfer|multibeam led|glare.free high beam/,
     LED_RUNNING_LIGHTS: /swiatla do jazdy dziennej led|led tagfahrlicht|led daytime running/,
     BI_XENON_HEADLIGHTS: /reflektor.*biksenon|bi xenon|bi xenon scheinwerfer/,
-    ADAPTIVE_BENDING_LIGHTS: /adaptacyjn.*swiatl|swiatla doswietlajace zakret|kurvenlicht|adaptive headlight/,
+    // Only the adaptive kind: a plain "Kurvenlicht" is mobile.de's BENDING_LIGHTS,
+    // and searching it as adaptive leaves the car itself out of its own market.
+    ADAPTIVE_BENDING_LIGHTS: /adaptacyjn.*swiatl|adaptiv.*kurvenlicht|dynamisch.*kurvenlicht|adaptive (?:headlight|bending|cornering)/,
     BLIND_SPOT_MONITOR: /asystent martwego pola|totwinkel|blind spot/,
     SPORT_PACKAGE: /pakiet sportowy|sportpaket|sport package/,
     KEYLESS_ENTRY: /zamek bezkluczykowy|bezkluczykowy centralny|schlussellos|keyless entry/,
@@ -3288,6 +3290,54 @@ function renderOfferCount(value) {
   if (els.searchCount) els.searchCount.textContent = value;
 }
 
+// ---- Mobile.de search through the local importer --------------------------
+// The importer reads mobile.de in the user's own Chrome (servers are refused);
+// it answers at the same address as the ad import.
+function mobileDeApiBase() {
+  return readMobileDeApiUrl().replace(/\/mobilede\/import\/?$/, "");
+}
+
+window.AUTOGOOD_MOBILEDE_SEARCH = async (searchUrl, { countOnly = false } = {}) => {
+  const response = await fetch(`${mobileDeApiBase()}/mobilede/search?${countOnly ? "count=1&" : ""}url=${encodeURIComponent(searchUrl)}`);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.detail || payload.error || "Mobile.de search failed");
+  return payload;
+};
+
+const mobileDeCounts = new Map();
+let mobileDeCountRequest = 0;
+
+async function refreshMobileDeCount(filters) {
+  const target = document.querySelector("[data-mobile-search-count-mobilede]");
+  if (!target) return;
+  if (!filters?.brand || !filters?.model) {
+    target.textContent = "—";
+    return;
+  }
+  let key;
+  try {
+    key = buildMobileDeSearchUrl(filters);
+  } catch {
+    target.textContent = "—";
+    return;
+  }
+  if (mobileDeCounts.has(key)) {
+    target.textContent = mobileDeCounts.get(key);
+    return;
+  }
+  const request = ++mobileDeCountRequest;
+  target.textContent = copy[state.lang].offerCountLoading;
+  try {
+    const { total } = await window.AUTOGOOD_MOBILEDE_SEARCH(key, { countOnly: true });
+    const label = new Intl.NumberFormat(state.lang === "ru" ? "ru-RU" : "pl-PL").format(Number(total) || 0);
+    mobileDeCounts.set(key, label);
+    if (request === mobileDeCountRequest) target.textContent = label;
+  } catch {
+    // Importer not running: no number rather than a wrong one.
+    if (request === mobileDeCountRequest) target.textContent = "—";
+  }
+}
+
 async function refreshOfferCount() {
   if (!els.searchCount || typeof window.AUTOGOOD_MOBILE_OTOMOTO_COUNT !== "function") return;
   let filters;
@@ -3296,6 +3346,7 @@ async function refreshOfferCount() {
   } catch {
     return;
   }
+  refreshMobileDeCount(filters);
   if (!filters.brand || !filters.model) {
     renderOfferCount("—");
     return;

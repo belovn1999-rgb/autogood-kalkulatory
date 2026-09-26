@@ -671,7 +671,35 @@ function extractVisiblePostalCity(text) {
   return null;
 }
 
+// The ad's JSON-LD car names the seller and the address exactly.
+function ldCarSeller(jsonData) {
+  let seller = null;
+  jsonData.forEach((item) => {
+    walk(item, (key, value) => {
+      if (seller || !value || typeof value !== "object") return;
+      if (value["@type"] === "Car" && value.offers?.offeredBy) seller = value.offers.offeredBy;
+    });
+    if (!seller && item?.["@type"] === "Car" && item.offers?.offeredBy) seller = item.offers.offeredBy;
+  });
+  return seller;
+}
+
 function extractLocation(html, jsonData, text) {
+  const ldSeller = ldCarSeller(jsonData);
+  const ldAddress = ldSeller?.address || {};
+  if (ldAddress.addressLocality || ldAddress.postalCode) {
+    const street = String(ldAddress.streetAddress || "").trim();
+    const postalCode = String(ldAddress.postalCode || "").trim();
+    const city = String(ldAddress.addressLocality || "").trim();
+    return {
+      sellerName: String(ldSeller.name || "").trim(),
+      street,
+      postalCode,
+      city,
+      address: [street, [postalCode, city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+      country: String(ldAddress.addressCountry || "").trim() || countryFromText(`${city} ${text}`),
+    };
+  }
   const localityCandidates = [];
   const postalCandidates = [];
   const streetCandidates = [];
@@ -898,262 +926,6 @@ async function fetchListingWithBrowser(url, originalUrl = url) {
   }
 }
 
-async function fetchListingWithUserChrome(url, adId = "") {
-  if (process.platform !== "darwin") {
-    throw new Error("User Chrome fallback is available only on macOS.");
-  }
-
-  const script = `
-on run argv
-  set targetUrl to item 1 of argv
-  set targetAdId to item 2 of argv
-  tell application "Google Chrome"
-    activate
-    if (count of windows) = 0 then make new window
-
-    set pageJson to ""
-    if targetAdId is not "" then
-      repeat with candidateWindow in windows
-        set tabCounter to 1
-        repeat with candidateTab in tabs of candidateWindow
-          if (URL of candidateTab contains targetAdId) then
-            set index of candidateWindow to 1
-            set active tab index of candidateWindow to tabCounter
-            delay 1
-            try
-              set candidateJson to execute active tab of front window javascript "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})"
-              if candidateJson does not contain "Access denied" and candidateJson does not contain "Zugriff verweigert" and length of candidateJson > 1000 then
-                set pageJson to candidateJson
-                exit repeat
-              end if
-            end try
-          end if
-          set tabCounter to tabCounter + 1
-        end repeat
-        if pageJson is not "" then exit repeat
-      end repeat
-    end if
-
-    if pageJson is "" then
-      tell front window
-        set newTab to make new tab at end of tabs with properties {URL:targetUrl}
-        set active tab index to (count of tabs)
-      end tell
-
-      repeat with attempt from 1 to 15
-        delay 1
-        try
-          set pageJson to execute active tab of front window javascript "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})"
-          if pageJson does not contain "Access denied" and pageJson does not contain "Zugriff verweigert" and length of pageJson > 1000 then exit repeat
-        end try
-      end repeat
-    end if
-
-    return pageJson
-  end tell
-end run
-`;
-
-  const { stdout } = await execFileAsync("osascript", ["-e", script, url, adId], {
-    maxBuffer: 25 * 1024 * 1024,
-    timeout: 45000,
-  });
-  const payload = JSON.parse(stdout.trim() || "{}");
-  const html = String(payload.html || "");
-  const text = String(payload.text || "");
-
-  if (!html && !text) {
-    throw new Error("Could not read listing from user Chrome.");
-  }
-
-  return { html, text, mode: "user_chrome" };
-}
-
-async function fetchListingWithUserChromeClipboard(url, adId = "") {
-  if (process.platform !== "darwin") {
-    throw new Error("User Chrome clipboard fallback is available only on macOS.");
-  }
-
-  const script = `
-on run argv
-  set targetUrl to item 1 of argv
-  set targetAdId to item 2 of argv
-  set outputSeparator to ASCII character 30
-  set savedClipboard to missing value
-  set pageText to ""
-  set currentUrl to ""
-  set currentTitle to ""
-
-  try
-    set savedClipboard to the clipboard
-  end try
-
-  tell application "Google Chrome"
-    activate
-    if (count of windows) = 0 then make new window
-
-    set tabFound to false
-    if targetAdId is not "" then
-      repeat with candidateWindow in windows
-        set tabCounter to 1
-        repeat with candidateTab in tabs of candidateWindow
-          if (URL of candidateTab contains targetAdId) then
-            set index of candidateWindow to 1
-            set active tab index of candidateWindow to tabCounter
-            set tabFound to true
-            exit repeat
-          end if
-          set tabCounter to tabCounter + 1
-        end repeat
-        if tabFound then exit repeat
-      end repeat
-    end if
-
-    if tabFound is false then
-      tell front window
-        make new tab at end of tabs with properties {URL:targetUrl}
-        set active tab index to (count of tabs)
-      end tell
-    end if
-  end tell
-
-  repeat with attempt from 1 to 15
-    delay 1
-    tell application "Google Chrome"
-      set currentUrl to URL of active tab of front window
-      set currentTitle to title of active tab of front window
-    end tell
-    tell application "System Events"
-      keystroke "a" using command down
-      delay 0.15
-      keystroke "c" using command down
-    end tell
-    delay 0.35
-    try
-      set pageText to the clipboard as text
-      if pageText does not contain "Access denied" and pageText does not contain "Zugriff verweigert" and length of pageText > 1000 then exit repeat
-    end try
-  end repeat
-
-  try
-    if savedClipboard is not missing value then set the clipboard to savedClipboard
-  end try
-
-  return currentUrl & outputSeparator & currentTitle & outputSeparator & pageText
-end run
-`;
-
-  const { stdout } = await execFileAsync("osascript", ["-e", script, url, adId], {
-    maxBuffer: 25 * 1024 * 1024,
-    timeout: 45000,
-  });
-  const [pageUrl = "", title = "", ...textParts] = stdout.split("\u001e");
-  const text = textParts.join("\u001e").trim();
-  const cleanTitle = title.trim();
-  const html = `<title>${escapeHtml(cleanTitle)}</title>\n${escapeHtml(text)}`;
-
-  if (!text || text.length < 1000) {
-    throw new Error("Could not copy listing text from user Chrome.");
-  }
-
-  return {
-    html,
-    text,
-    mode: "user_chrome_clipboard",
-    finalUrl: pageUrl.trim(),
-  };
-}
-
-async function openChromeDevToolsTarget(url) {
-  const baseUrl = MOBILEDE_CDP_URL;
-  const endpoint = `${baseUrl.replace(/\/$/, "")}/json/new?${encodeURIComponent(url)}`;
-  let response = await fetch(endpoint, { method: "PUT" });
-
-  if (!response.ok) {
-    response = await fetch(endpoint);
-  }
-
-  if (!response.ok) {
-    throw new Error(`Chrome DevTools could not open listing tab: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-function readChromeDevToolsTarget(target) {
-  return new Promise((resolve, reject) => {
-    const socket = new WebSocket(target.webSocketDebuggerUrl);
-    const pending = new Map();
-    let commandId = 0;
-
-    const cleanup = () => {
-      pending.clear();
-      socket.close();
-    };
-
-    const send = (method, params = {}) => new Promise((commandResolve, commandReject) => {
-      commandId += 1;
-      pending.set(commandId, { resolve: commandResolve, reject: commandReject });
-      socket.send(JSON.stringify({ id: commandId, method, params }));
-    });
-
-    socket.addEventListener("message", (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (!message.id || !pending.has(message.id)) return;
-        const handler = pending.get(message.id);
-        pending.delete(message.id);
-        if (message.error) {
-          handler.reject(new Error(message.error.message || "Chrome DevTools command failed"));
-        } else {
-          handler.resolve(message.result || {});
-        }
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    });
-
-    socket.addEventListener("error", () => {
-      cleanup();
-      reject(new Error("Chrome DevTools websocket failed."));
-    });
-
-    socket.addEventListener("open", async () => {
-      try {
-        await send("Runtime.enable");
-        await send("Page.bringToFront");
-
-        for (let attempt = 1; attempt <= 15; attempt += 1) {
-          const result = await send("Runtime.evaluate", {
-            expression: "JSON.stringify({title:document.title,url:location.href,text:(document.body&&document.body.innerText)||'',html:(document.documentElement&&document.documentElement.outerHTML)||''})",
-            returnByValue: true,
-            awaitPromise: true,
-          });
-          const value = result?.result?.value || "{}";
-          const payload = JSON.parse(value);
-          const html = String(payload.html || "");
-          const text = String(payload.text || "");
-
-          if (!isAccessDenied(html, text) && isPlausibleListingPage(html, text)) {
-            cleanup();
-            resolve({ html, text, mode: "user_chrome_cdp" });
-            return;
-          }
-
-          await delay(1000);
-        }
-
-        cleanup();
-        reject(new Error("Chrome DevTools returned Access denied or an incomplete listing page."));
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    });
-  });
-}
-
 async function waitForChromeDevTools() {
   for (let attempt = 1; attempt <= 20; attempt += 1) {
     try {
@@ -1171,8 +943,9 @@ async function waitForChromeDevTools() {
 async function startChromeDevTools(url) {
   if (process.platform !== "darwin") return;
 
+  // -g: start in the background, never in front of the user's windows.
   await execFileAsync("open", [
-    "-na",
+    "-gna",
     "Google Chrome",
     "--args",
     `--user-data-dir=${MOBILEDE_CDP_PROFILE}`,
@@ -1186,65 +959,229 @@ async function startChromeDevTools(url) {
   await waitForChromeDevTools();
 }
 
-async function fetchListingWithChromeDevTools(url, adId = "") {
-  const baseUrl = MOBILEDE_CDP_URL;
-  let targetsResponse;
+// ---- Reading mobile.de in the importer's own Chrome -------------------------
+// mobile.de refuses servers and headless browsers, but not a real Chrome.
+// Every page is opened as a BACKGROUND tab of the importer Chrome (nothing
+// comes to the front, the user's own browser is never touched) and closed as
+// soon as it has been read. One page at a time.
+let chromeQueue = Promise.resolve();
 
+function inChromeQueue(work) {
+  const run = chromeQueue.then(work, work);
+  chromeQueue = run.catch(() => {});
+  return run;
+}
+
+async function connectChromeBrowser() {
+  const versionUrl = `${MOBILEDE_CDP_URL.replace(/\/$/, "")}/json/version`;
+  let version;
   try {
-    targetsResponse = await fetch(`${baseUrl.replace(/\/$/, "")}/json`);
+    version = await (await fetch(versionUrl)).json();
   } catch {
-    await startChromeDevTools(url);
-    targetsResponse = await fetch(`${baseUrl.replace(/\/$/, "")}/json`);
+    await startChromeDevTools("about:blank");
+    version = await (await fetch(versionUrl)).json();
   }
+  const socket = new WebSocket(version.webSocketDebuggerUrl);
+  const pending = new Map();
+  let commandId = 0;
+  socket.addEventListener("message", (event) => {
+    const message = JSON.parse(event.data);
+    const handler = message.id && pending.get(message.id);
+    if (!handler) return;
+    pending.delete(message.id);
+    if (message.error) handler.reject(new Error(message.error.message || "Chrome DevTools command failed"));
+    else handler.resolve(message.result || {});
+  });
+  await new Promise((resolve, reject) => {
+    socket.addEventListener("open", resolve, { once: true });
+    socket.addEventListener("error", () => reject(new Error("Chrome DevTools websocket failed.")), { once: true });
+  });
+  // A frozen tab never answers: every command gives up after a while.
+  const send = (method, params = {}, sessionId = undefined, timeoutMs = 20000) => new Promise((resolve, reject) => {
+    commandId += 1;
+    const id = commandId;
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error(`Chrome did not answer ${method}`));
+    }, timeoutMs);
+    pending.set(id, {
+      resolve: (value) => { clearTimeout(timer); resolve(value); },
+      reject: (error) => { clearTimeout(timer); reject(error); },
+    });
+    socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
+  });
+  return { send, close: () => socket.close() };
+}
 
-  if (!targetsResponse.ok) {
-    throw new Error(`Chrome DevTools is not available: ${targetsResponse.status}`);
-  }
-
-  const targets = await targetsResponse.json();
-  const existingTarget = targets.find((target) => (
-    target.type === "page"
-    && target.webSocketDebuggerUrl
-    && adId
-    && String(target.url || "").includes(adId)
-  ));
-
-  if (existingTarget) {
+async function withBackgroundPage(url, work) {
+  return inChromeQueue(async () => {
+    const browser = await connectChromeBrowser();
+    let targetId = "";
     try {
-      return await readChromeDevToolsTarget(existingTarget);
-    } catch {
-      // Existing tabs can be stale or partially restored; open a fresh one below.
+      ({ targetId } = await browser.send("Target.createTarget", { url: "about:blank", background: true }));
+      const { sessionId } = await browser.send("Target.attachToTarget", { targetId, flatten: true });
+      await browser.send("Runtime.enable", {}, sessionId);
+      await browser.send("Page.navigate", { url }, sessionId);
+      const evaluate = async (expression, timeoutMs = 20000) => {
+        const result = await browser.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }, sessionId, timeoutMs);
+        if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || "Page script failed");
+        return result.result?.value;
+      };
+      return await work(evaluate);
+    } finally {
+      if (targetId) await browser.send("Target.closeTarget", { targetId }).catch(() => {});
+      browser.close();
     }
-  }
+  });
+}
 
-  const target = await openChromeDevToolsTarget(url);
-  return readChromeDevToolsTarget(target);
+// mobile.de's own pages freeze in a background tab (their scripts never run),
+// so nothing of mobile.de is rendered: a tab on the plain robots.txt of the
+// same origin downloads the page with the browser's cookies, and the HTML is
+// read here. Nothing comes to the front.
+function onMobileDeOrigin(work) {
+  return withBackgroundPage(`${MOBILEDE_CANONICAL_ORIGIN}/robots.txt`, async (evaluate) => {
+    for (let attempt = 1; attempt <= 20; attempt += 1) {
+      await delay(500);
+      let ready = false;
+      try {
+        ready = await evaluate("document.readyState === 'complete' && location.hostname.endsWith('mobile.de')", 5000);
+      } catch {
+        continue;
+      }
+      if (ready) return work(evaluate);
+    }
+    throw new Error("Mobile.de did not answer.");
+  });
+}
+
+async function fetchListingWithChromeDevTools(url) {
+  const html = await onMobileDeOrigin((evaluate) => evaluate(
+    `fetch(${JSON.stringify(url)}, { credentials: "include" }).then((response) => response.text())`,
+    30000,
+  ));
+  const text = stripTags(html);
+  if (isAccessDenied(html, text)) throw new Error("Mobile.de returned Access denied");
+  if (!isPlausibleListingPage(html, text)) throw new Error("Mobile.de returned an incomplete listing page.");
+  return { html: String(html || ""), text, mode: "user_chrome_fetch" };
+}
+
+// Runs inside a mobile.de page (same origin, the browser's own cookies) and
+// reads the price-sorted list the way the AUTOGOOD bookmark does. The result
+// page itself is never rendered: its scripts freeze a background tab, so the
+// pages are fetched from mobile.de's plain robots.txt instead.
+const SEARCH_PAGE_SCRIPT = String.raw`(async (SEARCH_URL, PAGES, COUNT_ONLY) => {
+  const digits = (value) => { const m = String(value ?? "").replace(/[.,\s  ](?=\d{3}\b)/g, "").match(/\d+/); return m ? Number(m[0]) : null; };
+  const yearOf = (value) => { const m = String(value || "").match(/(?:19|20)\d{2}/); return m ? Number(m[0]) : null; };
+  const searchResults = (html) => {
+    let payload = "";
+    for (const match of html.matchAll(/self\.__next_f\.push\(\[1,("(?:[^"\\]|\\.)*")\]\)/g)) { try { payload += JSON.parse(match[1]); } catch {} }
+    if (payload.includes('\\"numResultsTotal\\"')) { try { payload = JSON.parse('"' + payload.replace(/\n/g, "\\n") + '"'); } catch { return null; } }
+    const at = payload.indexOf('"searchResults":{"numResultsTotal"');
+    if (at < 0) return null;
+    const start = payload.indexOf("{", at);
+    let depth = 0, quoted = false, escaped = false;
+    for (let i = start; i < payload.length; i += 1) {
+      const c = payload[i];
+      if (quoted) { if (escaped) escaped = false; else if (c === "\\") escaped = true; else if (c === '"') quoted = false; continue; }
+      if (c === '"') quoted = true; else if (c === "{") depth += 1; else if (c === "}" && --depth === 0) return JSON.parse(payload.slice(start, i + 1));
+    }
+    return null;
+  };
+  const titles = new Map();
+  const readTitles = (html) => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    doc.querySelectorAll('a[data-testid^="base-result-listing-"][href*="id="]').forEach((link) => {
+      const heading = link.querySelector("h2");
+      const id = new URL(link.getAttribute("href"), SEARCH_URL).searchParams.get("id");
+      if (!heading || !id) return;
+      const text = [...heading.childNodes].map((n) => n.textContent.trim()).filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+      if (text) titles.set(id, text.slice(0, 160));
+    });
+  };
+  const base = new URL(SEARCH_URL);
+  base.searchParams.set("sb", "p");
+  base.searchParams.delete("pageNumber");
+  const pageUrl = (page, order) => { const u = new URL(base); u.searchParams.set("od", order); if (page > 1) u.searchParams.set("pageNumber", String(page)); return u.toString(); };
+  const ordered = (r) => (r?.listings || []).filter((i) => i.type === "regular" || i.type === "eyecatcher");
+  const load = async (page, order) => { const html = await (await fetch(pageUrl(page, order), { credentials: "include" })).text(); readTitles(html); return searchResults(html); };
+  const first = await load(1, "up");
+  if (!first) return { error: "Mobile.de returned no result list (Access denied?)" };
+  const total = Number(first.numResultsTotal) || 0;
+  if (COUNT_ONLY) return { total, listings: [] };
+  const pageSize = ordered(first).length || 20;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const MAX_PAGE = 100;
+  const wanted = pageCount <= PAGES
+    ? Array.from({ length: pageCount - 1 }, (_, i) => i + 2)
+    : [...new Set(Array.from({ length: PAGES }, (_, i) => Math.round(1 + (i * (pageCount - 1)) / (PAGES - 1))))].filter((p) => p > 1);
+  const requests = wanted.map((page) => page <= MAX_PAGE ? { page, order: "up" } : (pageCount - page + 1 <= MAX_PAGE ? { page: pageCount - page + 1, order: "down" } : null)).filter(Boolean);
+  const offers = [];
+  const seen = new Set();
+  const collect = (results, request) => ordered(results).forEach((item, index) => {
+    if (seen.has(item.id)) return;
+    seen.add(item.id);
+    const price = Number(item.price?.grs?.amount);
+    if (!price) return;
+    const position = (request.page - 1) * pageSize + index;
+    offers.push({
+      id: String(item.id),
+      url: "https://suchen.mobile.de/fahrzeuge/details.html?id=" + item.id,
+      title: titles.get(String(item.id)) || [item.make?.localized, item.model?.localized].filter(Boolean).join(" "),
+      price, currency: "EUR",
+      year: yearOf(item.attr?.fr), mileage: digits(item.attr?.ml),
+      power: item.attr?.pw || "", fuel: item.attr?.ft || "",
+      rank: request.order === "up" ? position + 1 : total - position,
+      marketTotal: total, source: "mobile",
+    });
+  });
+  collect(first, { page: 1, order: "up" });
+  for (let i = 0; i < requests.length; i += 3) {
+    const batch = requests.slice(i, i + 3);
+    const results = await Promise.allSettled(batch.map((r) => load(r.page, r.order)));
+    results.forEach((r, j) => { if (r.status === "fulfilled" && r.value) collect(r.value, batch[j]); });
+  }
+  return { total, listings: offers };
+})`;
+
+const searchCache = new Map();
+const SEARCH_CACHE_MS = 10 * 60 * 1000;
+
+async function searchMobileDe(searchUrl, { countOnly = false, pages = 8 } = {}) {
+  const key = `${countOnly ? "count" : pages}|${searchUrl}`;
+  const cached = searchCache.get(key);
+  if (cached && Date.now() - cached.at < SEARCH_CACHE_MS) return cached.value;
+  const value = await onMobileDeOrigin((evaluate) => evaluate(
+    `${SEARCH_PAGE_SCRIPT}(${JSON.stringify(searchUrl)}, ${Number(pages) || 8}, ${countOnly ? "true" : "false"})`,
+    90000,
+  ));
+  if (value?.error) throw new Error(value.error);
+  searchCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+function isMobileDeSearchUrl(value) {
+  try {
+    const url = new URL(value);
+    return /(^|\.)mobile\.de$/.test(url.hostname) && /\/fahrzeuge\/search\.html$/.test(url.pathname);
+  } catch {
+    return false;
+  }
 }
 
 async function loadListing(urlInfo) {
   try {
-    return await fetchListingWithChromeDevTools(urlInfo.requestUrl, urlInfo.adId);
+    return await fetchListingWithChromeDevTools(urlInfo.requestUrl);
   } catch (devToolsError) {
+    // The user's own Chrome is never driven any more: it brought tabs to the
+    // front. Only quiet fallbacks remain.
     try {
-      return await fetchListingWithUserChromeClipboard(urlInfo.requestUrl, urlInfo.adId);
+      const browserListing = await fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
+      if (!isAccessDenied(browserListing.html, browserListing.text)) return browserListing;
     } catch {
-      try {
-        return await fetchListingWithUserChrome(urlInfo.requestUrl, urlInfo.adId);
-      } catch {
-        try {
-          const browserListing = await fetchListingWithBrowser(urlInfo.requestUrl, urlInfo.originalUrl);
-          if (!isAccessDenied(browserListing.html, browserListing.text)) return browserListing;
-
-          const html = await fetchListing(urlInfo.requestUrl, urlInfo.originalUrl);
-          const text = stripTags(html);
-          if (!isAccessDenied(html, text)) return { html, text, mode: "http" };
-
-          throw new Error("Mobile.de returned Access denied");
-        } catch {
-          throw devToolsError;
-        }
-      }
+      // Playwright missing or blocked.
     }
+    throw devToolsError;
   }
 }
 
@@ -1252,6 +1189,19 @@ export async function handleMobiledeImport(request, response) {
   if (request.method === "OPTIONS") return sendJson(response, 204, {});
 
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+  if (requestUrl.pathname === "/mobilede/search") {
+    const searchUrl = requestUrl.searchParams.get("url") || "";
+    if (!isMobileDeSearchUrl(searchUrl)) return sendJson(response, 400, { error: "Expected a mobile.de search URL" });
+    try {
+      const result = await searchMobileDe(searchUrl, {
+        countOnly: requestUrl.searchParams.get("count") === "1",
+        pages: Math.min(12, Math.max(1, Number(requestUrl.searchParams.get("pages")) || 8)),
+      });
+      return sendJson(response, 200, { searchUrl, ...result });
+    } catch (error) {
+      return sendJson(response, 502, { error: "Could not read Mobile.de search", detail: error.message, searchUrl });
+    }
+  }
   if (requestUrl.pathname !== "/mobilede/import") {
     return sendJson(response, 404, { error: "Not found" });
   }
