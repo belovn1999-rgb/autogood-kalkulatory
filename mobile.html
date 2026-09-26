@@ -10,8 +10,8 @@
       href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="stylesheet" href="./src/mobile.css?v=fields-20260925" />
-    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=cards2-20260925" />
+  <link rel="stylesheet" href="./src/mobile.css?v=spec5-20260926" />
+    <link rel="stylesheet" href="./src/mobile-market-analysis.css?v=spec5-20260926" />
     <link rel="stylesheet" href="./src/global-navigation.css?v=global-navigation-20260923" />
     <script defer src="./src/global-navigation.js?v=global-navigation-20260923" data-ag-global-nav></script>
   </head>
@@ -472,12 +472,14 @@
                 </div>
               </div>
               <div class="mobileSearchCountActions">
-                <a class="mobileSearchCountButton" href="#" target="_blank" rel="noopener" data-mobile-market-search>
-                  mobile.de <i aria-hidden="true">&#8599;</i>
-                </a>
-                <a class="mobileSearchCountButton mobileSearchCountButtonSecondary" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search>
-                  otomoto <i aria-hidden="true">&#8599;</i>
-                </a>
+                <div class="mobileSearchCountLogos">
+                  <a class="agBrandLink isMobile" href="#" target="_blank" rel="noopener" data-mobile-market-search aria-label="Szukaj na mobile.de" title="Szukaj na mobile.de">
+                    <img src="./assets/brands/mobile-de-logo.svg" alt="" />
+                  </a>
+                  <a class="agBrandLink isOtomoto" href="#" target="_blank" rel="noopener" data-mobile-otomoto-search aria-label="Szukaj na otomoto.pl" title="Szukaj na otomoto.pl">
+                    <img src="./assets/brands/otomoto-logo.svg" alt="" />
+                  </a>
+                </div>
                 <button class="mobileSearchCountButton mobileSearchCountButtonAnalysis" type="button" data-mobile-market-analysis-open>
                   <span data-market-i18n="analysisButton">Analiza rynku</span> <i aria-hidden="true">&#8594;</i>
                 </button>
@@ -498,8 +500,8 @@
                 rel="noopener"
                 data-mobile-otomoto-search
               >
+                <img class="agBrandMark" src="./assets/brands/otomoto-mark.svg" alt="" />
                 <span data-i18n="otomotoSearchButton">Szukaj na otomoto.pl</span>
-                <i aria-hidden="true">&#8599;</i>
               </a>
               <a
                 class="mobileMarketSearchButton"
@@ -508,8 +510,8 @@
                 rel="noopener"
                 data-mobile-market-search
               >
+                <img class="agBrandMark" src="./assets/brands/mobile-de-mark.svg" alt="" />
                 <span data-i18n="marketSearchButton">Szukaj na mobile.de</span>
-                <i aria-hidden="true">&#8599;</i>
               </a>
             </div>
           </div>
@@ -540,8 +542,8 @@
     </main>
     <script src="./src/mobile-model-catalog.generated.js?v=mobile-de-ids-20260921"></script>
     <script src="./src/otomoto-catalog.generated.js?v=otomoto-catalog-20260921"></script>
-    <script src="./src/mobile.js?v=otomoto-link2-20260925"></script>
-    <script src="./src/mobile-market-analysis.js?v=cards2-20260925"></script>
-    <script src="./src/mobile-bridge.js?v=titles-20260925"></script>
+    <script src="./src/mobile.js?v=spec5-20260926"></script>
+    <script src="./src/mobile-market-analysis.js?v=spec5-20260926"></script>
+    <script src="./src/mobile-bridge.js?v=spec5-20260926"></script>
   </body>
 </html>

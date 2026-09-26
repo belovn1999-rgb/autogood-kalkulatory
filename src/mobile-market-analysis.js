@@ -1337,7 +1337,7 @@
         const cell = (key) => {
           const url = current[`${key}Url`];
           const value = url
-            ? `<a href="${escapeMarketHtml(url)}" target="_blank" rel="noopener">${price(current[key], current.currency)} ↗</a>`
+            ? `<a class="agPriceLink" href="${escapeMarketHtml(url)}" target="_blank" rel="noopener">${price(current[key], current.currency)}<img class="agBrandMark" src="${BRAND_MARKS[source]}" alt="" /></a>`
             : price(current[key], current.currency);
           return `<td>${value} ${previous ? change(current[key], previous[key]) : ""}</td>`;
         };
@@ -1403,6 +1403,86 @@
     openAnalysis();
   }
 
+  const BRAND_MARKS = {
+    mobile: "./assets/brands/mobile-de-mark.svg",
+    otomoto: "./assets/brands/otomoto-mark.svg",
+  };
+  const BRAND_LOGOS = {
+    mobile: "./assets/brands/mobile-de-logo.svg",
+    otomoto: "./assets/brands/otomoto-logo.svg",
+  };
+
+  // The marketplace's own logo as the link to its search.
+  function brandLogoLink(source, url, label) {
+    return `<a class="agBrandLink is${source === "otomoto" ? "Otomoto" : "Mobile"}" href="${escapeMarketHtml(url)}" target="_blank" rel="noopener" title="${escapeMarketHtml(label)}" aria-label="${escapeMarketHtml(label)}"><img src="${BRAND_LOGOS[source]}" alt="" /></a>`;
+  }
+
+  // The marketplace's small mark as the link to one of its offers.
+  function brandMarkLink(source, url, label) {
+    return `<a class="agBrandMarkLink" href="${escapeMarketHtml(url)}" target="_blank" rel="noopener" title="${escapeMarketHtml(label)}" aria-label="${escapeMarketHtml(label)}"><img src="${BRAND_MARKS[source === "otomoto" ? "otomoto" : "mobile"]}" alt="" /></a>`;
+  }
+
+  // The searched market in the same four columns as a recognised car:
+  // body and engine, mileage and drive, equipment, other information.
+  function searchSpecColumns(filters, sources) {
+    const t = window.AUTOGOOD_SPEC_COPY?.() || {};
+    const numbers = numberFormat();
+    const any = t.specAny || "—";
+    const range = (from, to, unit = "", plain = false) => {
+      const format = (value) => (plain ? String(value) : numbers.format(Number(value)));
+      const suffix = unit ? ` ${unit}` : "";
+      if (from && to) return from === to ? `${format(from)}${suffix}` : `${format(from)} – ${format(to)}${suffix}`;
+      if (from) return `${t.specFrom} ${format(from)}${suffix}`;
+      if (to) return `${t.specTo} ${format(to)}${suffix}`;
+      return any;
+    };
+    const labelOf = (selector) => document.querySelector(selector)?.closest("label")?.textContent.trim();
+    const fuels = checkedLabels("[data-mobile-fuel]");
+    const equipment = [
+      ...checkedLabels("[data-mobile-interior-material]"),
+      filters.airConditioning ? checkedLabel("[data-mobile-air-conditioning]") : "",
+      ...checkedLabels("[data-mobile-parking-sensor]"),
+      filters.cruiseControl && filters.cruiseControl !== "any" ? checkedLabel("[data-mobile-cruise-control]") : "",
+      filters.trailerCoupling && filters.trailerCoupling !== "any" ? checkedLabel("[data-mobile-trailer-coupling]") : "",
+      ...checkedLabels("[data-mobile-feature]"),
+      ...checkedLabels("[data-mobile-exterior-color]"),
+      filters.metallic ? labelOf("[data-mobile-metallic]") : "",
+      filters.matte ? labelOf("[data-mobile-matte]") : "",
+      ...checkedLabels("[data-mobile-interior-color]").map((label) => `${t.interiorColorLabel || ""}: ${label}`),
+    ].filter(Boolean);
+    const countries = [
+      ...(sources.includes("mobile") ? (checkedLabels("[data-mobile-country]").length ? checkedLabels("[data-mobile-country]") : []) : []),
+      ...(sources.includes("otomoto") ? [t.countryNames?.PL || "Polska"] : []),
+    ];
+    const status = [
+      filters.roadworthy ? labelOf("[data-mobile-roadworthy]") : "",
+      filters.nonSmoking ? labelOf("[data-mobile-non-smoking]") : "",
+      filters.damagedVehicles ? selectedOptionText("[data-mobile-damaged-vehicles]") : "",
+    ].filter(Boolean);
+    return [
+      { heading: t.specEngineHeading, rows: [
+        [t.specBody, filters.body ? checkedLabel("[data-mobile-body-choice]") || any : any],
+        [t.specEngineType, fuels.length ? fuels.join(", ") : any],
+        [t.specDisplacement, range(filters.displacementFrom, filters.displacementTo, "ccm")],
+        [t.specPower, range(filters.powerFrom, filters.powerTo, "KM")],
+      ] },
+      { heading: t.specUsageHeading, rows: [
+        [t.specMileage, range(filters.mileageFrom, filters.mileageTo, "km")],
+        [t.specRegistration, range(filters.yearFrom, filters.yearTo, "", true)],
+        [t.specGearbox, filters.gearbox && filters.gearbox !== "any" ? checkedLabel("[data-mobile-gearbox]") : any],
+        [t.specDrive, filters.drive && filters.drive !== "any" ? checkedLabel("[data-mobile-drive]") : any],
+      ] },
+      { heading: t.specEquipmentHeading, text: equipment.length ? equipment.join(" - ") : t.specNoEquipment, muted: !equipment.length },
+      { heading: t.specOtherHeading, rows: [
+        [t.specCountry, countries.length ? countries.join(", ") : any],
+        [t.specStatus, status.length ? status.join(", ") : any],
+        [t.specVat, selectedOptionText("[data-mobile-vat]") || any],
+        [t.specSeller, selectedOptionText("[data-mobile-seller]") || any],
+        ...(filters.priceFrom || filters.priceTo ? [[t.specPrice, range(filters.priceFrom, filters.priceTo, "EUR")]] : []),
+      ] },
+    ];
+  }
+
   function renderAnalysis() {
     if (!activeAnalysis) return;
     const c = copy();
@@ -1443,11 +1523,12 @@
     const summary = filterSummary(filters);
     const sourceName = (source) => (source === "otomoto" ? c.sourceOtomoto : c.sourceMobile);
     const listingKey = (listing) => listing.url || `${listing.source}-${listing.id}`;
+    let statsContent = "";
     let marketContent = `
       <section class="mobileMarketEmpty">
         <strong>${escapeMarketHtml(c.emptyHeading)}</strong>
         <p>${escapeMarketHtml(c.emptyDescription)}</p>
-        <button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><i aria-hidden="true"></i>${escapeMarketHtml(c.fetchMobile)}</button>
+        <button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><img class="agBrandMark" src="${BRAND_MARKS.mobile}" alt="" />${escapeMarketHtml(c.fetchMobile)}</button>
       </section>`;
 
     if (hasListings) {
@@ -1669,7 +1750,7 @@
       const sourceCount = (source) => cleaned[source].length;
       const axisCaption = chartAxis === "mileage" ? c.axisMileageCaption : chartAxis === "year" ? c.axisYearCaption : c.axisRankCaption;
 
-      marketContent = `
+      statsContent = `
         <div class="mobileMarketStatsBody">
         ${filters.priceFrom || filters.priceTo ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.priceFilterWarning)}</p>` : ""}
         ${statistics.min < statistics.median / 3 || statistics.max > statistics.median * 3 ? `<p class="mobileMarketCaution">${escapeMarketHtml(c.wideRangeWarning)}</p>` : ""}
@@ -1681,8 +1762,8 @@
           ${statHtml(c.middleOffers, String(statistics.middleCount))}
           ${statHtml(c.maximum, formatMarketPrice(statistics.max))}
         </dl>
-
-
+        </div>`;
+      marketContent = `
         <div class="mobileMarketChartHead">
           <label class="mobileMarketCompare">
             <span>${escapeMarketHtml(c.comparePrice)}</span>
@@ -1694,7 +1775,7 @@
                 const count = sourceCount(source);
                 const pressed = count > 0 && shownSources.includes(source);
                 if (!count && source === "mobile") {
-                  return `<button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><i aria-hidden="true"></i>${escapeMarketHtml(c.fetchMobile)}</button>`;
+                  return `<button class="mobileMarketSourceButton isMobile isFetch" type="button" data-mobile-market-fetch-mobile><img class="agBrandMark" src="${BRAND_MARKS.mobile}" alt="" />${escapeMarketHtml(c.fetchMobile)}</button>`;
                 }
                 return `<button class="mobileMarketSourceButton is${source === "otomoto" ? "Otomoto" : "Mobile"}" type="button" data-mobile-market-source="${source}" aria-pressed="${pressed ? "true" : "false"}"${count ? "" : " disabled"}><i aria-hidden="true"></i>${escapeMarketHtml(sourceName(source))} · ${count || escapeMarketHtml(c.sourceEmpty)}</button>`;
               }).join("")}
@@ -1778,62 +1859,51 @@
                     <td>${escapeMarketHtml(listing.year ? String(listing.year) : "—")}</td>
                     <td>${escapeMarketHtml(listing.mileage ? `${numbers.format(listing.mileage)} km` : "—")}</td>
                     <td><span class="mobileMarketSourceTag is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}"><i aria-hidden="true"></i>${escapeMarketHtml(sourceName(listing.source))}</span></td>
-                    <td>${listing.url ? `<a href="${escapeMarketHtml(listing.url)}" target="_blank" rel="noopener">${escapeMarketHtml(c.tableOpen)} ↗</a>` : ""}</td>
+                    <td>${listing.url ? brandMarkLink(listing.source, listing.url, `${c.tableOpen}: ${sourceName(listing.source)}`) : ""}</td>
                   </tr>`).join("")}
               </tbody>
             </table>
           </div>
-        </section>
-
-        </div>`;
+        </section>`;
     }
 
     const dataDate = historyEntry?.dataAt || activeAnalysis.fetchedAt || "";
-    const summaryColumns = filterSummaryGroups(filters);
+    const reportSources = shownSources.length ? shownSources : MARKET_SOURCES.filter((source) => chartSources[source]);
+    const spec = window.AUTOGOOD_SPEC_SHEET?.({
+      kicker: window.AUTOGOOD_SPEC_COPY?.().specSearchKicker || c.searchHeading,
+      title: [filters.brand, filters.model, filters.version].filter(Boolean).join(" "),
+      aside: `
+        ${dataDate && hasListings ? `<span class="agSpecDate">${escapeMarketHtml(c.checkedAt.replace("{date}", formatHistoryDate(dataDate)))}</span>` : ""}
+        <span class="agBrandLinks">
+          ${brandLogoLink("mobile", searchUrl, c.openSearch)}
+          ${otomotoUrl ? brandLogoLink("otomoto", otomotoUrl, c.openOtomoto) : ""}
+        </span>`,
+      columns: searchSpecColumns(filters, reportSources),
+    }) || "";
     analysisContent.innerHTML = `
       <article class="mobileMarketAnalysisPanel">
         ${favoritesHtml(historyEntry?.pinned ? historyEntry.id : "")}
-        <header class="mobileMarketAnalysisHead">
-          <div class="mobileMarketHeadTop">
-            <h1 class="mobileMarketCardTitle">${escapeMarketHtml(c.searchHeading)}</h1>
-            <div class="mobileMarketHeadLinks">
-              <span>${escapeMarketHtml(c.openSearches)}</span>
-              <a class="mobileMarketSearchArrow isMobile" href="${escapeMarketHtml(searchUrl)}" target="_blank" rel="noopener" title="${escapeMarketHtml(c.openSearch)}" aria-label="${escapeMarketHtml(c.openSearch)}">↗</a>
-              ${otomotoUrl ? `<a class="mobileMarketSearchArrow isOtomoto" href="${escapeMarketHtml(otomotoUrl)}" target="_blank" rel="noopener" title="${escapeMarketHtml(c.openOtomoto)}" aria-label="${escapeMarketHtml(c.openOtomoto)}">↗</a>` : ""}
-            </div>
-            <span class="mobileMarketTestLabel${hasListings ? " isImported" : ""}">${escapeMarketHtml(hasListings ? (onlyOtomoto ? c.otomotoLabel : mixedSources ? c.mixedLabel : c.importedLabel) : c.waitingLabel)}</span>
-          </div>
-          <div class="mobileMarketFilterColumns">
-            ${[[c.summaryVehicle, summaryColumns[0]], [c.summaryParameters, summaryColumns[1]], [c.summaryEquipment, summaryColumns[2]]].map(([heading, items]) => `
-              <section>
-                <h2>${escapeMarketHtml(heading)}</h2>
-                ${items.length ? `<ul>${items.map((item) => `<li>${escapeMarketHtml(item)}</li>`).join("")}</ul>` : "<p>—</p>"}
-              </section>`).join("")}
-          </div>
-        </header>
-
-        <section class="mobileMarketCard mobileMarketAnalysisCard" aria-label="${escapeMarketHtml(c.analysisCardHeading)}">
-          <div class="mobileMarketDataBar">
-            <div class="mobileMarketDataBarCopy">
-              <h2 class="mobileMarketCardTitle">${escapeMarketHtml(c.analysisCardHeading)}${dataDate && hasListings ? ` <small>${escapeMarketHtml(c.checkedAt.replace("{date}", formatHistoryDate(dataDate)))}</small>` : ""}</h2>
-              ${hasListings ? "" : `<strong>${escapeMarketHtml(c.waitingDescription)}</strong>`}
-              <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
-                <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
-                <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
-              ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<small>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</small>` : ""}
-            </div>
+        <section class="mobileMarketCard mobileMarketSearchCard" aria-label="${escapeMarketHtml(c.searchHeading)}">
+          <div class="mobileMarketToolbar">
+            <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
+              <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
+              <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
             <div class="mobileMarketImportActions">
               <label class="mobileMarketImportButton">
                 <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
                 <span>${escapeMarketHtml(c.importButton)}</span>
               </label>
-              <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
               ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
+              <button class="mobileMarketImportClear isPrimary" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
             </div>
           </div>
-
           ${analysisStatusHtml()}
+          ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<p class="mobileMarketImportedNote">${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</p>` : ""}
+          ${spec}
+          ${statsContent}
+        </section>
 
+        <section class="mobileMarketCard mobileMarketChartCard" aria-label="${escapeMarketHtml(c.chartTitle)}">
           ${marketContent}
         </section>
 

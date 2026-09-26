@@ -195,6 +195,36 @@ const copy = {
     footer: "Mobile.de → kalkulatory operacyjne",
     emptyTitle: "—",
     emptyValue: "—",
+    specSearchKicker: "Parametry poszukiwania",
+    specVehicleKicker: "Dane z ogłoszenia",
+    specEngineHeading: "Nadwozie i silnik",
+    specUsageHeading: "Przebieg i napęd",
+    specEquipmentHeading: "Wyposażenie",
+    specOtherHeading: "Inne informacje",
+    specBody: "Nadwozie",
+    specEngineType: "Typ silnika",
+    specDisplacement: "Pojemność",
+    specPower: "Moc",
+    specMileage: "Przebieg",
+    specRegistration: "Rok 1. rejestracji",
+    specGearbox: "Skrzynia",
+    specDrive: "Napęd",
+    specCountry: "Kraj",
+    specStatus: "Stan",
+    specVat: "VAT",
+    specSeller: "Sprzedawca",
+    specPrice: "Cena",
+    specAny: "dowolne",
+    specNoEquipment: "bez dodatkowych wymagań",
+    specShowAll: "pokaż wszystko",
+    specShowLess: "zwiń",
+    specFrom: "od",
+    specTo: "do",
+    countryNames: { DE: "Niemcy", PL: "Polska", AT: "Austria", BE: "Belgia", NL: "Holandia", FR: "Francja", IT: "Włochy", ES: "Hiszpania", CZ: "Czechy", CH: "Szwajcaria", LU: "Luksemburg", DK: "Dania", SE: "Szwecja" },
+    sellerPrivate: "osoba prywatna",
+    sellerDealer: "dealer",
+    searchOnMobile: "Szukaj na mobile.de",
+    searchOnOtomoto: "Szukaj na otomoto.pl",
     price: "Cena z ogłoszenia",
     purchaseType: "Typ zakupu",
     fuel: "Paliwo",
@@ -411,6 +441,36 @@ const copy = {
     footer: "Mobile.de → рабочие калькуляторы",
     emptyTitle: "—",
     emptyValue: "—",
+    specSearchKicker: "Параметры поиска",
+    specVehicleKicker: "Данные объявления",
+    specEngineHeading: "Кузов и двигатель",
+    specUsageHeading: "Пробег и привод",
+    specEquipmentHeading: "Оснащение",
+    specOtherHeading: "Другая информация",
+    specBody: "Кузов",
+    specEngineType: "Тип двигателя",
+    specDisplacement: "Объём",
+    specPower: "Мощность",
+    specMileage: "Пробег",
+    specRegistration: "Год 1-й регистрации",
+    specGearbox: "КПП",
+    specDrive: "Привод",
+    specCountry: "Страна",
+    specStatus: "Состояние",
+    specVat: "НДС",
+    specSeller: "Продавец",
+    specPrice: "Цена",
+    specAny: "любой",
+    specNoEquipment: "без дополнительных требований",
+    specShowAll: "показать всё",
+    specShowLess: "свернуть",
+    specFrom: "от",
+    specTo: "до",
+    countryNames: { DE: "Германия", PL: "Польша", AT: "Австрия", BE: "Бельгия", NL: "Нидерланды", FR: "Франция", IT: "Италия", ES: "Испания", CZ: "Чехия", CH: "Швейцария", LU: "Люксембург", DK: "Дания", SE: "Швеция" },
+    sellerPrivate: "частное лицо",
+    sellerDealer: "дилер",
+    searchOnMobile: "Искать на mobile.de",
+    searchOnOtomoto: "Искать на otomoto.pl",
     price: "Цена из объявления",
     purchaseType: "Тип закупа",
     fuel: "Топливо",
@@ -1239,6 +1299,56 @@ function renderI18n() {
 
 function detailRow(label, value) {
   return `<div class="mobileDataRow"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
+}
+
+// One layout for a car (from an ad) and for a market search (analysis):
+// a title line, then four columns — body and engine, mileage and drive,
+// equipment, other information. Columns are {heading, rows: [[label, value]]}
+// or {heading, text}; rows without a value are left out.
+function specSheetHtml({ kicker = "", title = "", aside = "", columns = [] }) {
+  const columnHtml = columns.map((column) => {
+    const rows = (column.rows || []).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "");
+    const long = column.text !== undefined && column.text.length > 180;
+    const body = column.text !== undefined
+      ? `<p class="agSpecText${column.muted ? " isMuted" : ""}${long ? " isClamped" : ""}">${escapeHtml(column.text)}</p>${long ? `<button class="agSpecMore" type="button" data-spec-expand>${escapeHtml(copy[state.lang].specShowAll)}</button>` : ""}`
+      : `<dl>${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
+    return `<section class="agSpecColumn"><h4>${escapeHtml(column.heading)}</h4>${body}</section>`;
+  }).join("");
+  return `
+    <div class="agSpec">
+      <div class="agSpecHead">
+        <div class="agSpecTitle">
+          ${kicker ? `<span class="agSpecKicker">${escapeHtml(kicker)}</span>` : ""}
+          <strong>${escapeHtml(title)}</strong>
+        </div>
+        ${aside ? `<div class="agSpecAside">${aside}</div>` : ""}
+      </div>
+      <div class="agSpecColumns" style="grid-template-columns:${columns.map((column) => (column.text !== undefined ? "minmax(0, 1.6fr)" : "minmax(0, 1fr)")).join(" ")}">${columnHtml}</div>
+    </div>`;
+}
+
+window.AUTOGOOD_SPEC_SHEET = specSheetHtml;
+
+// A long equipment list opens and closes in place.
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-spec-expand]");
+  if (!button) return;
+  const textNode = button.previousElementSibling;
+  const open = textNode.classList.toggle("isOpen");
+  button.textContent = open ? copy[state.lang].specShowLess : copy[state.lang].specShowAll;
+});
+window.AUTOGOOD_SPEC_COPY = () => copy[state.lang];
+
+function fuelLabelOf(value, title = "") {
+  const key = normalizeFuel(value, title);
+  const option = fuelOptions.find((item) => item.value === key);
+  return option ? option[state.lang] : text(value);
+}
+
+function bodyLabelOf(value) {
+  const key = normalizeBody(value);
+  const option = bodyOptions.find((item) => item.value === key);
+  return option && key !== "other" ? option[state.lang] : (value ? String(value) : "");
 }
 
 function purchaseTypeLabel(data) {
@@ -2649,18 +2759,48 @@ function renderData() {
   els.title.textContent = title;
   // Listing data and purchase paths appear only once a link has been recognised.
   if (els.listingResult) els.listingResult.hidden = !state.data;
-  const listingRows = [
-    detailRow(c.price, data.pricePln
-      ? `${formatAmount(data.pricePln, "PLN")} (≈ ${formatAmount(data.carBruttoEur, "EUR")})`
-      : formatAmount(data.carBruttoEur, "EUR")),
-    detailRow(c.registration, listingRegistration(data.firstRegistration)),
-    detailRow(c.mileage, formatNumberWithUnit(data.mileageKm, "km")),
-    detailRow(c.fuel, text(data.fuel)),
-    detailRow(c.displacement, formatNumberWithUnit(data.displacementCcm, "ccm")),
-    detailRow(c.power, formatNumberWithUnit(powerValue, "KM")),
-    detailRow(c.gearbox, listingGearboxLabel(data.gearbox)),
-  ].join("");
-  els.listingDetails.innerHTML = `<dl class="mobileListingBriefGrid">${listingRows}</dl>`;
+  if (!state.data) {
+    els.listingDetails.innerHTML = "";
+    renderScenarios();
+    return;
+  }
+  const location = data.location || {};
+  const countryCode = String(location.country || "").toUpperCase();
+  const country = [c.countryNames[countryCode] || location.country || "", location.city || ""].filter(Boolean).join(", ");
+  const seller = [
+    data.sellerType === "PRIVATE" ? c.sellerPrivate : data.sellerType ? c.sellerDealer : "",
+    location.sellerName || "",
+  ].filter(Boolean).join(" · ");
+  const price = data.pricePln
+    ? `<b>${escapeHtml(formatAmount(data.pricePln, "PLN"))}</b><small>≈ ${escapeHtml(formatAmount(data.carBruttoEur, "EUR"))}</small>`
+    : `<b>${escapeHtml(formatAmount(data.carBruttoEur, "EUR"))}</b>`;
+  const equipment = Array.isArray(data.equipment) ? data.equipment.filter(Boolean) : [];
+  els.listingDetails.innerHTML = specSheetHtml({
+    kicker: c.specVehicleKicker,
+    title,
+    aside: `<span class="agSpecPrice">${price}</span>`,
+    columns: [
+      { heading: c.specEngineHeading, rows: [
+        [c.specBody, bodyLabelOf(data.bodyType)],
+        [c.specEngineType, fuelLabelOf(data.fuel, title)],
+        [c.specDisplacement, formatNumberWithUnit(data.displacementCcm, "ccm")],
+        [c.specPower, formatNumberWithUnit(powerValue, "KM")],
+      ] },
+      { heading: c.specUsageHeading, rows: [
+        [c.specMileage, formatNumberWithUnit(data.mileageKm, "km")],
+        [c.specRegistration, listingRegistration(data.firstRegistration)],
+        [c.specGearbox, listingGearboxLabel(data.gearbox)],
+        [c.specDrive, data.drive || ""],
+      ] },
+      ...(equipment.length ? [{ heading: c.specEquipmentHeading, text: equipment.join(" - ") }] : []),
+      { heading: c.specOtherHeading, rows: [
+        [c.specCountry, country],
+        [c.specStatus, data.condition || ""],
+        [c.specVat, purchaseTypeLabel(data)],
+        [c.specSeller, seller],
+      ] },
+    ],
+  });
 
   renderScenarios();
 }
@@ -2772,6 +2912,9 @@ function applyMobileAd(ad) {
     mileageKm: ad.mileageKm,
     firstRegistration: ad.firstRegistration,
     location: ad.location,
+    condition: ad.condition || "",
+    equipment: ad.equipment || [],
+    sellerType: ad.sellerType || "",
     transportNettoPln: estimate.transport,
     inspectionNettoPln: estimate.inspection,
     transportEstimate: estimate,
@@ -3189,6 +3332,14 @@ async function loadOtomotoAd(sourceUrl) {
       gearbox: param("gearbox").value || param("gearbox").label || "",
       mileageKm: Number(param("mileage").value) || null,
       firstRegistration: String(param("year").value || ""),
+      drive: param("transmission").label || "",
+      equipment: (advert.equipment || []).flatMap((group) => (group.values || []).map((item) => item.label)).filter(Boolean),
+      condition: [
+        param("damaged").value === "1" ? param("damaged").label && "Uszkodzony" : "",
+        param("no_accident").value === "1" ? "Bezwypadkowy" : "",
+        param("service_record").value === "1" ? "Serwisowany w ASO" : "",
+      ].filter(Boolean).join(", "),
+      sellerType: advert.seller?.type || "",
       location: {
         address: location.address || location.shortAddress || "",
         city: location.city || "",

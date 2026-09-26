@@ -16,7 +16,7 @@
     if (!links.length) return;
     try {
       if (!bookmarkletHref) {
-        const response = await fetch("./src/autogood-bookmarklet.js?v=titles-20260925");
+        const response = await fetch("./src/autogood-bookmarklet.js?v=spec-20260926");
         if (!response.ok) return;
         const appUrl = `${location.origin}${location.pathname}`;
         // Only the quoted constant: the file's comments mention the placeholder too.
@@ -70,6 +70,9 @@
       bodyType: textValue(ad.bodyType, 80),
       category: textValue(ad.category, 120),
       color: textValue(ad.color, 60),
+      condition: textValue(ad.condition, 120),
+      equipment: Array.isArray(ad.equipment) ? ad.equipment.slice(0, 120).map((item) => textValue(item, 80)).filter(Boolean) : [],
+      sellerType: ad.sellerType === "PRIVATE" ? "PRIVATE" : ad.sellerType ? "DEALER" : "",
       location: {
         address: textValue(location.address, 200),
         city: textValue(location.city, 80),

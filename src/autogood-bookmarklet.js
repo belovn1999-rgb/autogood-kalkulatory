@@ -93,6 +93,10 @@
         bodyType: car.bodyType || technical("category"),
         category: technical("category"),
         color: car.color || technical("color"),
+        condition: technical("damageCondition"),
+        equipment: [...document.querySelectorAll('[data-testid="vip-features-list"] li')]
+          .map((item) => item.textContent.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 120),
+        sellerType: /private|privat/i.test(document.querySelector('[data-testid="seller-title-address"]')?.textContent || "") ? "PRIVATE" : "DEALER",
         location: {
           address: [address.streetAddress, [address.postalCode, address.addressLocality].filter(Boolean).join(" ")]
             .filter(Boolean).join(", "),
