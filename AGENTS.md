@@ -2,6 +2,17 @@
 
 This project is the live AUTOGOOD Tools site.
 
+## Mobile.de / Otomoto project — READ FIRST
+
+Work on `mobile.html` (search, link recognition, market analysis, turnkey
+prices) follows **`docs/PROJECT-MOBILE.md`** — the single source of truth
+shared by every Claude and Codex chat: goal, mechanisms, decisions, backlog,
+change log and the working rules. Before any change to `mobile.html` or
+`src/mobile*.js`, `src/mobile*.css`, `src/autogood-bookmarklet.js`,
+`src/turnkey-estimate.js`: `git pull --rebase origin main`, read that file.
+After the change: add a line to its change log, update the backlog status,
+record new decisions, commit it together with the code.
+
 ## Public App
 
 Public URL:
