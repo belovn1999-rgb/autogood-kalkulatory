@@ -570,8 +570,8 @@ function extractTitle(html, jsonData, text) {
   ]);
 
   const candidates = [
-    ...documentTitleCandidates,
     ...headingCandidates,
+    ...documentTitleCandidates,
     ...textLineCandidates,
     ...jsonCandidates,
     ...escapedJsonCandidates,
