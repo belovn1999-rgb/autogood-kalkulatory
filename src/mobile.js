@@ -1,4 +1,4 @@
-const DEFAULT_MOBILEDE_API_URL = "https://discipline-enforcement-legitimate-locate.trycloudflare.com/mobilede/import";
+const DEFAULT_MOBILEDE_API_URL = "https://jay-hang-given-segment.trycloudflare.com/mobilede/import";
 
 const copy = {
   pl: {
@@ -2665,6 +2665,81 @@ function normalizeBody(value) {
   return value ? "other" : "";
 }
 
+function recognizedEquipmentFilters(data) {
+  const normalizeEquipment = (value) => normalizeToken(String(value || "").replace(/[łŁ]/g, "l").replace(/ß/g, "ss"));
+  const items = (Array.isArray(data?.equipment) ? data.equipment : []).map(normalizeEquipment).filter(Boolean);
+  const has = (pattern) => items.some((item) => pattern.test(item));
+  const interior = normalizeEquipment(data?.interiorMaterial || "");
+  const upholstery = [interior, ...items.filter((item) => /tapicer|polster|upholster|seats|sitze|fotele/.test(item))];
+  const material = (pattern) => upholstery.some((item) => pattern.test(item));
+  const interiorMaterials = [];
+  if (material(/alcantara/)) interiorMaterials.push("alcantara");
+  if (material(/czesciow.*skor|teil.*leder|part.*leather/)) interiorMaterials.push("part_leather");
+  else if (material(/skorzan|leder|leather/)) interiorMaterials.push("full_leather");
+  if (material(/materialow|tkanin|stoff|cloth|fabric/)) interiorMaterials.push("cloth");
+
+  const parkingSensors = [];
+  if (has(/kamera 360|360 grad kamera|360 degree camera|surround view/)) parkingSensors.push("CAM_360_DEGREES");
+  if (has(/kamera cofania|kamera wsteczna|ruckfahrkamera|rear view cam|reversing camera|back up camera/)) parkingSensors.push("REAR_VIEW_CAM");
+  if (has(/czujnik.*parkowania.*przod|parksensor.*vorn|front parking sensor|front park assist/)) parkingSensors.push("FRONT_SENSORS");
+  if (has(/czujnik.*parkowania.*tyl|parksensor.*hinten|rear parking sensor|rear park assist/)) parkingSensors.push("REAR_SENSORS");
+  if (has(/ruchu poprzecznego.*tyl|querverkehr.*hinten|rear cross traffic/)) parkingSensors.push("REAR_TRAFFIC_ALERT");
+  if (has(/automatyczn.*parkowan|samopark|selbstpark|self parking|automatic parking/)) parkingSensors.push("AUTOMATIC_PARKING");
+
+  let cruiseControl = "any";
+  if (has(/adaptacyjn.*tempomat|aktywn.*tempomat|abstandsregeltempomat|adaptive cruise|acc tempomat/)) cruiseControl = "ADAPTIVE_CRUISE_CONTROL";
+  else if (has(/tempomat|geschwindigkeitsregelanlage|cruise control/)) cruiseControl = "CRUISE_CONTROL";
+
+  let airConditioning = "";
+  if (has(/klimatyzacj.*4 stref|4 zonen klima|4 zone climate/)) airConditioning = "automatic_4_zones";
+  else if (has(/klimatyzacj.*3 stref|3 zonen klima|3 zone climate/)) airConditioning = "automatic_3_zones";
+  else if (has(/klimatyzacj.*2 stref|2 zonen klima|2 zone climate|dwustrefow.*klimatyzacj/)) airConditioning = "automatic_2_zones";
+  else if (has(/klimatyzacj.*automat|klimaautomatik|automatic.*climate|automatic air conditioning/)) airConditioning = "automatic";
+  else if (has(/klimatyzacj.*manual|manuelle klimaanlage|manual air conditioning/)) airConditioning = "manual";
+
+  let trailerCoupling = "any";
+  if (has(/odchylan.*hak|schwenkbar.*anhangerkupplung|swiveling tow/)) trailerCoupling = "swiveling";
+  else if (has(/odlacz.*hak|odpinan.*hak|abnehmbar.*anhangerkupplung|detachable tow/)) trailerCoupling = "detachable_or_swiveling";
+  else if (has(/hak holowniczy|anhangerkupplung|tow ?bar|trailer hitch/)) trailerCoupling = "all";
+
+  const featurePatterns = {
+    PANORAMIC_GLASS_ROOF: /dach panoramiczn|panoramadach|panoramic roof/,
+    ROOF_RAILS: /relingi dachowe|dachreling|roof rail/,
+    AIR_SUSPENSION: /zawieszenie pneumatyczne|luftfederung|air suspension/,
+    PERFORMANCE_HANDLING_SYSTEM: /sportowe zawieszenie|sportfahrwerk|sport suspension/,
+    LASER_HEADLIGHTS: /reflektor.*laser|laserscheinwerfer|laser headlight/,
+    LED_RUNNING_LIGHTS: /swiatla do jazdy dziennej led|led tagfahrlicht|led daytime running/,
+    BI_XENON_HEADLIGHTS: /reflektor.*biksenon|bi xenon|bi xenon scheinwerfer/,
+    ADAPTIVE_BENDING_LIGHTS: /adaptacyjn.*swiatl|swiatla doswietlajace zakret|kurvenlicht|adaptive headlight/,
+    BLIND_SPOT_MONITOR: /asystent martwego pola|totwinkel|blind spot/,
+    SPORT_PACKAGE: /pakiet sportowy|sportpaket|sport package/,
+    KEYLESS_ENTRY: /zamek bezkluczykowy|bezkluczykowy centralny|schlussellos|keyless entry/,
+    ELECTRIC_HEATED_SEATS: /podgrzewan.*(?:fotel|siedzen)|sitzheizung|heated seats/,
+    HEATED_WINDSHIELD: /podgrzewan.*przedni.*szyb|beheizbare frontscheibe|heated windshield/,
+    HEATED_STEERING_WHEEL: /podgrzewan.*kierownic|lenkradheizung|heated steering wheel/,
+    ELECTRIC_HEATED_REAR_SEATS: /podgrzewan.*tyln.*(?:fotel|siedzen)|sitzheizung hinten|heated rear seats/,
+    VENTILATED_SEATS: /wentylowan.*(?:fotel|siedzen)|sitzbeluftung|ventilated seats/,
+    SPORT_SEATS: /sportow.*(?:fotel|siedzen)|sportsitze|sport seats/,
+    MASSAGE_SEATS: /masaz.*(?:fotel|siedzen)|massagesitze|massage seats/,
+    NIGHT_VISION_ASSIST: /asystent noktowizyjny|night vision|nachtsicht/,
+    ALLOY_WHEELS: /felgi aluminiowe|alufelgen|alloy wheels/,
+    TRAFFIC_SIGN_RECOGNITION: /rozpoznawanie znakow drogowych|verkehrszeichenerkennung|traffic sign recognition/,
+    CARPLAY: /apple carplay|\bcarplay\b/,
+    ANDROID_AUTO: /android auto/,
+    AMBIENT_LIGHTING: /oswietlenie ambientowe|ambientebeleuchtung|ambient lighting/,
+    DIGITAL_COCKPIT: /cyfrow.*(?:kokpit|zestaw wskaznikow)|digitales cockpit|digital cockpit/,
+    HEAD_UP_DISPLAY: /head up display|wyswietlacz head up/,
+    ELECTRIC_ADJUSTABLE_SEATS: /elektryczn.*regulacj.*(?:fotel|siedzen)|elektrisch.*sitzverstellung|electric seat adjustment/,
+    MEMORY_SEATS: /(?:fotel|siedzen).*pamiec|sitz.*memory|memory seats/,
+    WIRELESS_CHARGING: /ladowanie indukcyjne|induktives laden|wireless charging/,
+    WINTER_TIRES: /opony zimowe|winterreifen|winter tires/,
+    SUMMER_TIRES: /opony letnie|sommerreifen|summer tires/,
+    ELECTRIC_TAILGATE: /elektryczn.*klapa bagaznika|elektrische heckklappe|electric tailgate/,
+  };
+  const features = Object.entries(featurePatterns).filter(([, pattern]) => has(pattern)).map(([key]) => key);
+  return { interiorMaterials, parkingSensors, cruiseControl, airConditioning, trailerCoupling, features };
+}
+
 function applyRecognizedManualFields(data) {
   const title = data?.title || "";
   const brandMatch = matchBrand(title);
@@ -2673,6 +2748,8 @@ function applyRecognizedManualFields(data) {
   const registrationYear = extractYear(data?.firstRegistration);
   const displacementCcm = compactNumber(data?.displacementCcm);
   const powerHp = compactNumber(data?.powerHp ?? data?.horsepower ?? data?.powerPs);
+  const mileageKm = Number(compactNumber(data?.mileageKm));
+  const equipment = recognizedEquipmentFilters(data);
   const next = {
     brand: brandMatch?.value || "",
     model,
@@ -2681,12 +2758,11 @@ function applyRecognizedManualFields(data) {
       normalizePlugin(data?.fuel, title) === "yes" ? "plugin" : "",
     ].filter(Boolean),
     body: normalizeBody(data?.bodyType),
-    // Comparable cars, not this exact car: the same engine is listed as 1591
-    // or 1598 ccm, and mileage is what the analysis chart spreads offers by.
-    mileageFrom: "",
-    mileageTo: "",
-    yearFrom: registrationYear ? String(Number(registrationYear) - 1) : "",
-    yearTo: registrationYear ? String(Number(registrationYear) + 1) : "",
+    // A fixed 30,000 km window keeps the first comparison reasonably close.
+    mileageFrom: mileageKm > 0 ? String(Math.max(0, mileageKm - 30000)) : "",
+    mileageTo: mileageKm > 0 ? String(mileageKm + 30000) : "",
+    yearFrom: registrationYear || "",
+    yearTo: registrationYear || "",
     displacementFrom: displacementCcm ? String(Math.max(0, Number(displacementCcm) - 100)) : "",
     displacementTo: displacementCcm ? String(Number(displacementCcm) + 100) : "",
     powerFrom: powerHp ? String(Math.floor(Number(powerHp) * 0.9)) : "",
@@ -2711,6 +2787,12 @@ function applyRecognizedManualFields(data) {
   els.powerTo.value = next.powerTo;
   setCheckedValue(els.drive, "any");
   setCheckedValue(els.gearbox, next.gearbox);
+  setCheckedValues(els.interiorMaterials, equipment.interiorMaterials);
+  setCheckedValues(els.parkingSensors, equipment.parkingSensors);
+  setCheckedValue(els.cruiseControl, equipment.cruiseControl);
+  setCheckedValue(els.airConditioning, equipment.airConditioning);
+  setCheckedValue(els.trailerCoupling, equipment.trailerCoupling);
+  setCheckedValues(els.features, equipment.features);
 
   renderModelOptions(next.model);
   updateFuelSummary();
@@ -3378,9 +3460,6 @@ els.form.addEventListener("submit", (event) => {
     setStatus("error", copy[state.lang].otomotoLinkExpected, true);
     return;
   }
-  // The ad opens in a tab this page keeps a handle on: the AUTOGOOD bookmark
-  // clicked there sends the data straight back, with or without the backend.
-  if (/^https:\/\/(suchen|www|m)\.mobile\.de\//.test(sourceUrl)) window.open(sourceUrl, "_blank");
   loadMobileDeData(sourceUrl);
 });
 

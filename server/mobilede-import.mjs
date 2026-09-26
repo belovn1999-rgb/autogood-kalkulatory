@@ -47,6 +47,16 @@ function stripTags(value) {
     .trim();
 }
 
+function extractEquipment(html) {
+  // Read only the listing's equipment list, not matching words elsewhere on the page.
+  const list = String(html || "").match(/<ul\b[^>]*data-testid=["']vip-features-list["'][^>]*>([\s\S]*?)<\/ul>/i);
+  if (!list) return [];
+  return [...list[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)]
+    .map((match) => stripTags(match[1]))
+    .filter(Boolean)
+    .slice(0, 120);
+}
+
 function parseNumber(value) {
   let text = String(value ?? "")
     .replace(/\\u00a0/g, " ")
@@ -1270,6 +1280,7 @@ export async function handleMobiledeImport(request, response) {
     const bodyType = extractBodyType(html, jsonData, text);
     const mileageKm = extractMileage(html, jsonData, text);
     const firstRegistration = extractFirstRegistration(html, jsonData, text);
+    const equipment = extractEquipment(html);
     const location = extractLocation(html, jsonData, text);
     const deliveryInspectionEstimate = estimateDeliveryAndInspectionNettoPln(bodyType, location);
 
@@ -1291,6 +1302,7 @@ export async function handleMobiledeImport(request, response) {
       gearbox,
       mileageKm,
       firstRegistration,
+      equipment,
       location,
       transportNettoPln: deliveryInspectionEstimate?.transport || null,
       inspectionNettoPln: deliveryInspectionEstimate?.inspection || null,
