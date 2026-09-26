@@ -2163,3 +2163,261 @@
 .mobileMarketToolbarActions {
   margin-left: auto;
 }
+
+/* ---- Report v2: three blocks, black headings, marketplace picker -------- */
+.mobileMarketAnalysisPanel > .mobileMarketCard + .mobileMarketCard,
+.mobileMarketAnalysisPanel > .mobileMarketCard + div > .mobileMarketCard {
+  margin-top: var(--space-lg);
+}
+
+.mobileMarketAnalysisPanel .mobileMarketCard {
+  margin-top: var(--space-lg);
+}
+
+.agBlockTitle,
+.mobileMarketAnalysisPanel .agSpecKicker {
+  display: block;
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mobileMarketAnalysisPanel .agSpecKicker {
+  margin: 0;
+}
+
+.mobileMarketAnalysisPanel .agSpecColumn h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+}
+
+.mobileMarketChartCard > .mobileMarketChartHead {
+  margin-top: 0;
+}
+
+/* Field icons in the spec sheet: thin lines, muted. */
+.agSpecIcon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--color-muted);
+}
+
+.agSpecColumn dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agSpecColumn h4 .agSpecIcon {
+  color: var(--color-brand-pressed);
+}
+
+/* Marketplace picker at the top right of the search block. */
+.mobileMarketSources {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.mobileMarketSources > span {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileMarketSourcesList {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.agSourceToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 110px;
+  border: 2px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 0 var(--space-sm);
+  cursor: pointer;
+  opacity: 0.45;
+  filter: grayscale(1);
+  transition: opacity var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.agSourceToggle img {
+  height: 17px;
+  width: auto;
+}
+
+.agSourceToggle.isOn {
+  border-color: var(--color-brand);
+  opacity: 1;
+  filter: none;
+}
+
+.agSourceToggle.isOn::after {
+  content: "✓";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.agSourceToggle.isFetch {
+  border-style: dashed;
+  opacity: 0.7;
+  filter: none;
+}
+
+.agSourceToggle.isFetch i {
+  margin-left: 6px;
+  color: var(--color-brand-pressed);
+  font-size: var(--text-lg);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.agSourceToggle:hover {
+  opacity: 1;
+}
+
+.agSourceToggle:disabled {
+  cursor: default;
+}
+
+/* Statistics: one row per marketplace; with several, higher green, lower red. */
+.mobileMarketStatsTable {
+  display: grid;
+  border-block: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileMarketStatsRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.7fr) minmax(0, 1fr);
+  align-items: center;
+}
+
+.mobileMarketStatsTable.isCompared .mobileMarketStatsRow {
+  grid-template-columns: minmax(0, 1.1fr) repeat(4, minmax(0, 1fr)) minmax(0, 1.7fr) minmax(0, 1fr);
+}
+
+.mobileMarketStatsRow > * {
+  min-width: 0;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.mobileMarketStatsRow > * + * {
+  border-left: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileMarketStatsRow + .mobileMarketStatsRow {
+  border-top: var(--rule-thin) solid var(--color-rule);
+}
+
+.mobileMarketStatsRow.isHead > span {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileMarketStatsRow b {
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.mobileMarketStatsRow b.isWide {
+  font-size: var(--text-base);
+}
+
+.mobileMarketStatsRow b.isHigher {
+  color: var(--color-success);
+}
+
+.mobileMarketStatsRow b.isLower {
+  color: var(--color-error);
+}
+
+.mobileMarketStatsSource {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
+
+.mobileMarketStatsSource .agBrandMark {
+  width: 18px;
+  height: 18px;
+}
+
+.mobileMarketStatsCard .mobileMarketStatsBody {
+  margin-top: 0;
+}
+
+/* Drawing the report: tools out, AUTOGOOD in. */
+.mobileMarketReportBrand {
+  display: none;
+}
+
+.isReportCapture .mobileMarketReportBrand {
+  display: flex;
+  margin-bottom: var(--space-md);
+}
+
+.isReportCapture [data-report-hide],
+.isReportCopy [data-report-hide-copy] {
+  display: none !important;
+}
+
+.isReportCapture .mobileMarketAnalysisPanel {
+  background: #fff;
+  padding: var(--space-md);
+}
+
+@media (max-width: 60rem) {
+  .mobileMarketStatsTable {
+    overflow-x: auto;
+  }
+
+  .mobileMarketStatsRow {
+    min-width: 760px;
+  }
+}
+
+/* The PDF lists every offer: no scroll box around the table. */
+.isReportPdf .mobileMarketTableScroll {
+  max-height: none !important;
+  max-block-size: none !important;
+  overflow: visible !important;
+}
+
+.isReportPdf .mobileMarketTable thead th {
+  position: static !important;
+}

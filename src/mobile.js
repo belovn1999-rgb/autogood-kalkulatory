@@ -1345,6 +1345,29 @@ function detailRow(label, value) {
   return `<div class="mobileDataRow"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
 }
 
+// Field icons drawn inline (not <use> of the sprite file), so a report
+// screenshot keeps them.
+const inlineIcons = new Map();
+fetch("./src/mobile-icons.svg")
+  .then((response) => (response.ok ? response.text() : ""))
+  .then((sprite) => {
+    const doc = new DOMParser().parseFromString(sprite, "image/svg+xml");
+    doc.querySelectorAll("symbol[id]").forEach((symbol) => {
+      inlineIcons.set(symbol.id, { viewBox: symbol.getAttribute("viewBox") || "0 0 24 24", body: symbol.innerHTML });
+    });
+  })
+  .catch(() => {
+    // Without the sprite the rows simply have no icons.
+  });
+
+function inlineIconHtml(id) {
+  const icon = inlineIcons.get(id);
+  if (!icon) return "";
+  return `<svg class="agSpecIcon" viewBox="${icon.viewBox}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon.body}</svg>`;
+}
+
+window.AUTOGOOD_INLINE_ICON = inlineIconHtml;
+
 // One layout for a car (from an ad) and for a market search (analysis):
 // a title line, then four columns — body and engine, mileage and drive,
 // equipment, other information. Columns are {heading, rows: [[label, value]]}
@@ -1352,11 +1375,12 @@ function detailRow(label, value) {
 function specSheetHtml({ kicker = "", title = "", meta = "", aside = "", columns = [] }) {
   const columnHtml = columns.map((column) => {
     const rows = (column.rows || []).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "");
+    const headingIcon = column.icon ? inlineIconHtml(column.icon) : "";
     const long = column.text !== undefined && column.text.length > 180;
     const body = column.text !== undefined
       ? `<p class="agSpecText${column.muted ? " isMuted" : ""}${long ? " isClamped" : ""}">${escapeHtml(column.text)}</p>${long ? `<button class="agSpecMore" type="button" data-spec-expand>${escapeHtml(copy[state.lang].specShowAll)}</button>` : ""}`
-      : `<dl>${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
-    return `<section class="agSpecColumn"><h4>${escapeHtml(column.heading)}</h4>${body}</section>`;
+      : `<dl>${rows.map(([label, value, icon]) => `<div><dt>${icon ? inlineIconHtml(icon) : ""}<span>${escapeHtml(label)}</span></dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
+    return `<section class="agSpecColumn"><h4>${headingIcon}${escapeHtml(column.heading)}</h4>${body}</section>`;
   }).join("");
   return `
     <div class="agSpec">
@@ -2961,23 +2985,23 @@ function renderData() {
     aside: `<span class="agSpecPrice">${price}</span>`,
     columns: [
       { heading: c.specEngineHeading, rows: [
-        [c.specBody, bodyLabelOf(data.bodyType)],
-        [c.specEngineType, fuelLabelOf(data.fuel, title)],
-        [c.specDisplacement, formatNumberWithUnit(data.displacementCcm, "ccm")],
-        [c.specPower, formatNumberWithUnit(powerValue, "KM")],
+        [c.specBody, bodyLabelOf(data.bodyType), "car"],
+        [c.specEngineType, fuelLabelOf(data.fuel, title), "fuel"],
+        [c.specDisplacement, formatNumberWithUnit(data.displacementCcm, "ccm"), "settings"],
+        [c.specPower, formatNumberWithUnit(powerValue, "KM"), "zap"],
       ] },
       { heading: c.specUsageHeading, rows: [
-        [c.specMileage, formatNumberWithUnit(data.mileageKm, "km")],
-        [c.specRegistration, listingRegistration(data.firstRegistration)],
-        [c.specGearbox, listingGearboxLabel(data.gearbox)],
-        [c.specDrive, data.drive || ""],
+        [c.specMileage, formatNumberWithUnit(data.mileageKm, "km"), "gauge"],
+        [c.specRegistration, listingRegistration(data.firstRegistration), "calendar"],
+        [c.specGearbox, listingGearboxLabel(data.gearbox), "git-branch"],
+        [c.specDrive, data.drive || "", "route"],
       ] },
       ...(equipment.length ? [{ heading: c.specEquipmentHeading, text: equipment.join(" - ") }] : []),
       { heading: c.specOtherHeading, rows: [
-        [c.specCountry, country],
-        [c.specStatus, data.condition || ""],
-        [c.specVat, purchaseTypeLabel(data)],
-        [c.specSeller, seller],
+        [c.specCountry, country, "map-pin"],
+        [c.specStatus, data.condition || "", "check"],
+        [c.specVat, purchaseTypeLabel(data), "percent"],
+        [c.specSeller, seller, "store"],
       ] },
     ],
   });

@@ -486,7 +486,7 @@ button {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1.4;
 }
 
 .mobileManualIconButton:focus-visible {
@@ -566,7 +566,7 @@ button {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1.4;
 }
 
 .mobileSelectedFilterItem.isVehicle {
@@ -706,7 +706,7 @@ button {
   color: var(--color-muted);
   opacity: 0.7;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.4;
 }
 
 .mobileField input:not([type="checkbox"]):not([type="radio"]),
