@@ -16,9 +16,10 @@ ceny brutto.
     — wzór zakładki „Zakup bezpośredni” (`calculate()` tab 0 w `src/main.jsx`):
     auto × kurs + oględziny i transport z VAT 23% + akcyza (klasa silnika) +
     prowizja AUTOGOOD (1829,27 + 1% ceny, z VAT) + przegląd 150 + tłumaczenie
-    250 + rejestracja 580 netto (z VAT). Wynik zaokrąglony do 50 PLN jak „Razem”.
-    Sprawdzone: 10 980 € / 4,25 / transport 2500 / oględziny 1300 / spalinowy
-    ≤2000 → 56 700 PLN, tyle samo co kalkulator.
+    250. **Bez rejestracji i bez rabatu** — tylko cena z ogłoszenia (decyzja
+    2026-09-26). Wynik zaokrąglony do 50 PLN jak „Razem”. Sprawdzone z
+    kalkulatorem: 10 980 € / 4,25 / transport 2500 / oględziny 1300 /
+    spalinowy ≤2000 → 56 700 PLN z rejestracją, 56 000 PLN bez.
   - `turnkeyForListing(listing, rate)` — dla jednej oferty: transport i
     oględziny z taryfy po kraju i kodzie pocztowym sprzedawcy
     (`estimateDeliveryInspection` w `mobile.js`), akcyza z paliwa i pojemności
@@ -52,7 +53,6 @@ Stałe wzoru są kopią tych z `src/main.jsx` — zmieniając kalkulator, zmień
 5. **Konkretne auto:** dla rozpoznanego ogłoszenia mobile.de — jego koszt pod
    klucz na tle ofert otomoto o tych samych parametrach.
 
-Otwarte pytania:
-- Rejestracja wliczana zawsze (teraz: tak)?
-- Zniżka / negocjacja z ogłoszenia (pole „discount” kalkulatora) — pomijamy?
-- Oferty spoza DE na mobile.de (NL, BE, FR…) — taryfa już je obsługuje.
+Ustalone: rejestracja nie wchodzi w „pod klucz”; rabatów nie liczymy —
+tylko cena z ogłoszenia. Oferty spoza DE na mobile.de (NL, BE, FR…) — taryfa
+już je obsługuje.

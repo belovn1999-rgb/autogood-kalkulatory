@@ -75,7 +75,8 @@
       verdictMedian: "Mediana ceny ofert: {median}.",
       verdictMiddle: "Typowy zakres: {low} – {high} ({count} ofert).",
       verdictDeals: "Poniżej {low} jest {count} ofert — to dół rynku.",
-      tableHeading: "Oferty w analizie",
+      tableHeading: "Aktualne oferty",
+      loadingHeading: "Pobieram aktualne oferty…",
       tablePrice: "Cena",
       tableYear: "Rok",
       tableMileage: "Przebieg",
@@ -247,7 +248,8 @@
       verdictMedian: "Медиана цен объявлений: {median}.",
       verdictMiddle: "Типичный диапазон: {low} – {high} ({count} объявлений).",
       verdictDeals: "Дешевле {low} — {count} объявлений, это низ рынка.",
-      tableHeading: "Объявления в анализе",
+      tableHeading: "Актуальные объявления",
+      loadingHeading: "Загружаю актуальные объявления…",
       tablePrice: "Цена",
       tableYear: "Год",
       tableMileage: "Пробег",
@@ -1424,7 +1426,7 @@
     });
     return `
       <section class="mobileMarketCard mobileMarketPriceHistory" aria-label="${escapeMarketHtml(c.priceHistoryHeading)}">
-        <h2 class="agBlockTitle">${escapeMarketHtml(c.priceHistoryHeading)}</h2>
+        ${blockTitle("calendar", c.priceHistoryHeading)}
         <div class="mobileMarketTableScroll">
           <table class="mobileMarketTable">
             <thead><tr>
@@ -1441,6 +1443,32 @@
           </table>
         </div>
       </section>`;
+  }
+
+  // While the offers load: the analysis page with its cards drawn empty, and
+  // the progress in its status line.
+  function renderLoadingPage(filters) {
+    const c = copy();
+    const title = [filters.brand, filters.model, filters.version].filter(Boolean).join(" ");
+    const skeletonCard = (icon, heading, lines) => `
+      <section class="mobileMarketCard isLoading" aria-hidden="true">
+        ${blockTitle(icon, heading)}
+        ${Array.from({ length: lines }, (_, index) => `<span class="mobileMarketSkeleton" style="--w:${[92, 78, 64, 85][index % 4]}%"></span>`).join("")}
+      </section>`;
+    analysisContent.innerHTML = `
+      <article class="mobileMarketAnalysisPanel" aria-busy="true">
+        ${favoritesHtml()}
+        <section class="mobileMarketCard">
+          <h2 class="agBlockTitle">${escapeMarketHtml(title)}</h2>
+          <p class="mobileMarketLoadingHeading">${escapeMarketHtml(c.loadingHeading)}</p>
+          ${analysisStatusHtml()}
+        </section>
+        ${skeletonCard("percent", c.statsHeading, 2)}
+        ${skeletonCard("gauge", c.distributionHeading, 6)}
+      </article>`;
+    setManualViewHidden(true);
+    analysisView.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   // "Analiza rynku" without a car chosen: the favourites to pick from.
@@ -1588,6 +1616,11 @@
     }));
   }
 
+  // Card heading with the filter page's icon (left out of the client report).
+  function blockTitle(icon, text) {
+    return `<h2 class="agBlockTitle mobileMarketBlockTitle"><svg class="mobileFieldIcon" aria-hidden="true" data-report-hide><use href="./src/mobile-icons.svg#${icon}"></use></svg><span>${escapeMarketHtml(text)}</span></h2>`;
+  }
+
   function renderAnalysis() {
     if (!activeAnalysis) return;
     const c = copy();
@@ -1645,6 +1678,7 @@
     const sourceName = (source) => (source === "otomoto" ? c.sourceOtomoto : c.sourceMobile);
     const listingKey = (listing) => listing.url || `${listing.source}-${listing.id}`;
     let statsContent = "";
+    let offersContent = "";
     let marketContent = `
       <section class="mobileMarketEmpty">
         <strong>${escapeMarketHtml(c.emptyHeading)}</strong>
@@ -1991,9 +2025,11 @@
           ${suspectListings.length ? `<p class="mobileMarketAxisNote">${escapeMarketHtml(c.suspectsSkipped.replace("{count}", String(suspectListings.length)))}</p>` : ""}
           ${hiddenByAxis ? `<p class="mobileMarketAxisNote">${escapeMarketHtml(c.hiddenNoAxis.replace("{count}", String(hiddenByAxis)))}</p>` : ""}
 
-        <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}" data-report-hide-copy>
+`;
+      offersContent = `
+        <div class="mobileMarketTableBlock">
           <div class="mobileMarketTableHead">
-            <h2>${escapeMarketHtml(c.tableHeading)} · ${marketListings.length}</h2>
+            ${blockTitle("list", `${c.tableHeading} · ${marketListings.length}`)}
             <span data-report-hide>${escapeMarketHtml(c.tableSortHint)}</span>
           </div>
           <div class="mobileMarketTableScroll">
@@ -2021,7 +2057,7 @@
               </tbody>
             </table>
           </div>
-        </section>`;
+        </div>`;
     }
 
     const dataDate = historyEntry?.dataAt || activeAnalysis.fetchedAt || "";
@@ -2078,14 +2114,19 @@
 
         ${statsContent ? `
           <section class="mobileMarketCard mobileMarketStatsCard" aria-label="${escapeMarketHtml(c.statsHeading)}">
-            <h2 class="agBlockTitle">${escapeMarketHtml(c.statsHeading)}</h2>
+            ${blockTitle("percent", c.statsHeading)}
             ${statsContent}
           </section>` : ""}
 
         <section class="mobileMarketCard mobileMarketChartCard" aria-label="${escapeMarketHtml(c.distributionHeading)}">
-          ${hasListings ? `<h2 class="agBlockTitle">${escapeMarketHtml(c.distributionHeading)}</h2>` : ""}
+          ${hasListings ? blockTitle("gauge", c.distributionHeading) : ""}
           ${marketContent}
         </section>
+
+        ${offersContent ? `
+          <section class="mobileMarketCard mobileMarketOffersCard" aria-label="${escapeMarketHtml(c.tableHeading)}" data-report-hide-copy>
+            ${offersContent}
+          </section>` : ""}
 
         <div data-report-hide-copy>${priceHistoryHtml(historyEntry, reportSources)}</div>
       </article>`;
@@ -2328,6 +2369,7 @@
       let providerError = "";
       let rawListings = importedDataset?.listings || savedListings || [];
       if (provider) {
+        renderLoadingPage(filters);
         try {
           rawListings = await provider.getListings({ filters, searchUrl });
         } catch (error) {

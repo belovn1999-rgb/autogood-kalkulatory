@@ -2540,3 +2540,56 @@
 .mobileMarketToolbar {
   justify-content: flex-end;
 }
+
+/* Card headings carry the filter page's icons. */
+.mobileMarketBlockTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.mobileMarketBlockTitle .mobileFieldIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.mobileMarketOffersCard .mobileMarketTableBlock {
+  margin-top: 0;
+}
+
+.mobileMarketOffersCard .mobileMarketTableHead .agBlockTitle {
+  margin-bottom: 0;
+}
+
+/* Loading: the cards drawn empty while the offers arrive. */
+.mobileMarketLoadingHeading {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.mobileMarketSkeleton {
+  display: block;
+  width: var(--w, 80%);
+  height: 14px;
+  margin-top: var(--space-sm);
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--color-surface-tint) 0%, var(--color-rule) 50%, var(--color-surface-tint) 100%);
+  background-size: 200% 100%;
+  animation: mobileMarketShimmer 1.4s ease-in-out infinite;
+}
+
+.mobileMarketCard.isLoading .mobileMarketSkeleton:first-of-type {
+  margin-top: 0;
+}
+
+@keyframes mobileMarketShimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileMarketSkeleton {
+    animation: none;
+  }
+}

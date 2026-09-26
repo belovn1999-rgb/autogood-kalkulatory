@@ -27,7 +27,8 @@
     transportNettoPln = 0,
     inspectionNettoPln = 0,
     engineTypeIndex = 3,
-    registration = true,
+    // "Pod klucz" here is without registration (the client registers).
+    registration = false,
   }) {
     const useRate = rate > 0 ? rate : DEFAULT_RATE;
     const carPln = (Number(carBruttoEur) || 0) * useRate;
