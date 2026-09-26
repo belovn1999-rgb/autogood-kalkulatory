@@ -2667,7 +2667,8 @@ function normalizeBody(value) {
 
 function recognizedEquipmentFilters(data) {
   const normalizeEquipment = (value) => normalizeToken(String(value || "").replace(/[łŁ]/g, "l").replace(/ß/g, "ss"));
-  const items = (Array.isArray(data?.equipment) ? data.equipment : []).map(normalizeEquipment).filter(Boolean);
+  const items = [...(Array.isArray(data?.equipment) ? data.equipment : []), data?.title]
+    .map(normalizeEquipment).filter(Boolean);
   const has = (pattern) => items.some((item) => pattern.test(item));
   const interior = normalizeEquipment(data?.interiorMaterial || "");
   const upholstery = [interior, ...items.filter((item) => /tapicer|polster|upholster|seats|sitze|fotele/.test(item))];
@@ -2679,8 +2680,10 @@ function recognizedEquipmentFilters(data) {
   if (material(/materialow|tkanin|stoff|cloth|fabric/)) interiorMaterials.push("cloth");
 
   const parkingSensors = [];
-  if (has(/kamera 360|360 grad kamera|360 degree camera|surround view/)) parkingSensors.push("CAM_360_DEGREES");
-  if (has(/kamera cofania|kamera wsteczna|ruckfahrkamera|rear view cam|reversing camera|back up camera/)) parkingSensors.push("REAR_VIEW_CAM");
+  const camera360 = has(/kamera 360|360 grad kamera|360 degree camera|surround view/);
+  if (camera360) parkingSensors.push("CAM_360_DEGREES");
+  if (has(/kamera cofania|kamera wsteczna|ruckfahrkamera|rear view cam|reversing camera|back up camera/)
+    || (!camera360 && has(/\bkamera\b|\bcamera\b/))) parkingSensors.push("REAR_VIEW_CAM");
   if (has(/czujnik.*parkowania.*przod|parksensor.*vorn|front parking sensor|front park assist/)) parkingSensors.push("FRONT_SENSORS");
   if (has(/czujnik.*parkowania.*tyl|parksensor.*hinten|rear parking sensor|rear park assist/)) parkingSensors.push("REAR_SENSORS");
   if (has(/ruchu poprzecznego.*tyl|querverkehr.*hinten|rear cross traffic/)) parkingSensors.push("REAR_TRAFFIC_ALERT");
