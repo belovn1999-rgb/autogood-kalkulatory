@@ -26,6 +26,17 @@
       historyUpdateSuccess: "Dane wpisu zostały zaktualizowane.",
       historyConfirm: "Zapisz zmiany w tym wpisie",
       favoritesHeading: "Ulubione auta",
+      favoriteRemove: "Usuń z ulubionych",
+      statsHeading: "Ceny rynkowe",
+      distributionHeading: "Rozkład cen",
+      screenshotButton: "Kopiuj raport",
+      screenshotCopied: "Raport skopiowany do schowka — wklej go w wiadomości do klienta.",
+      screenshotOpened: "Przeglądarka nie pozwala kopiować obrazów — raport otwarto w nowej karcie.",
+      screenshotFailed: "Nie udało się zrobić zrzutu raportu.",
+      screenshotWorking: "Przygotowuję raport…",
+      reportTitle: "Analiza rynku",
+      tableTitle: "Ogłoszenie",
+      priceMaxLabel: "najdroższa",
       favoritesEmpty: "Oznacz wpis w historii gwiazdką ★ — pojawi się tutaj.",
       favoritesPick: "Wybierz auto z ulubionych albo wpisz markę i model w formularzu.",
       favoritesNoData: "brak cen",
@@ -175,6 +186,17 @@
       historyUpdateSuccess: "Данные записи обновлены.",
       historyConfirm: "Сохранить изменения в этой записи",
       favoritesHeading: "Избранные авто",
+      favoriteRemove: "Убрать из избранного",
+      statsHeading: "Рыночные цены",
+      distributionHeading: "Распределение цен",
+      screenshotButton: "Копировать отчёт",
+      screenshotCopied: "Отчёт скопирован в буфер обмена — вставь его в сообщение клиенту.",
+      screenshotOpened: "Браузер не даёт копировать картинки — отчёт открыт в новой вкладке.",
+      screenshotFailed: "Не удалось сделать снимок отчёта.",
+      screenshotWorking: "Готовлю отчёт…",
+      reportTitle: "Анализ рынка",
+      tableTitle: "Объявление",
+      priceMaxLabel: "самое дорогое",
       favoritesEmpty: "Отметьте запись в истории звёздочкой ★ — она появится здесь.",
       favoritesPick: "Выберите авто из избранного или укажите марку и модель в форме.",
       favoritesNoData: "нет цен",
@@ -1302,11 +1324,14 @@
             const meta = historyMeta(entry.filters).slice(0, 2).join(" · ");
             const price = latestPriceLabel(entry);
             const date = entry.dataAt ? formatHistoryDate(entry.dataAt) : "";
-            return `<button class="mobileMarketFavorite${entry.id === activeId ? " isActive" : ""}" type="button" data-mobile-market-favorite="${escapeMarketHtml(entry.id)}"${entry.id === activeId ? ' aria-current="true"' : ""}>
-              <b>${escapeMarketHtml(title)}</b>
-              ${meta ? `<small>${escapeMarketHtml(meta)}</small>` : ""}
-              <span>${escapeMarketHtml(price || c.favoritesNoData)}${date ? ` · ${escapeMarketHtml(date)}` : ""}</span>
-            </button>`;
+            return `<div class="mobileMarketFavoriteItem">
+              <button class="mobileMarketFavorite${entry.id === activeId ? " isActive" : ""}" type="button" data-mobile-market-favorite="${escapeMarketHtml(entry.id)}"${entry.id === activeId ? ' aria-current="true"' : ""}>
+                <b>${escapeMarketHtml(title)}</b>
+                ${meta ? `<small>${escapeMarketHtml(meta)}</small>` : ""}
+                <span>${escapeMarketHtml(price || c.favoritesNoData)}${date ? ` · ${escapeMarketHtml(date)}` : ""}</span>
+              </button>
+              <button class="mobileMarketFavoriteRemove" type="button" data-mobile-market-favorite-remove="${escapeMarketHtml(entry.id)}" aria-label="${escapeMarketHtml(`${c.favoriteRemove}: ${title}`)}" title="${escapeMarketHtml(c.favoriteRemove)}">×</button>
+            </div>`;
           }).join("")}
         </div>` : `<p>${escapeMarketHtml(c.favoritesEmpty)}</p>`}
       </section>`;
@@ -1658,6 +1683,7 @@
 
       const sortedListings = [...marketListings].sort((left, right) => {
         const factor = tableSort.direction === "asc" ? 1 : -1;
+        if (tableSort.key === "title") return String(left.title || "").localeCompare(String(right.title || ""), "pl") * factor;
         return ((Number(left[tableSort.key]) || 0) - (Number(right[tableSort.key]) || 0)) * factor;
       });
 
@@ -1765,11 +1791,11 @@
         </div>`;
       marketContent = `
         <div class="mobileMarketChartHead">
-          <label class="mobileMarketCompare">
+          <label class="mobileMarketCompare" data-html2canvas-ignore>
             <span>${escapeMarketHtml(c.comparePrice)}</span>
             <input type="text" inputmode="numeric" autocomplete="off" data-mobile-market-compare-price placeholder="${escapeMarketHtml(c.comparePlaceholder)}" value="${escapeMarketHtml(activeAnalysis.comparePrice || "")}" />
           </label>
-          <div class="mobileMarketControls">
+          <div class="mobileMarketControls" data-html2canvas-ignore>
             <div class="mobileMarketToggle" role="group" aria-label="${escapeMarketHtml(c.sourcesLabel)}">
               ${MARKET_SOURCES.map((source) => {
                 const count = sourceCount(source);
@@ -1820,6 +1846,10 @@
           <div class="mobileMarketPlot">${trendLine}</div>
           ${points}
           ${carMarker}
+          ${(() => {
+            const top = [...plotted].sort((left, right) => right.listing.price - left.listing.price)[0];
+            return top ? `<span class="mobileMarketExtreme${top.x > 0.8 ? " isRight" : ""}" style="--x:${top.x.toFixed(4)};top:${top.y}%">${escapeMarketHtml(c.priceMaxLabel)} · ${escapeMarketHtml(formatMarketPrice(top.listing.price))}</span>` : "";
+          })()}
           ${Math.abs(middleHighPosition - medianPosition) >= 4 ? `<span class="mobileMarketKeyTick" style="top:${middleHighPosition}%">P75 · ${escapeMarketHtml(formatMarketPrice(statistics.middleHigh))}</span>` : ""}
           <span class="mobileMarketKeyTick isMedian" style="top:${medianPosition}%">${escapeMarketHtml(c.median)} · ${escapeMarketHtml(formatMarketPrice(statistics.median))}</span>
           ${Math.abs(middleLowPosition - medianPosition) >= 4 ? `<span class="mobileMarketKeyTick" style="top:${middleLowPosition}%">P25 · ${escapeMarketHtml(formatMarketPrice(statistics.middleLow))}</span>` : ""}
@@ -1835,7 +1865,7 @@
 
           ${hiddenByAxis ? `<p class="mobileMarketAxisNote">${escapeMarketHtml(c.hiddenNoAxis.replace("{count}", String(hiddenByAxis)))}</p>` : ""}
 
-        <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}">
+        <section class="mobileMarketTableBlock" aria-label="${escapeMarketHtml(c.tableHeading)}" data-html2canvas-ignore>
           <div class="mobileMarketTableHead">
             <h2>${escapeMarketHtml(c.tableHeading)} · ${marketListings.length}</h2>
             <span>${escapeMarketHtml(c.tableSortHint)}</span>
@@ -1844,7 +1874,7 @@
             <table class="mobileMarketTable">
               <thead>
                 <tr>
-                  ${[["price", c.tablePrice], ["year", c.tableYear], ["mileage", c.tableMileage]].map(([key, label]) => `
+                  ${[["title", c.tableTitle], ["year", c.tableYear], ["mileage", c.tableMileage], ["price", c.tablePrice]].map(([key, label]) => `
                     <th scope="col">
                       <button type="button" data-mobile-market-sort="${key}">${escapeMarketHtml(label)}${tableSort.key === key ? (tableSort.direction === "asc" ? " ↑" : " ↓") : ""}</button>
                     </th>`).join("")}
@@ -1855,9 +1885,10 @@
               <tbody>
                 ${sortedListings.map((listing) => `
                   <tr class="${marketClass(listing.price, statistics)}" data-market-key="${escapeMarketHtml(listingKey(listing))}">
-                    <td>${escapeMarketHtml(formatMarketPrice(listing.price))}</td>
+                    <td class="mobileMarketTableTitle">${fullTitle(listing) ? `<b>${escapeMarketHtml(fullTitle(listing))}</b>` : "—"}${listing.subtitle ? `<small>${escapeMarketHtml(listing.subtitle)}</small>` : ""}</td>
                     <td>${escapeMarketHtml(listing.year ? String(listing.year) : "—")}</td>
                     <td>${escapeMarketHtml(listing.mileage ? `${numbers.format(listing.mileage)} km` : "—")}</td>
+                    <td><b>${escapeMarketHtml(formatMarketPrice(listing.price))}</b></td>
                     <td><span class="mobileMarketSourceTag is${listing.source === "otomoto" ? "Otomoto" : "Mobile"}"><i aria-hidden="true"></i>${escapeMarketHtml(sourceName(listing.source))}</span></td>
                     <td>${listing.url ? brandMarkLink(listing.source, listing.url, `${c.tableOpen}: ${sourceName(listing.source)}`) : ""}</td>
                   </tr>`).join("")}
@@ -1872,44 +1903,161 @@
     const spec = window.AUTOGOOD_SPEC_SHEET?.({
       kicker: window.AUTOGOOD_SPEC_COPY?.().specSearchKicker || c.searchHeading,
       title: [filters.brand, filters.model, filters.version].filter(Boolean).join(" "),
-      aside: `
-        ${dataDate && hasListings ? `<span class="agSpecDate">${escapeMarketHtml(c.checkedAt.replace("{date}", formatHistoryDate(dataDate)))}</span>` : ""}
-        <span class="agBrandLinks">
-          ${brandLogoLink("mobile", searchUrl, c.openSearch)}
-          ${otomotoUrl ? brandLogoLink("otomoto", otomotoUrl, c.openOtomoto) : ""}
-        </span>`,
+      meta: dataDate && hasListings ? c.checkedAt.replace("{date}", formatHistoryDate(dataDate)) : "",
       columns: searchSpecColumns(filters, reportSources),
     }) || "";
     analysisContent.innerHTML = `
       <article class="mobileMarketAnalysisPanel">
         ${favoritesHtml(historyEntry?.pinned ? historyEntry.id : "")}
-        <section class="mobileMarketCard mobileMarketSearchCard" aria-label="${escapeMarketHtml(c.searchHeading)}">
-          <div class="mobileMarketToolbar">
-            <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
-              <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
-              <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
-            <div class="mobileMarketImportActions">
-              <label class="mobileMarketImportButton">
-                <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
-                <span>${escapeMarketHtml(c.importButton)}</span>
-              </label>
-              ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
-              <button class="mobileMarketImportClear isPrimary" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
-            </div>
+        <div class="mobileMarketToolbar">
+          <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
+            <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
+            <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
+          <div class="mobileMarketToolbarActions">
+            <span class="agBrandLinks">
+              ${brandLogoLink("mobile", searchUrl, c.openSearch)}
+              ${otomotoUrl ? brandLogoLink("otomoto", otomotoUrl, c.openOtomoto) : ""}
+            </span>
+            <label class="mobileMarketImportButton">
+              <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
+              <span>${escapeMarketHtml(c.importButton)}</span>
+            </label>
+            ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
+            <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
+            ${hasListings ? `<button class="mobileMarketImportClear isPrimary" type="button" data-mobile-market-screenshot>📷 ${escapeMarketHtml(c.screenshotButton)}</button>` : ""}
           </div>
-          ${analysisStatusHtml()}
-          ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<p class="mobileMarketImportedNote">${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</p>` : ""}
-          ${spec}
-          ${statsContent}
-        </section>
+        </div>
+        ${analysisStatusHtml()}
+        ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<p class="mobileMarketImportedNote">${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</p>` : ""}
 
-        <section class="mobileMarketCard mobileMarketChartCard" aria-label="${escapeMarketHtml(c.chartTitle)}">
-          ${marketContent}
-        </section>
+        <div class="mobileMarketReport" data-market-report>
+          <section class="mobileMarketCard mobileMarketSearchCard" aria-label="${escapeMarketHtml(c.searchHeading)}">
+            ${spec}
+            ${statsContent ? `
+              <div class="mobileMarketStatsSection">
+                <span class="agSpecKicker">${escapeMarketHtml(c.statsHeading)}</span>
+                ${statsContent}
+              </div>` : ""}
+          </section>
+
+          <section class="mobileMarketCard mobileMarketChartCard" aria-label="${escapeMarketHtml(c.distributionHeading)}">
+            ${hasListings ? `<span class="agSpecKicker mobileMarketChartKicker">${escapeMarketHtml(c.distributionHeading)}</span>` : ""}
+            ${marketContent}
+          </section>
+        </div>
 
         ${priceHistoryHtml(historyEntry)}
       </article>`;
     window.AUTOGOOD_PREPARE_BOOKMARKLETS?.();
+  }
+
+  // ---- Client report screenshot ------------------------------------------
+  // Like the calculators: html2canvas draws the report (search, prices,
+  // chart; tools and the offer table left out) and the PNG goes to the
+  // clipboard, or opens in a new tab where images cannot be copied.
+  let html2canvasLoading = null;
+  function loadHtml2canvas() {
+    if (window.html2canvas) return Promise.resolve();
+    html2canvasLoading ||= new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "./vendor/html2canvas.min.js";
+      script.onload = resolve;
+      script.onerror = () => {
+        html2canvasLoading = null;
+        reject(new Error("html2canvas"));
+      };
+      document.head.append(script);
+    });
+    return html2canvasLoading;
+  }
+
+  // html2canvas cannot read oklch()/color() colours, which the site's tokens
+  // use; the copy it draws gets them as plain rgba.
+  const COLOR_FUNCTION = /(?:oklch|oklab|lch|lab|color)\([^()]*\)/g;
+  const COLOR_PROPERTIES = [
+    "color", "background-color", "border-top-color", "border-right-color", "border-bottom-color",
+    "border-left-color", "outline-color", "text-decoration-color", "box-shadow", "text-shadow",
+    "background-image", "fill", "stroke", "-webkit-text-stroke-color", "column-rule-color",
+  ];
+  function plainColors(documentClone, root) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const cache = new Map();
+    const toRgba = (value) => {
+      if (cache.has(value)) return cache.get(value);
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = "#000";
+      context.fillStyle = value;
+      context.fillRect(0, 0, 1, 1);
+      const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+      const rgba = `rgba(${red}, ${green}, ${blue}, ${Math.round((alpha / 255) * 1000) / 1000})`;
+      cache.set(value, rgba);
+      return rgba;
+    };
+    const view = documentClone.defaultView;
+    const ancestors = [];
+    for (let node = root?.parentElement; node; node = node.parentElement) ancestors.push(node);
+    [...ancestors, root, ...(root ? root.querySelectorAll("*") : [])].filter(Boolean).forEach((element) => {
+      const style = view.getComputedStyle(element);
+      COLOR_PROPERTIES.forEach((property) => {
+        const value = style.getPropertyValue(property);
+        if (value && COLOR_FUNCTION.test(value)) {
+          COLOR_FUNCTION.lastIndex = 0;
+          element.style.setProperty(property, value.replace(COLOR_FUNCTION, toRgba), "important");
+        }
+        COLOR_FUNCTION.lastIndex = 0;
+      });
+    });
+  }
+
+  async function copyReportScreenshot(button) {
+    const c = copy();
+    const report = analysisContent.querySelector("[data-market-report]");
+    if (!report) return;
+    button.disabled = true;
+    setAnalysisStatus(c.screenshotWorking);
+    try {
+      await loadHtml2canvas();
+      const scale = Math.min(2, window.devicePixelRatio || 1);
+      const canvas = await window.html2canvas(report, {
+        backgroundColor: "#ffffff",
+        scale,
+        useCORS: true,
+        windowWidth: document.documentElement.scrollWidth,
+        onclone: (documentClone) => {
+          const clone = documentClone.querySelector("[data-market-report]");
+          // AUTOGOOD above the report the client receives.
+          clone?.insertAdjacentHTML("afterbegin", `
+            <div class="mobileMarketReportBrand">
+              <img src="./assets/autogood-logo.png" alt="AUTOGOOD" />
+              <span>${escapeMarketHtml(c.reportTitle)} · ${escapeMarketHtml(formatHistoryDate(new Date().toISOString()))}</span>
+            </div>`);
+          clone?.classList.add("isCapture");
+          plainColors(documentClone, clone);
+        },
+      });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("png");
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          setAnalysisStatus(c.screenshotCopied);
+          return;
+        } catch {
+          // Fall through to a new tab.
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setAnalysisStatus(c.screenshotOpened);
+    } catch {
+      setAnalysisStatus(c.screenshotFailed, true);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   // The filters' status line is hidden while the analysis is open, so the
@@ -2117,6 +2265,18 @@
   });
 
   analysisContent.addEventListener("click", (event) => {
+    const removeFavorite = event.target.closest("[data-mobile-market-favorite-remove]");
+    if (removeFavorite) {
+      setHistoryPinned(removeFavorite.dataset.mobileMarketFavoriteRemove, false);
+      if (activeAnalysis) renderAnalysis();
+      else renderFavoritesPage();
+      return;
+    }
+    const screenshot = event.target.closest("[data-mobile-market-screenshot]");
+    if (screenshot) {
+      copyReportScreenshot(screenshot);
+      return;
+    }
     const favorite = event.target.closest("[data-mobile-market-favorite]");
     if (favorite) {
       openFavorite(favorite.dataset.mobileMarketFavorite);

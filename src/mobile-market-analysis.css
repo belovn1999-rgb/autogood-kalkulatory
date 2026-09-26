@@ -1952,3 +1952,214 @@
   width: 13px;
   height: 13px;
 }
+
+/* ---- Report blocks (search + prices, distribution) ---------------------- */
+.mobileMarketToolbar {
+  margin: 0 0 var(--space-md);
+  border-bottom: 0;
+  padding: 0;
+}
+
+.mobileMarketToolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.mobileMarketToolbarActions .mobileMarketImportButton,
+.mobileMarketToolbarActions .mobileMarketImportClear {
+  min-height: 34px;
+  padding: 0 var(--space-sm);
+  font-size: var(--text-xs);
+}
+
+.mobileMarketToolbarActions .mobileMarketImportClear.isPrimary {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-accent-ink);
+}
+
+.mobileMarketAnalysisPanel > .mobileMarketAnalysisStatus {
+  margin: 0 0 var(--space-md);
+}
+
+.mobileMarketReport {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.mobileMarketReport > .mobileMarketCard {
+  margin-top: 0;
+}
+
+.mobileMarketSearchCard {
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+}
+
+/* Roomier spec sheet in the analysis. */
+.mobileMarketSearchCard .agSpec {
+  gap: var(--space-lg);
+}
+
+.mobileMarketSearchCard .agSpecTitle strong {
+  font-size: 1.625rem;
+}
+
+.mobileMarketSearchCard .agSpecColumns {
+  padding-top: var(--space-md);
+}
+
+.mobileMarketSearchCard .agSpecColumn {
+  padding: 0 var(--space-lg);
+}
+
+.mobileMarketSearchCard .agSpecColumn:first-child {
+  padding-left: 0;
+}
+
+.mobileMarketSearchCard .agSpecColumn h4 {
+  margin-bottom: var(--space-sm);
+  font-size: var(--text-xs);
+}
+
+.mobileMarketSearchCard .agSpecColumn dl {
+  gap: 7px;
+}
+
+.mobileMarketSearchCard .agSpecColumn dt {
+  font-size: var(--text-sm);
+}
+
+.mobileMarketSearchCard .agSpecColumn dd {
+  font-size: var(--text-base);
+}
+
+.mobileMarketSearchCard .agSpecText {
+  font-size: var(--text-sm);
+}
+
+.mobileMarketStatsSection {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+  border-top: var(--rule-thick) solid var(--color-rule);
+  padding-top: var(--space-lg);
+}
+
+.mobileMarketStatsSection .mobileMarketStatsBody,
+.mobileMarketStatsSection .mobileMarketStats {
+  margin-top: 0;
+}
+
+.mobileMarketChartKicker {
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.agSpecKicker {
+  font-size: var(--text-sm);
+}
+
+.agSpecTitleLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--space-md);
+}
+
+/* Favourite cards with their own remove button. */
+.mobileMarketFavoriteItem {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.mobileMarketFavoriteItem .mobileMarketFavorite {
+  padding-right: 34px;
+}
+
+.mobileMarketFavoriteRemove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: var(--rule-thin) solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mobileMarketFavoriteRemove:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* "najdroższa" above the dearest dot. */
+.mobileMarketExtreme {
+  position: absolute;
+  z-index: 3;
+  left: calc(var(--plot-left) + (100% - var(--plot-left) - var(--plot-right)) * var(--x));
+  transform: translate(-50%, calc(-100% - 12px));
+  border-radius: 4px;
+  background: var(--color-ink);
+  padding: 2px 6px;
+  color: #fff;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.mobileMarketExtreme.isRight {
+  transform: translate(calc(-100% + 10px), calc(-100% - 12px));
+}
+
+/* Offer table: the offer's name first. */
+.mobileMarketTableTitle {
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.mobileMarketTableTitle b,
+.mobileMarketTableTitle small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileMarketTableTitle small {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+/* What the client gets: AUTOGOOD above the report. */
+.mobileMarketReportBrand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-xs) 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mobileMarketReportBrand img {
+  height: 26px;
+}
+
+.mobileMarketReport.isCapture {
+  padding: var(--space-md);
+  background: #fff;
+}
+
+.mobileMarketToolbarActions {
+  margin-left: auto;
+}

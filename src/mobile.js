@@ -1305,7 +1305,7 @@ function detailRow(label, value) {
 // a title line, then four columns — body and engine, mileage and drive,
 // equipment, other information. Columns are {heading, rows: [[label, value]]}
 // or {heading, text}; rows without a value are left out.
-function specSheetHtml({ kicker = "", title = "", aside = "", columns = [] }) {
+function specSheetHtml({ kicker = "", title = "", meta = "", aside = "", columns = [] }) {
   const columnHtml = columns.map((column) => {
     const rows = (column.rows || []).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "");
     const long = column.text !== undefined && column.text.length > 180;
@@ -1319,7 +1319,7 @@ function specSheetHtml({ kicker = "", title = "", aside = "", columns = [] }) {
       <div class="agSpecHead">
         <div class="agSpecTitle">
           ${kicker ? `<span class="agSpecKicker">${escapeHtml(kicker)}</span>` : ""}
-          <strong>${escapeHtml(title)}</strong>
+          <div class="agSpecTitleLine"><strong>${escapeHtml(title)}</strong>${meta ? `<span class="agSpecDate">${escapeHtml(meta)}</span>` : ""}</div>
         </div>
         ${aside ? `<div class="agSpecAside">${aside}</div>` : ""}
       </div>
