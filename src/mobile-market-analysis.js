@@ -32,6 +32,7 @@
       sourceOn: "{source}: widoczne na wykresie — kliknij, aby ukryć",
       sourceOff: "{source}: ukryte — kliknij, aby pokazać",
       sourceFetch: "Pobierz oferty z mobile.de",
+      sourceNoData: "mobile.de: brak danych — otwórz wyszukiwanie mobile.de (logo u góry) i kliknij tam zakładkę AUTOGOOD.",
       averagePrices: "Średnie ceny",
       pdfButton: "Raport PDF",
       pdfWorking: "Przygotowuję raport PDF…",
@@ -168,7 +169,7 @@
       suspectsSkipped: "Poza statystyką: {count} ofert (uszkodzone, na części, cesja / leasing albo cena poza 1/3–3× mediany) — szare kółka na wykresie.",
       suspectTag: "poza statystyką",
       emptyHeading: "Brak realnych ofert do analizy",
-      emptyDescription: "Pobierz oferty z mobile.de zakładką AUTOGOOD albo zaimportuj JSON lub CSV. Wykres nie pokazuje punktów testowych.",
+      emptyDescription: "Kliknij „Odśwież dane”, aby pobrać ceny z otomoto.pl, albo pobierz oferty z mobile.de zakładką AUTOGOOD (zakładka jest na stronie głównej).",
       missingVehicle: "Wybierz markę i model przed uruchomieniem analizy rynku.",
       invalidData: "Źródło nie zwróciło co najmniej 3 poprawnych ogłoszeń mobile.de.",
       preparing: "Przygotowuję analizę rynku…",
@@ -203,6 +204,7 @@
       sourceOn: "{source}: показан на графике — нажми, чтобы скрыть",
       sourceOff: "{source}: скрыт — нажми, чтобы показать",
       sourceFetch: "Загрузить объявления с mobile.de",
+      sourceNoData: "mobile.de: нет данных — открой поиск mobile.de (логотип вверху) и нажми там закладку AUTOGOOD.",
       averagePrices: "Средние цены",
       pdfButton: "Отчёт PDF",
       pdfWorking: "Готовлю отчёт PDF…",
@@ -339,7 +341,7 @@
       suspectsSkipped: "Вне статистики: {count} объявл. (повреждённые, на запчасти, цессия / лизинг или цена вне 1/3–3× медианы) — серые кружки на графике.",
       suspectTag: "вне статистики",
       emptyHeading: "Нет реальных объявлений для анализа",
-      emptyDescription: "Загрузите объявления с mobile.de закладкой AUTOGOOD или импортируйте JSON либо CSV. На графике нет тестовых точек.",
+      emptyDescription: "Нажми «Обновить данные», чтобы загрузить цены с otomoto.pl, или загрузи объявления с mobile.de закладкой AUTOGOOD (закладка на главной странице).",
       missingVehicle: "Выберите марку и модель перед запуском анализа рынка.",
       invalidData: "Источник не вернул минимум 3 корректных объявления mobile.de.",
       preparing: "Подготавливаю анализ рынка…",
@@ -1382,7 +1384,7 @@
 
   // Every measurement of this search, newest first, one row per marketplace,
   // each value compared with the previous measurement of that marketplace.
-  function priceHistoryHtml(entry) {
+  function priceHistoryHtml(entry, sources = MARKET_SOURCES) {
     const c = copy();
     const log = entry?.priceLog || [];
     if (!log.length) return "";
@@ -1398,7 +1400,7 @@
     log.forEach((point, index) => {
       const rows = [];
       groups.push(rows);
-      MARKET_SOURCES.forEach((source) => {
+      MARKET_SOURCES.filter((source) => sources.includes(source)).forEach((source) => {
         const current = point[source];
         if (!current) return;
         const previous = log.slice(0, index).reverse().find((item) => item[source])?.[source];
@@ -1484,7 +1486,7 @@
 
   // The marketplace's own logo as the link to its search.
   function brandLogoLink(source, url, label) {
-    return `<a class="agBrandLink is${source === "otomoto" ? "Otomoto" : "Mobile"}" href="${escapeMarketHtml(url)}" target="_blank" rel="noopener" title="${escapeMarketHtml(label)}" aria-label="${escapeMarketHtml(label)}"><img src="${BRAND_LOGOS[source]}" alt="" /></a>`;
+    return `<a class="agBrandLink agBrandSearch is${source === "otomoto" ? "Otomoto" : "Mobile"}" href="${escapeMarketHtml(url)}" target="_blank" rel="noopener" title="${escapeMarketHtml(label)}" aria-label="${escapeMarketHtml(label)}"><img src="${BRAND_LOGOS[source]}" alt="" /><i aria-hidden="true">↗</i></a>`;
   }
 
   // The marketplace's small mark as the link to one of its offers.
@@ -2034,7 +2036,7 @@
             const count = cleaned[source].length;
             const name = sourceName(source);
             if (!count && source === "mobile") {
-              return `<button class="agSourceToggle isFetch" type="button" data-mobile-market-fetch-mobile data-report-hide title="${escapeMarketHtml(c.sourceFetch)}" aria-label="${escapeMarketHtml(c.sourceFetch)}"><img src="${BRAND_LOGOS[source]}" alt="" /><i aria-hidden="true">+</i></button>`;
+              return `<button class="agSourceToggle" type="button" disabled data-report-hide title="${escapeMarketHtml(c.sourceNoData)}" aria-label="${escapeMarketHtml(c.sourceNoData)}"><img src="${BRAND_LOGOS[source]}" alt="" /></button>`;
             }
             const on = count > 0 && shownSources.includes(source);
             const label = (on ? c.sourceOn : c.sourceOff).replace("{source}", `${name} (${count})`);
@@ -2057,19 +2059,11 @@
         </div>
         ${favoritesHtml(historyEntry?.pinned ? historyEntry.id : "")}
         <div class="mobileMarketToolbar" data-report-hide>
-          <span class="mobileBookmarkletRow">${escapeMarketHtml(c.bookmarkletInstall)}
-            <a class="mobileBookmarkletLink" href="#" data-autogood-bookmarklet draggable="true">AUTOGOOD ↦ mobile.de</a>
-            <em>${escapeMarketHtml(c.bookmarkletInstallHint)}</em></span>
           <div class="mobileMarketToolbarActions">
             <span class="agBrandLinks">
               ${brandLogoLink("mobile", searchUrl, c.openSearch)}
               ${otomotoUrl ? brandLogoLink("otomoto", otomotoUrl, c.openOtomoto) : ""}
             </span>
-            <label class="mobileMarketImportButton">
-              <input type="file" accept=".json,.csv,application/json,text/csv" data-mobile-market-file />
-              <span>${escapeMarketHtml(c.importButton)}</span>
-            </label>
-            ${stored ? `<button class="mobileMarketImportClear" type="button" data-mobile-market-import-clear>${escapeMarketHtml(c.clearImport)}</button>` : ""}
             <button class="mobileMarketImportClear" type="button" data-mobile-market-refresh>${escapeMarketHtml(c.refresh)}</button>
             ${hasListings ? `
               <button class="mobileMarketImportClear isPrimary" type="button" data-mobile-market-screenshot>${escapeMarketHtml(c.screenshotButton)}</button>
@@ -2077,7 +2071,6 @@
           </div>
         </div>
         <div data-report-hide>${analysisStatusHtml()}</div>
-        ${stored && /\.(json|csv)$/i.test(sourceFileName || "") ? `<p class="mobileMarketImportedNote" data-report-hide>${escapeMarketHtml(c.importedFile.replace("{count}", String(listings.length)).replace("{file}", sourceFileName))}</p>` : ""}
 
         <section class="mobileMarketCard mobileMarketSearchCard" aria-label="${escapeMarketHtml(c.searchHeading)}">
           ${spec}
@@ -2094,7 +2087,7 @@
           ${marketContent}
         </section>
 
-        <div data-report-hide-copy>${priceHistoryHtml(historyEntry)}</div>
+        <div data-report-hide-copy>${priceHistoryHtml(historyEntry, reportSources)}</div>
       </article>`;
     window.AUTOGOOD_PREPARE_BOOKMARKLETS?.();
   }
